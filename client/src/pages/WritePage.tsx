@@ -4,9 +4,9 @@
  * 모드: AI 가이드 (10단계 마법사) / 직접 작성 (법적 양식)
  */
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Bot, PenLine, Shield, Clock, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Bot, PenLine, Shield, Clock, CheckCircle2, MessageSquare, ScanLine } from "lucide-react";
 import AIWizard from "@/components/write/AIWizard";
 import DirectForm from "@/components/write/DirectForm";
 import type { WillMode } from "@/lib/willTypes";
@@ -79,6 +79,7 @@ export default function WritePage() {
 
 /* ─── 모드 선택 화면 ─── */
 function ModeSelect({ onSelect }: { onSelect: (m: WillMode) => void }) {
+  const [, navigate] = useLocation();
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">
       {/* 헤더 */}
@@ -164,6 +165,53 @@ function ModeSelect({ onSelect }: { onSelect: (m: WillMode) => void }) {
             직접 작성 시작하기
             <span>→</span>
           </div>
+        </motion.button>
+      </div>
+
+      {/* 추가 옵션 */}
+      <div className="grid md:grid-cols-2 gap-4 mb-6">
+        {/* AI 챗봇 가이드 */}
+        <motion.button
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => navigate("/will/chat")}
+          className="text-left bg-white rounded-2xl p-5 border-2 border-gray-100 hover:border-[#1F3864]/30 group transition-all"
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+              <MessageSquare className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="font-bold text-[#1F3864] text-sm">💬 AI 대화형 가이드</p>
+              <p className="text-xs text-gray-400">채팅으로 유언장 작성</p>
+            </div>
+          </div>
+          <p className="text-gray-500 text-xs leading-relaxed">
+            AI와 대화하며 자연스럽게 유언장을 작성합니다. 어르신도 쉽게 사용 가능합니다.
+          </p>
+          <p className="text-blue-600 text-xs font-semibold mt-2 group-hover:underline">대화형으로 시작 →</p>
+        </motion.button>
+
+        {/* 자필 스캔 검증 */}
+        <motion.button
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => navigate("/will/scan")}
+          className="text-left bg-white rounded-2xl p-5 border-2 border-gray-100 hover:border-[#C9A961]/40 group transition-all"
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+              <ScanLine className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="font-bold text-[#1F3864] text-sm">📜 자필 유언장 AI 검증</p>
+              <p className="text-xs text-gray-400">이미 작성된 유언장 검증</p>
+            </div>
+          </div>
+          <p className="text-gray-500 text-xs leading-relaxed">
+            이미 자필로 작성하신 유언장을 업로드하면 AI가 법적 요건을 자동으로 검증합니다.
+          </p>
+          <p className="text-amber-600 text-xs font-semibold mt-2 group-hover:underline">스캔 업로드 →</p>
         </motion.button>
       </div>
 

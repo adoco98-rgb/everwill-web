@@ -14,6 +14,8 @@ import DashboardHome from "./pages/dashboard/DashboardHome";
 import PaymentsPage from "./pages/dashboard/PaymentsPage";
 import ProfilePage from "./pages/dashboard/ProfilePage";
 import SaramDashboardLayout from "./components/SaramDashboardLayout";
+import ScanVerifyPage from "./pages/ScanVerifyPage";
+import WillChatPage from "./pages/WillChatPage";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -25,6 +27,8 @@ function Router() {
       <Route path={"/payment/success"} component={PaymentSuccess} />
       <Route path={"/payment/cancel"} component={PaymentCancel} />
       <Route path={"/login"} component={LoginPage} />
+      <Route path={"/will/scan"} component={ScanVerifyPage} />
+      <Route path={"/will/chat"} component={WillChatPage} />
       <Route path={"/dashboard"} component={() => <SaramDashboardLayout><DashboardHome /></SaramDashboardLayout>} />
       <Route path={"/dashboard/payments"} component={() => <SaramDashboardLayout><PaymentsPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/profile"} component={() => <SaramDashboardLayout><ProfilePage /></SaramDashboardLayout>} />
