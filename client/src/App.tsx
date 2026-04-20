@@ -18,6 +18,7 @@ import ScanVerifyPage from "./pages/ScanVerifyPage";
 import WillChatPage from "./pages/WillChatPage";
 import TaxCalculatorPage from "./pages/TaxCalculatorPage";
 import TaxReportPage from "./pages/TaxReportPage";
+import InvestPage from "./pages/InvestPage";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -37,6 +38,8 @@ function Router() {
       {/* 상속세 계산기 */}
       <Route path={"/tax"} component={TaxCalculatorPage} />
       <Route path={"/tax/report"} component={TaxReportPage} />
+      {/* 투자 유치 페이지 */}
+      <Route path={"/invest"} component={InvestPage} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
