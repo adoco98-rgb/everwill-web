@@ -1,12 +1,17 @@
 /**
  * SARAM Stripe 결제 라우트
  * POST /api/stripe/checkout  → Checkout Session 생성
- * POST /api/stripe/webhook   → Webhook 이벤트 처리
+ * POST /api/stripe/webhook   → Webhook 이벤트 처리 + 결제 DB 저장
  * GET  /api/stripe/session/:id → 세션 상태 조회
+ * GET  /api/payments/my      → 내 결제 내역 조회
  */
 import type { Express, Request, Response } from "express";
 import Stripe from "stripe";
+import { eq } from "drizzle-orm";
 import { SARAM_PRODUCTS, type ProductKey } from "./products";
+import { getDb } from "../db";
+import { payments, users } from "../../drizzle/schema";
+import { sdk } from "../_core/sdk";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-03-25.dahlia",
@@ -27,6 +32,19 @@ export function registerStripeRoutes(app: Express) {
       if (!items || items.length === 0) {
         res.status(400).json({ error: "결제 항목이 없습니다." });
         return;
+      }
+
+      // 로그인된 사용자 정보 가져오기
+      let authenticatedUserId: string | undefined = userId;
+      let authenticatedEmail: string | undefined = customerEmail;
+      try {
+        const user = await sdk.authenticateRequest(req);
+        if (user) {
+          authenticatedUserId = user.id.toString();
+          authenticatedEmail = user.email || customerEmail;
+        }
+      } catch {
+        // 비로그인 결제도 허용
       }
 
       const origin = req.headers.origin || "http://localhost:3000";
@@ -52,18 +70,13 @@ export function registerStripeRoutes(app: Express) {
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
         line_items: lineItems,
-        customer_email: customerEmail,
-        client_reference_id: userId,
+        customer_email: authenticatedEmail,
+        client_reference_id: authenticatedUserId,
         allow_promotion_codes: true,
         payment_method_types: ["card"],
-        payment_method_options: {
-          card: {
-            request_three_d_secure: "automatic",
-          },
-        },
         metadata: {
-          user_id: userId || "",
-          customer_email: customerEmail || "",
+          user_id: authenticatedUserId || "",
+          customer_email: authenticatedEmail || "",
           customer_name: customerName || "",
           items: items.map((i) => i.key).join(","),
           ...metadata,
@@ -80,7 +93,7 @@ export function registerStripeRoutes(app: Express) {
     }
   });
 
-  /* ─── 2. Webhook 처리 ─── */
+  /* ─── 2. Webhook 처리 + DB 저장 ─── */
   app.post(
     "/api/stripe/webhook",
     async (req: Request, res: Response) => {
@@ -109,13 +122,39 @@ export function registerStripeRoutes(app: Express) {
       switch (event.type) {
         case "checkout.session.completed": {
           const session = event.data.object as Stripe.Checkout.Session;
-          console.log(`[Webhook] 결제 완료 - 세션: ${session.id} | 고객: ${session.customer_email} | 금액: ${session.amount_total}`);
-          // TODO: DB에 결제 기록 저장, 유언장 인증 상태 업데이트
-          break;
-        }
-        case "payment_intent.succeeded": {
-          const pi = event.data.object as Stripe.PaymentIntent;
-          console.log(`[Webhook] PaymentIntent 성공: ${pi.id}`);
+          console.log(`[Webhook] 결제 완료 - 세션: ${session.id}`);
+
+          try {
+            const db = await getDb();
+            if (db) {
+              // 사용자 ID 확인
+              let dbUserId: number | null = null;
+              const metaUserId = session.metadata?.user_id;
+              if (metaUserId) {
+                const userRows = await db.select().from(users).where(eq(users.id, parseInt(metaUserId))).limit(1);
+                if (userRows.length > 0) dbUserId = userRows[0].id;
+              }
+
+              // 결제 내역 저장
+              await db.insert(payments).values({
+                userId: dbUserId || 0,
+                stripeSessionId: session.id,
+                stripePaymentIntentId: session.payment_intent as string || null,
+                status: "completed",
+                amountTotal: session.amount_total,
+                currency: session.currency,
+                items: session.metadata?.items || null,
+                customerEmail: session.customer_email,
+                paidAt: new Date(),
+              }).onDuplicateKeyUpdate({
+                set: { status: "completed", paidAt: new Date() },
+              });
+
+              console.log(`[Webhook] 결제 DB 저장 완료: ${session.id}`);
+            }
+          } catch (dbErr) {
+            console.error("[Webhook] DB 저장 실패:", dbErr);
+          }
           break;
         }
         case "payment_intent.payment_failed": {
@@ -153,6 +192,29 @@ export function registerStripeRoutes(app: Express) {
     } catch (err) {
       console.error("[Stripe] 세션 조회 실패:", err);
       res.status(404).json({ error: "세션을 찾을 수 없습니다." });
+    }
+  });
+
+  /* ─── 4. 내 결제 내역 조회 ─── */
+  app.get("/api/payments/my", async (req: Request, res: Response) => {
+    try {
+      const user = await sdk.authenticateRequest(req);
+      const db = await getDb();
+      if (!db) {
+        res.json([]);
+        return;
+      }
+
+      const myPayments = await db
+        .select()
+        .from(payments)
+        .where(eq(payments.userId, user.id))
+        .orderBy(payments.createdAt);
+
+      res.json(myPayments.reverse());
+    } catch {
+      // 비로그인 시 빈 배열
+      res.json([]);
     }
   });
 }

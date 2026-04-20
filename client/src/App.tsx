@@ -9,6 +9,11 @@ import WritePage from "./pages/WritePage";
 import PaymentPage from "./pages/PaymentPage";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
+import LoginPage from "./pages/LoginPage";
+import DashboardHome from "./pages/dashboard/DashboardHome";
+import PaymentsPage from "./pages/dashboard/PaymentsPage";
+import ProfilePage from "./pages/dashboard/ProfilePage";
+import SaramDashboardLayout from "./components/SaramDashboardLayout";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -19,6 +24,10 @@ function Router() {
       <Route path={"/payment"} component={PaymentPage} />
       <Route path={"/payment/success"} component={PaymentSuccess} />
       <Route path={"/payment/cancel"} component={PaymentCancel} />
+      <Route path={"/login"} component={LoginPage} />
+      <Route path={"/dashboard"} component={() => <SaramDashboardLayout><DashboardHome /></SaramDashboardLayout>} />
+      <Route path={"/dashboard/payments"} component={() => <SaramDashboardLayout><PaymentsPage /></SaramDashboardLayout>} />
+      <Route path={"/dashboard/profile"} component={() => <SaramDashboardLayout><ProfilePage /></SaramDashboardLayout>} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

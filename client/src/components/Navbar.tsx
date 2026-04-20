@@ -5,8 +5,11 @@
  */
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Globe, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, User } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
+import { useLocation } from "wouter";
 
 const navLinks = [
   { label: "서비스", href: "#services" },
@@ -21,6 +24,9 @@ const languages = [
   { code: "en", label: "English", flag: "🇺🇸" },
   { code: "ja", label: "日本語", flag: "🇯🇵" },
   { code: "zh", label: "中文", flag: "🇨🇳" },
+  { code: "de", label: "Deutsch", flag: "🇩🇪" },
+  { code: "es", label: "Español", flag: "🇪🇸" },
+  { code: "ar", label: "العربية", flag: "🇸🇦" },
 ];
 
 export default function Navbar() {
@@ -28,6 +34,8 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState(languages[0]);
+  const { user, isAuthenticated } = useAuth();
+  const [, navigate] = useLocation();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -40,6 +48,11 @@ export default function Navbar() {
     const el = document.querySelector(href);
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
+
+  // 관리자 표시명: openId 기반으로 "사람 매니저" 표시
+  const displayName = user?.name === "BAROCOOK" || user?.role === "admin"
+    ? "사람 매니저"
+    : user?.name?.split(" ")[0] || "내 계정";
 
   return (
     <motion.nav
@@ -83,23 +96,23 @@ export default function Navbar() {
 
           {/* 우측 액션 */}
           <div className="hidden lg:flex items-center gap-3">
-            {/* 언어 선택 */}
+            {/* 언어 선택 - 국기만 표시 */}
             <div className="relative">
               <button
                 onClick={() => setLangOpen(!langOpen)}
-                className="flex items-center gap-1.5 text-white/70 hover:text-white text-sm transition-colors px-2 py-1 rounded"
+                className="flex items-center gap-1 text-white/80 hover:text-white transition-colors px-2 py-1.5 rounded-lg hover:bg-white/10"
+                title={currentLang.label}
               >
-                <Globe className="w-4 h-4" />
-                <span>{currentLang.flag} {currentLang.code.toUpperCase()}</span>
+                <span className="text-xl leading-none">{currentLang.flag}</span>
                 <ChevronDown className={`w-3 h-3 transition-transform ${langOpen ? "rotate-180" : ""}`} />
               </button>
               <AnimatePresence>
                 {langOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden min-w-[140px]"
+                    initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                    className="absolute right-0 top-full mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden min-w-[160px] py-1"
                   >
                     {languages.map((lang) => (
                       <button
@@ -109,12 +122,17 @@ export default function Navbar() {
                           setLangOpen(false);
                           if (lang.code !== "ko") toast.info(`${lang.label} 지원 예정입니다`);
                         }}
-                        className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
-                          currentLang.code === lang.code ? "text-[#1F3864] font-semibold" : "text-gray-700"
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
+                          currentLang.code === lang.code
+                            ? "text-[#1F3864] font-semibold bg-[#1F3864]/5"
+                            : "text-gray-700"
                         }`}
                       >
-                        <span>{lang.flag}</span>
+                        <span className="text-lg">{lang.flag}</span>
                         <span>{lang.label}</span>
+                        {currentLang.code === lang.code && (
+                          <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#C9A961]" />
+                        )}
                       </button>
                     ))}
                   </motion.div>
@@ -122,12 +140,22 @@ export default function Navbar() {
               </AnimatePresence>
             </div>
 
-            <button
-              onClick={() => toast.info("로그인 기능 준비 중입니다")}
-              className="text-white/80 hover:text-white text-sm font-medium transition-colors px-3 py-1.5"
-            >
-              로그인
-            </button>
+            {isAuthenticated ? (
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="flex items-center gap-1.5 text-white/80 hover:text-white text-sm font-medium transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
+              >
+                <User className="w-4 h-4" />
+                <span>{displayName}</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => { window.location.href = getLoginUrl(); }}
+                className="text-white/80 hover:text-white text-sm font-medium transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
+              >
+                로그인
+              </button>
+            )}
             <button
               onClick={() => {
                 const el = document.querySelector("#pricing");
@@ -168,13 +196,48 @@ export default function Navbar() {
                   {link.label}
                 </button>
               ))}
+
+              {/* 모바일 언어 선택 */}
+              <div className="py-3 border-b border-white/5">
+                <p className="text-white/40 text-xs mb-2 px-2">언어 선택</p>
+                <div className="flex flex-wrap gap-2 px-2">
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => {
+                        setCurrentLang(lang);
+                        if (lang.code !== "ko") toast.info(`${lang.label} 지원 예정입니다`);
+                      }}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                        currentLang.code === lang.code
+                          ? "bg-[#C9A961] text-white font-semibold"
+                          : "bg-white/10 text-white/70 hover:bg-white/20"
+                      }`}
+                    >
+                      <span>{lang.flag}</span>
+                      <span className="text-xs">{lang.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="pt-3 flex flex-col gap-2">
-                <button
-                  onClick={() => toast.info("로그인 기능 준비 중입니다")}
-                  className="w-full text-white/80 py-2.5 text-sm font-medium border border-white/20 rounded-lg"
-                >
-                  로그인
-                </button>
+                {isAuthenticated ? (
+                  <button
+                    onClick={() => { setMobileOpen(false); navigate("/dashboard"); }}
+                    className="w-full text-white/80 py-2.5 text-sm font-medium border border-white/20 rounded-lg flex items-center justify-center gap-2"
+                  >
+                    <User className="w-4 h-4" />
+                    {displayName}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => { window.location.href = getLoginUrl(); }}
+                    className="w-full text-white/80 py-2.5 text-sm font-medium border border-white/20 rounded-lg"
+                  >
+                    로그인 / 회원가입
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     setMobileOpen(false);
