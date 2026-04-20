@@ -1,6 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { ChevronDown } from "lucide-react";
+
+// ─── 언어 목록 ────────────────────────────────────────────────────
+const languages = [
+  { code: "ko", label: "한국어", flag: "🇰🇷" },
+  { code: "en", label: "English", flag: "🇺🇸" },
+  { code: "ja", label: "日本語", flag: "🇯🇵" },
+  { code: "zh", label: "中文", flag: "🇨🇳" },
+  { code: "de", label: "Deutsch", flag: "🇩🇪" },
+  { code: "es", label: "Español", flag: "🇪🇸" },
+  { code: "ar", label: "العربية", flag: "🇸🇦" },
+];
 
 // ─── 애니메이션 헬퍼 ───────────────────────────────────────────────
 function FadeIn({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
@@ -56,6 +68,8 @@ function SectionHeader({ badge, title, subtitle }: { badge: string; title: strin
 export default function InvestPage() {
   const [contactForm, setContactForm] = useState({ name: "", company: "", email: "", amount: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const [currentLang, setCurrentLang] = useState(languages[0]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,11 +96,61 @@ export default function InvestPage() {
           <a href="#revenue" className="hover:text-white transition-colors">수익 모델</a>
           <a href="#team" className="hover:text-white transition-colors">팀</a>
         </div>
-        <a href="#contact"
-          className="px-5 py-2 rounded-lg text-sm font-semibold transition-all hover:scale-105"
-          style={{ background: "#C9A961", color: "#1F3864" }}>
-          투자 문의
-        </a>
+        <div className="flex items-center gap-3">
+          {/* 언어 선택 국기 드롭다운 */}
+          <div className="relative">
+            <button
+              onClick={() => setLangOpen(!langOpen)}
+              className="flex items-center gap-1 px-2 py-1.5 rounded-lg transition-colors"
+              style={{ color: "rgba(255,255,255,0.8)" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.1)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+              title={currentLang.label}
+            >
+              <span className="text-xl leading-none">{currentLang.flag}</span>
+              <ChevronDown className={`w-3 h-3 transition-transform ${langOpen ? "rotate-180" : ""}`} />
+            </button>
+            <AnimatePresence>
+              {langOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-full mt-2 rounded-2xl shadow-2xl overflow-hidden py-1"
+                  style={{ background: "#FFFFFF", border: "1px solid #E5E7EB", minWidth: 160 }}
+                >
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => { setCurrentLang(lang); setLangOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left"
+                      style={{
+                        background: currentLang.code === lang.code ? "rgba(31,56,100,0.05)" : "transparent",
+                        color: currentLang.code === lang.code ? "#1F3864" : "#374151",
+                        fontWeight: currentLang.code === lang.code ? 600 : 400,
+                      }}
+                      onMouseEnter={e => { if (currentLang.code !== lang.code) e.currentTarget.style.background = "#F9FAFB"; }}
+                      onMouseLeave={e => { if (currentLang.code !== lang.code) e.currentTarget.style.background = "transparent"; }}
+                    >
+                      <span className="text-lg">{lang.flag}</span>
+                      <span>{lang.label}</span>
+                      {currentLang.code === lang.code && (
+                        <span className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: "#C9A961" }} />
+                      )}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <a href="#contact"
+            className="px-5 py-2 rounded-lg text-sm font-semibold transition-all hover:scale-105"
+            style={{ background: "#C9A961", color: "#1F3864" }}>
+            투자 문의
+          </a>
+        </div>
       </nav>
 
       {/* ── HERO ───────────────────────────────────────────────────── */}
