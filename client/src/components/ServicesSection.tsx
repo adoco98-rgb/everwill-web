@@ -106,8 +106,7 @@ export default function ServicesSection() {
             모든 것이 하나에
           </h2>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto">
-            Trust & Will이 제공하지 않는 10가지 혁신 서비스.
-            유언 작성부터 사후 자동 집행까지 전 과정을 책임집니다.
+            SARAM의 독자적인 10가지 혁신 서비스. 유언 작성부터 사후 자동 집행까지 전 과정을 책임집니다.
           </p>
         </motion.div>
 

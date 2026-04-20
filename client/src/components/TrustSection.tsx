@@ -1,33 +1,57 @@
 /**
  * SARAM 신뢰 지표 섹션
- * Trust & Will 대비 차별화 포인트 강조
- * 미디어 언급, 인증 배지
+ * SARAM 독자적 강점 6가지 — 비교 없음
  */
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { ShieldCheck, Globe2, Zap, Lock, Scale, Heart } from "lucide-react";
 
 const mediaLogos = [
-  { name: "조선일보", abbr: "조선" },
-  { name: "중앙일보", abbr: "중앙" },
-  { name: "한국경제", abbr: "한경" },
-  { name: "TechCrunch", abbr: "TC" },
-  { name: "Forbes", abbr: "Forbes" },
-  { name: "Bloomberg", abbr: "Bloomberg" },
+  { abbr: "조선" },
+  { abbr: "중앙" },
+  { abbr: "한경" },
+  { abbr: "TechCrunch" },
+  { abbr: "Forbes" },
+  { abbr: "Bloomberg" },
 ];
 
-const differentiators = [
+const strengths = [
   {
-    title: "Trust & Will 대비",
-    items: [
-      { label: "AI 유언장 작성", saram: "무료", competitor: "$199~" },
-      { label: "전자 인증", saram: "₩49,000", competitor: "$299/년" },
-      { label: "재인증 (수정)", saram: "₩15,000", competitor: "$299/년" },
-      { label: "글로벌 지원", saram: "7개국", competitor: "미국만" },
-      { label: "사망 감지", saram: "4중 자동", competitor: "가족 신고만" },
-      { label: "Badge 시스템", saram: "세계 최초", competitor: "없음" },
-    ],
+    icon: Zap,
+    title: "17분 완성",
+    description: "AI 체크박스 마법사로 복잡한 법률 문서를 누구나 빠르게 완성할 수 있습니다.",
+    color: "bg-amber-50 text-amber-600",
+  },
+  {
+    icon: ShieldCheck,
+    title: "법적 효력 보장",
+    description: "eKYC 본인인증 + 전자서명 + 블록체인 타임스탬프로 완전한 법적 효력을 갖습니다.",
+    color: "bg-green-50 text-green-600",
+  },
+  {
+    icon: Globe2,
+    title: "7개국 동시 지원",
+    description: "한·일·중·영·독·스페인어·아랍어(RTL). 각국 법률 자동 적용, 세계 어디서나.",
+    color: "bg-blue-50 text-blue-600",
+  },
+  {
+    icon: Lock,
+    title: "은행급 보안",
+    description: "E2E 암호화, ISMS 인증, SOC 2 Type II 목표. 개인정보는 절대 제3자에게 제공하지 않습니다.",
+    color: "bg-indigo-50 text-indigo-600",
+  },
+  {
+    icon: Scale,
+    title: "사후 자동 집행",
+    description: "4중 사망 감지 시스템으로 가족이 아무것도 하지 않아도 유언이 자동으로 집행됩니다.",
+    color: "bg-purple-50 text-purple-600",
+  },
+  {
+    icon: Heart,
+    title: "평생 동반자",
+    description: "결혼·출산·이사·자산 변동마다 ₩15,000 재인증. 삶의 모든 순간을 함께합니다.",
+    color: "bg-rose-50 text-rose-600",
   },
 ];
 
@@ -43,15 +67,15 @@ export default function TrustSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="text-center mb-14"
         >
           <p className="text-gray-400 text-sm font-medium tracking-widest uppercase mb-6">
             주요 언론 소개
           </p>
-          <div className="flex flex-wrap justify-center items-center gap-8 lg:gap-12">
+          <div className="flex flex-wrap justify-center items-center gap-8 lg:gap-14">
             {mediaLogos.map((logo, i) => (
               <motion.div
-                key={logo.name}
+                key={logo.abbr}
                 initial={{ opacity: 0 }}
                 animate={isInView ? { opacity: 1 } : {}}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
@@ -64,51 +88,48 @@ export default function TrustSection() {
           </div>
         </motion.div>
 
-        {/* 골드 구분선 */}
-        <div className="gold-line my-12 max-w-2xl mx-auto" />
+        <div className="gold-line mb-14 max-w-2xl mx-auto" />
 
-        {/* 비교 테이블 */}
+        {/* 섹션 타이틀 */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          className="max-w-3xl mx-auto"
+          transition={{ duration: 0.7, delay: 0.1 }}
+          className="text-center mb-10"
         >
-          <div className="text-center mb-8">
-            <h2 className="text-2xl lg:text-3xl font-bold text-[#1F3864] mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>
-              왜 SARAM인가?
-            </h2>
-            <p className="text-gray-500">글로벌 경쟁사 대비 압도적 가성비와 기능</p>
-          </div>
-
-          <div className="bg-[#FAFAF8] rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
-            {/* 헤더 */}
-            <div className="grid grid-cols-3 bg-[#1F3864] text-white">
-              <div className="px-6 py-4 text-sm font-medium text-white/70">항목</div>
-              <div className="px-6 py-4 text-sm font-bold text-center text-[#C9A961]">SARAM</div>
-              <div className="px-6 py-4 text-sm font-medium text-center text-white/60">Trust & Will</div>
-            </div>
-
-            {/* 비교 행 */}
-            {differentiators[0].items.map((item, i) => (
-              <div
-                key={item.label}
-                className={`grid grid-cols-3 border-b border-gray-100 last:border-0 ${
-                  i % 2 === 0 ? "bg-white" : "bg-[#FAFAF8]"
-                }`}
-              >
-                <div className="px-6 py-4 text-sm text-gray-600 font-medium">{item.label}</div>
-                <div className="px-6 py-4 text-center">
-                  <span className="inline-flex items-center gap-1 text-sm font-bold text-[#1F3864]">
-                    <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    {item.saram}
-                  </span>
-                </div>
-                <div className="px-6 py-4 text-center text-sm text-gray-400">{item.competitor}</div>
-              </div>
-            ))}
-          </div>
+          <h2
+            className="text-2xl lg:text-4xl font-bold text-[#1F3864] mb-3"
+            style={{ fontFamily: "'Playfair Display', serif" }}
+          >
+            SARAM만의 6가지 이유
+          </h2>
+          <p className="text-gray-500">
+            독자적인 기술과 아이디어로 만든 세계 최초 디지털 유언 OS
+          </p>
         </motion.div>
+
+        {/* 강점 카드 */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {strengths.map((s, i) => (
+            <motion.div
+              key={s.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: 0.2 + i * 0.08 }}
+              className="flex items-start gap-4 bg-[#FAFAF8] rounded-xl p-5 border border-gray-100 card-hover"
+            >
+              <div
+                className={`w-10 h-10 rounded-lg ${s.color} flex items-center justify-center flex-shrink-0`}
+              >
+                <s.icon className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-[#1F3864] mb-1">{s.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{s.description}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   );

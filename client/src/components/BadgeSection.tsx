@@ -73,9 +73,9 @@ export default function BadgeSection() {
             SARAM Badge
           </h2>
           <p className="text-white/60 text-lg max-w-2xl mx-auto">
-            MedicAlert(의료) + AirTag(IoT) + Trust & Will(유언) = SARAM Badge
+            의료 신원 + IoT 감지 + 유언 인증을 하나로.
             <br />
-            전 세계 어떤 유언 플랫폼도 시도하지 않은 혁신
+            세계 어떤 유언 플랫폼도 시도하지 않은 SARAM만의 혁신
           </p>
         </motion.div>
 

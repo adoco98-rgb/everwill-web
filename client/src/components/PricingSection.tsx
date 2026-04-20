@@ -94,7 +94,7 @@ export default function PricingSection() {
           <p className="text-gray-500 text-lg max-w-2xl mx-auto">
             AI 유언장 작성 무료. 인증만 ₩49,000.
             <br />
-            Trust & Will($299/년) 대비 압도적 가성비.
+            필요할 때만 비용이 발생하는 합리적인 가격 정책.
           </p>
         </motion.div>
 
