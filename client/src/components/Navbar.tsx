@@ -17,6 +17,7 @@ const navLinks = [
   { label: "가격", href: "#pricing" },
   { label: "글로벌", href: "#global" },
   { label: "변호사", href: "#lawyers" },
+  { label: "상속세 계산기", href: "/tax", isPage: true },
 ];
 
 const languages = [
@@ -86,8 +87,10 @@ export default function Navbar() {
             {navLinks.map((link) => (
               <button
                 key={link.label}
-                onClick={() => handleNavClick(link.href)}
-                className="text-white/80 hover:text-[#C9A961] text-sm font-medium transition-colors duration-200 relative group"
+                onClick={() => link.isPage ? navigate(link.href) : handleNavClick(link.href)}
+                className={`text-white/80 hover:text-[#C9A961] text-sm font-medium transition-colors duration-200 relative group ${
+                  link.label === "상속세 계산기" ? "text-[#C9A961]/80" : ""
+                }`}
               >
                 {link.label}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#C9A961] transition-all duration-300 group-hover:w-full" />

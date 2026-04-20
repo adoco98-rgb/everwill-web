@@ -16,6 +16,8 @@ import ProfilePage from "./pages/dashboard/ProfilePage";
 import SaramDashboardLayout from "./components/SaramDashboardLayout";
 import ScanVerifyPage from "./pages/ScanVerifyPage";
 import WillChatPage from "./pages/WillChatPage";
+import TaxCalculatorPage from "./pages/TaxCalculatorPage";
+import TaxReportPage from "./pages/TaxReportPage";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -32,6 +34,9 @@ function Router() {
       <Route path={"/dashboard"} component={() => <SaramDashboardLayout><DashboardHome /></SaramDashboardLayout>} />
       <Route path={"/dashboard/payments"} component={() => <SaramDashboardLayout><PaymentsPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/profile"} component={() => <SaramDashboardLayout><ProfilePage /></SaramDashboardLayout>} />
+      {/* 상속세 계산기 */}
+      <Route path={"/tax"} component={TaxCalculatorPage} />
+      <Route path={"/tax/report"} component={TaxReportPage} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
