@@ -49,8 +49,9 @@ export default function Navbar() {
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
-  // 관리자 표시명: openId 기반으로 "사람 매니저" 표시
-  const displayName = user?.name === "BAROCOOK" || user?.role === "admin"
+  // 관리자 표시명: wadokdo@hanmail.net 또는 admin 역할이면 "사람 매니저"
+  const ADMIN_EMAIL = "wadokdo@hanmail.net";
+  const displayName = user?.email === ADMIN_EMAIL || user?.role === "admin"
     ? "사람 매니저"
     : user?.name?.split(" ")[0] || "내 계정";
 

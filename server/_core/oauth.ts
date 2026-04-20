@@ -28,12 +28,17 @@ export function registerOAuthRoutes(app: Express) {
         return;
       }
 
+      // 관리자 이메일 확인: wadokdo@hanmail.net은 자동으로 admin 역할 부여
+      const ADMIN_EMAILS = ["wadokdo@hanmail.net"];
+      const isAdmin = userInfo.email && ADMIN_EMAILS.includes(userInfo.email);
+
       await db.upsertUser({
         openId: userInfo.openId,
         name: userInfo.name || null,
         email: userInfo.email ?? null,
         loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
         lastSignedIn: new Date(),
+        ...(isAdmin ? { role: "admin" } : {}),
       });
 
       const sessionToken = await sdk.createSessionToken(userInfo.openId, {
