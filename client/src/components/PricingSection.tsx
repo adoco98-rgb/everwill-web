@@ -19,6 +19,112 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+/* ─── 멤버십 플랜 (보관 연수 포함) ─── */
+const membershipPlans = [
+  {
+    id: "1y",
+    name: "1년 플랜",
+    storage: "1년 보관",
+    certPrice: 49000,
+    storagePrice: 9900,
+    total: 58900,
+    usd: "$59",
+    highlight: false,
+    badge: null,
+    features: [
+      "eKYC 본인인증 + 전자서명",
+      "블록체인 무결성 기록",
+      "1년 유언장 보관",
+      "사망 후 유족 자동 알림",
+      "법원 제출용 서류 자동 생성",
+    ],
+    cta: "시작하기",
+    discount: null,
+  },
+  {
+    id: "3y",
+    name: "3년 플랜",
+    storage: "3년 보관",
+    certPrice: 49000,
+    storagePrice: 24900,
+    total: 73900,
+    usd: "$74",
+    highlight: false,
+    badge: null,
+    features: [
+      "eKYC 본인인증 + 전자서명",
+      "블록체인 무결성 기록",
+      "3년 유언장 보관",
+      "사망 후 유족 자동 알림",
+      "법원 제출용 서류 자동 생성",
+    ],
+    cta: "시작하기",
+    discount: null,
+  },
+  {
+    id: "5y",
+    name: "5년 플랜",
+    storage: "5년 보관",
+    certPrice: 49000,
+    storagePrice: 39000,
+    total: 88000,
+    usd: "$88",
+    highlight: true,
+    badge: "추천",
+    features: [
+      "eKYC 본인인증 + 전자서명",
+      "블록체인 무결성 기록",
+      "5년 유언장 보관",
+      "사망 후 유족 자동 알림",
+      "법원 제출용 서류 자동 생성",
+      "연간 단가 ₩7,800 (최저가)",
+    ],
+    cta: "지금 시작하기 →",
+    discount: "최저 단가",
+  },
+  {
+    id: "10y",
+    name: "10년 플랜",
+    storage: "10년 보관",
+    certPrice: 49000,
+    storagePrice: 79000,
+    total: 128000,
+    usd: "$128",
+    highlight: false,
+    badge: null,
+    features: [
+      "eKYC 본인인증 + 전자서명",
+      "블록체인 무결성 기록",
+      "10년 유언장 보관",
+      "사망 후 유족 자동 알림",
+      "법원 제출용 서류 자동 생성",
+    ],
+    cta: "시작하기",
+    discount: null,
+  },
+  {
+    id: "life",
+    name: "영구 플랜",
+    storage: "영구 보관",
+    certPrice: 49000,
+    storagePrice: 199000,
+    total: 248000,
+    usd: "$248",
+    highlight: false,
+    badge: "영구보관",
+    features: [
+      "eKYC 본인인증 + 전자서명",
+      "블록체인 무결성 기록",
+      "평생 유언장 보관 (갱신 불필요)",
+      "사망 후 유족 자동 알림",
+      "법원 제출용 서류 자동 생성",
+      "20년 이상 최저가 보장",
+    ],
+    cta: "영구 보관 시작",
+    discount: "최저가",
+  },
+];
+
 /* ─── 기본 플랜 ─── */
 const pricingPlans = [
   {
@@ -171,6 +277,100 @@ export default function PricingSection() {
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
             <span className="text-red-600 text-sm font-bold">2026 출시 기념 한정 특가 — 정식 출시 후 가격 인상 예정</span>
           </div>
+        </motion.div>
+
+        {/* ── 멤버십 플랜 카드 (보관 연수 포함 5종) ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.7, delay: 0.05 }}
+          className="mb-16"
+        >
+          <div className="text-center mb-8">
+            <h3
+              className="text-2xl font-bold text-[#1F3864] mb-2"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              인증 + 보관 통합 멤버십
+            </h3>
+            <p className="text-gray-500 text-sm">전자 인증(₩49,000) + 보관료가 포함된 올인원 가격</p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {membershipPlans.map((plan, i) => (
+              <motion.div
+                key={plan.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, delay: i * 0.08 }}
+                className={`relative rounded-2xl p-5 border transition-all flex flex-col ${
+                  plan.highlight
+                    ? "bg-[#1F3864] border-[#1F3864] shadow-2xl shadow-[#1F3864]/20 scale-105"
+                    : "bg-[#FAFAF8] border-gray-100 hover:border-[#C9A961]/40 hover:shadow-lg"
+                }`}
+              >
+                {plan.badge && (
+                  <div className={`absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap ${
+                    plan.badge === "영구보관"
+                      ? "bg-[#C9A961] text-[#1F3864]"
+                      : "bg-green-500 text-white"
+                  }`}>
+                    {plan.badge}
+                  </div>
+                )}
+                <div className="mb-4">
+                  <h4 className={`font-bold text-base mb-1 ${
+                    plan.highlight ? "text-white" : "text-[#1F3864]"
+                  }`}>{plan.name}</h4>
+                  <div className={`text-xs px-2 py-0.5 rounded-full inline-block mb-3 ${
+                    plan.highlight ? "bg-white/20 text-white" : "bg-[#1F3864]/8 text-[#1F3864]"
+                  }`}>{plan.storage}</div>
+                  {plan.discount && (
+                    <div className="mb-1">
+                      <span className="text-xs font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">
+                        {plan.discount}
+                      </span>
+                    </div>
+                  )}
+                  <div className={`text-2xl font-bold mt-2 ${
+                    plan.highlight ? "text-[#C9A961]" : "text-[#1F3864]"
+                  }`}>
+                    {formatKRW(plan.total)}
+                  </div>
+                  <div className={`text-xs mt-0.5 ${
+                    plan.highlight ? "text-white/50" : "text-gray-400"
+                  }`}>{plan.usd}</div>
+                  <div className={`text-xs mt-2 ${
+                    plan.highlight ? "text-white/60" : "text-gray-400"
+                  }`}>
+                    인증 {formatKRW(plan.certPrice)} + 보관 {formatKRW(plan.storagePrice)}
+                  </div>
+                </div>
+                <ul className="space-y-2 mb-5 flex-1">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2">
+                      <Check className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${
+                        plan.highlight ? "text-[#C9A961]" : "text-green-500"
+                      }`} />
+                      <span className={`text-xs ${
+                        plan.highlight ? "text-white/80" : "text-gray-600"
+                      }`}>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => toast.info("서비스 준비 중입니다. 곧 오픈합니다!")}
+                  className={`w-full py-2.5 rounded-xl font-semibold text-xs transition-all mt-auto ${
+                    plan.highlight
+                      ? "btn-gold"
+                      : "bg-[#1F3864] text-white hover:bg-[#1F3864]/90"
+                  }`}
+                >
+                  {plan.cta}
+                </button>
+              </motion.div>
+            ))}
+          </div>
+          <p className="text-center text-gray-400 text-xs mt-4">* 첫 1년은 무료 보관 포함 — 위 가격은 인증 후 추가 보관 기간 선택 시 적용됩니다.</p>
         </motion.div>
 
         {/* ── 기본 플랜 카드 ── */}
