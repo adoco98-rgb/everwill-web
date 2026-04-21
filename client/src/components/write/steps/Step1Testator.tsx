@@ -1,9 +1,11 @@
 /**
  * Step 1: 유언자 기본 정보
  * AI 질문: 본인 확인 정보 입력 안내
+ * 주소 검색: 카카오 우편번호 API 사용
  */
 import type { StepProps } from "./StepProps";
 import AIGuide from "../AIGuide";
+import AddressSearch from "../AddressSearch";
 
 export default function Step1Testator({ will, update }: StepProps) {
   return (
@@ -57,18 +59,16 @@ export default function Step1Testator({ will, update }: StepProps) {
           <p className="text-xs text-gray-400 mt-1">E2E 암호화로 안전하게 보관됩니다</p>
         </div>
       </div>
-      <div>
-        <label className="block text-sm font-semibold text-[#1F3864] mb-1.5">
-          주소 <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={will.testatorAddress}
-          onChange={(e) => update({ testatorAddress: e.target.value })}
-          placeholder="서울특별시 강남구 테헤란로 123"
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 transition-all"
-        />
-      </div>
+
+      {/* 카카오 우편번호 주소 검색 */}
+      <AddressSearch
+        label="주소"
+        required
+        value={will.testatorAddress}
+        onChange={(address) => update({ testatorAddress: address })}
+        placeholder="주소 검색 버튼을 눌러 주소를 찾아주세요"
+      />
+
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-semibold text-[#1F3864] mb-1.5">연락처</label>
