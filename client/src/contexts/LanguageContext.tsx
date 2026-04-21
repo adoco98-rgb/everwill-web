@@ -43,17 +43,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(STORAGE_KEY, lang);
   }, []);
 
-  // 언어 변경 시 HTML dir 속성 업데이트 (RTL 지원)
+  // 언어 변경 시 HTML lang 속성 업데이트 (레이아웃은 항상 LTR 유지)
   useEffect(() => {
     const html = document.documentElement;
-    if (isRTL) {
-      html.setAttribute("dir", "rtl");
-      html.setAttribute("lang", language);
-    } else {
-      html.setAttribute("dir", "ltr");
-      html.setAttribute("lang", language);
-    }
-  }, [language, isRTL]);
+    html.setAttribute("dir", "ltr");
+    html.setAttribute("lang", language);
+  }, [language]);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t, isRTL }}>
