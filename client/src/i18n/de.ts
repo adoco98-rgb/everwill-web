@@ -201,7 +201,7 @@ export const de = {
     step4Title: "Erbschaft abgeschlossen",
     step4Desc: "Gerichtliche Testamentseröffnung → Erbschaftssteuererklärung → Immobilien- und Finanzvermögensübertragung — alles aus einer Hand.",
     bannerTitle: "Vertragsanwalt Post-Mortem Vollstreckungsunterstützung",
-    bannerDesc: "EverWill-Vertragsanwälte kontaktieren die Familie direkt und unterstützen den gesamten Prozess: Nachlassgericht, Erbschaftssteuererklärung und Vermögensübertragung. Im Testamentszertifizierungsgebühr ($39) enthalten.",
+    bannerDesc: "Nach der Testamentszertifizierung und Todeserkennung kontaktiert ein EverWill-Vertragsanwalt die Begünstigten direkt. Ausführungskosten für Nachlassverfahren, Erbschaftssteuererklärung und Vermögensübertragungen werden separat zwischen dem Abonnenten und dem Anwalt verhandelt.",
     included: "In Zertifizierungsgebühr enthalten",
     futureTitle: "In Zukunft kein Anwalt mehr nötig",
     futureDesc: "EverWills ultimative Vision ist, dass KI alle Gerichtsdokumente automatisch erstellt und Erben bei der direkten Einreichung hilft. Über 90% günstiger als traditionelle Anwaltsgebühren, schneller und transparenter.",

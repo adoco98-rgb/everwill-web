@@ -201,7 +201,7 @@ export const en = {
     step4Title: "Inheritance Complete",
     step4Desc: "Court probate → Estate tax filing → Real estate & financial asset transfer — all in one stop.",
     bannerTitle: "Contracted Attorney Post-Death Execution Support",
-    bannerDesc: "EverWill-contracted attorneys directly contact the family to support the entire process: family court probate, estate tax filing, and real estate & financial asset transfer. Included in the will certification ($39) fee.",
+    bannerDesc: "After will certification and death detection, an EverWill-contracted attorney contacts the beneficiaries directly. Execution costs for probate, inheritance tax filing, and asset transfers are negotiated separately between the subscriber and the attorney.",
     included: "Included in certification fee",
     futureTitle: "In the Future, No Attorney Needed",
     futureDesc: "EverWill's ultimate vision is for AI to automatically generate all court documents and help heirs file directly. Over 90% cheaper than traditional attorney fees, faster, and more transparent.",

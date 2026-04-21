@@ -201,7 +201,7 @@ export const es = {
     step4Title: "Herencia Completada",
     step4Desc: "Homologación judicial → Declaración del impuesto de sucesiones → Transferencia de inmuebles y activos financieros — todo en un solo paso.",
     bannerTitle: "Soporte de Ejecución Post-Mortem por Abogado Contratado",
-    bannerDesc: "Los abogados contratados por EverWill contactan directamente a la familia para apoyar todo el proceso: homologación judicial, declaración fiscal y transferencia de activos. Incluido en la tarifa de certificación del testamento ($39).",
+    bannerDesc: "Tras la certificación del testamento y la detección del fallecimiento, un abogado contratado por EverWill contacta directamente a los beneficiarios. Los costos de ejecución para la homologación, declaración de herencia y transferencias de activos se negocian por separado entre el suscriptor y el abogado.",
     included: "Incluido en la tarifa de certificación",
     futureTitle: "En el Futuro, Sin Necesidad de Abogado",
     futureDesc: "La visión definitiva de EverWill es que la IA genere automáticamente todos los documentos judiciales y ayude a los herederos a presentarlos directamente. Más del 90% más barato que los honorarios de abogados tradicionales, más rápido y más transparente.",

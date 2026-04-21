@@ -138,10 +138,7 @@ export default function LawyersSection() {
               <div className="font-bold text-[#1F3864] mb-1">{t.lawyers.bannerTitle}</div>
               <p className="text-sm text-gray-600">{t.lawyers.bannerDesc}</p>
             </div>
-            <div className="flex items-center gap-1.5 bg-green-50 border border-green-100 rounded-full px-3 py-1.5 whitespace-nowrap ml-auto">
-              <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
-              <span className="text-green-700 text-xs font-semibold">{t.lawyers.included}</span>
-            </div>
+
           </motion.div>
         </motion.div>
 
