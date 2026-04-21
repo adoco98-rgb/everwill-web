@@ -24,6 +24,7 @@ const pricingPlans = [
   {
     name: "무료 시작",
     price: "₩0",
+    originalPrice: null,
     usd: "Free",
     description: "AI 유언장 작성 무제한",
     highlight: false,
@@ -37,14 +38,16 @@ const pricingPlans = [
     ],
     cta: "무료로 시작",
     ctaStyle: "btn-navy",
+    discount: null,
   },
   {
     name: "유언장 인증",
     price: "₩49,000",
+    originalPrice: "₩118,000",
     usd: "$39",
     description: "법적 효력 있는 유언장 + 사후 자동 집행",
     highlight: true,
-    badge: "가장 인기",
+    badge: "2026 출시 기념가",
     features: [
       "무료 플랜 전체 포함",
       "eKYC 본인인증 + 전자서명",
@@ -54,16 +57,17 @@ const pricingPlans = [
       "계약 변호사 사후 집행 지원",
       "1년 무료 보관",
     ],
-    cta: "인증 시작하기",
+    cta: "지금 인증 시작하기 →",
     ctaStyle: "btn-gold",
+    discount: "59% 할인",
   },
 ];
 
 /* ─── 부가 서비스 ─── */
 const addons = [
-  { name: "재인증 (수정)", price: "₩17,000", desc: "횟수 무제한" },
-  { name: "영상 유언장", price: "+₩29,000", desc: "법적 녹음 + 감성 메시지" },
-  { name: "자필 유언 스캔", price: "+₩19,000", desc: "AI 형식 검증 + 블록체인" },
+  { name: "재인증 (수정)", price: "₩17,000", originalPrice: "₩29,000", desc: "횟수 무제한" },
+  { name: "영상 유언장", price: "+₩29,000", originalPrice: "+₩59,000", desc: "법적 녹음 + 감성 메시지" },
+  { name: "자필 유언 스캔", price: "+₩19,000", originalPrice: "+₩39,000", desc: "AI 형식 검증 + 블록체인" },
 ];
 
 /* ─── 보관 플랜 ─── */
@@ -162,6 +166,11 @@ export default function PricingSection() {
             <br />
             필요할 때만 비용이 발생하는 합리적인 가격 정책.
           </p>
+          {/* 긴급 할인 배너 */}
+          <div className="mt-6 inline-flex items-center gap-2 bg-red-50 border border-red-200 rounded-full px-5 py-2">
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-red-600 text-sm font-bold">2026 출시 기념 한정 특가 — 정식 출시 후 가격 인상 예정</span>
+          </div>
         </motion.div>
 
         {/* ── 기본 플랜 카드 ── */}
@@ -187,7 +196,19 @@ export default function PricingSection() {
                 <h3 className={`font-bold text-lg mb-1 ${plan.highlight ? "text-white" : "text-[#1F3864]"}`}>
                   {plan.name}
                 </h3>
-                <div className="flex items-baseline gap-2 mb-2">
+                {plan.originalPrice && (
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-sm line-through ${plan.highlight ? "text-white/40" : "text-gray-300"}`}>
+                      {plan.originalPrice}
+                    </span>
+                    {plan.discount && (
+                      <span className="text-xs font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">
+                        {plan.discount}
+                      </span>
+                    )}
+                  </div>
+                )}
+              <div className="flex items-baseline gap-2 mb-2">
                   <span className={`text-4xl font-bold ${plan.highlight ? "text-[#C9A961]" : "text-[#1F3864]"}`}>
                     {plan.price}
                   </span>
@@ -541,7 +562,10 @@ export default function PricingSection() {
                   <div className="font-semibold text-[#1F3864] text-sm">{addon.name}</div>
                   <div className="text-gray-400 text-xs">{addon.desc}</div>
                 </div>
-                <div className="text-[#C9A961] font-bold text-sm text-right">{addon.price}</div>
+                <div className="text-right">
+                  <div className="text-gray-300 text-xs line-through">{addon.originalPrice}</div>
+                  <div className="text-[#C9A961] font-bold text-sm">{addon.price}</div>
+                </div>
               </div>
             ))}
           </div>

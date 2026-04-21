@@ -43,35 +43,43 @@ const badgeRoles = [
 const badgeLineup = [
   {
     name: "Wearable",
-    material: "실리콘·티타늄 팔찌",
+    material: "실리콘·티타늄 팔짌",
     price: "₩79,000",
+    originalPrice: "₩129,000",
     usd: "$79",
     popular: false,
     freeCard: true,
+    discount: "39%",
   },
   {
     name: "Necklace",
-    material: "스테인레스·로즈골드",
+    material: "스테인리스·로즈골드",
     price: "₩99,000",
+    originalPrice: "₩159,000",
     usd: "$99",
     popular: true,
     freeCard: true,
+    discount: "38%",
   },
   {
     name: "Premium",
-    material: "티타늄·플래티넘",
+    material: "티타늄·플래티늄",
     price: "₩299,000",
+    originalPrice: "₩490,000",
     usd: "$299",
     popular: false,
     freeCard: true,
+    discount: "39%",
   },
   {
     name: "Custom VIP",
     material: "기업 주문제작",
     price: "₩500,000+",
+    originalPrice: "₩800,000+",
     usd: "$500+",
     popular: false,
     freeCard: true,
+    discount: "37%",
   },
 ];
 
@@ -254,6 +262,12 @@ export default function BadgeSection() {
                 )}
                 <div className="text-white font-bold text-sm mb-1">{badge.name}</div>
                 <div className="text-white/50 text-xs mb-3">{badge.material}</div>
+                {badge.originalPrice && (
+                  <div className="flex items-center justify-center gap-1 mb-0.5">
+                    <span className="text-white/30 text-xs line-through">{badge.originalPrice}</span>
+                    <span className="text-[10px] font-bold bg-red-500 text-white px-1.5 py-0.5 rounded-full">{badge.discount}</span>
+                  </div>
+                )}
                 <div className="text-[#C9A961] font-bold text-base">{badge.price}</div>
                 <div className="text-white/40 text-xs mb-2">{badge.usd}</div>
                 {/* 무료 증정 태그 */}
