@@ -10,7 +10,7 @@ import { useRef } from "react";
 import { QrCode, Heart, FileCheck, Megaphone, Gift, Clock } from "lucide-react";
 import { toast } from "sonner";
 
-const BADGE_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/badge-hero-HQD72BdtWEqbuj89EvR3e6.webp";
+const BADGE_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/everwill-gold-card-oH5UXq9tRPBYWHV9uVM6ME.webp";
 
 const badgeRoles = [
   {
