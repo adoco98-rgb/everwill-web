@@ -20,6 +20,7 @@ import TaxCalculatorPage from "./pages/TaxCalculatorPage";
 import TaxReportPage from "./pages/TaxReportPage";
 import InvestPage from "./pages/InvestPage";
 import PitchPage from "./pages/PitchPage";
+import AssetsPage from "./pages/AssetsPage";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -43,6 +44,8 @@ function Router() {
       <Route path={"/invest"} component={InvestPage} />
       {/* 사업기획서 */}
       <Route path={"/pitch"} component={PitchPage} />
+      {/* 재산 등록 관리 */}
+      <Route path={"/assets"} component={AssetsPage} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

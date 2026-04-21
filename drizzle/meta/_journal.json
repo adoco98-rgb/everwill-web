@@ -15,6 +15,13 @@
       "when": 1776671588952,
       "tag": "0001_fair_ted_forrester",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1776734396988,
+      "tag": "0002_colorful_scrambler",
+      "breakpoints": true
     }
   ]
 }

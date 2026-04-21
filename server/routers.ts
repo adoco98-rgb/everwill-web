@@ -4,6 +4,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { willRouter } from "./routers/willRouter";
 import { taxRouter } from "./routers/taxRouter";
+import { assetRouter } from "./routers/assetRouter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -23,6 +24,8 @@ export const appRouter = router({
   will: willRouter,
   // 상속세 계산 라우터
   tax: taxRouter,
+  // 재산·상속자 관리 라우터
+  asset: assetRouter,
 });
 
 export type AppRouter = typeof appRouter;

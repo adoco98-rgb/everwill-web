@@ -6,7 +6,9 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Bot, PenLine, Shield, Clock, CheckCircle2, MessageSquare, ScanLine } from "lucide-react";
+import { ArrowLeft, Bot, PenLine, Shield, Clock, CheckCircle2, MessageSquare, ScanLine, Building2, ChevronRight } from "lucide-react";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import AIWizard from "@/components/write/AIWizard";
 import DirectForm from "@/components/write/DirectForm";
 import type { WillMode } from "@/lib/willTypes";
@@ -80,8 +82,53 @@ export default function WritePage() {
 /* ─── 모드 선택 화면 ─── */
 function ModeSelect({ onSelect }: { onSelect: (m: WillMode) => void }) {
   const [, navigate] = useLocation();
+  const { isAuthenticated } = useAuth();
+  const { data: willData } = trpc.asset.getWillData.useQuery(
+    undefined,
+    { enabled: isAuthenticated }
+  );
+  const assetCount = willData?.assets.length ?? 0;
+  const heirCount = willData?.heirs.length ?? 0;
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">
+
+      {/* 재산 등록 안내 배너 */}
+      {isAuthenticated && assetCount === 0 && heirCount === 0 && (
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-center gap-4 mb-8">
+          <Building2 className="w-8 h-8 text-blue-500 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="font-semibold text-blue-800 text-sm">재산을 미리 등록하면 유언장 작성이 훨씬 빠릅니다</p>
+            <p className="text-blue-600 text-xs mt-0.5">부동산·금융자산·상속자를 등록하면 유언장 작성 시 자동으로 불러와집니다.</p>
+          </div>
+          <button
+            onClick={() => navigate("/assets")}
+            className="flex items-center gap-1 text-blue-600 font-semibold text-sm whitespace-nowrap hover:underline"
+          >
+            재산 등록 <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* 자동 불러오기 확인 배너 */}
+      {isAuthenticated && (assetCount > 0 || heirCount > 0) && (
+        <div className="bg-green-50 border border-green-100 rounded-2xl p-4 flex items-center gap-4 mb-8">
+          <CheckCircle2 className="w-8 h-8 text-green-500 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="font-semibold text-green-800 text-sm">
+              등록된 재산 {assetCount}개, 상속자 {heirCount}명이 자동으로 불러와집니다
+            </p>
+            <p className="text-green-600 text-xs mt-0.5">AI 가이드 모드를 선택하면 자동으로 입력됩니다.</p>
+          </div>
+          <button
+            onClick={() => navigate("/assets")}
+            className="flex items-center gap-1 text-green-600 font-semibold text-sm whitespace-nowrap hover:underline"
+          >
+            재산 관리 <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* 헤더 */}
       <div className="text-center mb-14">
         <div className="inline-flex items-center gap-2 bg-[#1F3864]/8 rounded-full px-4 py-1.5 mb-5">

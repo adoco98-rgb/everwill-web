@@ -2,12 +2,14 @@
  * SARAM AI 가이드 모드 - 10단계 마법사 + 서명 단계
  * 한국 민법 기준 유언장 자동 작성
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Save, Eye } from "lucide-react";
+import { ArrowLeft, ArrowRight, Save, CheckCircle2, Building2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { AI_STEPS, initialWillData } from "@/lib/willTypes";
 import type { WillData, Heir } from "@/lib/willTypes";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import Step1Testator from "./steps/Step1Testator";
 import Step2Family from "./steps/Step2Family";
 import Step3Heirs from "./steps/Step3Heirs";
@@ -26,6 +28,81 @@ interface Props {
 export default function AIWizard({ onBack }: Props) {
   const [step, setStep] = useState(1);
   const [will, setWill] = useState<WillData>({ ...initialWillData, mode: "ai" });
+  const [autoLoaded, setAutoLoaded] = useState(false);
+  const { isAuthenticated } = useAuth();
+
+  // 등록된 재산 + 상속자 자동 불러오기
+  const { data: willData } = trpc.asset.getWillData.useQuery(
+    undefined,
+    { enabled: isAuthenticated }
+  );
+
+  useEffect(() => {
+    if (!willData || autoLoaded) return;
+    const { assets, heirs } = willData;
+    if (assets.length === 0 && heirs.length === 0) return;
+
+    // 상속자 매핑
+    const mappedHeirs: Heir[] = heirs.map((h) => ({
+      id: String(h.id),
+      name: h.nameKo,
+      relation: h.relationship === "spouse" ? "배우자" :
+                h.relationship === "child" ? "자녀" :
+                h.relationship === "parent" ? "부모" :
+                h.relationship === "sibling" ? "형제자매" :
+                h.relationship === "grandchild" ? "손자녀" : "기타",
+      birthDate: h.birthDate ?? "",
+      phone: h.phone ?? "",
+      email: h.email ?? "",
+      country: h.country ?? "KR",
+      address: h.address ?? "",
+      share: h.sharePercent ?? 0,
+    }));
+
+    // 부동산 매핑
+    const realEstates = assets
+      .filter((a) => a.type === "real_estate")
+      .map((a) => ({
+        id: String(a.id),
+        type: "아파트",
+        address: a.name,
+        area: "",
+        registrationNo: "",
+        estimatedValue: a.estimatedValue ? String(a.estimatedValue) : "",
+        heirId: "",
+        sharePercent: 0,
+      }));
+
+    // 금융 자산 매핑
+    const bankAssets = assets
+      .filter((a) => ["bank", "stock", "insurance", "crypto", "pension"].includes(a.type))
+      .map((a) => ({
+        id: String(a.id),
+        type: a.type === "bank" ? "예금·적금" :
+              a.type === "stock" ? "주식·펀드" :
+              a.type === "insurance" ? "보험" :
+              a.type === "crypto" ? "가상자산" : "연금",
+        institution: a.name,
+        accountNo: "",
+        estimatedValue: a.estimatedValue ? String(a.estimatedValue) : "",
+        heirId: "",
+        sharePercent: 0,
+      }));
+
+    update({
+      heirs: mappedHeirs.length > 0 ? mappedHeirs : will.heirs,
+      realEstates: realEstates.length > 0 ? realEstates : will.realEstates,
+      financialAssets: bankAssets.length > 0 ? bankAssets : will.financialAssets,
+    });
+
+    setAutoLoaded(true);
+    if (assets.length > 0 || heirs.length > 0) {
+      toast.success(
+        `등록된 재산 ${assets.length}개, 상속자 ${heirs.length}명을 자동으로 불러왔습니다`,
+        { duration: 4000 }
+      );
+    }
+  }, [willData, autoLoaded]);
 
   const update = (partial: Partial<WillData>) =>
     setWill((prev) => ({ ...prev, ...partial }));
