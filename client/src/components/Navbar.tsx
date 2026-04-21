@@ -70,16 +70,12 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* 로고 */}
-          <a href="/" className="flex items-center gap-3 group">
-            {/* EW 원형 엠블럼 */}
-            <div className="w-12 h-12 rounded-full border-2 border-[#C9A961] bg-[#1a2f56] flex items-center justify-center flex-shrink-0 group-hover:border-[#e8c97a] transition-colors">
-              <span className="text-[#C9A961] font-serif font-bold text-lg leading-none tracking-tight">EW</span>
-            </div>
-            {/* 브랜드명 */}
-            <div className="flex flex-col leading-tight">
-              <span className="text-white font-serif font-bold text-2xl tracking-wide group-hover:text-[#C9A961] transition-colors">EverWill</span>
-              <span className="text-[#C9A961] text-xs tracking-widest uppercase font-light">Digital Will OS</span>
-            </div>
+          <a href="/" className="flex items-center group">
+            <img
+              src="/manus-storage/everwill-logo-transparent-v2_59d8f26d.png"
+              alt="EverWill Logo"
+              className="h-14 w-auto object-contain"
+            />
           </a>
 
           {/* 데스크탑 메뉴 */}
