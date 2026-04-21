@@ -268,7 +268,7 @@ export const en = {
     note: "No credit card required · Edit anytime",
   },
   footer: {
-    company: "SARAM Inc.",
+    company: "EverWill Inc.",
     tagline: "World's First Digital Will OS",
     services: "Services",
     company2: "Company",
@@ -276,7 +276,7 @@ export const en = {
     privacy: "Privacy Policy",
     terms: "Terms of Service",
     disclaimer: "Legal Disclaimer",
-    copyright: "© 2026 SARAM Inc. All rights reserved.",
+    copyright: "© 2026 EverWill Inc. All rights reserved.",
     legalNote: "EverWill is not a legal advice service. Information provided is for general reference only. We recommend consulting a licensed attorney for legal validity.",
   },
 };

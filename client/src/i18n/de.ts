@@ -268,7 +268,7 @@ export const de = {
     note: "Keine Kreditkarte erforderlich · Jederzeit bearbeitbar",
   },
   footer: {
-    company: "SARAM GmbH",
+    company: "EverWill GmbH",
     tagline: "Weltweit erstes digitales Testament-OS",
     services: "Dienste",
     company2: "Unternehmen",
@@ -276,7 +276,7 @@ export const de = {
     privacy: "Datenschutzrichtlinie",
     terms: "Nutzungsbedingungen",
     disclaimer: "Rechtlicher Haftungsausschluss",
-    copyright: "© 2026 SARAM GmbH. Alle Rechte vorbehalten.",
+    copyright: "© 2026 EverWill GmbH. Alle Rechte vorbehalten.",
     legalNote: "EverWill ist kein Rechtsberatungsservice. Die bereitgestellten Informationen dienen nur als allgemeine Referenz. Für rechtliche Gültigkeit empfehlen wir die Beratung durch einen zugelassenen Anwalt.",
   },
 };

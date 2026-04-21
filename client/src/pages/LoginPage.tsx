@@ -25,10 +25,10 @@ export default function LoginPage() {
           <Link href="/">
             <a className="flex items-center gap-2 text-white">
               <div className="w-9 h-9 bg-[#C9A961] rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold">S</span>
+                <span className="text-white font-bold">E/span>
               </div>
               <span className="font-bold text-xl" style={{ fontFamily: "'Playfair Display', serif" }}>
-                SARAM
+                EverWill
               </span>
               <span className="text-white/40 text-sm ml-1">유언 OS</span>
             </a>
@@ -81,10 +81,10 @@ export default function LoginPage() {
             <Link href="/">
               <a className="inline-flex items-center gap-2">
                 <div className="w-9 h-9 bg-[#1F3864] rounded-xl flex items-center justify-center">
-                  <span className="text-white font-bold">S</span>
+                  <span className="text-white font-bold">E/span>
                 </div>
                 <span className="font-bold text-xl text-[#1F3864]" style={{ fontFamily: "'Playfair Display', serif" }}>
-                  SARAM
+                  EverWill
                 </span>
               </a>
             </Link>

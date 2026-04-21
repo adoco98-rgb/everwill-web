@@ -268,7 +268,7 @@ export const es = {
     note: "Sin tarjeta de crédito · Editable en cualquier momento",
   },
   footer: {
-    company: "SARAM Inc.",
+    company: "EverWill Inc.",
     tagline: "El Primer OS Digital de Testamentos del Mundo",
     services: "Servicios",
     company2: "Empresa",
@@ -276,7 +276,7 @@ export const es = {
     privacy: "Política de Privacidad",
     terms: "Términos de Servicio",
     disclaimer: "Aviso Legal",
-    copyright: "© 2026 SARAM Inc. Todos los derechos reservados.",
+    copyright: "© 2026 EverWill Inc. Todos los derechos reservados.",
     legalNote: "EverWill no es un servicio de asesoría legal. La información proporcionada es solo de referencia general. Recomendamos consultar a un abogado autorizado para validez legal.",
   },
 };

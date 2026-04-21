@@ -268,7 +268,7 @@ export const zh = {
     note: "无需信用卡·随时可修改",
   },
   footer: {
-    company: "SARAM株式会社",
+    company: "EverWill株式会社",
     tagline: "全球首个数字遗嘱OS",
     services: "服务",
     company2: "公司",
@@ -276,7 +276,7 @@ export const zh = {
     privacy: "隐私政策",
     terms: "服务条款",
     disclaimer: "法律免责声明",
-    copyright: "© 2026 SARAM株式会社. 保留所有权利。",
+    copyright: "© 2026 EverWill株式会社. 保留所有权利。",
     legalNote: "EverWill不是法律咨询服务。所提供的信息仅供一般参考。建议咨询持牌律师以确保法律效力。",
   },
 };

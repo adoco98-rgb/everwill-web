@@ -268,7 +268,7 @@ export const ja = {
     note: "クレジットカード不要・いつでも修正可能",
   },
   footer: {
-    company: "SARAM株式会社",
+    company: "EverWill株式会社",
     tagline: "世界初デジタル遺言OS",
     services: "サービス",
     company2: "会社情報",
@@ -276,7 +276,7 @@ export const ja = {
     privacy: "プライバシーポリシー",
     terms: "利用規約",
     disclaimer: "法的免責事項",
-    copyright: "© 2026 SARAM株式会社. All rights reserved.",
+    copyright: "© 2026 EverWill株式会社. All rights reserved.",
     legalNote: "EverWillは法律相談サービスではありません。提供される情報は一般的な参考用です。法的効力のためには専門弁護士へのご相談をお勧めします。",
   },
 };

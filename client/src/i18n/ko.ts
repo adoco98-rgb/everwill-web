@@ -10,7 +10,7 @@ export const ko = {
     global: "글로벌",
     lawyers: "변호사",
     taxCalc: "상속세 계산기",
-    manager: "사람 매니저",
+    manager: "EverWill 매니저",
     startFree: "무료로 시작하기",
     login: "로그인",
     logout: "로그아웃",

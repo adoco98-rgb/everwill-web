@@ -10,6 +10,10 @@
 - [x] 서명 단계 (PASS/카카오/네이버/공동인증서 4종)
 - [x] Stripe 글로벌 결제 연동 (/payment)
 - [x] 결제 성공/취소 페이지
+- [x] 7개 언어 번역 시스템 (ko/en/ja/zh/de/es/ar) - i18n 완전 구현
+- [x] 아랍어 RTL 지원 (dir=rtl 자동 설정, Cairo/Tajawal 폰트)
+- [x] 언어 전환 드롭다운 (Navbar, 국기 아이콘)
+- [x] 모든 홈페이지 섹션 번역 적용 (Hero~Footer)
 
 ## 진행 중
 - [ ] DB 스키마 설계 (users, payments 테이블)
