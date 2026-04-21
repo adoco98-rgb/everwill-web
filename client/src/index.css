@@ -227,3 +227,50 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* ══════════════════════════════════════════
+   다국어 폰트 및 RTL 지원
+══════════════════════════════════════════ */
+/* 아랍어 RTL 지원 */
+[dir="rtl"] body,
+[dir="rtl"] {
+  font-family: 'Cairo', 'Tajawal', 'Pretendard', sans-serif;
+}
+[dir="rtl"] .flex:not(.flex-col) {
+  flex-direction: row-reverse;
+}
+[dir="rtl"] .space-x-2 > * + * {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+[dir="rtl"] .space-x-4 > * + * {
+  margin-left: 0;
+  margin-right: 1rem;
+}
+/* RTL에서 gap이 있는 flex 아이템 */
+[dir="rtl"] .gap-2,
+[dir="rtl"] .gap-3,
+[dir="rtl"] .gap-4 {
+  direction: rtl;
+}
+/* 일본어 폰트 */
+:lang(ja) body,
+:lang(ja) {
+  font-family: 'Noto Sans JP', 'Pretendard', sans-serif;
+}
+/* 중국어 폰트 */
+:lang(zh) body,
+:lang(zh) {
+  font-family: 'Noto Sans SC', 'Pretendard', sans-serif;
+}
+/* 영어/독일어/스페인어 폰트 */
+:lang(en) body,
+:lang(de) body,
+:lang(es) body {
+  font-family: 'Inter', 'Pretendard', sans-serif;
+}
+/* 아랍어 폰트 */
+:lang(ar) body,
+:lang(ar) {
+  font-family: 'Cairo', 'Tajawal', sans-serif;
+}

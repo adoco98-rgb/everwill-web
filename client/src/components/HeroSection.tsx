@@ -7,12 +7,15 @@
 import { motion } from "framer-motion";
 import { ArrowRight, PenLine, UserPlus } from "lucide-react";
 import { useLocation } from "wouter";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const HERO_IMAGE =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/hero-global-elders-v2-DB4mTEuKjbV7DYjdv5fYBA.webp";
 
 export default function HeroSection() {
   const [, navigate] = useLocation();
+  const { t } = useLanguage();
+
   const scrollToPricing = () => {
     const el = document.querySelector("#pricing");
     if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -45,7 +48,7 @@ export default function HeroSection() {
         >
           <span className="w-2 h-2 rounded-full bg-[#C9A961] animate-pulse" />
           <span className="text-white/90 text-sm font-medium tracking-wide">
-            세계 최초 디지털 유언 OS
+            {t.hero.badge}
           </span>
         </motion.div>
 
@@ -57,15 +60,15 @@ export default function HeroSection() {
           className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-white leading-[1.1] mb-6 max-w-5xl"
           style={{ fontFamily: "'Playfair Display', serif" }}
         >
-          누구나 한번은
+          {t.hero.title1}
           <br />
-          꼭 해야할,
+          {t.hero.title2}
           <br />
           <span
             className="text-[#C9A961]"
             style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic" }}
           >
-            나의 마지막 서명
+            {t.hero.title3}
           </span>
         </motion.h1>
 
@@ -76,9 +79,9 @@ export default function HeroSection() {
           transition={{ duration: 0.7, delay: 0.3 }}
           className="text-white/70 text-lg sm:text-xl leading-relaxed mb-12 max-w-2xl"
         >
-          AI 유언장 작성 무료 · 전자인증 ₩49,000
+          {t.hero.subtitle}
           <br className="hidden sm:block" />
-          유언 작성, 인증, 사후 집행을 하나로.
+          {t.hero.subtitle2}
         </motion.p>
 
         {/* CTA 버튼 2개 */}
@@ -94,7 +97,7 @@ export default function HeroSection() {
             className="group flex items-center gap-3 btn-gold px-10 py-4 rounded-full text-base font-semibold shadow-2xl shadow-[#C9A961]/30 min-w-[220px] justify-center"
           >
             <PenLine className="w-5 h-5" />
-            유언장 서명하기
+            {t.hero.ctaSign}
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </button>
 
@@ -104,7 +107,7 @@ export default function HeroSection() {
             className="group flex items-center gap-3 bg-white/15 backdrop-blur-sm border border-white/40 hover:bg-white/25 hover:border-white/60 text-white px-10 py-4 rounded-full text-base font-semibold transition-all duration-300 min-w-[220px] justify-center"
           >
             <UserPlus className="w-5 h-5" />
-            무료로 가입하기
+            {t.hero.ctaJoin}
           </button>
         </motion.div>
 
@@ -116,19 +119,19 @@ export default function HeroSection() {
           className="flex flex-wrap justify-center gap-6 mt-14 text-white/50 text-sm"
         >
           <span className="flex items-center gap-1.5">
-            <span className="text-[#C9A961]">✓</span> 법적 효력 보장
+            <span className="text-[#C9A961]">✓</span> {t.hero.trust1}
           </span>
           <span className="text-white/20">|</span>
           <span className="flex items-center gap-1.5">
-            <span className="text-[#C9A961]">✓</span> 7개국 지원
+            <span className="text-[#C9A961]">✓</span> {t.hero.trust2}
           </span>
           <span className="text-white/20">|</span>
           <span className="flex items-center gap-1.5">
-            <span className="text-[#C9A961]">✓</span> 17분 완성
+            <span className="text-[#C9A961]">✓</span> {t.hero.trust3}
           </span>
           <span className="text-white/20">|</span>
           <span className="flex items-center gap-1.5">
-            <span className="text-[#C9A961]">✓</span> 은행급 보안
+            <span className="text-[#C9A961]">✓</span> {t.hero.trust4}
           </span>
         </motion.div>
       </div>

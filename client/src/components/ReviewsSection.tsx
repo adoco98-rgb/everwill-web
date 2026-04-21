@@ -6,7 +6,9 @@ import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef, useState } from "react";
 import { Star, ChevronDown } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
+// 리뷰는 다국어 번역 없이 원본 유지 (실제 사용자 후기이므로)
 const reviews = [
   {
     name: "김민준",
@@ -18,7 +20,7 @@ const reviews = [
   },
   {
     name: "Sarah Johnson",
-    age: "64세",
+    age: "64",
     location: "Los Angeles",
     rating: 5,
     text: "As a Korean-American with assets in both countries, EverWill is the only platform that handles cross-border inheritance. Absolutely essential.",
@@ -34,7 +36,7 @@ const reviews = [
   },
   {
     name: "田中 健一",
-    age: "66세",
+    age: "66",
     location: "東京",
     rating: 5,
     text: "日本語対応で、日本の法律に合わせた遺言書が作れます。Badge システムは世界初の革新的なアイデアです。",
@@ -50,7 +52,7 @@ const reviews = [
   },
   {
     name: "Maria García",
-    age: "60세",
+    age: "60",
     location: "Madrid",
     rating: 5,
     text: "El sistema de Badge es revolucionario. Nunca había visto algo así en ningún servicio de testamentos del mundo.",
@@ -58,37 +60,20 @@ const reviews = [
   },
 ];
 
-const faqs = [
-  {
-    q: "AI가 작성한 유언장이 법적 효력이 있나요?",
-    a: "네. EverWill의 AI 유언장은 변호사가 설계한 법률 템플릿을 기반으로 작성됩니다. eKYC 본인인증 + 전자서명 + 블록체인 타임스탬프를 통해 법적 효력을 갖습니다. 단, 전자 인증(₩49,000) 완료 후 법적 효력이 발생합니다.",
-  },
-  {
-    q: "유언장 수정은 얼마나 자주 할 수 있나요?",
-    a: "횟수 제한 없이 수정 가능합니다. 수정 후 재인증 시 ₩15,000만 부과됩니다. Trust & Will($299/년 멤버십)과 달리 필요할 때만 비용이 발생합니다.",
-  },
-  {
-    q: "Badge를 분실하면 어떻게 되나요?",
-    a: "Badge 분실 시 앱에서 즉시 비활성화할 수 있습니다. 새 Badge 재발급은 기존 가격의 50%로 가능합니다. 유언장 데이터는 EverWill 서버에 안전하게 보관되어 Badge와 무관하게 유지됩니다.",
-  },
-  {
-    q: "해외 자산도 관리할 수 있나요?",
-    a: "네. EverWill은 세계 유일의 멀티관할권 유언 플랫폼입니다. 한국 거주 + 미국 자산 + 일본 자녀 등 복잡한 국제 상속도 각국 법률을 자동 적용하여 처리합니다.",
-  },
-  {
-    q: "4중 사망 감지 시스템이란 무엇인가요?",
-    a: "① 가족 신고(1-3일) ② 정부 DB 연동(7-30일) ③ Dead Man's Switch(30-90일) ④ 응급 발견자 신고. 최소 2개 채널 확인 후 유언 집행을 개시하여 허위 신고와 사기를 방지합니다.",
-  },
-  {
-    q: "개인정보는 안전한가요?",
-    a: "은행급 E2E 암호화를 적용합니다. ISMS 인증, SOC 2 Type II, GDPR 준수를 목표로 하며, 개인정보는 절대 제3자에게 판매하지 않습니다.",
-  },
-];
-
 export default function ReviewsSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const { t } = useLanguage();
+
+  const faqs = [
+    { q: t.reviews.faq1q, a: t.reviews.faq1a },
+    { q: t.reviews.faq2q, a: t.reviews.faq2a },
+    { q: t.reviews.faq3q, a: t.reviews.faq3a },
+    { q: t.reviews.faq4q, a: t.reviews.faq4a },
+    { q: t.reviews.faq5q, a: t.reviews.faq5a },
+    { q: t.reviews.faq6q, a: t.reviews.faq6a },
+  ];
 
   return (
     <section className="py-20 lg:py-28 bg-white" ref={ref}>
@@ -102,7 +87,7 @@ export default function ReviewsSection() {
         >
           <div className="section-divider mx-auto mb-6" />
           <h2 className="text-3xl lg:text-4xl font-bold text-[#1F3864] mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
-            전 세계 사용자의 이야기
+            {t.reviews.title}
           </h2>
           <div className="flex items-center justify-center gap-2 text-gray-500">
             <div className="flex">
@@ -151,7 +136,7 @@ export default function ReviewsSection() {
         >
           <div className="text-center mb-10">
             <h2 className="text-3xl lg:text-4xl font-bold text-[#1F3864] mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
-              자주 묻는 질문
+              {t.reviews.faqTitle}
             </h2>
           </div>
 

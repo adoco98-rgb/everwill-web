@@ -7,15 +7,40 @@ import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { ArrowRight, Mail, Phone, MapPin, Shield } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Footer() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
+  const { t } = useLanguage();
 
   const scrollToPricing = () => {
     const el = document.querySelector("#pricing");
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
+
+  const serviceLinks = [
+    t.services.s1Title,
+    t.services.s8Title,
+    t.services.s2Title,
+    t.services.s3Title,
+    t.badge.title,
+  ];
+
+  const companyLinks = [
+    t.footer.company,
+    "Blog",
+    t.footer.services,
+    "Partnership",
+    "Press",
+  ];
+
+  const legalLinks = [
+    t.footer.terms,
+    t.footer.privacy,
+    t.footer.legal,
+    t.footer.disclaimer,
+  ];
 
   return (
     <>
@@ -33,18 +58,17 @@ export default function Footer() {
           >
             <div className="inline-flex items-center gap-2 bg-[#C9A961]/15 border border-[#C9A961]/30 rounded-full px-4 py-1.5 mb-8">
               <Shield className="w-4 h-4 text-[#C9A961]" />
-              <span className="text-[#C9A961] text-sm font-medium">AI 작성 무료 · 인증만 ₩49,000</span>
+              <span className="text-[#C9A961] text-sm font-medium">{t.pricing.free} · {t.pricing.certTitle} ₩49,000</span>
             </div>
 
             <h2 className="text-4xl lg:text-6xl font-bold text-white mb-6 leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-              지금 시작하세요.
+              {t.cta.title}
               <br />
-              <span className="text-[#C9A961]">17분이면 충분합니다.</span>
+              <span className="text-[#C9A961]">17 min.</span>
             </h2>
 
             <p className="text-white/60 text-lg mb-10 max-w-2xl mx-auto">
-              유언장 작성을 미루는 이유가 복잡하고 비쌀 것 같아서라면,
-              EverWill이 그 생각을 바꿔드립니다.
+              {t.cta.subtitle}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -52,19 +76,19 @@ export default function Footer() {
                 onClick={scrollToPricing}
                 className="btn-gold flex items-center justify-center gap-2 px-10 py-4 rounded-full text-base font-semibold shadow-lg"
               >
-                무료로 유언장 작성 시작
+                {t.cta.btn}
                 <ArrowRight className="w-5 h-5" />
               </button>
               <button
-                onClick={() => toast.info("상담 신청 기능 준비 중입니다")}
+                onClick={() => toast.info("서비스 준비 중입니다")}
                 className="flex items-center justify-center gap-2 px-10 py-4 rounded-full text-base font-medium text-white border border-white/30 hover:border-[#C9A961]/60 hover:text-[#C9A961] transition-all duration-300"
               >
-                전문가 상담 신청
+                {t.lawyers.step3Title}
               </button>
             </div>
 
             <p className="text-white/30 text-sm mt-8">
-              신용카드 불필요 · 언제든 취소 가능 · 데이터 암호화 보장
+              {t.cta.note}
             </p>
           </motion.div>
         </div>
@@ -83,14 +107,12 @@ export default function Footer() {
                 <span className="text-white font-bold text-xl">EverWill</span>
               </div>
               <p className="text-sm leading-relaxed mb-6">
-                세계 최초 디지털 유언 OS.
-                <br />
-                유언 작성부터 사후 자동 집행까지.
+                {t.footer.tagline}
               </p>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-[#C9A961]" />
-                  <span>서울특별시 강남구</span>
+                  <span>Seoul, Korea</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-[#C9A961]" />
@@ -105,13 +127,13 @@ export default function Footer() {
 
             {/* 서비스 */}
             <div>
-              <h4 className="text-white font-semibold mb-4 text-sm">서비스</h4>
+              <h4 className="text-white font-semibold mb-4 text-sm">{t.footer.services}</h4>
               <ul className="space-y-2 text-sm">
-                {["AI 유언장 작성", "전자 인증", "영상 유언장", "자필 스캔", "Badge 시스템"].map((item) => (
+                {serviceLinks.map((item) => (
                   <li key={item}>
                     <button
                       onClick={() => toast.info("준비 중입니다")}
-                      className="hover:text-[#C9A961] transition-colors"
+                      className="hover:text-[#C9A961] transition-colors text-left"
                     >
                       {item}
                     </button>
@@ -122,13 +144,13 @@ export default function Footer() {
 
             {/* 회사 */}
             <div>
-              <h4 className="text-white font-semibold mb-4 text-sm">회사</h4>
+              <h4 className="text-white font-semibold mb-4 text-sm">{t.footer.company2}</h4>
               <ul className="space-y-2 text-sm">
-                {["회사 소개", "블로그", "채용", "파트너십", "언론 보도"].map((item) => (
+                {companyLinks.map((item) => (
                   <li key={item}>
                     <button
                       onClick={() => toast.info("준비 중입니다")}
-                      className="hover:text-[#C9A961] transition-colors"
+                      className="hover:text-[#C9A961] transition-colors text-left"
                     >
                       {item}
                     </button>
@@ -137,15 +159,15 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* 지원 */}
+            {/* 법적 */}
             <div>
-              <h4 className="text-white font-semibold mb-4 text-sm">지원</h4>
+              <h4 className="text-white font-semibold mb-4 text-sm">{t.footer.legal}</h4>
               <ul className="space-y-2 text-sm">
-                {["고객센터", "FAQ", "이용약관", "개인정보처리방침", "법적 고지"].map((item) => (
+                {legalLinks.map((item) => (
                   <li key={item}>
                     <button
                       onClick={() => toast.info("준비 중입니다")}
-                      className="hover:text-[#C9A961] transition-colors"
+                      className="hover:text-[#C9A961] transition-colors text-left"
                     >
                       {item}
                     </button>
@@ -160,21 +182,15 @@ export default function Footer() {
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
             <div className="text-white/40">
-              © 2025 주식회사 사람 (EverWill Inc.) All rights reserved.
+              {t.footer.copyright}
             </div>
             <div className="flex items-center gap-4 text-white/40">
-              <span>🇰🇷 한국어</span>
-              <span>·</span>
-              <span>사업자등록번호: 000-00-00000</span>
-              <span>·</span>
-              <span>통신판매업신고: 제2025-서울강남-0000호</span>
+              <span>{t.global.langSupport}</span>
             </div>
           </div>
 
           <div className="mt-4 text-xs text-white/25 leading-relaxed">
-            EverWill은 법률 정보를 제공하는 플랫폼으로, 법률 자문 서비스가 아닙니다. 
-            AI가 생성한 유언장은 변호사의 법률 자문을 대체하지 않습니다. 
-            복잡한 법적 상황은 반드시 전문 변호사와 상담하시기 바랍니다.
+            {t.footer.legalNote}
           </div>
         </div>
       </footer>

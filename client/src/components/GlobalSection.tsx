@@ -7,51 +7,9 @@ import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { MapPin, ArrowRight } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const GLOBAL_MAP_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/global-map-bg-azf9Vc6ZPzzfcAYoyT8HFS.webp";
-
-const launchPhases = [
-  {
-    phase: "1차",
-    period: "Month 1-3",
-    country: "한국",
-    flag: "🇰🇷",
-    status: "출시 예정",
-    statusColor: "bg-green-500",
-    highlights: ["본사 위치", "재외한인 700만", "시장 공백"],
-    payment: "토스페이먼츠",
-  },
-  {
-    phase: "2차",
-    period: "Month 4-6",
-    country: "일본",
-    flag: "🇯🇵",
-    status: "준비 중",
-    statusColor: "bg-yellow-500",
-    highlights: ["2025.10 디지털화", "한국 유사 법체계", "고령화 사회"],
-    payment: "PayPay · LINE Pay",
-  },
-  {
-    phase: "3차",
-    period: "Month 7-9",
-    country: "중국·홍콩·대만",
-    flag: "🇨🇳",
-    status: "계획",
-    statusColor: "bg-blue-400",
-    highlights: ["홍콩·대만 우선", "화교 네트워크", "글로벌 자산"],
-    payment: "Alipay · WeChat Pay",
-  },
-  {
-    phase: "4차",
-    period: "Month 10-12",
-    country: "미국",
-    flag: "🇺🇸",
-    status: "계획",
-    statusColor: "bg-blue-400",
-    highlights: ["재미한인 100만", "CA·NY 우선", "영어 서비스"],
-    payment: "Stripe · Paddle",
-  },
-];
 
 const languages = [
   { lang: "한국어", flag: "🇰🇷", note: "기본" },
@@ -66,6 +24,50 @@ const languages = [
 export default function GlobalSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
+  const { t } = useLanguage();
+
+  const launchPhases = [
+    {
+      phase: t.global.phase1,
+      period: "Month 1-3",
+      country: t.global.korea,
+      flag: "🇰🇷",
+      status: t.global.statusLaunch,
+      statusColor: "bg-green-500",
+      highlights: t.global.koreaHighlights,
+      payment: "토스페이먼츠",
+    },
+    {
+      phase: t.global.phase2,
+      period: "Month 4-6",
+      country: t.global.japan,
+      flag: "🇯🇵",
+      status: t.global.statusPrepare,
+      statusColor: "bg-yellow-500",
+      highlights: t.global.japanHighlights,
+      payment: "PayPay · LINE Pay",
+    },
+    {
+      phase: t.global.phase3,
+      period: "Month 7-9",
+      country: t.global.china,
+      flag: "🇨🇳",
+      status: t.global.statusPlan,
+      statusColor: "bg-blue-400",
+      highlights: t.global.chinaHighlights,
+      payment: "Alipay · WeChat Pay",
+    },
+    {
+      phase: t.global.phase4,
+      period: "Month 10-12",
+      country: t.global.usa,
+      flag: "🇺🇸",
+      status: t.global.statusPlan,
+      statusColor: "bg-blue-400",
+      highlights: t.global.usaHighlights,
+      payment: "Stripe · Paddle",
+    },
+  ];
 
   return (
     <section id="global" className="py-20 lg:py-28 relative overflow-hidden" ref={ref}>
@@ -89,12 +91,10 @@ export default function GlobalSection() {
         >
           <div className="section-divider mx-auto mb-6" />
           <h2 className="text-3xl lg:text-5xl font-bold text-white mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
-            글로벌 유언 OS
+            {t.global.title}
           </h2>
           <p className="text-white/60 text-lg max-w-2xl mx-auto">
-            한국에서 시작해 전 세계로. 7개 언어, 4개국 동시 지원.
-            <br />
-            이런 서비스는 현재 세계에 없습니다.
+            {t.global.subtitle}
           </p>
         </motion.div>
 
@@ -119,7 +119,7 @@ export default function GlobalSection() {
               <h3 className="text-white font-bold text-lg mb-3">{phase.country}</h3>
 
               <ul className="space-y-1.5 mb-4">
-                {phase.highlights.map((h) => (
+                {phase.highlights.map((h: string) => (
                   <li key={h} className="flex items-center gap-2 text-white/60 text-sm">
                     <MapPin className="w-3 h-3 text-[#C9A961] flex-shrink-0" />
                     {h}
@@ -128,7 +128,7 @@ export default function GlobalSection() {
               </ul>
 
               <div className="pt-3 border-t border-white/10">
-                <div className="text-white/40 text-xs mb-1">결제</div>
+                <div className="text-white/40 text-xs mb-1">{t.global.payment}</div>
                 <div className="text-white/70 text-xs font-medium">{phase.payment}</div>
               </div>
             </motion.div>
@@ -142,7 +142,7 @@ export default function GlobalSection() {
           transition={{ duration: 0.7, delay: 0.4 }}
           className="text-center"
         >
-          <h3 className="text-white/80 text-lg font-semibold mb-6">7개 언어 지원</h3>
+          <h3 className="text-white/80 text-lg font-semibold mb-6">{t.global.langSupport}</h3>
           <div className="flex flex-wrap justify-center gap-3">
             {languages.map((l, i) => (
               <motion.div
@@ -167,7 +167,7 @@ export default function GlobalSection() {
             transition={{ duration: 0.6, delay: 0.8 }}
             className="mt-8 inline-flex items-center gap-2 text-[#C9A961] text-sm font-medium"
           >
-            <span>아랍어 RTL + 샤리아 상속법 자동 적용</span>
+            <span>{t.global.arabicNote}</span>
             <ArrowRight className="w-4 h-4" />
           </motion.div>
         </motion.div>
