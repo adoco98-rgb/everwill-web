@@ -267,8 +267,11 @@ export default function PricingSection() {
           </div>
         </motion.div>
 
-        {/* ── 기본 플랜 카드 (1번: 무료, 2번: 인증) ── */}
-        <div className="grid sm:grid-cols-2 gap-8 mb-16 max-w-4xl mx-auto">
+        {/* ── 좌/우 2컬럼 메인 레이아웃 ── */}
+        <div className="grid lg:grid-cols-2 gap-10 mb-16 items-start">
+
+          {/* ── 좌측: 기본 플랜 카드 (무료 + 인증) ── */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-6">
           {pricingPlans.map((plan, i) => (
             <motion.div
               key={plan.name}
@@ -338,7 +341,10 @@ export default function PricingSection() {
               </button>
             </motion.div>
           ))}
-        </div>
+          </div>
+
+          {/* ── 우측: 멤버십 + 보관 + 부가서비스 ── */}
+          <div className="space-y-8">
 
         {/* ── 멤버십 플랜 카드 (보관 연수 포함 4종) ── */}
         <motion.div
@@ -784,9 +790,11 @@ export default function PricingSection() {
                 </div>
               </div>
             ))}
-          </div>
+           </div>
         </motion.div>
 
+          </div>{/* 우측 컬럼 끝 */}
+        </div>{/* 2컬럼 레이아웃 끝 */}
       </div>
     </section>
   );
