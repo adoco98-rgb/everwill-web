@@ -268,16 +268,16 @@ export default function PricingSection() {
         </motion.div>
 
         {/* ── 기본 플랜 카드 (1번: 무료, 2번: 인증) ── */}
-        <div className="grid md:grid-cols-2 gap-6 mb-16 max-w-3xl mx-auto">
+        <div className="grid sm:grid-cols-2 gap-8 mb-16 max-w-4xl mx-auto">
           {pricingPlans.map((plan, i) => (
             <motion.div
               key={plan.name}
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: i * 0.1 }}
-              className={`relative rounded-2xl p-8 border transition-all ${
+              className={`relative rounded-2xl p-8 border transition-all flex flex-col h-full ${
                 plan.highlight
-                  ? "bg-[#1F3864] border-[#1F3864] shadow-2xl shadow-[#1F3864]/20 scale-105"
+                  ? "bg-[#1F3864] border-[#1F3864] shadow-2xl shadow-[#1F3864]/20"
                   : "bg-[#FAFAF8] border-gray-100 hover:border-[#C9A961]/30 hover:shadow-lg"
               }`}
             >
