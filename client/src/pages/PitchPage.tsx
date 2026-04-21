@@ -1,5 +1,5 @@
 /**
- * SARAM 사업소개서 / 투자설명서
+ * EverWill 사업소개서 / 투자설명서
  * 홈페이지와 완전히 독립된 전문 IR 문서
  * URL: /pitch (직접 접근만 가능, 홈페이지에서 링크 없음)
  */
@@ -16,9 +16,9 @@ const LANGS = {
     flag: "🇰🇷", name: "한국어",
     confidential: "본 문서는 기밀입니다. 허가된 투자자에게만 공개됩니다.",
     badge: "Series A · 2026 · CONFIDENTIAL",
-    title: "SARAM 사업소개서",
+    title: "EverWill 사업소개서",
     subtitle: "세계 최초 디지털 유언 OS — 유언 작성부터 사후 자동 집행까지",
-    company: "주식회사 사람 (SARAM Inc.) · 대표 라수환 (Jeff Lah)",
+    company: "주식회사 사람 (EverWill Inc.) · 대표 라수환 (Jeff Lah)",
     sections: ["사업 개요", "시장 현황", "국가별 시장", "차별성", "수익 모델", "비전·로드맵", "팀·투자 조건", "투자 문의"],
     s1: "01 사업 개요 및 의의",
     s1mission: "미션",
@@ -26,7 +26,7 @@ const LANGS = {
     s1vision: "비전",
     s1visionText: "2030년까지 아시아 1위, 글로벌 3위 디지털 유언 플랫폼",
     s1about: "사업 소개",
-    s1aboutText: "SARAM은 유언 작성부터 사후 자동 집행까지 전 과정을 책임지는 세계 최초 디지털 유언 OS입니다. Trust & Will·Farewill·GoodTrust 등 글로벌 경쟁사를 뛰어넘는 올인원 글로벌 유언 플랫폼으로, 아시아에 경쟁자가 전무한 블루오션 시장을 선점합니다.",
+    s1aboutText: "EverWill은 유언 작성부터 사후 자동 집행까지 전 과정을 책임지는 세계 최초 디지털 유언 OS입니다. Trust & Will·Farewill·GoodTrust 등 글로벌 경쟁사를 뛰어넘는 올인원 글로벌 유언 플랫폼으로, 아시아에 경쟁자가 전무한 블루오션 시장을 선점합니다.",
     s1problems: "해결하는 문제 (근거 기반)",
     s2: "02 글로벌 시장 현황",
     s2sub: "고령화 가속 · 디지털 전환 · 법제화 — 세 메가트렌드가 수렴하는 최적의 진입 시점",
@@ -65,9 +65,9 @@ const LANGS = {
     flag: "🇺🇸", name: "English",
     confidential: "This document is confidential. For authorized investors only.",
     badge: "Series A · 2026 · CONFIDENTIAL",
-    title: "SARAM Business Proposal",
+    title: "EverWill Business Proposal",
     subtitle: "World's First Digital Will OS — From Will Creation to Automated Post-Death Execution",
-    company: "SARAM Inc. · CEO Jeff Lah (라수환)",
+    company: "EverWill Inc. · CEO Jeff Lah (라수환)",
     sections: ["Overview", "Market", "By Country", "Differentiation", "Revenue", "Vision", "Team", "Contact"],
     s1: "01 Business Overview",
     s1mission: "Mission",
@@ -75,7 +75,7 @@ const LANGS = {
     s1vision: "Vision",
     s1visionText: "#1 in Asia, Top 3 globally in digital will platforms by 2030",
     s1about: "About",
-    s1aboutText: "SARAM is the world's first Digital Will OS, handling everything from will creation to automated post-death execution. We outperform Trust & Will, Farewill, and GoodTrust with an all-in-one global platform, entering a blue ocean market with zero competitors in Asia.",
+    s1aboutText: "EverWill is the world's first Digital Will OS, handling everything from will creation to automated post-death execution. We outperform Trust & Will, Farewill, and GoodTrust with an all-in-one global platform, entering a blue ocean market with zero competitors in Asia.",
     s1problems: "Problems We Solve (Evidence-Based)",
     s2: "02 Global Market Overview",
     s2sub: "Aging acceleration · Digital transformation · Legislation — Three megatrends converging at the perfect entry point",
@@ -114,9 +114,9 @@ const LANGS = {
     flag: "🇯🇵", name: "日本語",
     confidential: "本書は機密情報です。許可された投資家のみに公開されます。",
     badge: "Series A · 2026 · CONFIDENTIAL",
-    title: "SARAM 事業紹介書",
+    title: "EverWill 事業紹介書",
     subtitle: "世界初のデジタル遺言OS — 遺言作成から死後自動執行まで",
-    company: "株式会社サラム (SARAM Inc.) · 代表 ラ・スファン (Jeff Lah)",
+    company: "株式会社サラム (EverWill Inc.) · 代表 ラ・スファン (Jeff Lah)",
     sections: ["事業概要", "市場概況", "国別市場", "差別化", "収益モデル", "ビジョン", "チーム", "お問い合わせ"],
     s1: "01 事業概要",
     s1mission: "ミッション",
@@ -163,9 +163,9 @@ const LANGS = {
     flag: "🇨🇳", name: "中文",
     confidential: "本文件为机密文件，仅供授权投资者查阅。",
     badge: "Series A · 2026 · CONFIDENTIAL",
-    title: "SARAM 商业计划书",
+    title: "EverWill 商业计划书",
     subtitle: "全球首个数字遗嘱OS — 从遗嘱起草到身后自动执行",
-    company: "株式会社SARAM · CEO 罗秀焕 (Jeff Lah)",
+    company: "株式会社EverWill · CEO 罗秀焕 (Jeff Lah)",
     sections: ["业务概述", "市场概况", "各国市场", "差异化", "收益模式", "愿景", "团队", "联系我们"],
     s1: "01 业务概述",
     s1mission: "使命",
@@ -173,7 +173,7 @@ const LANGS = {
     s1vision: "愿景",
     s1visionText: "2030年前成为亚洲第一、全球前三的数字遗嘱平台",
     s1about: "业务介绍",
-    s1aboutText: "SARAM是全球首个数字遗嘱OS，超越Trust & Will、Farewill、GoodTrust等全球竞争对手，抢占亚洲零竞争对手的蓝海市场。",
+    s1aboutText: "EverWill是全球首个数字遗嘱OS，超越Trust & Will、Farewill、GoodTrust等全球竞争对手，抢占亚洲零竞争对手的蓝海市场。",
     s1problems: "解决的问题（基于证据）",
     s2: "02 全球市场概况",
     s2sub: "老龄化加速·数字化转型·法制化 — 三大趋势汇聚的最佳入场时机",
@@ -212,9 +212,9 @@ const LANGS = {
     flag: "🇸🇦", name: "العربية",
     confidential: "هذه الوثيقة سرية. للمستثمرين المعتمدين فقط.",
     badge: "Series A · 2026 · سري",
-    title: "خطة أعمال SARAM",
+    title: "خطة أعمال EverWill",
     subtitle: "أول نظام وصايا رقمي في العالم — من إعداد الوصية إلى التنفيذ التلقائي بعد الوفاة",
-    company: "شركة SARAM · الرئيس التنفيذي جيف لاه",
+    company: "شركة EverWill · الرئيس التنفيذي جيف لاه",
     sections: ["نظرة عامة", "السوق", "حسب الدولة", "التميز", "الإيرادات", "الرؤية", "الفريق", "تواصل"],
     s1: "01 نظرة عامة على الأعمال",
     s1mission: "المهمة",
@@ -222,7 +222,7 @@ const LANGS = {
     s1vision: "الرؤية",
     s1visionText: "الأول في آسيا، وضمن أفضل 3 عالمياً في منصات الوصايا الرقمية بحلول 2030",
     s1about: "عن الشركة",
-    s1aboutText: "SARAM هي أول نظام وصايا رقمي في العالم، يتفوق على Trust & Will وFarewill وGoodTrust، ويدخل سوقاً خالياً من المنافسين في آسيا.",
+    s1aboutText: "EverWill هي أول نظام وصايا رقمي في العالم، يتفوق على Trust & Will وFarewill وGoodTrust، ويدخل سوقاً خالياً من المنافسين في آسيا.",
     s1problems: "المشكلات التي نحلها",
     s2: "02 نظرة عامة على السوق العالمي",
     s2sub: "تسارع الشيخوخة · التحول الرقمي · التشريعات — ثلاثة اتجاهات كبرى تتقاطع في أفضل وقت للدخول",
@@ -261,9 +261,9 @@ const LANGS = {
     flag: "🇷🇺", name: "Русский",
     confidential: "Этот документ является конфиденциальным. Только для авторизованных инвесторов.",
     badge: "Series A · 2026 · КОНФИДЕНЦИАЛЬНО",
-    title: "Бизнес-план SARAM",
+    title: "Бизнес-план EverWill",
     subtitle: "Первая в мире цифровая ОС завещаний — от составления до автоматического исполнения",
-    company: "SARAM Inc. · Генеральный директор Джефф Ла (라수환)",
+    company: "EverWill Inc. · Генеральный директор Джефф Ла (라수환)",
     sections: ["Обзор", "Рынок", "По странам", "Отличия", "Доходы", "Видение", "Команда", "Контакт"],
     s1: "01 Обзор бизнеса",
     s1mission: "Миссия",
@@ -271,7 +271,7 @@ const LANGS = {
     s1vision: "Видение",
     s1visionText: "№1 в Азии, топ-3 в мире среди цифровых платформ завещаний к 2030 году",
     s1about: "О компании",
-    s1aboutText: "SARAM — первая в мире цифровая ОС завещаний, превосходящая Trust & Will, Farewill и GoodTrust. Мы занимаем рынок Азии, где нет конкурентов.",
+    s1aboutText: "EverWill — первая в мире цифровая ОС завещаний, превосходящая Trust & Will, Farewill и GoodTrust. Мы занимаем рынок Азии, где нет конкурентов.",
     s1problems: "Решаемые проблемы (на основе данных)",
     s2: "02 Обзор глобального рынка",
     s2sub: "Старение населения · Цифровая трансформация · Законодательство — три мегатренда сходятся в оптимальный момент входа",
@@ -361,7 +361,7 @@ const ltvData = [
   { company: "GoodTrust", ltv: 120 },
   { company: "Farewill", ltv: 150 },
   { company: "Trust & Will", ltv: 199 },
-  { company: "SARAM", ltv: 550 },
+  { company: "EverWill", ltv: 550 },
 ];
 
 const countryData = [
@@ -458,7 +458,7 @@ export default function PitchPage() {
               <span className="text-[#C9A961] font-bold text-sm">S</span>
             </div>
             <div>
-              <div className="font-bold text-[#1F3864] text-sm leading-none">SARAM</div>
+              <div className="font-bold text-[#1F3864] text-sm leading-none">EverWill</div>
               <div className="text-[10px] text-gray-400 mt-0.5">사업소개서 · CONFIDENTIAL</div>
             </div>
           </div>
@@ -585,7 +585,7 @@ export default function PitchPage() {
                 <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${v}B`} />
                 <Tooltip formatter={(v: number) => [`$${v}B`, "Market Size"]} />
                 <Line type="monotone" dataKey="value" stroke="#1F3864" strokeWidth={3} dot={{ fill: "#1F3864", r: 5 }} />
-                <Line type="monotone" dataKey="saram" stroke="#C9A961" strokeWidth={0} dot={{ fill: "#C9A961", r: 8 }} name="SARAM Entry" />
+                <Line type="monotone" dataKey="saram" stroke="#C9A961" strokeWidth={0} dot={{ fill: "#C9A961", r: 8 }} name="EverWill Entry" />
               </LineChart>
             </ResponsiveContainer>
             <p className="text-xs text-gray-400 text-center mt-2">Source: Grand View Research 2024, Statista 2024, IBISWorld 2024</p>
@@ -671,7 +671,7 @@ export default function PitchPage() {
                 <PolarGrid />
                 <PolarAngleAxis dataKey="feature" tick={{ fontSize: 11 }} />
                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 9 }} />
-                <Radar name="SARAM" dataKey="SARAM" stroke="#C9A961" fill="#C9A961" fillOpacity={0.3} strokeWidth={2} />
+                <Radar name="EverWill" dataKey="EverWill" stroke="#C9A961" fill="#C9A961" fillOpacity={0.3} strokeWidth={2} />
                 <Radar name="Trust & Will" dataKey="TrustWill" stroke="#1F3864" fill="#1F3864" fillOpacity={0.1} strokeWidth={1.5} />
                 <Radar name="Farewill" dataKey="Farewill" stroke="#6b7280" fill="#6b7280" fillOpacity={0.1} strokeWidth={1} />
                 <Radar name="GoodTrust" dataKey="GoodTrust" stroke="#9ca3af" fill="#9ca3af" fillOpacity={0.1} strokeWidth={1} />
@@ -687,7 +687,7 @@ export default function PitchPage() {
               <thead className="bg-[#1F3864] text-white">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs">Feature</th>
-                  <th className="px-4 py-3 text-center text-xs text-[#C9A961]">SARAM</th>
+                  <th className="px-4 py-3 text-center text-xs text-[#C9A961]">EverWill</th>
                   <th className="px-4 py-3 text-center text-xs">Trust & Will</th>
                   <th className="px-4 py-3 text-center text-xs">Farewill</th>
                   <th className="px-4 py-3 text-center text-xs">GoodTrust</th>
@@ -786,7 +786,7 @@ export default function PitchPage() {
                     <Tooltip formatter={(v: number) => [`$${v}`, "LTV"]} />
                     <Bar dataKey="ltv" radius={[4, 4, 0, 0]}>
                       {ltvData.map((entry, index) => (
-                        <rect key={index} fill={entry.company === "SARAM" ? "#C9A961" : "#1F3864"} />
+                        <rect key={index} fill={entry.company === "EverWill" ? "#C9A961" : "#1F3864"} />
                       ))}
                     </Bar>
                   </BarChart>
@@ -858,7 +858,7 @@ export default function PitchPage() {
                 <div>
                   <div className="font-bold text-gray-900">라수환 (Jeff Lah)</div>
                   <div className="text-sm text-[#1F3864] font-medium">대표이사 · 창업자</div>
-                  <div className="text-xs text-gray-500 mt-1">주식회사 사람 (SARAM Inc.)</div>
+                  <div className="text-xs text-gray-500 mt-1">주식회사 사람 (EverWill Inc.)</div>
                   <div className="text-xs text-gray-500">제품기획 · 디자인 · 회계/재무 · 글로벌 전략</div>
                 </div>
               </div>
@@ -971,7 +971,7 @@ export default function PitchPage() {
       <footer className="border-t border-gray-200 bg-gray-50 py-8 px-6 mt-12">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-sm text-gray-400">
-            © 2026 주식회사 사람 (SARAM Inc.) · All rights reserved.
+            © 2026 주식회사 사람 (EverWill Inc.) · All rights reserved.
           </div>
           <div className="text-xs text-gray-400 text-center">
             본 문서는 기밀입니다. 무단 배포를 금합니다.

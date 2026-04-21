@@ -1,5 +1,5 @@
 /**
- * SARAM CTA 섹션 + Footer
+ * EverWill CTA 섹션 + Footer
  * 마지막 전환 유도 + 사이트맵
  */
 import { motion } from "framer-motion";
@@ -44,7 +44,7 @@ export default function Footer() {
 
             <p className="text-white/60 text-lg mb-10 max-w-2xl mx-auto">
               유언장 작성을 미루는 이유가 복잡하고 비쌀 것 같아서라면,
-              SARAM이 그 생각을 바꿔드립니다.
+              EverWill이 그 생각을 바꿔드립니다.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -80,7 +80,7 @@ export default function Footer() {
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#C9A961] to-[#a88840] flex items-center justify-center">
                   <span className="text-white font-bold text-sm font-serif">S</span>
                 </div>
-                <span className="text-white font-bold text-xl">SARAM</span>
+                <span className="text-white font-bold text-xl">EverWill</span>
               </div>
               <p className="text-sm leading-relaxed mb-6">
                 세계 최초 디지털 유언 OS.
@@ -160,7 +160,7 @@ export default function Footer() {
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
             <div className="text-white/40">
-              © 2025 주식회사 사람 (SARAM Inc.) All rights reserved.
+              © 2025 주식회사 사람 (EverWill Inc.) All rights reserved.
             </div>
             <div className="flex items-center gap-4 text-white/40">
               <span>🇰🇷 한국어</span>
@@ -172,7 +172,7 @@ export default function Footer() {
           </div>
 
           <div className="mt-4 text-xs text-white/25 leading-relaxed">
-            SARAM은 법률 정보를 제공하는 플랫폼으로, 법률 자문 서비스가 아닙니다. 
+            EverWill은 법률 정보를 제공하는 플랫폼으로, 법률 자문 서비스가 아닙니다. 
             AI가 생성한 유언장은 변호사의 법률 자문을 대체하지 않습니다. 
             복잡한 법적 상황은 반드시 전문 변호사와 상담하시기 바랍니다.
           </div>

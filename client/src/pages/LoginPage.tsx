@@ -1,5 +1,5 @@
 /**
- * SARAM 로그인 / 회원가입 페이지 (/login)
+ * EverWill 로그인 / 회원가입 페이지 (/login)
  * Manus OAuth 기반 소셜 로그인 (구글, 애플, 이메일)
  */
 import { getLoginUrl } from "@/const";

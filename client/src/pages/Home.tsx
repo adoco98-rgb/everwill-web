@@ -1,5 +1,5 @@
 /**
- * SARAM 메인 홈페이지
+ * EverWill 메인 홈페이지
  * 디자인: Refined Heritage Modernism
  * 네이비(#1F3864) + 골드(#C9A961) + 크림 배경
  * 섹션: Hero → Trust → Services → Badge → Pricing → Global → Lawyers → Reviews → CTA → Footer

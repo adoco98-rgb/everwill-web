@@ -46,7 +46,7 @@ export default function PaymentSuccess() {
               <h1 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "'Playfair Display', serif" }}>
                 결제 완료
               </h1>
-              <p className="text-white/60 text-sm">SARAM 서비스가 활성화됐습니다.</p>
+              <p className="text-white/60 text-sm">EverWill 서비스가 활성화됐습니다.</p>
             </div>
 
             {/* 결제 상세 */}

@@ -1,5 +1,5 @@
 /**
- * SARAM 네비게이션 바
+ * EverWill 네비게이션 바
  * 디자인: 딥 네이비 배경 + 골드 액센트
  * 스크롤 시 배경 불투명도 변화
  */
@@ -70,16 +70,12 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-18">
           {/* 로고 */}
-          <a href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#C9A961] to-[#a88840] flex items-center justify-center">
-              <span className="text-white font-bold text-sm font-serif">S</span>
-            </div>
-            <span className="text-white font-bold text-xl tracking-wide">
-              SARAM
-            </span>
-            <span className="hidden sm:block text-[#C9A961] text-xs font-medium ml-1 opacity-80">
-              유언 OS
-            </span>
+          <a href="/" className="flex items-center gap-1 group">
+            <img
+              src="/manus-storage/everwill-logo-final_d91418a1.png"
+              alt="EverWill"
+              className="h-10 w-auto object-contain"
+            />
           </a>
 
           {/* 데스크탑 메뉴 */}

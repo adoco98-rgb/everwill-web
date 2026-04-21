@@ -1,6 +1,6 @@
 /**
- * SARAM 신뢰 지표 섹션
- * SARAM 독자적 강점 6가지 — 비교 없음
+ * EverWill 신뢰 지표 섹션
+ * EverWill 독자적 강점 6가지 — 비교 없음
  */
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
@@ -101,7 +101,7 @@ export default function TrustSection() {
             className="text-2xl lg:text-4xl font-bold text-[#1F3864] mb-3"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
-            SARAM만의 6가지 이유
+            EverWill만의 6가지 이유
           </h2>
           <p className="text-gray-500">
             독자적인 기술과 아이디어로 만든 세계 최초 디지털 유언 OS

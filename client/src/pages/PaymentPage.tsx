@@ -1,5 +1,5 @@
 /**
- * SARAM 결제 페이지 (/payment)
+ * EverWill 결제 페이지 (/payment)
  * Stripe Checkout으로 글로벌 결제 (카드, 구글페이, 애플페이)
  */
 import { useState } from "react";
@@ -106,7 +106,7 @@ export default function PaymentPage() {
           </Link>
           <div className="h-4 w-px bg-white/20" />
           <div className="flex items-center gap-2">
-            <span className="text-[#C9A961] font-bold text-lg" style={{ fontFamily: "'Playfair Display', serif" }}>SARAM</span>
+            <span className="text-[#C9A961] font-bold text-lg" style={{ fontFamily: "'Playfair Display', serif" }}>EverWill</span>
             <span className="text-white/60 text-sm">결제</span>
           </div>
           <div className="ml-auto flex items-center gap-2 text-white/60 text-xs">

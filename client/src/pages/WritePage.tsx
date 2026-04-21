@@ -1,5 +1,5 @@
 /**
- * SARAM 유언장 작성 페이지 (/write)
+ * EverWill 유언장 작성 페이지 (/write)
  * 디자인: 네이비 + 골드, 깔끔한 스텝 UI
  * 모드: AI 가이드 (10단계 마법사) / 직접 작성 (법적 양식)
  */
@@ -31,7 +31,7 @@ export default function WritePage() {
             <div className="w-6 h-6 rounded bg-gradient-to-br from-[#C9A961] to-[#a88840] flex items-center justify-center">
               <span className="text-white font-bold text-xs">S</span>
             </div>
-            <span className="font-bold text-[#1F3864] text-sm">SARAM 유언장 작성</span>
+            <span className="font-bold text-[#1F3864] text-sm">EverWill 유언장 작성</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-gray-400">
             <Shield className="w-3.5 h-3.5 text-green-500" />
@@ -268,7 +268,7 @@ function ModeSelect({ onSelect }: { onSelect: (m: WillMode) => void }) {
         <div>
           <div className="font-semibold text-amber-800 text-sm mb-1">법적 고지</div>
           <p className="text-amber-700 text-xs leading-relaxed">
-            SARAM은 법률 정보를 제공하는 플랫폼으로, 법률 자문 서비스가 아닙니다.
+            EverWill은 법률 정보를 제공하는 플랫폼으로, 법률 자문 서비스가 아닙니다.
             AI가 생성한 유언장은 변호사의 법률 자문을 대체하지 않습니다.
             복잡한 법적 상황은 반드시 전문 변호사와 상담하시기 바랍니다.
             유언장의 법적 효력은 전자 인증(₩49,000) 완료 후 발생합니다.

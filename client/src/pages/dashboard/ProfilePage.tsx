@@ -1,5 +1,5 @@
 /**
- * SARAM 프로필 설정 페이지 (/dashboard/profile)
+ * EverWill 프로필 설정 페이지 (/dashboard/profile)
  */
 import { useAuth } from "@/_core/hooks/useAuth";
 import { motion } from "framer-motion";

@@ -1,5 +1,5 @@
 /**
- * SARAM 대시보드 홈 (/dashboard)
+ * EverWill 대시보드 홈 (/dashboard)
  * 사용자 현황 요약 카드
  */
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -91,7 +91,7 @@ export default function DashboardHome() {
           {greeting}, {user?.name?.split(" ")[0] || "회원"}님 👋
         </h1>
         <p className="text-gray-400 text-sm mt-1">
-          유언장 작성부터 사후 집행까지 SARAM이 함께합니다.
+          유언장 작성부터 사후 집행까지 EverWill이 함께합니다.
         </p>
       </motion.div>
 

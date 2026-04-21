@@ -1,5 +1,5 @@
 /**
- * SARAM 결제 내역 페이지 (/dashboard/payments)
+ * EverWill 결제 내역 페이지 (/dashboard/payments)
  * DB에 저장된 결제 내역 조회
  */
 import { useEffect, useState } from "react";
@@ -63,7 +63,7 @@ export default function PaymentsPage() {
         <h1 className="text-2xl font-bold text-[#1F3864]" style={{ fontFamily: "'Playfair Display', serif" }}>
           결제 내역
         </h1>
-        <p className="text-gray-400 text-sm mt-1">SARAM에서 결제한 모든 내역을 확인하세요.</p>
+        <p className="text-gray-400 text-sm mt-1">EverWill에서 결제한 모든 내역을 확인하세요.</p>
       </div>
 
       {/* 결제 목록 */}

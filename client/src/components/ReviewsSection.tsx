@@ -1,5 +1,5 @@
 /**
- * SARAM 리뷰 + FAQ 섹션
+ * EverWill 리뷰 + FAQ 섹션
  * 사용자 후기 + 자주 묻는 질문
  */
 import { motion } from "framer-motion";
@@ -21,7 +21,7 @@ const reviews = [
     age: "64세",
     location: "Los Angeles",
     rating: 5,
-    text: "As a Korean-American with assets in both countries, SARAM is the only platform that handles cross-border inheritance. Absolutely essential.",
+    text: "As a Korean-American with assets in both countries, EverWill is the only platform that handles cross-border inheritance. Absolutely essential.",
     avatar: "S",
   },
   {
@@ -61,7 +61,7 @@ const reviews = [
 const faqs = [
   {
     q: "AI가 작성한 유언장이 법적 효력이 있나요?",
-    a: "네. SARAM의 AI 유언장은 변호사가 설계한 법률 템플릿을 기반으로 작성됩니다. eKYC 본인인증 + 전자서명 + 블록체인 타임스탬프를 통해 법적 효력을 갖습니다. 단, 전자 인증(₩49,000) 완료 후 법적 효력이 발생합니다.",
+    a: "네. EverWill의 AI 유언장은 변호사가 설계한 법률 템플릿을 기반으로 작성됩니다. eKYC 본인인증 + 전자서명 + 블록체인 타임스탬프를 통해 법적 효력을 갖습니다. 단, 전자 인증(₩49,000) 완료 후 법적 효력이 발생합니다.",
   },
   {
     q: "유언장 수정은 얼마나 자주 할 수 있나요?",
@@ -69,11 +69,11 @@ const faqs = [
   },
   {
     q: "Badge를 분실하면 어떻게 되나요?",
-    a: "Badge 분실 시 앱에서 즉시 비활성화할 수 있습니다. 새 Badge 재발급은 기존 가격의 50%로 가능합니다. 유언장 데이터는 SARAM 서버에 안전하게 보관되어 Badge와 무관하게 유지됩니다.",
+    a: "Badge 분실 시 앱에서 즉시 비활성화할 수 있습니다. 새 Badge 재발급은 기존 가격의 50%로 가능합니다. 유언장 데이터는 EverWill 서버에 안전하게 보관되어 Badge와 무관하게 유지됩니다.",
   },
   {
     q: "해외 자산도 관리할 수 있나요?",
-    a: "네. SARAM은 세계 유일의 멀티관할권 유언 플랫폼입니다. 한국 거주 + 미국 자산 + 일본 자녀 등 복잡한 국제 상속도 각국 법률을 자동 적용하여 처리합니다.",
+    a: "네. EverWill은 세계 유일의 멀티관할권 유언 플랫폼입니다. 한국 거주 + 미국 자산 + 일본 자녀 등 복잡한 국제 상속도 각국 법률을 자동 적용하여 처리합니다.",
   },
   {
     q: "4중 사망 감지 시스템이란 무엇인가요?",

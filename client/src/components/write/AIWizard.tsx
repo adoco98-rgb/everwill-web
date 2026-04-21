@@ -1,5 +1,5 @@
 /**
- * SARAM AI 가이드 모드 - 10단계 마법사 + 서명 단계
+ * EverWill AI 가이드 모드 - 10단계 마법사 + 서명 단계
  * 한국 민법 기준 유언장 자동 작성
  */
 import { useState, useEffect } from "react";

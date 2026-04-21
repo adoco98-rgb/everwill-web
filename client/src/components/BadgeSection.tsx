@@ -1,5 +1,5 @@
 /**
- * SARAM Badge 시스템 섹션
+ * EverWill Badge 시스템 섹션
  * 세계 최초 물리적 유언 인증 배지 소개
  * 네이비 배경 + 골드 강조
  * 모든 Badge 구매자에게 스테인레스 카드(Essential) 무료 증정
@@ -107,12 +107,12 @@ export default function BadgeSection() {
             <span className="text-[#C9A961] text-sm font-medium">세계 최초</span>
           </div>
           <h2 className="text-3xl lg:text-5xl font-bold text-white mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
-            SARAM Badge
+            EverWill Badge
           </h2>
           <p className="text-white/60 text-lg max-w-2xl mx-auto">
             의료 신원 + IoT 감지 + 유언 인증을 하나로.
             <br />
-            세계 어떤 유언 플랫폼도 시도하지 않은 SARAM만의 혁신
+            세계 어떤 유언 플랫폼도 시도하지 않은 EverWill만의 혁신
           </p>
         </motion.div>
 
@@ -127,7 +127,7 @@ export default function BadgeSection() {
             <div className="relative rounded-2xl overflow-hidden">
               <img
                 src={BADGE_IMAGE}
-                alt="SARAM Badge - 프리미엄 스테인레스 카드와 티타늄 팔찌"
+                alt="EverWill Badge - 프리미엄 스테인레스 카드와 티타늄 팔찌"
                 className="w-full h-auto object-cover"
                 style={{ maxHeight: "400px", objectFit: "cover" }}
               />

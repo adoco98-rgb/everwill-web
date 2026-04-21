@@ -368,7 +368,7 @@ export default function TaxReportPage() {
 
               {/* 워터마크 */}
               <div className="mt-8 pt-4 border-t border-gray-100 text-center">
-                <p className="text-xs text-gray-300">SARAM 유언 OS | 상속세 신고서 자동 작성 서비스 | 참고용 서류 (실제 세액은 세무사 확인 필요)</p>
+                <p className="text-xs text-gray-300">EverWill 유언 OS | 상속세 신고서 자동 작성 서비스 | 참고용 서류 (실제 세액은 세무사 확인 필요)</p>
               </div>
             </div>
 

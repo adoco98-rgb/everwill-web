@@ -1,5 +1,5 @@
 /**
- * SARAM 사후 집행 섹션
+ * EverWill 사후 집행 섹션
  * 현재: 계약 변호사가 유족 연락 + 집행 지원
  * 미래 비전: AI가 법원 제출 서류 자동 생성 → 변호사 불필요
  */
@@ -40,7 +40,7 @@ const currentProcess = [
     step: "03",
     icon: Scale,
     title: "계약 변호사 배정",
-    desc: "SARAM과 계약된 전문 변호사가 유족과 연락하여 상속 집행 전 과정 지원",
+    desc: "EverWill과 계약된 전문 변호사가 유족과 연락하여 상속 집행 전 과정 지원",
     color: "text-[#1F3864]",
     bg: "bg-blue-50",
   },
@@ -98,7 +98,7 @@ export default function LawyersSection() {
             className="text-3xl lg:text-5xl font-bold text-[#1F3864] mb-4"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
-            사망 후, SARAM이 모든 것을 처리합니다
+            사망 후, EverWill이 모든 것을 처리합니다
           </h2>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto">
             유족이 슬픔에 잠긴 순간, 복잡한 상속 절차를 대신합니다.
@@ -163,7 +163,7 @@ export default function LawyersSection() {
             <div>
               <div className="font-bold text-[#1F3864] mb-1">계약 변호사 사후 집행 지원</div>
               <p className="text-sm text-gray-600">
-                SARAM과 계약된 전문 변호사가 유족과 직접 연락하여 가정법원 검인, 상속세 신고, 부동산·금융자산 이전까지 전 과정을 지원합니다.
+                EverWill과 계약된 전문 변호사가 유족과 직접 연락하여 가정법원 검인, 상속세 신고, 부동산·금융자산 이전까지 전 과정을 지원합니다.
                 유언장 인증(₩49,000) 요금에 포함된 서비스입니다.
               </p>
             </div>
@@ -195,7 +195,7 @@ export default function LawyersSection() {
             앞으로는 변호사가 필요 없습니다
           </h3>
           <p className="text-white/70 mb-10 max-w-2xl text-base leading-relaxed">
-            SARAM의 궁극적 비전은 AI가 모든 법원 제출 서류를 자동으로 생성하고,
+            EverWill의 궁극적 비전은 AI가 모든 법원 제출 서류를 자동으로 생성하고,
             상속자가 직접 제출할 수 있도록 돕는 것입니다.
             기존 변호사 비용 대비 <span className="text-[#C9A961] font-bold">90% 이상 저렴</span>하고,
             더 빠르고, 더 투명합니다.
@@ -221,15 +221,15 @@ export default function LawyersSection() {
 
           {/* 비교 표 */}
           <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
-            <h4 className="text-white font-bold mb-5 text-sm">기존 방식 vs SARAM 방식 비교</h4>
+            <h4 className="text-white font-bold mb-5 text-sm">기존 방식 vs EverWill 방식 비교</h4>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-white/10">
                     <th className="text-left py-2 text-white/50 font-medium text-xs">항목</th>
                     <th className="text-center py-2 text-white/50 font-medium text-xs">기존 변호사</th>
-                    <th className="text-center py-2 text-[#C9A961] font-bold text-xs">SARAM (현재)</th>
-                    <th className="text-center py-2 text-[#C9A961] font-bold text-xs">SARAM (미래)</th>
+                    <th className="text-center py-2 text-[#C9A961] font-bold text-xs">EverWill (현재)</th>
+                    <th className="text-center py-2 text-[#C9A961] font-bold text-xs">EverWill (미래)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -238,7 +238,7 @@ export default function LawyersSection() {
                     ["소요 기간", "3~12개월", "1~3개월", "2~4주"],
                     ["서류 작성", "변호사 직접", "변호사 지원", "AI 자동 생성"],
                     ["법원 제출", "변호사 대리", "변호사 대리", "직접 전자 제출"],
-                    ["다국적 자산", "각국 변호사 별도", "SARAM 조율", "AI 자동 조율"],
+                    ["다국적 자산", "각국 변호사 별도", "EverWill 조율", "AI 자동 조율"],
                     ["투명성", "낮음", "높음", "완전 투명"],
                   ].map(([item, old, now, future], i) => (
                     <tr key={i}>

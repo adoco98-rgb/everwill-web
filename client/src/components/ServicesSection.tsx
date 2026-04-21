@@ -1,5 +1,5 @@
 /**
- * SARAM 서비스 섹션
+ * EverWill 서비스 섹션
  * 10가지 핵심 서비스/기능 소개
  * 카드 그리드 레이아웃 + 호버 애니메이션
  */
@@ -106,7 +106,7 @@ export default function ServicesSection() {
             모든 것이 하나에
           </h2>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto">
-            SARAM의 독자적인 10가지 혁신 서비스. 유언 작성부터 사후 자동 집행까지 전 과정을 책임집니다.
+            EverWill의 독자적인 10가지 혁신 서비스. 유언 작성부터 사후 자동 집행까지 전 과정을 책임집니다.
           </p>
         </motion.div>
 

@@ -1,5 +1,5 @@
 /**
- * SARAM 대시보드 레이아웃
+ * EverWill 대시보드 레이아웃
  * 인증된 사용자 전용 - 사이드바 + 메인 콘텐츠
  */
 import { useAuth } from "@/_core/hooks/useAuth";

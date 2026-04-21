@@ -17,7 +17,7 @@ interface Message {
 
 const INITIAL_MESSAGE: Message = {
   role: "assistant",
-  content: `안녕하세요! 저는 SARAM의 유언장 작성 AI 가이드입니다. 😊
+  content: `안녕하세요! 저는 EverWill의 유언장 작성 AI 가이드입니다. 😊
 
 유언장 작성이 처음이시더라도 걱정 마세요. 제가 차근차근 도와드리겠습니다.
 

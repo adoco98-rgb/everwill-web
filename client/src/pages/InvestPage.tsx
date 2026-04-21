@@ -1,5 +1,5 @@
 /**
- * SARAM 투자 설명서 (Investor Relations)
+ * EverWill 투자 설명서 (Investor Relations)
  * 홈페이지와 완전히 다른 전문 IR 문서 스타일
  * 6개 언어: 한국어·영어·日本語·中文·العربية·Русский
  */
@@ -33,7 +33,7 @@ const LANGS: { code: LangCode; flag: string; label: string; dir?: "rtl" }[] = [
 // ─── 다국어 텍스트 ────────────────────────────────────────────────
 const T: Record<LangCode, Record<string, string>> = {
   ko: {
-    navBrand: "SARAM 투자설명서",
+    navBrand: "EverWill 투자설명서",
     navCta: "투자 문의",
     heroBadge: "Series A 투자 유치 중 · 2026",
     heroTitle1: "세계 최초",
@@ -46,8 +46,8 @@ const T: Record<LangCode, Record<string, string>> = {
     kpi3v: "5%", kpi3l: "한국 유언 작성률", kpi3s: "미국 46% 대비",
     kpi4v: "$550", kpi4l: "목표 고객 LTV", kpi4s: "경쟁사 대비 2.8배",
     s01: "01 · 사업 의의 & 목적",
-    s01Title: "왜 지금, 왜 SARAM인가",
-    s01Sub: "죽음은 누구에게나 찾아오지만, 준비된 사람은 극소수입니다. SARAM은 이 불평등을 해소합니다.",
+    s01Title: "왜 지금, 왜 EverWill인가",
+    s01Sub: "죽음은 누구에게나 찾아오지만, 준비된 사람은 극소수입니다. EverWill은 이 불평등을 해소합니다.",
     prob1: "한국인 95%가 유언장 없이 사망", prob1s: "한국 법원행정처 2024",
     prob2: "상속 분쟁 연간 수조원 발생", prob2s: "대법원 사법연감 2024",
     prob3: "기존 유언 공증 비용 50만원+", prob3s: "대한공증인협회 2024",
@@ -101,7 +101,7 @@ const T: Record<LangCode, Record<string, string>> = {
     s07Sub: "1인 멀티 역할로 제품기획·디자인·재무를 직접 담당",
     founderName: "라수환 (Jeff Lah)",
     founderRole: "대표이사 · 창업자",
-    founderCo: "주식회사 사람 (SARAM Inc.)",
+    founderCo: "주식회사 사람 (EverWill Inc.)",
     s08: "08 · 투자 문의",
     s08Title: "함께 만들어갈 투자자를 찾습니다",
     s08Sub: "Series A · 목표 투자금 $5~10M · 기업가치 협의",
@@ -113,7 +113,7 @@ const T: Record<LangCode, Record<string, string>> = {
     footerHome: "메인 사이트", footerWill: "유언장 작성", footerTax: "상속세 계산기",
   },
   en: {
-    navBrand: "SARAM Investor Relations",
+    navBrand: "EverWill Investor Relations",
     navCta: "Contact Investor",
     heroBadge: "Series A Fundraising · 2026",
     heroTitle1: "World's First",
@@ -126,8 +126,8 @@ const T: Record<LangCode, Record<string, string>> = {
     kpi3v: "5%", kpi3l: "Korea Will Writing Rate", kpi3s: "vs USA 46%",
     kpi4v: "$550", kpi4l: "Target Customer LTV", kpi4s: "2.8x vs competitors",
     s01: "01 · Mission & Purpose",
-    s01Title: "Why Now, Why SARAM",
-    s01Sub: "Death comes to everyone, but few are prepared. SARAM democratizes end-of-life planning.",
+    s01Title: "Why Now, Why EverWill",
+    s01Sub: "Death comes to everyone, but few are prepared. EverWill democratizes end-of-life planning.",
     prob1: "95% of Koreans die without a will", prob1s: "Korean Court Admin 2024",
     prob2: "Trillions in annual inheritance disputes", prob2s: "Supreme Court 2024",
     prob3: "Traditional will notarization costs $400+", prob3s: "Korean Notary Assoc. 2024",
@@ -181,7 +181,7 @@ const T: Record<LangCode, Record<string, string>> = {
     s07Sub: "Solo multi-role: product design, finance, global strategy",
     founderName: "Jeff Lah (라수환)",
     founderRole: "CEO · Founder",
-    founderCo: "SARAM Inc. (주식회사 사람)",
+    founderCo: "EverWill Inc. (주식회사 사람)",
     s08: "08 · Contact",
     s08Title: "Looking for the Right Investor",
     s08Sub: "Series A · Target $5–10M · Valuation TBD",
@@ -189,11 +189,11 @@ const T: Record<LangCode, Record<string, string>> = {
     fAmount: "Investment Amount", fMsg: "Message",
     fSubmit: "Send Inquiry",
     fSuccess: "Received! We will respond within 48 hours.",
-    footerRights: "© 2026 SARAM Inc. All rights reserved.",
+    footerRights: "© 2026 EverWill Inc. All rights reserved.",
     footerHome: "Main Site", footerWill: "Write Will", footerTax: "Inheritance Tax",
   },
   ja: {
-    navBrand: "SARAM 投資説明書",
+    navBrand: "EverWill 投資説明書",
     navCta: "投資お問い合わせ",
     heroBadge: "シリーズA 資金調達中 · 2026",
     heroTitle1: "世界初",
@@ -206,8 +206,8 @@ const T: Record<LangCode, Record<string, string>> = {
     kpi3v: "5%", kpi3l: "韓国遺言作成率", kpi3s: "米国46%比",
     kpi4v: "$550", kpi4l: "目標顧客LTV", kpi4s: "競合比2.8倍",
     s01: "01 · 事業の意義と目的",
-    s01Title: "なぜ今、なぜSARAMか",
-    s01Sub: "死は誰にでも訪れますが、準備している人はごくわずかです。SARAMはこの不平等を解消します。",
+    s01Title: "なぜ今、なぜEverWillか",
+    s01Sub: "死は誰にでも訪れますが、準備している人はごくわずかです。EverWillはこの不平等を解消します。",
     prob1: "韓国人の95%が遺言なしで死亡", prob1s: "韓国法院行政処 2024",
     prob2: "相続紛争で年間数兆ウォンの損失", prob2s: "大法院 2024",
     prob3: "従来の遺言公証費用 50万ウォン以上", prob3s: "韓国公証人協会 2024",
@@ -261,7 +261,7 @@ const T: Record<LangCode, Record<string, string>> = {
     s07Sub: "1人マルチ役割：製品企画·デザイン·財務を直接担当",
     founderName: "ラ・スファン (Jeff Lah)",
     founderRole: "代表取締役 · 創業者",
-    founderCo: "株式会社サラム (SARAM Inc.)",
+    founderCo: "株式会社サラム (EverWill Inc.)",
     s08: "08 · 投資お問い合わせ",
     s08Title: "共に創る投資家を求めています",
     s08Sub: "シリーズA · 目標調達額 $5~10M · 企業価値協議",
@@ -269,11 +269,11 @@ const T: Record<LangCode, Record<string, string>> = {
     fAmount: "投資希望金額", fMsg: "お問い合わせ内容",
     fSubmit: "投資お問い合わせを送る",
     fSuccess: "受け付けました。48時間以内にご連絡いたします。",
-    footerRights: "© 2026 SARAM Inc. All rights reserved.",
+    footerRights: "© 2026 EverWill Inc. All rights reserved.",
     footerHome: "メインサイト", footerWill: "遺言書作成", footerTax: "相続税計算",
   },
   zh: {
-    navBrand: "SARAM 投资说明书",
+    navBrand: "EverWill 投资说明书",
     navCta: "联系投资",
     heroBadge: "A轮融资中 · 2026",
     heroTitle1: "全球首创",
@@ -286,8 +286,8 @@ const T: Record<LangCode, Record<string, string>> = {
     kpi3v: "5%", kpi3l: "韩国遗嘱立写率", kpi3s: "对比美国46%",
     kpi4v: "$550", kpi4l: "目标客户LTV", kpi4s: "竞争对手的2.8倍",
     s01: "01 · 商业意义与目的",
-    s01Title: "为什么是现在，为什么是SARAM",
-    s01Sub: "死亡对每个人都会到来，但有准备的人极少。SARAM消除这种不平等。",
+    s01Title: "为什么是现在，为什么是EverWill",
+    s01Sub: "死亡对每个人都会到来，但有准备的人极少。EverWill消除这种不平等。",
     prob1: "95%的韩国人没有遗嘱就去世", prob1s: "韩国法院行政处 2024",
     prob2: "遗产纠纷每年造成数万亿韩元损失", prob2s: "最高法院 2024",
     prob3: "传统遗嘱公证费用50万韩元以上", prob3s: "韩国公证人协会 2024",
@@ -341,7 +341,7 @@ const T: Record<LangCode, Record<string, string>> = {
     s07Sub: "一人多角色：产品规划·设计·财务亲自负责",
     founderName: "罗秀焕 (Jeff Lah)",
     founderRole: "首席执行官 · 创始人",
-    founderCo: "株式会社SARAM (SARAM Inc.)",
+    founderCo: "株式会社EverWill (EverWill Inc.)",
     s08: "08 · 投资咨询",
     s08Title: "寻找志同道合的投资者",
     s08Sub: "A轮 · 目标融资额 $5~10M · 估值协商",
@@ -349,11 +349,11 @@ const T: Record<LangCode, Record<string, string>> = {
     fAmount: "投资意向金额", fMsg: "咨询内容",
     fSubmit: "发送投资咨询",
     fSuccess: "已收到！我们将在48小时内与您联系。",
-    footerRights: "© 2026 SARAM Inc. All rights reserved.",
+    footerRights: "© 2026 EverWill Inc. All rights reserved.",
     footerHome: "主网站", footerWill: "立遗嘱", footerTax: "遗产税计算",
   },
   ar: {
-    navBrand: "SARAM - نشرة المستثمرين",
+    navBrand: "EverWill - نشرة المستثمرين",
     navCta: "تواصل معنا",
     heroBadge: "جولة التمويل A · 2026",
     heroTitle1: "الأول عالمياً",
@@ -366,8 +366,8 @@ const T: Record<LangCode, Record<string, string>> = {
     kpi3v: "5%", kpi3l: "معدل كتابة الوصايا في كوريا", kpi3s: "مقارنة بـ 46% في أمريكا",
     kpi4v: "$550", kpi4l: "قيمة العميل المستهدفة LTV", kpi4s: "2.8 ضعف المنافسين",
     s01: "01 · الرسالة والهدف",
-    s01Title: "لماذا الآن؟ لماذا SARAM؟",
-    s01Sub: "الموت يأتي للجميع، لكن القليلين يستعدون له. SARAM يزيل هذا التفاوت.",
+    s01Title: "لماذا الآن؟ لماذا EverWill؟",
+    s01Sub: "الموت يأتي للجميع، لكن القليلين يستعدون له. EverWill يزيل هذا التفاوت.",
     prob1: "95% من الكوريين يموتون بدون وصية", prob1s: "إدارة المحاكم الكورية 2024",
     prob2: "خسائر تريليونات من النزاعات الإرثية سنوياً", prob2s: "المحكمة العليا 2024",
     prob3: "تكلفة توثيق الوصية التقليدية 400 دولار+", prob3s: "جمعية كتّاب العدل 2024",
@@ -421,7 +421,7 @@ const T: Record<LangCode, Record<string, string>> = {
     s07Sub: "دور متعدد: تخطيط المنتج والتصميم والمالية مباشرة",
     founderName: "جيف لاه (라수환)",
     founderRole: "الرئيس التنفيذي · المؤسس",
-    founderCo: "شركة SARAM (주식회사 사람)",
+    founderCo: "شركة EverWill (주식회사 사람)",
     s08: "08 · تواصل للاستثمار",
     s08Title: "نبحث عن المستثمر المناسب",
     s08Sub: "الجولة A · الهدف $5~10M · التقييم قابل للتفاوض",
@@ -429,11 +429,11 @@ const T: Record<LangCode, Record<string, string>> = {
     fAmount: "مبلغ الاستثمار المقترح", fMsg: "رسالتك",
     fSubmit: "إرسال استفسار الاستثمار",
     fSuccess: "تم الاستلام! سنتواصل معك خلال 48 ساعة.",
-    footerRights: "© 2026 SARAM Inc. جميع الحقوق محفوظة.",
+    footerRights: "© 2026 EverWill Inc. جميع الحقوق محفوظة.",
     footerHome: "الموقع الرئيسي", footerWill: "كتابة الوصية", footerTax: "ضريبة الميراث",
   },
   ru: {
-    navBrand: "SARAM — Инвестиционный меморандум",
+    navBrand: "EverWill — Инвестиционный меморандум",
     navCta: "Связаться",
     heroBadge: "Раунд A · 2026",
     heroTitle1: "Первая в мире",
@@ -446,8 +446,8 @@ const T: Record<LangCode, Record<string, string>> = {
     kpi3v: "5%", kpi3l: "Доля составления завещаний в Корее", kpi3s: "vs 46% в США",
     kpi4v: "$550", kpi4l: "Целевой LTV клиента", kpi4s: "В 2.8 раза выше конкурентов",
     s01: "01 · Миссия и цель",
-    s01Title: "Почему сейчас и почему SARAM",
-    s01Sub: "Смерть приходит ко всем, но готовых единицы. SARAM устраняет это неравенство.",
+    s01Title: "Почему сейчас и почему EverWill",
+    s01Sub: "Смерть приходит ко всем, но готовых единицы. EverWill устраняет это неравенство.",
     prob1: "95% корейцев умирают без завещания", prob1s: "Судебная администрация Кореи 2024",
     prob2: "Триллионы вон в год теряются в наследственных спорах", prob2s: "Верховный суд 2024",
     prob3: "Традиционное нотариальное завещание стоит от 400$", prob3s: "Ассоциация нотариусов 2024",
@@ -501,7 +501,7 @@ const T: Record<LangCode, Record<string, string>> = {
     s07Sub: "Один человек — несколько ролей: продукт, дизайн, финансы",
     founderName: "Джефф Ла (라수환)",
     founderRole: "Генеральный директор · Основатель",
-    founderCo: "SARAM Inc. (주식회사 사람)",
+    founderCo: "EverWill Inc. (주식회사 사람)",
     s08: "08 · Контакт для инвесторов",
     s08Title: "Ищем правильного инвестора",
     s08Sub: "Раунд A · Цель $5–10M · Оценка по договорённости",
@@ -509,7 +509,7 @@ const T: Record<LangCode, Record<string, string>> = {
     fAmount: "Желаемая сумма инвестиций", fMsg: "Сообщение",
     fSubmit: "Отправить запрос",
     fSuccess: "Получено! Мы свяжемся с вами в течение 48 часов.",
-    footerRights: "© 2026 SARAM Inc. Все права защищены.",
+    footerRights: "© 2026 EverWill Inc. Все права защищены.",
     footerHome: "Главный сайт", footerWill: "Написать завещание", footerTax: "Налог на наследство",
   },
 };
@@ -621,7 +621,7 @@ export default function InvestPage() {
               <span className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold"
                 style={{ background: "#1F3864" }}>S</span>
               <span className="font-bold text-sm text-[#1F3864] hidden sm:block">{t.navBrand}</span>
-              <span className="font-bold text-sm text-[#1F3864] sm:hidden">SARAM IR</span>
+              <span className="font-bold text-sm text-[#1F3864] sm:hidden">EverWill IR</span>
             </span>
           </Link>
 

@@ -1,5 +1,5 @@
 /**
- * SARAM 직접 작성 모드
+ * EverWill 직접 작성 모드
  * 한국 민법 제1065조 기준 7개 섹션 법적 양식
  */
 import { useState } from "react";
@@ -327,7 +327,7 @@ function SectionContent({ id, will, update }: { id: number; will: WillData; upda
         <ul className="space-y-1 text-xs text-gray-500">
           <li>• <strong>자필 서명:</strong> 유언자 본인이 직접 서명합니다.</li>
           <li>• <strong>날인:</strong> 인감도장 또는 무인(지장)을 날인합니다.</li>
-          <li>• <strong>전자서명:</strong> SARAM 플랫폼의 전자서명으로 대체 가능합니다.</li>
+          <li>• <strong>전자서명:</strong> EverWill 플랫폼의 전자서명으로 대체 가능합니다.</li>
           <li>• <strong>블록체인 기록:</strong> 서명 완료 시 Polygon 네트워크에 해시가 기록됩니다.</li>
         </ul>
       </div>
