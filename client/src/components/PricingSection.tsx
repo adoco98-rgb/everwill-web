@@ -39,55 +39,39 @@ const pricingPlans = [
     ctaStyle: "btn-navy",
   },
   {
-    name: "전자 인증",
+    name: "유언장 인증",
     price: "₩49,000",
     usd: "$39",
-    description: "법적 효력 있는 유언장",
+    description: "법적 효력 있는 유언장 + 사후 자동 집행",
     highlight: true,
     badge: "가장 인기",
     features: [
       "무료 플랜 전체 포함",
-      "eKYC 본인인증",
-      "전자서명 + 블록체인 기록",
-      "법원 제출용 PDF",
-      "공증 지원 (옵션)",
+      "eKYC 본인인증 + 전자서명",
+      "블록체인 무결성 기록",
+      "법원 제출용 서류 자동 생성",
+      "사망 후 유족 자동 알림",
+      "계약 변호사 사후 집행 지원",
       "1년 무료 보관",
     ],
     cta: "인증 시작하기",
     ctaStyle: "btn-gold",
   },
-  {
-    name: "프리미엄",
-    price: "₩49,000",
-    usd: "$39",
-    description: "+ 영상 유언 + 자필 스캔",
-    highlight: false,
-    features: [
-      "전자 인증 전체 포함",
-      "영상 유언장 (+₩29,000)",
-      "자필 유언 스캔 (+₩19,000)",
-      "재인증 ₩15,000",
-      "변호사 매칭 우선권",
-      "1년 무료 보관",
-    ],
-    cta: "프리미엄 시작",
-    ctaStyle: "btn-navy",
-  },
 ];
 
 /* ─── 부가 서비스 ─── */
 const addons = [
-  { name: "재인증 (수정)", price: "₩15,000", desc: "횟수 무제한" },
-  { name: "변호사 생전 자문", price: "₩30,000~", desc: "매칭 수수료" },
-  { name: "변호사 사후 집행", price: "보수의 15-25%", desc: "플랫폼 수수료" },
+  { name: "재인증 (수정)", price: "₩17,000", desc: "횟수 무제한" },
+  { name: "영상 유언장", price: "+₩29,000", desc: "법적 녹음 + 감성 메시지" },
+  { name: "자필 유언 스캔", price: "+₩19,000", desc: "AI 형식 검증 + 블록체인" },
 ];
 
 /* ─── 보관 플랜 ─── */
 const storagePlans = [
-  { id: "1y",  label: "1년",   years: 1,  pricePerYear: 9900,  total: 9900,   discount: 0,   badge: null,     highlight: false, isLifetime: false },
-  { id: "3y",  label: "3년",   years: 3,  pricePerYear: 8415,  total: 25245,  discount: 15,  badge: "15% 할인", highlight: false, isLifetime: false },
-  { id: "5y",  label: "5년",   years: 5,  pricePerYear: 8415,  total: 42075,  discount: 15,  badge: "15% 할인", highlight: true,  isLifetime: false },
-  { id: "10y", label: "10년",  years: 10, pricePerYear: 8415,  total: 84150,  discount: 15,  badge: "15% 할인", highlight: false, isLifetime: false },
+  { id: "1y",  label: "1년",   years: 1,  pricePerYear: 9900,  total: 9900,   discount: 0,   badge: null,      highlight: false, isLifetime: false },
+  { id: "3y",  label: "3년",   years: 3,  pricePerYear: 8300,  total: 24900,  discount: null, badge: null,      highlight: false, isLifetime: false },
+  { id: "5y",  label: "5년",   years: 5,  pricePerYear: 7800,  total: 39000,  discount: null, badge: "추천",    highlight: true,  isLifetime: false },
+  { id: "10y", label: "10년",  years: 10, pricePerYear: 7900,  total: 79000,  discount: null, badge: null,      highlight: false, isLifetime: false },
   { id: "life",label: "20년+", years: 0,  pricePerYear: null,  total: 199000, discount: null, badge: "영구보관", highlight: false, isLifetime: true  },
 ];
 
@@ -181,7 +165,7 @@ export default function PricingSection() {
         </motion.div>
 
         {/* ── 기본 플랜 카드 ── */}
-        <div className="grid md:grid-cols-3 gap-6 mb-16">
+        <div className="grid md:grid-cols-2 gap-6 mb-16 max-w-3xl mx-auto">
           {pricingPlans.map((plan, i) => (
             <motion.div
               key={plan.name}
@@ -372,9 +356,9 @@ export default function PricingSection() {
               >
                 유언장 보관 수수료
               </h3>
-              <p className="text-gray-400 text-sm">
-                유언장 인증 후 첫 1년은 무료 · 2년째부터 연 ₩9,900
-              </p>
+            <p className="text-gray-400 text-sm">
+              유언장 인증 후 첫 1년 무료 · 이후 선택한 기간만큼 보관
+            </p>
             </div>
             <div className="ml-auto hidden sm:flex items-center gap-1.5 bg-green-50 border border-green-100 rounded-full px-3 py-1">
               <Gift className="w-3.5 h-3.5 text-green-600" />
@@ -527,11 +511,11 @@ export default function PricingSection() {
             </div>
 
             <p className="text-gray-400 text-xs mt-4 leading-relaxed">
-              * 유언장 인증 완료 후 1년은 무료 보관됩니다. 이후 선택한 플랜에 따라 보관 수수료가 발생합니다.
+              * 유언장 인증 완료 후 1년은 무료 보관됩니다. 이후 선택한 기간에 따라 보관료가 발생합니다.
               <br />
               * 20년+ 영구보관 플랜 선택 시 별도 갱신 없이 평생 보관됩니다.
               <br />
-              * 보관 기간 중 언제든지 유언장 열람 및 재인증이 가능합니다. 재인증 시 ₩15,000이 별도 부과됩니다.
+              * 보관 기간 중 언제든지 유언장 열람 및 재인증이 가능합니다. 재인증 시 ₩17,000이 별도 부과됩니다.
             </p>
           </div>
         </motion.div>

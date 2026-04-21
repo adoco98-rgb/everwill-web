@@ -41,7 +41,7 @@ const LANGS = {
     s4compare: "기능 비교표",
     s4innovations: "10가지 독창적 혁신",
     s5: "05 비즈니스 모델 및 수익구조",
-    s5sub: "단순 구독이 아닌 생애주기 전반에 걸친 다층 반복 수익 모델",
+    s5sub: "유언장 인증에 사후 집행까지 포함. AI가 법원 서류를 자동 생성하여 변호사 비용 없이 상속 처리가능한 플랫폼",
     s5pricing: "가격 정책",
     s5ltv: "고객 LTV 비교",
     s5forecast: "매출 예측",
@@ -390,7 +390,7 @@ const innovations = [
   { num: "05", title_ko: "체크박스 17분 완성", title_en: "17-Min Checkbox Wizard", wf: false, desc_ko: "AI가 체크박스 → 법률 문장 자동 변환. 유류분 실시간 검증." },
   { num: "06", title_ko: "영상 유언 + 미래 전달", title_en: "Video Will + Future Delivery", wf: true, desc_ko: "손녀 성인식, 아들 결혼식 날 자동 전송. 평생 보관." },
   { num: "07", title_ko: "자필 유언 스캔 인증", title_en: "Handwritten Will Scan", wf: false, desc_ko: "AI 형식 검증 + 위조 탐지 + 블록체인 무결성 기록." },
-  { num: "08", title_ko: "재인증 체계 (LTV 28배)", title_en: "Re-certification System", wf: true, desc_ko: "결혼·출산·이사·자산 변동마다 재인증. 최초 ₩49,000 → 재인증 ₩15,000." },
+  { num: "08", title_ko: "재인증 체계 (LTV 28배)", title_en: "Re-certification System", wf: true, desc_ko: "결혺·출산·이사·자산 변동마다 재인증. 최초 ₩49,000 → 재인증 ₩17,000." },
   { num: "09", title_ko: "글로벌 멀티관할권", title_en: "Multi-Jurisdiction", wf: true, desc_ko: "한국+미국+일본 자산 동시 관리. 각국 법률 자동 적용." },
   { num: "10", title_ko: "7개 언어 + 아랍어 RTL", title_en: "7 Languages + Arabic RTL", wf: false, desc_ko: "한·영·일·중·독·스·아랍어. 샤리아 상속법 자동 적용." },
 ];
@@ -398,14 +398,17 @@ const innovations = [
 const pricingData = [
   { product: "회원가입", krw: "무료", usd: "Free", type: "획득" },
   { product: "AI 유언장 작성", krw: "무료", usd: "Free", type: "획득" },
-  { product: "최초 전자 인증", krw: "₩49,000", usd: "$39", type: "핵심 수익" },
-  { product: "재인증 (수정)", krw: "₩15,000", usd: "$15", type: "반복 수익" },
-  { product: "영상 유언", krw: "+₩29,000", usd: "+$29", type: "업셀" },
-  { product: "자필 스캔 인증", krw: "₩19,000", usd: "$19", type: "업셀" },
-  { product: "연 멤버십 (2년차~)", krw: "₩29,000/년", usd: "$29/yr", type: "구독" },
+  { product: "유언장 인증 (사후 집행 포함)", krw: "₩49,000", usd: "$39", type: "핵심 수익" },
+  { product: "재인증 (수정)", krw: "₩17,000", usd: "$17", type: "반복 수익" },
+  { product: "영상 유언장", krw: "+₩29,000", usd: "+$29", type: "업셀" },
+  { product: "자필 유언 스캔", krw: "+₩19,000", usd: "+$19", type: "업셀" },
+  { product: "보관료 1년", krw: "₩9,900", usd: "$9", type: "보관" },
+  { product: "보관료 3년", krw: "₩24,900", usd: "$24", type: "보관" },
+  { product: "보관료 5년", krw: "₩39,000", usd: "$38", type: "보관" },
+  { product: "보관료 10년", krw: "₩79,000", usd: "$76", type: "보관" },
+  { product: "보관료 20년+ (영구)", krw: "₩199,000", usd: "$189", type: "보관" },
   { product: "Badge Essential", krw: "₩49,000", usd: "$49", type: "하드웨어" },
   { product: "Badge Premium", krw: "₩299,000", usd: "$299", type: "하드웨어" },
-  { product: "변호사 사후 집행", krw: "보수의 15-25%", usd: "15-25%", type: "마켓플레이스" },
 ];
 
 const roadmapData = [
@@ -788,7 +791,7 @@ export default function PitchPage() {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
-                <p className="text-xs text-gray-400 text-center mt-1">Source: Farewill Annual Report 2023, Trust & Will Investor Deck 2024</p>
+            <p className="text-xs text-gray-400 text-center mt-2">Source: Farewill Annual Report 2023, Trust & Will Investor Deck 2024</p>
               </div>
             </div>
 
