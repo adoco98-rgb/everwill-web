@@ -22,26 +22,6 @@ import { toast } from "sonner";
 /* ─── 멤버십 플랜 (보관 연수 포함) ─── */
 const membershipPlans = [
   {
-    id: "1y",
-    name: "1년 플랜",
-    storage: "1년 보관",
-    certPrice: 49000,
-    storagePrice: 9900,
-    total: 58900,
-    usd: "$59",
-    highlight: false,
-    badge: null,
-    features: [
-      "eKYC 본인인증 + 전자서명",
-      "블록체인 무결성 기록",
-      "1년 유언장 보관",
-      "사망 후 유족 자동 알림",
-      "법원 제출용 서류 자동 생성",
-    ],
-    cta: "시작하기",
-    discount: null,
-  },
-  {
     id: "3y",
     name: "3년 플랜",
     storage: "3년 보관",
@@ -331,18 +311,36 @@ export default function PricingSection() {
                       </span>
                     </div>
                   )}
-                  <div className={`text-2xl font-bold mt-2 ${
-                    plan.highlight ? "text-[#C9A961]" : "text-[#1F3864]"
+                  {/* 가격 구조: 인증비 / 보관비 / 합계 */}
+                  <div className={`mt-3 rounded-xl p-3 space-y-1.5 ${
+                    plan.highlight ? "bg-white/10" : "bg-white border border-gray-100"
                   }`}>
-                    {formatKRW(plan.total)}
-                  </div>
-                  <div className={`text-xs mt-0.5 ${
-                    plan.highlight ? "text-white/50" : "text-gray-400"
-                  }`}>{plan.usd}</div>
-                  <div className={`text-xs mt-2 ${
-                    plan.highlight ? "text-white/60" : "text-gray-400"
-                  }`}>
-                    인증 {formatKRW(plan.certPrice)} + 보관 {formatKRW(plan.storagePrice)}
+                    <div className="flex justify-between items-center">
+                      <span className={`text-xs ${
+                        plan.highlight ? "text-white/60" : "text-gray-400"
+                      }`}>전자 인증</span>
+                      <span className={`text-xs font-semibold ${
+                        plan.highlight ? "text-white/80" : "text-gray-600"
+                      }`}>{formatKRW(plan.certPrice)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className={`text-xs ${
+                        plan.highlight ? "text-white/60" : "text-gray-400"
+                      }`}>보관료 ({plan.storage})</span>
+                      <span className={`text-xs font-semibold ${
+                        plan.highlight ? "text-white/80" : "text-gray-600"
+                      }`}>{formatKRW(plan.storagePrice)}</span>
+                    </div>
+                    <div className={`flex justify-between items-center pt-1.5 border-t ${
+                      plan.highlight ? "border-white/20" : "border-gray-100"
+                    }`}>
+                      <span className={`text-xs font-bold ${
+                        plan.highlight ? "text-white" : "text-[#1F3864]"
+                      }`}>합계</span>
+                      <span className={`text-lg font-bold ${
+                        plan.highlight ? "text-[#C9A961]" : "text-[#1F3864]"
+                      }`}>{formatKRW(plan.total)}</span>
+                    </div>
                   </div>
                 </div>
                 <ul className="space-y-2 mb-5 flex-1">
@@ -370,7 +368,7 @@ export default function PricingSection() {
               </motion.div>
             ))}
           </div>
-          <p className="text-center text-gray-400 text-xs mt-4">* 첫 1년은 무료 보관 포함 — 위 가격은 인증 후 추가 보관 기간 선택 시 적용됩니다.</p>
+          <p className="text-center text-gray-400 text-xs mt-4">* 전자 인증(₩49,000)에는 <strong className="text-green-600">첫 1년 무료 보관</strong>이 포함됩니다. 위 보관료는 1년 이후 추가 보관 기간 선택 시 적용됩니다.</p>
         </motion.div>
 
         {/* ── 기본 플랜 카드 ── */}
