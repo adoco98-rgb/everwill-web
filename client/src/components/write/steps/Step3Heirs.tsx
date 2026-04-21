@@ -3,6 +3,7 @@ import { Plus, Trash2, User } from "lucide-react";
 import { nanoid } from "nanoid";
 import type { StepProps } from "./StepProps";
 import type { Heir } from "@/lib/willTypes";
+import AIGuide from "../AIGuide";
 
 const RELATIONS = ["배우자", "장남", "장녀", "차남", "차녀", "부모(부)", "부모(모)", "형제", "자매", "손자녀", "기타"];
 const COUNTRIES = ["대한민국", "미국", "일본", "중국", "캐나다", "호주", "영국", "독일", "기타"];
@@ -48,6 +49,23 @@ export default function Step3Heirs({ will, update }: StepProps) {
 
   return (
     <div className="space-y-5">
+      {/* AI 안내 말풍선 */}
+      <AIGuide
+        question="재산을 나눠줄 상속인을 등록해 주세요. 이름, 연락정보, 지분을 입력하면 사망 후 자동으로 연락됩니다."
+        description="상속인 정보는 유언장의 핵심입니다. SARAM은 사망 감지 시 등록된 상속인 전원에게 자동으로 알림을 보냅니다. 연락정보는 정확하게 입력해 주세요."
+        examples={[
+          "배우자 김영희 (1970.03.15, 휴대폰 010-1234-5678, 이메일 kim@email.com) → 전체 지분 50%",
+          "장남 홍길동 (1995.07.22, 미국 거주, WhatsApp +1-555-1234) → 지분 30%",
+          "장녀 홍영희 (1998.11.10, 일본 도쿄 거주, LINE ID: younghee98) → 지분 20%",
+        ]}
+        tips={[
+          "상속인이 해외에 거주하는 경우 국가코드를 포함한 휴대폰 번호를 입력해 주세요.",
+          "지분 합계가 100%가 되어야 합니다. 초과 시 경고 표시됩니다.",
+          "상속인이 사망한 경우 그 자녀가 대습상속할 수 있습니다(민법 제1001조).",
+        ]}
+        warning="상속인 연락정보가 잘못되면 사망 후 알림이 전달되지 않을 수 있습니다. 정확한 정보를 입력해 주세요."
+      />
+
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-700">
         <strong>민법 제1000조</strong> — 상속인 순위: 1순위 직계비속, 2순위 직계존속, 3순위 형제자매, 4순위 4촌 이내 방계혈족.
         배우자는 1·2순위와 공동상속합니다.

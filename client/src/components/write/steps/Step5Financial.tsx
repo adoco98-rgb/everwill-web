@@ -1,8 +1,13 @@
+/**
+ * Step 5: 금융 자산
+ * AI 질문: 예금·주식·보험 등 금융 자산 등록
+ */
 import { useState } from "react";
 import { Plus, Trash2, Banknote } from "lucide-react";
 import { nanoid } from "nanoid";
 import type { StepProps } from "./StepProps";
 import type { FinancialAsset } from "@/lib/willTypes";
+import AIGuide from "../AIGuide";
 
 const FA_TYPES = ["예금/적금", "주식/펀드", "보험", "연금", "채권", "가상자산", "기타"];
 const INSTITUTIONS = ["KB국민은행", "신한은행", "하나은행", "우리은행", "NH농협", "카카오뱅크", "토스뱅크", "삼성증권", "미래에셋", "기타"];
@@ -30,9 +35,29 @@ export default function Step5Financial({ will, update }: StepProps) {
 
   return (
     <div className="space-y-5">
+      {/* AI 안내 말풍선 */}
+      <AIGuide
+        question="예금, 주식, 보험, 연금 등 금융 자산이 있으신가요? 있으시면 등록해 주세요."
+        description="금융 자산은 사망 후 금융기관에서 지급 정지됩니다. 미리 등록해 두면 SARAM이 사망 신호 감지 시 자동으로 상속인에게 안내하고 인출 절차를 도와드립니다."
+        examples={[
+          "KB국민은행 예금 계좌 (뒷 4자리: 1234), 잔액 약 5,000만 원 → 배우자에게 100%",
+          "삼성증권 주식·펀드, 약 1억 원 → 장남 60%, 장녀 40%",
+          "삼성생명 종신보험, 수익자 이미 지정됨 → 수익자 지정 보험은 유언장 없이도 자동 지급",
+          "비트코인 등 가상자산 → 거래소명과 지갑 주소 메모 필요",
+        ]}
+        tips={[
+          "계좌번호 전체를 입력하지 않아도 됩니다. 뒷 4자리만으로 식별 가능합니다.",
+          "보험은 수익자가 이미 지정되어 있으면 유언장과 별개로 지급됩니다.",
+          "가상자산은 개인 키(시드 구문)를 안전한 곳에 별도 보관하세요. 분실 시 영구 소멸됩니다.",
+          "퇴직연금(IRP·DC)은 수익자 지정이 가능합니다. 금융기관에 확인하세요.",
+        ]}
+        warning="금융 자산을 등록하지 않으면 상속인이 계좌 존재 자체를 모를 수 있습니다. 안심상속 원스톱 서비스(정부)로 조회 가능하지만 시간이 걸립니다."
+      />
+
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-700">
         금융자산이 없으면 건너뛰어도 됩니다. 계좌번호는 뒷 4자리만 입력해도 됩니다.
       </div>
+
       {will.financialAssets.map((fa) => (
         <div key={fa.id} className="flex items-center justify-between bg-[#FAFAF8] rounded-xl p-4 border border-gray-100">
           <div className="flex items-center gap-3">
@@ -45,6 +70,7 @@ export default function Step5Financial({ will, update }: StepProps) {
           <button onClick={() => update({ financialAssets: will.financialAssets.filter((f) => f.id !== fa.id) })} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
         </div>
       ))}
+
       {showForm && (
         <div className="bg-white border-2 border-[#1F3864]/20 rounded-2xl p-5 space-y-3">
           <div className="grid sm:grid-cols-2 gap-3">

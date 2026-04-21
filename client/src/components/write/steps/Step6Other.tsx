@@ -1,8 +1,13 @@
+/**
+ * Step 6: 기타 자산
+ * AI 질문: 자동차·귀금속·미술품 등 기타 자산 등록
+ */
 import { useState } from "react";
 import { Plus, Trash2, Package } from "lucide-react";
 import { nanoid } from "nanoid";
 import type { StepProps } from "./StepProps";
 import type { OtherAsset } from "@/lib/willTypes";
+import AIGuide from "../AIGuide";
 
 const OTHER_TYPES = ["자동차", "귀금속/보석", "미술품/골동품", "지식재산권", "사업체 지분", "기타"];
 
@@ -27,9 +32,27 @@ export default function Step6Other({ will, update }: StepProps) {
 
   return (
     <div className="space-y-5">
+      {/* AI 안내 말풍선 */}
+      <AIGuide
+        question="자동차, 귀금속, 미술품, 사업체 지분 등 기타 자산이 있으신가요?"
+        description="부동산·금융 자산 외에 가치 있는 물건이나 권리도 유언장에 포함할 수 있습니다. 없으시면 바로 다음 단계로 넘어가셔도 됩니다."
+        examples={[
+          "2022년식 현대 아반떼 흰색, 차량번호 12가3456, 약 1,500만 원 → 차남에게 상속",
+          "다이아몬드 반지 (1캐럿, 감정가 500만 원), 금 목걸이 (3돈) → 장녀에게 상속",
+          "A 스타트업 지분 5%, 약 2억 원 상당 → 배우자에게 상속",
+          "특허권 2건 (특허번호 10-2024-000000) → 장남에게 상속",
+        ]}
+        tips={[
+          "자동차는 차량번호와 차대번호를 함께 기재하면 식별이 쉽습니다.",
+          "귀금속·미술품은 감정서가 있으면 함께 보관하세요. 상속 시 가치 증명에 필요합니다.",
+          "사업체 지분은 정관·주주명부를 확인하고 공증된 주식 양도 절차가 필요할 수 있습니다.",
+        ]}
+      />
+
       <div className="bg-purple-50 border border-purple-100 rounded-xl p-4 text-sm text-purple-700">
         자동차, 귀금속, 미술품 등 기타 자산을 입력합니다. 없으면 건너뛰어도 됩니다.
       </div>
+
       {will.otherAssets.map((oa) => (
         <div key={oa.id} className="flex items-center justify-between bg-[#FAFAF8] rounded-xl p-4 border border-gray-100">
           <div className="flex items-center gap-3">

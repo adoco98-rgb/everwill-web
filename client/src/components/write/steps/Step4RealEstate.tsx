@@ -3,6 +3,7 @@ import { Plus, Trash2, Home } from "lucide-react";
 import { nanoid } from "nanoid";
 import type { StepProps } from "./StepProps";
 import type { RealEstate } from "@/lib/willTypes";
+import AIGuide from "../AIGuide";
 
 const RE_TYPES = ["아파트", "단독주택", "빌라/연립", "오피스텔", "토지", "상가/건물", "기타"];
 
@@ -30,6 +31,23 @@ export default function Step4RealEstate({ will, update }: StepProps) {
 
   return (
     <div className="space-y-5">
+      {/* AI 안내 말풍선 */}
+      <AIGuide
+        question="부동산이 있으시면 등록해 주세요. 없으시면 바로 다음 단계로 넘어가셔도 됩니다."
+        description="부동산은 상속 재산 중 가장 큰 비중을 차지합니다. 등기부등본에 있는 정보를 기준으로 입력하면 사망 후 상속 집행 시 자동으로 활용됩니다."
+        examples={[
+          "서울 강남구 아파트 84㎡, 등기 고유번호 1234-2024-000000, 예상 가액 5억 원 → 장남에게 100% 상속",
+          "경기도 성남시 토지 500㎡, 예상 가액 3억 원 → 자녀 2명에게 각 50% 상속",
+          "부동산 없음 → 이 단계 건너뛰기",
+        ]}
+        tips={[
+          "등기부등본은 인터넷등기소(iros.go.kr)에서 무료로 발급받을 수 있습니다.",
+          "예상 가액은 정확하지 않아도 됩니다. 시세 표준가 기준 어림으로 입력하세요.",
+          "여러 상속인에게 나눔 경우, 다음 단계에서 상속인별 지분을 설정합니다.",
+        ]}
+        warning="임대차인이 있는 부동산은 임대차 계약이 종료된 후 상속됩니다. 임대인에게 사전 통보가 필요할 수 있습니다."
+      />
+
       <div className="bg-green-50 border border-green-100 rounded-xl p-4 text-sm text-green-700">
         부동산이 없으면 건너뛰어도 됩니다. 등기부등본의 정보를 기준으로 입력하세요.
       </div>

@@ -1,11 +1,34 @@
+/**
+ * Step 1: 유언자 기본 정보
+ * AI 질문: 본인 확인 정보 입력 안내
+ */
 import type { StepProps } from "./StepProps";
+import AIGuide from "../AIGuide";
 
 export default function Step1Testator({ will, update }: StepProps) {
   return (
     <div className="space-y-5">
+      {/* AI 안내 말풍선 */}
+      <AIGuide
+        question="안녕하세요! 먼저 유언자 본인의 정보를 확인할게요. 성함과 주민등록번호를 입력해 주세요."
+        description="유언장은 반드시 유언자 본인이 작성해야 법적 효력이 있습니다. 입력하신 정보는 E2E 암호화로 안전하게 보관되며, 유언장 인증 시 본인 확인에 사용됩니다."
+        examples={[
+          "성명: 홍길동 / 주민등록번호: 550101-1234567 / 주소: 서울특별시 강남구 테헤란로 123, 101동 1001호",
+          "해외 거주자: 영문 이름도 함께 입력 가능합니다 (예: Hong Gil-dong)",
+        ]}
+        tips={[
+          "주민등록번호는 유언장 법적 효력 확인에 필수입니다. 여권번호로 대체 가능합니다.",
+          "주소는 현재 실제 거주지를 입력해 주세요. 등록 주소와 다를 경우 둘 다 기재하면 좋습니다.",
+          "작성일은 오늘 날짜로 자동 설정됩니다. 실제 서명 날짜와 일치해야 합니다.",
+        ]}
+        warning="주민등록번호는 반드시 정확하게 입력해야 합니다. 오류 시 유언장 인증이 거부될 수 있습니다."
+      />
+
+      {/* 법적 근거 */}
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-700">
         <strong>민법 제1066조</strong> — 자필증서 유언은 유언자가 전문·연월일·주소·성명을 자필로 기재하고 날인해야 합니다.
       </div>
+
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-semibold text-[#1F3864] mb-1.5">
