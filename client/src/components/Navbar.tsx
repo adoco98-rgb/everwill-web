@@ -68,13 +68,13 @@ export default function Navbar() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-18">
+        <div className="flex items-center justify-between h-20">
           {/* 로고 */}
           <a href="/" className="flex items-center gap-1 group">
             <img
               src="/manus-storage/everwill-logo-final_d91418a1.png"
               alt="EverWill"
-              className="h-10 w-auto object-contain"
+              className="h-16 w-auto object-contain"
             />
           </a>
 
