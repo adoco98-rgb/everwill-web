@@ -141,7 +141,7 @@ const pricingPlans = [
     usd: "$39",
     description: "법적 효력 있는 유언장 + 사후 자동 집행",
     highlight: true,
-    badge: "2026 출시 기념가",
+    badge: undefined,
     features: [
       "무료 플랜 전체 포함",
       "eKYC 본인인증 + 전자서명",
