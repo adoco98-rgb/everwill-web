@@ -72,7 +72,7 @@ export default function Navbar() {
           {/* 로고 */}
           <a href="/" className="flex items-center group">
             <img
-              src="/manus-storage/everwill-logo-final_36803d6f.png"
+              src="/manus-storage/everwill-logo-white-text_9aa1b26e.png"
               alt="EverWill Logo"
               className="h-16 w-auto object-contain"
             />
