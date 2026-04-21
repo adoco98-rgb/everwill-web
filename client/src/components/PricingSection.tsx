@@ -356,7 +356,7 @@ export default function PricingSection() {
             </h3>
             <p className="text-gray-500 text-sm">전자 인증(₩49,000) + 보관료가 포함된 올인원 가격</p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
             {membershipPlans.map((plan, i) => (
               <motion.div
                 key={plan.id}
@@ -397,32 +397,32 @@ export default function PricingSection() {
                     plan.highlight ? "bg-white/10" : "bg-white border border-gray-100"
                   }`}>
                     {/* 인증비 */}
-                    <div className="flex justify-between items-center">
-                      <span className={`text-xs ${
+                    <div className="flex justify-between items-start gap-1">
+                      <span className={`text-[11px] whitespace-nowrap ${
                         plan.highlight ? "text-white/60" : "text-gray-400"
                       }`}>전자 인증</span>
-                      <div className="text-right">
-                        <span className={`text-xs font-semibold ${
+                      <div className="text-right shrink-0">
+                        <span className={`text-[11px] font-semibold ${
                           plan.highlight ? "text-white/80" : "text-gray-600"
                         }`}>{formatKRW(plan.certPrice)}</span>
-                        <span className={`text-[10px] ml-1 ${
+                        <div className={`text-[9px] ${
                           plan.highlight ? "text-white/40" : "text-gray-300"
-                        }`}>1년 무료 보관 포함</span>
+                        }`}>1년 무료 포함</div>
                       </div>
                     </div>
                     {/* 보관료 + 할인율 */}
-                    <div className="flex justify-between items-center">
-                      <span className={`text-xs ${
+                    <div className="flex justify-between items-start gap-1">
+                      <span className={`text-[11px] whitespace-nowrap ${
                         plan.highlight ? "text-white/60" : "text-gray-400"
-                      }`}>보관료 ({plan.storage})</span>
-                      <div className="text-right">
-                        <span className={`text-[10px] line-through mr-1 ${
+                      }`}>보관료</span>
+                      <div className="text-right shrink-0">
+                        <span className={`text-[9px] line-through ${
                           plan.highlight ? "text-white/30" : "text-gray-300"
                         }`}>{formatKRW(plan.originalStoragePrice)}</span>
-                        <span className={`text-xs font-semibold ${
+                        <span className={`text-[11px] font-semibold ml-1 ${
                           plan.highlight ? "text-white/80" : "text-gray-600"
                         }`}>{formatKRW(plan.storagePrice)}</span>
-                        <span className="ml-1 text-[10px] font-bold text-red-500">{plan.discountRate}</span>
+                        <div className="text-[9px] font-bold text-red-500">{plan.discountRate}</div>
                       </div>
                     </div>
                     {/* 합계 */}
@@ -432,7 +432,7 @@ export default function PricingSection() {
                       <span className={`text-xs font-bold ${
                         plan.highlight ? "text-white" : "text-[#1F3864]"
                       }`}>합계</span>
-                      <span className={`text-lg font-bold ${
+                      <span className={`text-base font-bold ${
                         plan.highlight ? "text-[#C9A961]" : "text-[#1F3864]"
                       }`}>{formatKRW(plan.total)}</span>
                     </div>
