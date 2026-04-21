@@ -6,12 +6,13 @@
  */
 import { motion } from "framer-motion";
 import { ArrowRight, PenLine, UserPlus } from "lucide-react";
-import { toast } from "sonner";
+import { useLocation } from "wouter";
 
 const HERO_IMAGE =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/hero-global-elders-v2-DB4mTEuKjbV7DYjdv5fYBA.webp";
 
 export default function HeroSection() {
+  const [, navigate] = useLocation();
   const scrollToPricing = () => {
     const el = document.querySelector("#pricing");
     if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -87,9 +88,9 @@ export default function HeroSection() {
           transition={{ duration: 0.7, delay: 0.45 }}
           className="flex flex-col sm:flex-row gap-4 items-center"
         >
-          {/* 유언장 서명 버튼 */}
+          {/* 유언장 서명 버튼 → /write 페이지로 바로 이동 */}
           <button
-            onClick={scrollToPricing}
+            onClick={() => navigate("/write")}
             className="group flex items-center gap-3 btn-gold px-10 py-4 rounded-full text-base font-semibold shadow-2xl shadow-[#C9A961]/30 min-w-[220px] justify-center"
           >
             <PenLine className="w-5 h-5" />
@@ -97,9 +98,9 @@ export default function HeroSection() {
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </button>
 
-          {/* 무료 가입 버튼 */}
+          {/* 무료 가입 버튼 → /write 페이지로 이동 */}
           <button
-            onClick={() => toast.info("회원가입 기능 준비 중입니다")}
+            onClick={() => navigate("/write")}
             className="group flex items-center gap-3 bg-white/15 backdrop-blur-sm border border-white/40 hover:bg-white/25 hover:border-white/60 text-white px-10 py-4 rounded-full text-base font-semibold transition-all duration-300 min-w-[220px] justify-center"
           >
             <UserPlus className="w-5 h-5" />
