@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
 import {
-  FileText, Video, Scan, Shield, Users, Scale,
+  FileText, Video, Scan, Shield, Users,
   Bell, Globe, Smartphone, RefreshCw
 } from "lucide-react";
 
@@ -50,13 +50,7 @@ const services = [
     tag: "자동화",
     color: "bg-teal-50 text-teal-600",
   },
-  {
-    icon: Scale,
-    title: "변호사 마켓플레이스",
-    description: "평소엔 0%, 사망 후 100%. 진짜 필요한 순간에만 등장하는 전문가.",
-    tag: "사후 집행",
-    color: "bg-indigo-50 text-indigo-600",
-  },
+
   {
     icon: Bell,
     title: "생애 이벤트 재인증",
