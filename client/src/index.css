@@ -176,9 +176,9 @@
   }
 
   .btn-gold:hover {
-    background: linear-gradient(135deg, oklch(0.78 0.09 75) 0%, oklch(0.72 0.085 75) 100%);
+    background: linear-gradient(135deg, oklch(0.88 0.10 82) 0%, oklch(0.82 0.10 78) 100%);
     transform: translateY(-1px);
-    box-shadow: 0 8px 25px oklch(0.72 0.085 75 / 0.4);
+    box-shadow: 0 8px 30px oklch(0.82 0.10 78 / 0.5);
   }
 
   .btn-navy {
