@@ -4,7 +4,7 @@
  */
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, ArrowLeft, Mail, CheckCircle2, RefreshCw, Loader2 } from "lucide-react";
+import { Shield, ArrowLeft, Mail, CheckCircle2, RefreshCw, Loader2, HelpCircle, ChevronDown } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
@@ -24,6 +24,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [showHelp, setShowHelp] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const sendOtp = trpc.auth.email.sendOtp.useMutation({
@@ -233,6 +234,51 @@ export default function LoginPage() {
                     >
                       다른 이메일로 변경
                     </button>
+                  </div>
+
+                  {/* 도움말 */}
+                  <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <button
+                      type="button"
+                      onClick={() => setShowHelp(v => !v)}
+                      className="w-full flex items-center justify-between text-sm text-gray-500 hover:text-[#1F3864] transition-colors"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <HelpCircle className="w-4 h-4" />
+                        코드가 오지 않나요?
+                      </span>
+                      <ChevronDown className={`w-4 h-4 transition-transform ${showHelp ? "rotate-180" : ""}`} />
+                    </button>
+                    <AnimatePresence>
+                      {showHelp && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <ul className="mt-3 space-y-2 text-xs text-gray-500 leading-relaxed">
+                            <li className="flex items-start gap-2">
+                              <span className="text-[#C9A961] font-bold mt-0.5">1.</span>
+                              <span>스팸 또는 프로모션 폴더를 확인해주세요.</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-[#C9A961] font-bold mt-0.5">2.</span>
+                              <span>이메일 주소 오타가 없는지 확인 후 <button onClick={() => { setStep("email"); setOtp(["", "", "", "", "", ""]); }} className="text-[#1F3864] underline">이메일 다시 입력</button>해주세요.</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-[#C9A961] font-bold mt-0.5">3.</span>
+                              <span>코드는 발송 후 <strong>10분</strong> 이내에 입력해야 합니다.</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-[#C9A961] font-bold mt-0.5">4.</span>
+                              <span>그래도 문제가 있으면 <a href="mailto:support@everwill.co.kr" className="text-[#1F3864] underline">support@everwill.co.kr</a>로 문의해주세요.</span>
+                            </li>
+                          </ul>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </motion.div>
               )}
