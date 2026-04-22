@@ -6,6 +6,7 @@
  */
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
+import VideoIntroSection from "@/components/VideoIntroSection";
 import TrustSection from "@/components/TrustSection";
 import ServicesSection from "@/components/ServicesSection";
 import BadgeSection from "@/components/BadgeSection";
@@ -20,6 +21,7 @@ export default function Home() {
     <div className="min-h-screen bg-[#FAFAF8]">
       <Navbar />
       <HeroSection />
+      <VideoIntroSection />
       <TrustSection />
       <ServicesSection />
       <BadgeSection />
