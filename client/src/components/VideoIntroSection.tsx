@@ -1,84 +1,77 @@
 /**
- * EverWill 소개 영상 섹션
- * 영상은 배경으로만 사용, 한글 텍스트는 HTML 단계별 애니메이션 오버레이
+ * EverWill 소개 슬라이드 섹션
+ * 동영상 대신 이미지 슬라이드 + 한글 텍스트 오버레이
+ * 자동 재생 + 수동 이동 지원
  */
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, Volume2, VolumeX } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 
-// 장면별 오버레이 텍스트 (시간 기준)
-const scenes = [
+const slides = [
   {
-    from: 0,
-    to: 7,
-    sub: "EverWill 소개",
-    main: "누구나 한번은\n꼭 해야할,",
-    highlight: "나의 마지막 서명",
-  },
-  {
-    from: 7,
-    to: 14,
-    sub: "AI 유언장 작성",
-    main: "체크 몇 번이면\n유언장 완성",
+    id: 0,
+    bg: "/manus-storage/slide1_writing_2c37efd7.jpg",
+    tag: "AI 유언장 작성",
+    tagColor: "#C9A961",
+    title: "체크 몇 번이면\n유언장 완성",
     highlight: "17분 · 무료",
+    desc: "복잡한 법률 용어 없이, AI가 안내하는 대로 체크만 하면 완성됩니다.",
+    accent: "from-[#0d1f3c]/85 via-[#0d1f3c]/50 to-transparent",
   },
   {
-    from: 14,
-    to: 21,
-    sub: "3가지 핵심 서비스",
-    main: null,
-    highlight: null,
-    features: [
-      { icon: "✍️", label: "AI 유언장 작성", sub: "무료" },
-      { icon: "🔐", label: "전자인증", sub: "₩49,000" },
-      { icon: "⚖️", label: "사후 자동 집행", sub: "전 세계" },
-    ],
+    id: 1,
+    bg: "/manus-storage/slide2_pen_d0fa71fc.jpg",
+    tag: "전자인증",
+    tagColor: "#C9A961",
+    title: "법적 효력 있는\n디지털 유언장",
+    highlight: "₩49,000 · 1회",
+    desc: "블록체인 타임스탬프와 전자서명으로 법원에서 인정받는 유언장을 만드세요.",
+    accent: "from-[#0d1f3c]/85 via-[#0d1f3c]/50 to-transparent",
   },
   {
-    from: 21,
-    to: 28,
-    sub: "지금 시작하세요",
-    main: "가족을 위한\n가장 큰 선물",
-    highlight: "everwill.co.kr",
+    id: 2,
+    bg: "/manus-storage/slide3_family_c5897e79.jpg",
+    tag: "가족을 위한 선물",
+    tagColor: "#C9A961",
+    title: "가족이 받게 될\n가장 큰 사랑",
+    highlight: "사후 자동 집행",
+    desc: "사망 감지 시 상속자에게 자동 알림, 변호사 매칭, 자산 집행까지 EverWill이 책임집니다.",
+    accent: "from-[#0d1f3c]/75 via-[#0d1f3c]/40 to-transparent",
+  },
+  {
+    id: 3,
+    bg: "/manus-storage/slide4_legacy_f680f72a.png",
+    tag: "글로벌 서비스",
+    tagColor: "#C9A961",
+    title: "7개국 언어\n전 세계 어디서나",
+    highlight: "한국 · 미국 · 일본 · 중국",
+    desc: "재외동포, 해외 자산 보유자, 다국적 가족 모두를 위한 글로벌 유언 플랫폼입니다.",
+    accent: "from-[#0d1f3c]/80 via-[#0d1f3c]/50 to-transparent",
   },
 ];
 
+const INTERVAL = 5000; // 5초 자동 전환
+
 export default function VideoIntroSection() {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [currentScene, setCurrentScene] = useState(0);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [current, setCurrent] = useState(0);
+  const [paused, setPaused] = useState(false);
 
-  // 현재 시간에 맞는 장면 인덱스 계산
+  const next = useCallback(() => {
+    setCurrent((c) => (c + 1) % slides.length);
+  }, []);
+
+  const prev = () => {
+    setCurrent((c) => (c - 1 + slides.length) % slides.length);
+  };
+
+  // 자동 슬라이드
   useEffect(() => {
-    const idx = scenes.findIndex(
-      (s) => currentTime >= s.from && currentTime < s.to
-    );
-    if (idx !== -1 && idx !== currentScene) {
-      setCurrentScene(idx);
-    }
-  }, [currentTime]);
+    if (paused) return;
+    const timer = setInterval(next, INTERVAL);
+    return () => clearInterval(timer);
+  }, [paused, next]);
 
-  const handlePlay = () => {
-    if (!videoRef.current) return;
-    if (isPlaying) {
-      videoRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      videoRef.current.play();
-      setIsPlaying(true);
-    }
-  };
-
-  const handleMute = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!videoRef.current) return;
-    videoRef.current.muted = !isMuted;
-    setIsMuted(!isMuted);
-  };
-
-  const scene = scenes[currentScene];
+  const slide = slides[current];
 
   return (
     <section className="py-20 bg-[#FAFAFA]">
@@ -102,150 +95,131 @@ export default function VideoIntroSection() {
             세계 최초 디지털 유언 OS
           </h2>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto">
-            유언 작성부터 사후 자동 집행까지, 전 과정을 책임지는 EverWill을
-            소개합니다.
+            유언 작성부터 사후 자동 집행까지, 전 과정을 책임지는 EverWill을 소개합니다.
           </p>
         </motion.div>
 
-        {/* 영상 플레이어 */}
+        {/* 슬라이드 컨테이너 */}
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, delay: 0.2 }}
-          className="relative rounded-3xl overflow-hidden shadow-2xl bg-[#0d1f3c] cursor-pointer"
+          className="relative rounded-3xl overflow-hidden shadow-2xl bg-[#0d1f3c]"
           style={{ aspectRatio: "16/9" }}
-          onClick={handlePlay}
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
         >
-          {/* 배경 영상 (음소거 기본) */}
-          <video
-            ref={videoRef}
-            src="/manus-storage/everwill_intro_8c033abb.mp4"
-            className="w-full h-full object-cover opacity-60"
-            onEnded={() => setIsPlaying(false)}
-            onTimeUpdate={(e) =>
-              setCurrentTime((e.target as HTMLVideoElement).currentTime)
-            }
-            playsInline
-            preload="metadata"
-            muted={isMuted}
-            title="EverWill 소개 영상 - 세계 최초 디지털 유언 OS"
-          />
+          {/* 배경 이미지 슬라이드 */}
+          <AnimatePresence mode="sync">
+            <motion.div
+              key={slide.id}
+              initial={{ opacity: 0, scale: 1.04 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8, ease: "easeInOut" }}
+              className="absolute inset-0"
+            >
+              <img
+                src={slide.bg}
+                alt={slide.tag}
+                className="w-full h-full object-cover"
+              />
+              {/* 그라디언트 오버레이 */}
+              <div className={`absolute inset-0 bg-gradient-to-t ${slide.accent}`} />
+            </motion.div>
+          </AnimatePresence>
 
-          {/* 어두운 그라디언트 오버레이 */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0d1f3c]/80 via-[#0d1f3c]/30 to-transparent pointer-events-none" />
-
-          {/* ── 재생 중일 때: 장면별 한글 텍스트 오버레이 ── */}
-          {isPlaying && (
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentScene}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -16 }}
-                transition={{ duration: 0.5 }}
-                className="absolute inset-0 flex flex-col items-center justify-center px-8 pointer-events-none"
+          {/* 텍스트 오버레이 */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`text-${slide.id}`}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.55, ease: "easeOut" }}
+              className="absolute inset-0 flex flex-col justify-end px-10 pb-12 pointer-events-none"
+            >
+              {/* 태그 */}
+              <span
+                className="inline-block text-sm md:text-base font-bold tracking-widest uppercase mb-3 px-3 py-1 rounded-full w-fit"
+                style={{
+                  color: slide.tagColor,
+                  background: "rgba(201,169,97,0.15)",
+                  border: "1px solid rgba(201,169,97,0.4)",
+                }}
               >
-                {/* 서브 타이틀 */}
-                <span className="text-[#C9A961] text-sm md:text-base font-semibold tracking-widest uppercase mb-3">
-                  {scene.sub}
-                </span>
+                {slide.tag}
+              </span>
 
-                {/* 피처 카드 (3번 장면) */}
-                {scene.features ? (
-                  <div className="flex gap-4 md:gap-8">
-                    {scene.features.map((f, i) => (
-                      <motion.div
-                        key={f.label}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.2 }}
-                        className="flex flex-col items-center bg-white/10 backdrop-blur-sm rounded-2xl px-5 py-4 text-white"
-                      >
-                        <span className="text-3xl mb-2">{f.icon}</span>
-                        <span className="text-base font-bold">{f.label}</span>
-                        <span className="text-[#C9A961] text-sm font-semibold mt-1">
-                          {f.sub}
-                        </span>
-                      </motion.div>
-                    ))}
-                  </div>
-                ) : (
-                  <>
-                    {/* 메인 텍스트 */}
-                    {scene.main && (
-                      <p className="text-white text-3xl md:text-5xl font-bold text-center leading-tight mb-3 drop-shadow-lg whitespace-pre-line">
-                        {scene.main}
-                      </p>
-                    )}
-                    {/* 하이라이트 텍스트 */}
-                    {scene.highlight && (
-                      <p
-                        className="text-[#C9A961] text-2xl md:text-4xl font-bold text-center drop-shadow-lg"
-                        style={{ fontFamily: "'Noto Serif KR', serif" }}
-                      >
-                        {scene.highlight}
-                      </p>
-                    )}
-                  </>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          )}
-
-          {/* ── 정지 상태: 재생 버튼 오버레이 ── */}
-          {!isPlaying && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-20 h-20 bg-white/90 rounded-full flex items-center justify-center shadow-xl mb-4"
+              {/* 메인 제목 */}
+              <h3
+                className="text-white text-4xl md:text-6xl font-extrabold leading-tight mb-3 drop-shadow-2xl whitespace-pre-line"
+                style={{ textShadow: "0 2px 16px rgba(0,0,0,0.7)" }}
               >
-                <Play className="w-8 h-8 text-[#1F3864] ml-1" fill="#1F3864" />
-              </motion.div>
-              <p className="text-white/80 text-sm font-medium">
-                클릭하여 EverWill 소개 영상 재생
-              </p>
+                {slide.title}
+              </h3>
+
+              {/* 하이라이트 */}
               <p
-                className="text-white text-xl md:text-2xl font-bold mt-2 drop-shadow-lg"
+                className="text-3xl md:text-4xl font-bold mb-4 drop-shadow-xl"
+                style={{
+                  color: "#C9A961",
+                  textShadow: "0 2px 12px rgba(0,0,0,0.6)",
+                  fontFamily: "'Noto Serif KR', serif",
+                }}
               >
-                누구나 한번은 꼭 해야할, 나의 마지막 서명
+                {slide.highlight}
               </p>
-            </div>
-          )}
 
-          {/* ── 컨트롤 버튼 (재생/음소거) ── */}
-          <div className="absolute bottom-4 right-4 flex gap-2" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={handleMute}
-              className="w-9 h-9 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center text-white transition-colors"
-              title={isMuted ? "소리 켜기" : "소리 끄기"}
-            >
-              {isMuted ? (
-                <VolumeX className="w-4 h-4" />
-              ) : (
-                <Volume2 className="w-4 h-4" />
-              )}
-            </button>
-            <button
-              onClick={handlePlay}
-              className="w-9 h-9 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center text-white transition-colors"
-              title={isPlaying ? "일시정지" : "재생"}
-            >
-              {isPlaying ? (
-                <Pause className="w-4 h-4" />
-              ) : (
-                <Play className="w-4 h-4 ml-0.5" />
-              )}
-            </button>
+              {/* 설명 */}
+              <p
+                className="text-white/90 text-base md:text-lg max-w-xl leading-relaxed drop-shadow-md"
+                style={{ textShadow: "0 1px 8px rgba(0,0,0,0.8)" }}
+              >
+                {slide.desc}
+              </p>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* 좌우 화살표 */}
+          <button
+            onClick={prev}
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 hover:bg-black/65 rounded-full flex items-center justify-center text-white transition-all z-10"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button
+            onClick={next}
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 hover:bg-black/65 rounded-full flex items-center justify-center text-white transition-all z-10"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+
+          {/* 하단 도트 인디케이터 */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+            {slides.map((s, i) => (
+              <button
+                key={s.id}
+                onClick={() => setCurrent(i)}
+                className={`rounded-full transition-all duration-300 ${
+                  i === current
+                    ? "w-6 h-2 bg-[#C9A961]"
+                    : "w-2 h-2 bg-white/40 hover:bg-white/70"
+                }`}
+              />
+            ))}
           </div>
 
-          {/* 재생 시간 진행 바 */}
-          {isPlaying && (
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-              <div
-                className="h-full bg-[#C9A961] transition-all duration-500"
-                style={{ width: `${(currentTime / 28) * 100}%` }}
+          {/* 진행 바 */}
+          {!paused && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/10">
+              <motion.div
+                key={current}
+                initial={{ width: "0%" }}
+                animate={{ width: "100%" }}
+                transition={{ duration: INTERVAL / 1000, ease: "linear" }}
+                className="h-full bg-[#C9A961]"
               />
             </div>
           )}
