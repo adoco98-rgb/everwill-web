@@ -101,9 +101,9 @@ export default function HeroSection() {
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </button>
 
-          {/* 무료 가입 버튼 → /login 이메일 가입 페이지로 이동 */}
+          {/* 무료 가입 버튼 → /write 페이지로 이동 */}
           <button
-            onClick={() => navigate("/login")}
+            onClick={() => navigate("/write")}
             className="group flex items-center gap-3 bg-white/15 backdrop-blur-sm border border-white/40 hover:bg-white/25 hover:border-white/60 text-white px-10 py-4 rounded-full text-base font-semibold transition-all duration-300 min-w-[220px] justify-center"
           >
             <UserPlus className="w-5 h-5" />

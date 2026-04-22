@@ -164,14 +164,17 @@ export default function Navbar() {
               </button>
             ) : (
               <button
-                onClick={() => navigate("/login")}
+                onClick={() => { window.location.href = getLoginUrl(); }}
                 className="text-white/80 hover:text-white text-sm font-medium transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
               >
                 {t.nav.login}
               </button>
             )}
             <button
-              onClick={() => navigate("/login")}
+              onClick={() => {
+                const el = document.querySelector("#pricing");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+              }}
               className="btn-gold px-5 py-2 rounded-full text-sm font-semibold"
             >
               {t.nav.startFree}
@@ -243,14 +246,18 @@ export default function Navbar() {
                   </button>
                 ) : (
                   <button
-                    onClick={() => { setMobileOpen(false); navigate("/login"); }}
+                    onClick={() => { window.location.href = getLoginUrl(); }}
                     className="w-full text-white/80 py-2.5 text-sm font-medium border border-white/20 rounded-lg"
                   >
                     {t.nav.login}
                   </button>
                 )}
                 <button
-                  onClick={() => { setMobileOpen(false); navigate("/login"); }}
+                  onClick={() => {
+                    setMobileOpen(false);
+                    const el = document.querySelector("#pricing");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
                   className="w-full btn-gold py-2.5 rounded-lg text-sm font-semibold"
                 >
                   {t.nav.startFree}
