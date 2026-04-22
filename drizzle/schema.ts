@@ -173,3 +173,17 @@ export const heirs = mysqlTable("heirs", {
 
 export type Heir = typeof heirs.$inferSelect;
 export type InsertHeir = typeof heirs.$inferInsert;
+
+/**
+ * 이메일 OTP 테이블
+ * 이메일 인증코드 임시 저장 (만료 10분)
+ */
+export const emailOtps = mysqlTable("emailOtps", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull(),
+  code: varchar("code", { length: 8 }).notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  used: int("used").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type EmailOtp = typeof emailOtps.$inferSelect;
