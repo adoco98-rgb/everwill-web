@@ -152,4 +152,33 @@ export const emailAuthRouter = router({
 
       return { success: true, isNewUser };
     }),
+
+  /**
+   * 회원가입 후 추가 정보 저장
+   * - 이름, 전화번호, 생년월일, 거주 국가
+   */
+  updateProfile: publicProcedure
+    .input(z.object({
+      email: z.string().email(),
+      name: z.string().min(1, "이름을 입력해주세요").max(50),
+      phone: z.string().optional(),
+      birthDate: z.string().optional(),
+      country: z.string().length(2).default("KR"),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
+      const openId = `email:${input.email}`;
+      await db.update(users)
+        .set({
+          name: input.name,
+          phone: input.phone || null,
+          birthDate: input.birthDate || null,
+          country: input.country,
+          profileCompleted: 1,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.openId, openId));
+      return { success: true };
+    }),
 });

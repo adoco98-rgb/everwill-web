@@ -1,10 +1,16 @@
 /**
  * EverWill 이메일 간편 가입/로그인 페이지 (/login)
- * 이메일 입력 → 6자리 OTP 발송 → 코드 입력 → 대시보드 진입
+ * Step 1: 이메일 입력
+ * Step 2: OTP 6자리 인증
+ * Step 3: 추가 정보 입력 (신규 가입자만) - 이름, 전화번호, 생년월일, 국가
+ * Step 4: 완료 → 대시보드
  */
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, ArrowLeft, Mail, CheckCircle2, RefreshCw, Loader2, HelpCircle, ChevronDown } from "lucide-react";
+import {
+  Shield, ArrowLeft, Mail, CheckCircle2, RefreshCw,
+  Loader2, HelpCircle, ChevronDown, User, Phone, Calendar, Globe
+} from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
@@ -16,7 +22,22 @@ const benefits = [
   "7개 언어 · 195개국 결제 지원",
 ];
 
-type Step = "email" | "otp" | "done";
+const COUNTRIES = [
+  { code: "KR", label: "🇰🇷 한국" },
+  { code: "US", label: "🇺🇸 미국" },
+  { code: "JP", label: "🇯🇵 일본" },
+  { code: "CN", label: "🇨🇳 중국" },
+  { code: "HK", label: "🇭🇰 홍콩" },
+  { code: "TW", label: "🇹🇼 대만" },
+  { code: "DE", label: "🇩🇪 독일" },
+  { code: "ES", label: "🇪🇸 스페인" },
+  { code: "SA", label: "🇸🇦 사우디아라비아" },
+  { code: "GB", label: "🇬🇧 영국" },
+  { code: "CA", label: "🇨🇦 캐나다" },
+  { code: "AU", label: "🇦🇺 호주" },
+];
+
+type Step = "email" | "otp" | "profile" | "done";
 
 export default function LoginPage() {
   const [, navigate] = useLocation();
@@ -25,6 +46,14 @@ export default function LoginPage() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(false);
+
+  // 프로필 폼
+  const [profileName, setProfileName] = useState("");
+  const [profilePhone, setProfilePhone] = useState("");
+  const [profileBirth, setProfileBirth] = useState("");
+  const [profileCountry, setProfileCountry] = useState("KR");
+
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const sendOtp = trpc.auth.email.sendOtp.useMutation({
@@ -39,14 +68,29 @@ export default function LoginPage() {
   });
 
   const verifyOtp = trpc.auth.email.verifyOtp.useMutation({
-    onSuccess: () => {
-      setStep("done");
-      setTimeout(() => navigate("/dashboard"), 1200);
+    onSuccess: (data) => {
+      if (data.isNewUser) {
+        setIsNewUser(true);
+        setStep("profile");
+      } else {
+        setStep("done");
+        setTimeout(() => navigate("/dashboard"), 1200);
+      }
     },
     onError: (err) => {
       toast.error(err.message || "인증 코드가 올바르지 않습니다.");
       setOtp(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
+    },
+  });
+
+  const updateProfile = trpc.auth.email.updateProfile.useMutation({
+    onSuccess: () => {
+      setStep("done");
+      setTimeout(() => navigate("/dashboard"), 1200);
+    },
+    onError: (err) => {
+      toast.error(err.message || "프로필 저장에 실패했습니다.");
     },
   });
 
@@ -67,7 +111,6 @@ export default function LoginPage() {
   }
 
   function handleOtpChange(index: number, value: string) {
-    // 붙여넣기 처리
     if (value.length > 1) {
       const digits = value.replace(/\D/g, "").slice(0, 6).split("");
       const newOtp = [...otp];
@@ -96,6 +139,21 @@ export default function LoginPage() {
     }
   }
 
+  function handleProfileSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!profileName.trim()) {
+      toast.error("이름을 입력해주세요.");
+      return;
+    }
+    updateProfile.mutate({
+      email,
+      name: profileName.trim(),
+      phone: profilePhone.trim() || undefined,
+      birthDate: profileBirth || undefined,
+      country: profileCountry,
+    });
+  }
+
   useEffect(() => {
     if (step === "otp") setTimeout(() => inputRefs.current[0]?.focus(), 100);
   }, [step]);
@@ -105,13 +163,13 @@ export default function LoginPage() {
       {/* 왼쪽 브랜드 패널 */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#1F3864] via-[#243d72] to-[#1a3058] flex-col justify-between p-12">
         <Link href="/">
-          <a className="flex items-center gap-2 text-white">
+          <div className="flex items-center gap-2 text-white cursor-pointer">
             <div className="w-9 h-9 bg-[#C9A961] rounded-xl flex items-center justify-center">
               <span className="text-white font-bold text-xs">EW</span>
             </div>
             <span className="font-bold text-xl" style={{ fontFamily: "'Playfair Display', serif" }}>EverWill</span>
             <span className="text-white/40 text-sm ml-1">유언 OS</span>
-          </a>
+          </div>
         </Link>
         <div className="space-y-8">
           <div>
@@ -138,19 +196,19 @@ export default function LoginPage() {
           {/* 모바일 로고 */}
           <div className="lg:hidden text-center mb-8">
             <Link href="/">
-              <a className="inline-flex items-center gap-2">
+              <div className="inline-flex items-center gap-2 cursor-pointer">
                 <div className="w-9 h-9 bg-[#1F3864] rounded-xl flex items-center justify-center">
                   <span className="text-white font-bold text-xs">EW</span>
                 </div>
                 <span className="font-bold text-xl text-[#1F3864]" style={{ fontFamily: "'Playfair Display', serif" }}>EverWill</span>
-              </a>
+              </div>
             </Link>
           </div>
 
           <div className="bg-white rounded-3xl shadow-xl p-8">
             <AnimatePresence mode="wait">
 
-              {/* Step 1: 이메일 입력 */}
+              {/* ── Step 1: 이메일 입력 ── */}
               {step === "email" && (
                 <motion.div key="email" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                   <div className="text-center mb-8">
@@ -187,7 +245,7 @@ export default function LoginPage() {
                 </motion.div>
               )}
 
-              {/* Step 2: OTP 입력 */}
+              {/* ── Step 2: OTP 입력 ── */}
               {step === "otp" && (
                 <motion.div key="otp" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                   <div className="text-center mb-8">
@@ -199,7 +257,6 @@ export default function LoginPage() {
                       <span className="font-medium text-gray-600">{email}</span>으로<br />6자리 코드를 발송했습니다.
                     </p>
                   </div>
-                  {/* OTP 6자리 입력 박스 */}
                   <div className="flex gap-2 justify-center mb-6">
                     {otp.map((digit, i) => (
                       <input
@@ -235,8 +292,6 @@ export default function LoginPage() {
                       다른 이메일로 변경
                     </button>
                   </div>
-
-                  {/* 도움말 */}
                   <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
                     <button
                       type="button"
@@ -255,7 +310,6 @@ export default function LoginPage() {
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
                           className="overflow-hidden"
                         >
                           <ul className="mt-3 space-y-2 text-xs text-gray-500 leading-relaxed">
@@ -283,7 +337,91 @@ export default function LoginPage() {
                 </motion.div>
               )}
 
-              {/* Step 3: 완료 */}
+              {/* ── Step 3: 추가 정보 입력 (신규 가입자) ── */}
+              {step === "profile" && (
+                <motion.div key="profile" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                  <div className="text-center mb-6">
+                    <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <User className="w-7 h-7 text-green-600" />
+                    </div>
+                    <h1 className="text-2xl font-bold text-[#1F3864] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>반갑습니다!</h1>
+                    <p className="text-gray-400 text-sm">기본 정보를 입력해주세요.<br /><span className="text-gray-300">(이름만 필수, 나머지는 나중에 입력 가능)</span></p>
+                  </div>
+                  <form onSubmit={handleProfileSubmit} className="space-y-4">
+                    {/* 이름 (필수) */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        <User className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
+                        이름 <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="text" value={profileName} onChange={(e) => setProfileName(e.target.value)}
+                        placeholder="홍길동" required autoFocus
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-sm transition-all"
+                      />
+                    </div>
+                    {/* 전화번호 (선택) */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        <Phone className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
+                        전화번호 <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                      </label>
+                      <input
+                        type="tel" value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)}
+                        placeholder="010-0000-0000"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-sm transition-all"
+                      />
+                    </div>
+                    {/* 생년월일 (선택) */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        <Calendar className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
+                        생년월일 <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                      </label>
+                      <input
+                        type="date" value={profileBirth} onChange={(e) => setProfileBirth(e.target.value)}
+                        max={new Date().toISOString().split("T")[0]}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-sm transition-all"
+                      />
+                    </div>
+                    {/* 거주 국가 (선택) */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        <Globe className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
+                        거주 국가 <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                      </label>
+                      <select
+                        value={profileCountry} onChange={(e) => setProfileCountry(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-sm transition-all bg-white"
+                      >
+                        {COUNTRIES.map(c => (
+                          <option key={c.code} value={c.code}>{c.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => { setStep("done"); setTimeout(() => navigate("/dashboard"), 1200); }}
+                        className="flex-1 border border-gray-200 text-gray-400 hover:text-gray-600 hover:border-gray-300 py-3.5 rounded-xl text-sm font-medium transition-all"
+                      >
+                        나중에 입력
+                      </button>
+                      <button
+                        type="submit" disabled={updateProfile.isPending || !profileName.trim()}
+                        className="flex-2 flex-grow bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-50 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md"
+                      >
+                        {updateProfile.isPending
+                          ? <><Loader2 className="w-4 h-4 animate-spin" /> 저장 중...</>
+                          : "저장하고 시작하기 →"
+                        }
+                      </button>
+                    </div>
+                  </form>
+                </motion.div>
+              )}
+
+              {/* ── Step 4: 완료 ── */}
               {step === "done" && (
                 <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-8">
                   <motion.div
@@ -293,7 +431,9 @@ export default function LoginPage() {
                   >
                     <CheckCircle2 className="w-8 h-8 text-green-600" />
                   </motion.div>
-                  <h2 className="text-2xl font-bold text-[#1F3864] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>로그인 완료!</h2>
+                  <h2 className="text-2xl font-bold text-[#1F3864] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+                    {isNewUser ? "가입 완료!" : "로그인 완료!"}
+                  </h2>
                   <p className="text-gray-400 text-sm">대시보드로 이동합니다...</p>
                 </motion.div>
               )}
@@ -303,9 +443,9 @@ export default function LoginPage() {
 
           <div className="text-center mt-6">
             <Link href="/">
-              <a className="inline-flex items-center gap-1.5 text-gray-400 hover:text-[#1F3864] text-sm transition-colors">
+              <div className="inline-flex items-center gap-1.5 text-gray-400 hover:text-[#1F3864] text-sm transition-colors cursor-pointer">
                 <ArrowLeft className="w-3.5 h-3.5" />홈으로 돌아가기
-              </a>
+              </div>
             </Link>
           </div>
         </motion.div>

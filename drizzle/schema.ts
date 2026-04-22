@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, bigint } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, bigint, tinyint } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -24,6 +24,12 @@ export const users = mysqlTable("users", {
   stripeCustomerId: varchar("stripeCustomerId", { length: 64 }),
   /** 전화번호 (알리고 SMS 인증용) */
   phone: varchar("phone", { length: 20 }),
+  /** 생년월일 (YYYY-MM-DD) */
+  birthDate: varchar("birthDate", { length: 16 }),
+  /** 거주 국가 코드 (ISO 3166-1 alpha-2) */
+  country: varchar("country", { length: 8 }).default("KR"),
+  /** 프로필 완성 여부 (0=미완성, 1=완성) */
+  profileCompleted: int("profileCompleted").default(0),
 });
 
 export type User = typeof users.$inferSelect;

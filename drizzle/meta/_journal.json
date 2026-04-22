@@ -29,6 +29,13 @@
       "when": 1776829559866,
       "tag": "0003_flaky_photon",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1776841586590,
+      "tag": "0004_familiar_ricochet",
+      "breakpoints": true
     }
   ]
 }
