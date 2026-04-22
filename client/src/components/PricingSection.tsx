@@ -263,10 +263,10 @@ export default function PricingSection() {
 
                 {/* 플랜명 + 설명 */}
                 <div className="w-36 flex-shrink-0">
-                  <div className={`font-bold text-sm mb-0.5 ${plan.highlight ? "text-white" : "text-[#1F3864]"}`} style={{fontWeight:700}}>
+                  <div className={`font-bold text-base mb-0.5 ${plan.highlight ? "text-white" : "text-[#1F3864]"}`} style={{fontWeight:700}}>
                     {plan.name}
                   </div>
-                  <div className={`text-[11px] leading-tight font-medium ${plan.highlight ? "text-white/80" : "text-gray-600"}`}>
+                  <div className={`text-xs leading-tight font-medium ${plan.highlight ? "text-white/80" : "text-gray-600"}`}>
                     {plan.description}
                   </div>
                 </div>
@@ -279,11 +279,11 @@ export default function PricingSection() {
                   {plan.features.slice(0, 4).map((f) => (
                     <div key={f} className="flex items-center gap-1">
                       <Check className={`w-3 h-3 flex-shrink-0 ${plan.highlight ? "text-[#C9A961]" : "text-green-500"}`} />
-                      <span className={`text-[11px] font-semibold ${plan.highlight ? "text-white" : "text-gray-800"}`}>{f}</span>
+                      <span className={`text-sm font-semibold ${plan.highlight ? "text-white" : "text-gray-800"}`}>{f}</span>
                     </div>
                   ))}
                   {plan.features.length > 4 && (
-                    <span className={`text-[11px] font-semibold ${plan.highlight ? "text-white/70" : "text-gray-600"}`}>
+                    <span className={`text-sm font-semibold ${plan.highlight ? "text-white/70" : "text-gray-600"}`}>
                       +{plan.features.length - 4}개
                     </span>
                   )}
@@ -296,10 +296,10 @@ export default function PricingSection() {
                       {plan.originalPrice}
                     </div>
                   )}
-                  <div className={`text-xl font-extrabold ${plan.priceColor}`}>
+                  <div className={`text-2xl font-extrabold ${plan.priceColor}`}>
                     {plan.price}
                   </div>
-                  <div className={`text-[11px] font-semibold ${plan.highlight ? "text-white/70" : "text-gray-500"}`}>
+                  <div className={`text-xs font-semibold ${plan.highlight ? "text-white/70" : "text-gray-500"}`}>
                     {plan.usd}
                   </div>
                 </div>
@@ -326,8 +326,8 @@ export default function PricingSection() {
         >
           <div className="flex items-center gap-2 mb-4">
             <Zap className="w-4 h-4 text-[#C9A961]" />
-            <h3 className="font-bold text-[#1F3864] text-sm">{t.services.s8Title} / {t.services.s9Title}</h3>
-            <span className="text-gray-600 text-xs font-medium">— {t.pricing.certDesc}</span>
+            <h3 className="font-bold text-[#1F3864] text-base">{t.services.s8Title} / {t.services.s9Title}</h3>
+            <span className="text-gray-600 text-sm font-medium">— {t.pricing.certDesc}</span>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             {addons.map((addon) => (
@@ -336,12 +336,12 @@ export default function PricingSection() {
                 className={`rounded-2xl border-2 px-5 py-4 flex items-center justify-between ${addon.borderColor} ${addon.bg}`}
               >
                 <div>
-                  <div className="font-bold text-[#1F3864] text-sm mb-0.5">{addon.name}</div>
-                  <div className="text-gray-600 text-xs font-medium">{addon.desc}</div>
+                  <div className="font-bold text-[#1F3864] text-base mb-0.5">{addon.name}</div>
+                  <div className="text-gray-600 text-sm font-medium">{addon.desc}</div>
                 </div>
                 <div className="text-right ml-4 shrink-0">
                   <div className="text-gray-400 text-xs line-through">{addon.originalPrice}</div>
-                  <div className={`font-bold text-base ${addon.priceColor}`}>{addon.price}</div>
+                  <div className={`font-bold text-xl ${addon.priceColor}`}>{addon.price}</div>
                   <div className="text-gray-400 text-[10px]">{addon.usd}</div>
                 </div>
               </div>
