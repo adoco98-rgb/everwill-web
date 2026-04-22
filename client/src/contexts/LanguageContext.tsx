@@ -17,11 +17,27 @@ const LanguageContext = createContext<LanguageContextType | null>(null);
 
 const STORAGE_KEY = "everwill_language";
 
-/** 브라우저 언어를 기반으로 기본 언어 감지 */
+/** 도메인 기반 기본 언어 매핑 */
+const DOMAIN_LANGUAGE_MAP: Record<string, Language> = {
+  "everwillusa.com": "en",
+  "www.everwillusa.com": "en",
+};
+
+/** 브라우저 언어 + 도메인을 기반으로 기본 언어 감지 */
 function detectDefaultLanguage(): Language {
+  // 1순위: 도메인 기반 자동 감지 (저장값 무시)
+  const hostname = typeof window !== "undefined" ? window.location.hostname : "";
+  const domainLang = DOMAIN_LANGUAGE_MAP[hostname];
+  if (domainLang) {
+    localStorage.setItem(STORAGE_KEY, domainLang);
+    return domainLang;
+  }
+
+  // 2순위: 저장된 언어
   const saved = localStorage.getItem(STORAGE_KEY) as Language | null;
   if (saved && translations[saved]) return saved;
 
+  // 3순위: 브라우저 언어
   const browserLang = navigator.language.toLowerCase();
   if (browserLang.startsWith("ko")) return "ko";
   if (browserLang.startsWith("ja")) return "ja";
