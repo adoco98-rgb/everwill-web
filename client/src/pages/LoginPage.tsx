@@ -14,7 +14,7 @@ import {
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
-
+import WelcomeModal from "@/components/WelcomeModal";
 const benefits = [
   "유언장 작성 무료 · 언제든 재개 가능",
   "결제 내역 자동 연결 및 관리",
@@ -47,6 +47,7 @@ export default function LoginPage() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   // 프로필 폼
   const [profileName, setProfileName] = useState("");
@@ -87,7 +88,7 @@ export default function LoginPage() {
   const updateProfile = trpc.auth.email.updateProfile.useMutation({
     onSuccess: () => {
       setStep("done");
-      setTimeout(() => navigate("/dashboard"), 1200);
+      setShowWelcome(true);
     },
     onError: (err) => {
       toast.error(err.message || "프로필 저장에 실패했습니다.");
@@ -402,7 +403,7 @@ export default function LoginPage() {
                     <div className="flex gap-3 pt-2">
                       <button
                         type="button"
-                        onClick={() => { setStep("done"); setTimeout(() => navigate("/dashboard"), 1200); }}
+                        onClick={() => { setStep("done"); setShowWelcome(true); }}
                         className="flex-1 border border-gray-200 text-gray-400 hover:text-gray-600 hover:border-gray-300 py-3.5 rounded-xl text-sm font-medium transition-all"
                       >
                         나중에 입력
@@ -422,7 +423,7 @@ export default function LoginPage() {
               )}
 
               {/* ── Step 4: 완료 ── */}
-              {step === "done" && (
+              {step === "done" && !showWelcome && (
                 <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-8">
                   <motion.div
                     initial={{ scale: 0 }} animate={{ scale: 1 }}
@@ -450,6 +451,17 @@ export default function LoginPage() {
           </div>
         </motion.div>
       </div>
+
+      {/* 환영 온보딩 모달 */}
+      {showWelcome && (
+        <WelcomeModal
+          userName={profileName || undefined}
+          onClose={() => {
+            setShowWelcome(false);
+            navigate("/dashboard");
+          }}
+        />
+      )}
     </div>
   );
 }
