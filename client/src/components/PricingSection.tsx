@@ -65,6 +65,7 @@ export default function PricingSection() {
       iconBg: "bg-white/15",
       iconColor: "text-[#C9A961]",
       description: t.pricing.certDesc,
+      subBadge: t.pricing.freeStorage,
       features: [
         t.pricing.free,
         "eKYC " + t.trust.s2Title,
@@ -262,13 +263,18 @@ export default function PricingSection() {
                 </div>
 
                 {/* 플랜명 + 설명 */}
-                <div className="w-36 flex-shrink-0">
+                <div className="w-44 flex-shrink-0">
                   <div className={`font-bold text-base mb-0.5 ${plan.highlight ? "text-white" : "text-[#1F3864]"}`} style={{fontWeight:700}}>
                     {plan.name}
                   </div>
                   <div className={`text-xs leading-tight font-medium ${plan.highlight ? "text-white/80" : "text-gray-600"}`}>
                     {plan.description}
                   </div>
+                  {(plan as any).subBadge && (
+                    <div className="mt-1 inline-flex items-center gap-1 bg-[#C9A961]/20 border border-[#C9A961]/40 rounded-full px-2 py-0.5">
+                      <span className="text-[10px] font-bold text-[#C9A961]">★ {(plan as any).subBadge}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* 구분선 */}
