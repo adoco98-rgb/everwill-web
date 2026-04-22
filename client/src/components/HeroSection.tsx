@@ -5,7 +5,7 @@
  * 오버레이: 딥 네이비 그라디언트로 텍스트 가독성 확보
  */
 import { motion } from "framer-motion";
-import { ArrowRight, PenLine, UserPlus } from "lucide-react";
+import { ArrowRight, UserPlus } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -91,23 +91,14 @@ export default function HeroSection() {
           transition={{ duration: 0.7, delay: 0.45 }}
           className="flex flex-col sm:flex-row gap-4 items-center"
         >
-          {/* 유언장 서명 버튼 → /write 페이지로 바로 이동 */}
+          {/* 무료 가입 버튼 (단독, 크게) */}
           <button
-            onClick={() => navigate("/write")}
-            className="group flex items-center gap-3 btn-gold px-10 py-4 rounded-full text-base font-semibold shadow-2xl shadow-[#C9A961]/30 min-w-[220px] justify-center"
+            onClick={() => navigate("/login")}
+            className="group flex items-center gap-3 btn-gold px-14 py-5 rounded-full text-xl font-bold shadow-2xl shadow-[#C9A961]/40 min-w-[280px] justify-center transition-all duration-300 hover:scale-105"
           >
-            <PenLine className="w-5 h-5" />
-            {t.hero.ctaSign}
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </button>
-
-          {/* 무료 가입 버튼 → /write 페이지로 이동 */}
-          <button
-            onClick={() => navigate("/write")}
-            className="group flex items-center gap-3 bg-white/15 backdrop-blur-sm border border-white/40 hover:bg-white/25 hover:border-white/60 text-white px-10 py-4 rounded-full text-base font-semibold transition-all duration-300 min-w-[220px] justify-center"
-          >
-            <UserPlus className="w-5 h-5" />
+            <UserPlus className="w-6 h-6" />
             {t.hero.ctaJoin}
+            <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </button>
         </motion.div>
 
