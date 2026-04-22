@@ -34,7 +34,7 @@ export default function BadgeSection() {
 
   /* 멤버십 플랜별 카드 혜택 */
   const membershipTiers = [
-    { name: "Basic", plan: "유언장 인증 (₩49,000)", card: "스테인레스 골드 카드", color: "border-gray-400/30 bg-white/5" },
+    { name: "Basic", plan: "유언장 인증 (₩49,000)", card: "스테인레스 골드 카드 + 1년 무료 보관", color: "border-gray-400/30 bg-white/5" },
     { name: "3년 플랜", plan: "₩73,900", card: "스테인레스 골드 카드 + 3년 보관", color: "border-blue-400/30 bg-blue-500/5" },
     { name: "5년 플랜", plan: "₩88,000", card: "티타늄 골드 카드 + 5년 보관", color: "border-[#C9A961]/40 bg-[#C9A961]/5", popular: true },
     { name: "10년 플랜", plan: "₩128,000", card: "티타늄 골드 카드 + 10년 보관", color: "border-purple-400/30 bg-purple-500/5" },
