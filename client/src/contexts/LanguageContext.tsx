@@ -23,6 +23,19 @@ const DOMAIN_LANGUAGE_MAP: Record<string, Language> = {
   "www.everwillusa.com": "en",
 };
 
+/** 브라우저 언어 목록에서 지원 언어 매핑 */
+function mapBrowserLang(lang: string): Language | null {
+  const l = lang.toLowerCase();
+  if (l.startsWith("ko")) return "ko";
+  if (l.startsWith("ja")) return "ja";
+  if (l.startsWith("zh")) return "zh";
+  if (l.startsWith("de")) return "de";
+  if (l.startsWith("es")) return "es";
+  if (l.startsWith("ar")) return "ar";
+  if (l.startsWith("en")) return "en";
+  return null;
+}
+
 /** 브라우저 언어 + 도메인을 기반으로 기본 언어 감지 */
 function detectDefaultLanguage(): Language {
   // 1순위: 도메인 기반 자동 감지 (저장값 무시)
@@ -33,19 +46,21 @@ function detectDefaultLanguage(): Language {
     return domainLang;
   }
 
-  // 2순위: 저장된 언어
+  // 2순위: 저장된 언어 (사용자가 직접 선택한 경우)
   const saved = localStorage.getItem(STORAGE_KEY) as Language | null;
   if (saved && translations[saved]) return saved;
 
-  // 3순위: 브라우저 언어
-  const browserLang = navigator.language.toLowerCase();
-  if (browserLang.startsWith("ko")) return "ko";
-  if (browserLang.startsWith("ja")) return "ja";
-  if (browserLang.startsWith("zh")) return "zh";
-  if (browserLang.startsWith("de")) return "de";
-  if (browserLang.startsWith("es")) return "es";
-  if (browserLang.startsWith("ar")) return "ar";
-  return "ko"; // 기본값: 한국어
+  // 3순위: 브라우저 언어 목록 순서대로 매핑 (navigator.languages 우선)
+  const langs = navigator.languages?.length
+    ? navigator.languages
+    : [navigator.language];
+  for (const lang of langs) {
+    const mapped = mapBrowserLang(lang);
+    if (mapped) return mapped;
+  }
+
+  // 기본값: 영어 (글로벌 서비스)
+  return "en";
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
