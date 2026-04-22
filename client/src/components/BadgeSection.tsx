@@ -1,55 +1,23 @@
 /**
- * EverWill Badge 시스템 섹션
- * 세계 최초 물리적 유언 인증 배지 소개
+ * EverWill Badge 섹션
+ * 멤버십 골드 카드 제공 안내
  * 네이비 배경 + 골드 강조
- * 모든 Badge 구매자에게 스테인레스 카드(Essential) 무료 증정
  */
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
-import { QrCode, Heart, FileCheck, Megaphone, Gift, Clock } from "lucide-react";
+import { QrCode, Heart, FileCheck, Megaphone, Gift, Clock, CreditCard, Star } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const BADGE_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/everwill-gold-card-oH5UXq9tRPBYWHV9uVM6ME.webp";
 
-const badgeLineup = [
-  {
-    name: "Wearable",
-    price: "₩79,000",
-    originalPrice: "₩129,000",
-    usd: "$79",
-    popular: false,
-    freeCard: true,
-    discount: "39%",
-  },
-  {
-    name: "Necklace",
-    price: "₩99,000",
-    originalPrice: "₩159,000",
-    usd: "$99",
-    popular: true,
-    freeCard: true,
-    discount: "38%",
-  },
-  {
-    name: "Premium",
-    price: "₩299,000",
-    originalPrice: "₩490,000",
-    usd: "$299",
-    popular: false,
-    freeCard: true,
-    discount: "39%",
-  },
-  {
-    name: "Custom VIP",
-    price: "₩500,000+",
-    originalPrice: "₩800,000+",
-    usd: "$500+",
-    popular: false,
-    freeCard: true,
-    discount: "37%",
-  },
+/* 멤버십 골드 카드 혜택 */
+const membershipCardBenefits = [
+  { icon: CreditCard, title: "멤버십 골드 카드", desc: "유언장 인증 완료 시 실물 골드 카드 발급" },
+  { icon: QrCode, title: "QR 신원 인증", desc: "응급 상황 시 QR 스캔으로 가족 연락처 즉시 확인" },
+  { icon: FileCheck, title: "유언 인증 번호", desc: "법원·은행에서 일련번호로 유언 인증서 확인" },
+  { icon: Star, title: "평생 보관 증명", desc: "카드 소지만으로 EverWill 회원임을 증명" },
 ];
 
 export default function BadgeSection() {
@@ -64,11 +32,13 @@ export default function BadgeSection() {
     { icon: Megaphone, title: t.badge.role4, description: t.badge.role4Desc, color: "text-yellow-400" },
   ];
 
-  const badgeLineupWithTranslation = [
-    { ...badgeLineup[0], material: t.badge.wearableMat },
-    { ...badgeLineup[1], material: t.badge.necklaceMat },
-    { ...badgeLineup[2], material: t.badge.premiumMat },
-    { ...badgeLineup[3], material: t.badge.customMat },
+  /* 멤버십 플랜별 카드 혜택 */
+  const membershipTiers = [
+    { name: "Basic", plan: "유언장 인증 (₩49,000)", card: "스테인레스 골드 카드", color: "border-gray-400/30 bg-white/5" },
+    { name: "3년 플랜", plan: "₩73,900", card: "스테인레스 골드 카드 + 3년 보관", color: "border-blue-400/30 bg-blue-500/5" },
+    { name: "5년 플랜", plan: "₩88,000", card: "티타늄 골드 카드 + 5년 보관", color: "border-[#C9A961]/40 bg-[#C9A961]/5", popular: true },
+    { name: "10년 플랜", plan: "₩128,000", card: "티타늄 골드 카드 + 10년 보관", color: "border-purple-400/30 bg-purple-500/5" },
+    { name: "영구 플랜", plan: "₩248,000", card: "플래티넘 골드 카드 + 영구 보관", color: "border-[#C9A961]/60 bg-[#C9A961]/10" },
   ];
 
   return (
@@ -201,61 +171,40 @@ export default function BadgeSection() {
           transition={{ duration: 0.7, delay: 0.35 }}
         >
           <h3 className="text-center text-white text-xl font-bold mb-8" style={{ fontFamily: "'Playfair Display', serif" }}>
-            {t.badge.lineup}
+            멤버십별 골드 카드 혜택
           </h3>
 
-          {/* Essential 강조 카드 (무료 증정 기준) */}
-          <div className="mb-4">
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center gap-4">
-              <div className="w-10 h-10 rounded-lg bg-[#C9A961]/20 flex items-center justify-center flex-shrink-0">
-                <FileCheck className="w-5 h-5 text-[#C9A961]" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-white font-bold text-sm">{t.badge.essential}</span>
-                  <span className="text-[10px] bg-[#C9A961] text-[#1F3864] font-black px-2 py-0.5 rounded-full">{t.badge.cardIncluded}</span>
-                </div>
-                <div className="text-white/50 text-xs">{t.badge.essentialMat}</div>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <div className="text-white/40 text-xs line-through">₩49,000</div>
-                <div className="text-[#C9A961] font-bold text-sm">{t.badge.cardIncluded}</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {badgeLineupWithTranslation.map((badge, i) => (
+          {/* 멤버십 플랜별 카드 혜택 - 가로 리스트 */}
+          <div className="space-y-3">
+            {membershipTiers.map((tier, i) => (
               <motion.div
-                key={badge.name}
-                initial={{ opacity: 0, y: 20 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.5, delay: 0.45 + i * 0.08 }}
-                className={`relative rounded-xl p-4 text-center border transition-all cursor-pointer ${
-                  badge.popular
-                    ? "bg-[#C9A961]/20 border-[#C9A961]/50 hover:bg-[#C9A961]/30"
-                    : "bg-white/5 border-white/10 hover:bg-white/10"
-                }`}
-                onClick={() => toast.info(t.badge.order)}
+                key={tier.name}
+                initial={{ opacity: 0, x: -20 }}
+                animate={isInView ? { opacity: 1, x: 0 } : {}}
+                transition={{ duration: 0.5, delay: 0.4 + i * 0.07 }}
+                className={`relative rounded-xl border px-5 py-4 flex items-center gap-5 transition-all hover:scale-[1.01] ${tier.color}`}
               >
-                {badge.popular && (
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#C9A961] text-[#1F3864] text-xs font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
-                    {t.badge.popular}
+                {tier.popular && (
+                  <div className="absolute -top-2.5 left-6 bg-[#C9A961] text-[#1F3864] text-[10px] font-black px-3 py-0.5 rounded-full">
+                    추천
                   </div>
                 )}
-                <div className="text-white font-bold text-sm mb-1">{badge.name}</div>
-                <div className="text-white/50 text-xs mb-3">{badge.material}</div>
-                {badge.originalPrice && (
-                  <div className="flex items-center justify-center gap-1 mb-0.5">
-                    <span className="text-white/30 text-xs line-through">{badge.originalPrice}</span>
-                    <span className="text-[10px] font-bold bg-red-500 text-white px-1.5 py-0.5 rounded-full">{badge.discount}</span>
-                  </div>
-                )}
-                <div className="text-[#C9A961] font-bold text-base">{badge.price}</div>
-                <div className="text-white/40 text-xs mb-2">{badge.usd}</div>
-                <div className="flex items-center justify-center gap-1 bg-[#C9A961]/15 border border-[#C9A961]/30 rounded-full px-2 py-0.5">
-                  <Gift className="w-2.5 h-2.5 text-[#C9A961]" />
-                  <span className="text-[#C9A961] text-[10px] font-semibold">{t.badge.cardIncluded}</span>
+                {/* 플랜명 */}
+                <div className="w-24 flex-shrink-0">
+                  <div className="text-white font-bold text-sm">{tier.name}</div>
+                  <div className="text-white/40 text-xs">{tier.plan}</div>
+                </div>
+                {/* 구분선 */}
+                <div className="w-px h-8 bg-white/15 flex-shrink-0" />
+                {/* 카드 혜택 */}
+                <div className="flex items-center gap-2 flex-1">
+                  <CreditCard className="w-4 h-4 text-[#C9A961] flex-shrink-0" />
+                  <span className="text-white/80 text-sm">{tier.card}</span>
+                </div>
+                {/* 포함 뱃지 */}
+                <div className="flex items-center gap-1 bg-[#C9A961]/15 border border-[#C9A961]/30 rounded-full px-3 py-1 flex-shrink-0">
+                  <Gift className="w-3 h-3 text-[#C9A961]" />
+                  <span className="text-[#C9A961] text-[10px] font-semibold">카드 포함</span>
                 </div>
               </motion.div>
             ))}
