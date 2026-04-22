@@ -107,22 +107,22 @@ export default function HeroSection() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.65 }}
-          className="flex flex-wrap justify-center gap-6 mt-14 text-white/50 text-sm"
+          className="flex flex-wrap justify-center gap-8 mt-14 text-white text-lg font-semibold"
         >
-          <span className="flex items-center gap-1.5">
-            <span className="text-[#C9A961]">✓</span> {t.hero.trust1}
+          <span className="flex items-center gap-2">
+            <span className="text-[#C9A961] text-xl">✓</span> {t.hero.trust1}
           </span>
-          <span className="text-white/20">|</span>
-          <span className="flex items-center gap-1.5">
-            <span className="text-[#C9A961]">✓</span> {t.hero.trust2}
+          <span className="text-white/30 text-xl">|</span>
+          <span className="flex items-center gap-2">
+            <span className="text-[#C9A961] text-xl">✓</span> {t.hero.trust2}
           </span>
-          <span className="text-white/20">|</span>
-          <span className="flex items-center gap-1.5">
-            <span className="text-[#C9A961]">✓</span> {t.hero.trust3}
+          <span className="text-white/30 text-xl">|</span>
+          <span className="flex items-center gap-2">
+            <span className="text-[#C9A961] text-xl">✓</span> {t.hero.trust3}
           </span>
-          <span className="text-white/20">|</span>
-          <span className="flex items-center gap-1.5">
-            <span className="text-[#C9A961]">✓</span> {t.hero.trust4}
+          <span className="text-white/30 text-xl">|</span>
+          <span className="flex items-center gap-2">
+            <span className="text-[#C9A961] text-xl">✓</span> {t.hero.trust4}
           </span>
         </motion.div>
       </div>
