@@ -69,11 +69,9 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
             >
               로그인 / 회원가입
             </button>
-            <Link href="/">
-              <a className="w-full border-2 border-gray-200 text-gray-500 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:border-gray-300 transition-all">
+            <Link href="/" className="w-full border-2 border-gray-200 text-gray-500 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:border-gray-300 transition-all">
                 홈으로 돌아가기
-              </a>
-            </Link>
+              </Link>
           </div>
         </motion.div>
       </div>
@@ -103,16 +101,14 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
         {/* 로고 */}
         <div className="p-6 border-b border-white/10">
           <div className="flex items-center justify-between">
-            <Link href="/">
-              <a className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-[#C9A961] rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-sm">S</span>
                 </div>
                 <span className="text-white font-bold text-lg" style={{ fontFamily: "'Playfair Display', serif" }}>
                   SARAM
                 </span>
-              </a>
-            </Link>
+              </Link>
             <button
               onClick={() => setMobileOpen(false)}
               className="lg:hidden text-white/60 hover:text-white"

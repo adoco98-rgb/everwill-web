@@ -21,11 +21,9 @@ export default function WritePage() {
       {/* 상단 네비 */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/">
-            <a className="flex items-center gap-2 text-[#1F3864] hover:opacity-70 transition-opacity">
-              <ArrowLeft className="w-4 h-4" />
-              <span className="text-sm font-medium">홈으로</span>
-            </a>
+          <Link href="/" className="flex items-center gap-2 text-[#1F3864] hover:opacity-70 transition-opacity">
+            <ArrowLeft className="w-4 h-4" />
+            <span className="text-sm font-medium">홈으로</span>
           </Link>
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded bg-gradient-to-br from-[#C9A961] to-[#a88840] flex items-center justify-center">

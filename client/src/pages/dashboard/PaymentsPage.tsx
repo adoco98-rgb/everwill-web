@@ -85,12 +85,10 @@ export default function PaymentsPage() {
           <Receipt className="w-12 h-12 text-gray-200 mx-auto mb-4" />
           <h3 className="font-semibold text-gray-400 mb-2">결제 내역이 없습니다</h3>
           <p className="text-gray-300 text-sm mb-6">첫 결제를 진행해보세요.</p>
-          <Link href="/payment">
-            <a className="inline-flex items-center gap-2 bg-[#C9A961] hover:bg-[#b8944f] text-white px-6 py-3 rounded-xl text-sm font-bold transition-all">
+          <Link href="/payment" className="inline-flex items-center gap-2 bg-[#C9A961] hover:bg-[#b8944f] text-white px-6 py-3 rounded-xl text-sm font-bold transition-all">
               결제하기
               <ArrowRight className="w-4 h-4" />
-            </a>
-          </Link>
+            </Link>
         </motion.div>
       ) : (
         <div className="space-y-3">
@@ -144,12 +142,10 @@ export default function PaymentsPage() {
       {/* 새 결제 버튼 */}
       {payments.length > 0 && (
         <div className="text-center pt-2">
-          <Link href="/payment">
-            <a className="inline-flex items-center gap-2 text-[#1F3864] hover:text-[#C9A961] text-sm font-semibold transition-colors">
+          <Link href="/payment" className="inline-flex items-center gap-2 text-[#1F3864] hover:text-[#C9A961] text-sm font-semibold transition-colors">
               추가 서비스 결제하기
               <ArrowRight className="w-4 h-4" />
-            </a>
-          </Link>
+            </Link>
         </div>
       )}
     </div>

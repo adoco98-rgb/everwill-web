@@ -18,18 +18,14 @@ export default function PaymentCancel() {
           <p className="text-white/60 text-sm">결제가 취소됐습니다. 언제든지 다시 시도할 수 있습니다.</p>
         </div>
         <div className="p-6 space-y-3">
-          <Link href="/payment">
-            <a className="w-full bg-[#C9A961] hover:bg-[#b8944f] text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all">
+          <Link href="/payment" className="w-full bg-[#C9A961] hover:bg-[#b8944f] text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all">
               <RotateCcw className="w-4 h-4" />
               다시 결제하기
-            </a>
-          </Link>
-          <Link href="/">
-            <a className="w-full border-2 border-gray-200 text-gray-500 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:border-gray-300 transition-all">
+            </Link>
+          <Link href="/" className="w-full border-2 border-gray-200 text-gray-500 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:border-gray-300 transition-all">
               <ArrowLeft className="w-4 h-4" />
               홈으로 돌아가기
-            </a>
-          </Link>
+            </Link>
         </div>
       </div>
     </div>
