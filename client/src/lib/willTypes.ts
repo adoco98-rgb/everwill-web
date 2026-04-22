@@ -26,6 +26,8 @@ export interface RealEstate {
   estimatedValue: string;
   heirId: string;
   sharePercent: number;
+  shareAmount?: string; // 직접 금액 입력 (예: "1억 5천만원")
+  distributionMode?: "percent" | "amount"; // 배분 방식: % 또는 금액
 }
 
 export interface FinancialAsset {
@@ -36,6 +38,8 @@ export interface FinancialAsset {
   estimatedValue: string;
   heirId: string;
   sharePercent: number;
+  shareAmount?: string; // 직접 금액 입력
+  distributionMode?: "percent" | "amount"; // 배분 방식: % 또는 금액
 }
 
 export interface OtherAsset {

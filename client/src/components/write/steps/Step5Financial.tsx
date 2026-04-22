@@ -1,9 +1,10 @@
 /**
  * Step 5: 금융 자산
  * AI 질문: 예금·주식·보험 등 금융 자산 등록
+ * % 또는 금액 직접 입력 배분 지원
  */
 import { useState } from "react";
-import { Plus, Trash2, Banknote } from "lucide-react";
+import { Plus, Trash2, Banknote, Percent, DollarSign } from "lucide-react";
 import { nanoid } from "nanoid";
 import type { StepProps } from "./StepProps";
 import type { FinancialAsset } from "@/lib/willTypes";
@@ -14,7 +15,7 @@ const INSTITUTIONS = ["KB국민은행", "신한은행", "하나은행", "우리�
 
 export default function Step5Financial({ will, update }: StepProps) {
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<Partial<FinancialAsset>>({});
+  const [form, setForm] = useState<Partial<FinancialAsset>>({ distributionMode: "percent" });
 
   const save = () => {
     if (!form.institution) return;
@@ -26,11 +27,21 @@ export default function Step5Financial({ will, update }: StepProps) {
       estimatedValue: form.estimatedValue || "",
       heirId: form.heirId || "",
       sharePercent: form.sharePercent || 100,
+      shareAmount: form.shareAmount || "",
+      distributionMode: form.distributionMode || "percent",
     };
     const exists = will.financialAssets.find((f) => f.id === item.id);
     update({ financialAssets: exists ? will.financialAssets.map((f) => f.id === item.id ? item : f) : [...will.financialAssets, item] });
     setShowForm(false);
-    setForm({});
+    setForm({ distributionMode: "percent" });
+  };
+
+  // 배분 방식 표시 텍스트
+  const getDistributionLabel = (fa: FinancialAsset) => {
+    if (fa.distributionMode === "amount" && fa.shareAmount) {
+      return `${fa.shareAmount} 배분`;
+    }
+    return `${fa.sharePercent ?? 100}% 배분`;
   };
 
   return (
@@ -58,52 +69,180 @@ export default function Step5Financial({ will, update }: StepProps) {
         금융자산이 없으면 건너뛰어도 됩니다. 계좌번호는 뒷 4자리만 입력해도 됩니다.
       </div>
 
+      {/* 등록된 금융자산 목록 */}
       {will.financialAssets.map((fa) => (
         <div key={fa.id} className="flex items-center justify-between bg-[#FAFAF8] rounded-xl p-4 border border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center"><Banknote className="w-4 h-4 text-blue-600" /></div>
+            <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center">
+              <Banknote className="w-4 h-4 text-blue-600" />
+            </div>
             <div>
               <div className="font-semibold text-[#1F3864] text-sm">{fa.type} · {fa.institution}</div>
-              <div className="text-gray-400 text-xs">{fa.accountNo ? `계좌 ****${fa.accountNo.slice(-4)}` : ""} {fa.estimatedValue ? `· 약 ${fa.estimatedValue}` : ""}</div>
+              <div className="text-gray-400 text-xs flex items-center gap-2">
+                {fa.accountNo ? `계좌 ****${fa.accountNo.slice(-4)}` : ""}
+                {fa.estimatedValue ? ` · 약 ${fa.estimatedValue}` : ""}
+                <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full text-xs font-medium">
+                  {fa.distributionMode === "amount" ? (
+                    <DollarSign className="w-3 h-3" />
+                  ) : (
+                    <Percent className="w-3 h-3" />
+                  )}
+                  {getDistributionLabel(fa)}
+                </span>
+              </div>
             </div>
           </div>
-          <button onClick={() => update({ financialAssets: will.financialAssets.filter((f) => f.id !== fa.id) })} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setForm({ ...fa }); setShowForm(true); }}
+              className="text-gray-400 hover:text-[#1F3864] text-xs px-2 py-1 rounded border border-gray-200 hover:border-[#1F3864]/30 transition-all"
+            >
+              수정
+            </button>
+            <button
+              onClick={() => update({ financialAssets: will.financialAssets.filter((f) => f.id !== fa.id) })}
+              className="text-red-400 hover:text-red-600"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       ))}
 
+      {/* 입력 폼 */}
       {showForm && (
-        <div className="bg-white border-2 border-[#1F3864]/20 rounded-2xl p-5 space-y-3">
+        <div className="bg-white border-2 border-[#1F3864]/20 rounded-2xl p-5 space-y-4">
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1">자산 종류</label>
-              <select value={form.type || ""} onChange={(e) => setForm({ ...form, type: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]">
+              <select
+                value={form.type || ""}
+                onChange={(e) => setForm({ ...form, type: e.target.value })}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
+              >
                 {FA_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1">금융기관 *</label>
-              <select value={form.institution || ""} onChange={(e) => setForm({ ...form, institution: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]">
+              <select
+                value={form.institution || ""}
+                onChange={(e) => setForm({ ...form, institution: e.target.value })}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
+              >
                 <option value="">선택</option>
                 {INSTITUTIONS.map((i) => <option key={i} value={i}>{i}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1">계좌번호 (뒷 4자리)</label>
-              <input value={form.accountNo || ""} onChange={(e) => setForm({ ...form, accountNo: e.target.value })} placeholder="1234" maxLength={20} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]" />
+              <input
+                value={form.accountNo || ""}
+                onChange={(e) => setForm({ ...form, accountNo: e.target.value })}
+                placeholder="1234"
+                maxLength={20}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
+              />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1">예상 가액</label>
-              <input value={form.estimatedValue || ""} onChange={(e) => setForm({ ...form, estimatedValue: e.target.value })} placeholder="1억 원" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]" />
+              <input
+                value={form.estimatedValue || ""}
+                onChange={(e) => setForm({ ...form, estimatedValue: e.target.value })}
+                placeholder="1억 원"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
+              />
             </div>
           </div>
+
+          {/* 배분 방식 선택 */}
+          <div className="border-t border-gray-100 pt-4">
+            <label className="block text-xs font-semibold text-gray-500 mb-3">배분 방식</label>
+            <div className="flex gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, distributionMode: "percent" })}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
+                  (form.distributionMode || "percent") === "percent"
+                    ? "bg-[#1F3864] text-white border-[#1F3864]"
+                    : "bg-white text-gray-500 border-gray-200 hover:border-[#1F3864]/40"
+                }`}
+              >
+                <Percent className="w-3.5 h-3.5" />
+                비율 (%)
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, distributionMode: "amount" })}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
+                  form.distributionMode === "amount"
+                    ? "bg-[#1F3864] text-white border-[#1F3864]"
+                    : "bg-white text-gray-500 border-gray-200 hover:border-[#1F3864]/40"
+                }`}
+              >
+                <DollarSign className="w-3.5 h-3.5" />
+                금액 직접 입력
+              </button>
+            </div>
+
+            {(form.distributionMode || "percent") === "percent" ? (
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">상속 비율 (%)</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={form.sharePercent ?? 100}
+                    onChange={(e) => setForm({ ...form, sharePercent: Number(e.target.value) })}
+                    className="flex-1 accent-[#1F3864]"
+                  />
+                  <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={form.sharePercent ?? 100}
+                      onChange={(e) => setForm({ ...form, sharePercent: Math.min(100, Math.max(0, Number(e.target.value))) })}
+                      className="w-16 px-2 py-2 text-sm text-center focus:outline-none"
+                    />
+                    <span className="px-2 text-gray-400 text-sm bg-gray-50 border-l border-gray-200 py-2">%</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">슬라이더를 움직이거나 숫자를 직접 입력하세요</p>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">배분 금액</label>
+                <input
+                  value={form.shareAmount || ""}
+                  onChange={(e) => setForm({ ...form, shareAmount: e.target.value })}
+                  placeholder="예: 5,000만원, 100,000,000원"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
+                />
+                <p className="text-xs text-gray-400 mt-1">구체적인 금액을 입력하면 유언장에 그대로 반영됩니다</p>
+              </div>
+            )}
+          </div>
+
           <div className="flex gap-3 pt-1">
             <button onClick={save} className="btn-navy text-white px-6 py-2 rounded-lg text-sm font-semibold">저장</button>
-            <button onClick={() => { setShowForm(false); setForm({}); }} className="text-gray-400 text-sm px-4 py-2">취소</button>
+            <button
+              onClick={() => { setShowForm(false); setForm({ distributionMode: "percent" }); }}
+              className="text-gray-400 text-sm px-4 py-2"
+            >
+              취소
+            </button>
           </div>
         </div>
       )}
+
       {!showForm && (
-        <button onClick={() => setShowForm(true)} className="w-full border-2 border-dashed border-gray-200 hover:border-[#1F3864]/30 rounded-xl py-4 flex items-center justify-center gap-2 text-gray-400 hover:text-[#1F3864] text-sm font-medium transition-all">
+        <button
+          onClick={() => setShowForm(true)}
+          className="w-full border-2 border-dashed border-gray-200 hover:border-[#1F3864]/30 rounded-xl py-4 flex items-center justify-center gap-2 text-gray-400 hover:text-[#1F3864] text-sm font-medium transition-all"
+        >
           <Plus className="w-4 h-4" />금융자산 추가
         </button>
       )}
