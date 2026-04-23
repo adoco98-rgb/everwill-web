@@ -200,29 +200,7 @@ export default function PricingSection() {
     },
   ];
 
-  /* ─── 부가 서비스 ─── */
-  const addons = [
-    {
-      name: t.services.s8Title,
-      price: "+₩29,000",
-      usd: "+$29",
-      originalPrice: "+₩59,000",
-      desc: t.services.s8Desc,
-      borderColor: "border-blue-200",
-      bg: "bg-blue-50/40",
-      priceColor: "text-blue-600",
-    },
-    {
-      name: t.services.s9Title,
-      price: "+₩19,000",
-      usd: "+$19",
-      originalPrice: "+₩39,000",
-      desc: t.services.s9Desc,
-      borderColor: "border-amber-200",
-      bg: "bg-amber-50/40",
-      priceColor: "text-amber-600",
-    },
-  ];
+
 
   return (
     <section id="pricing" className="py-20 lg:py-28 bg-white" ref={ref}>
@@ -345,37 +323,7 @@ export default function PricingSection() {
           })}
         </div>
 
-        {/* ── 부가 서비스 ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="mt-8"
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <Zap className="w-4 h-4 text-[#C9A961]" />
-            <h3 className="font-bold text-[#1F3864] text-base">{t.services.s8Title} / {t.services.s9Title}</h3>
-            <span className="text-gray-600 text-sm font-medium">— {t.pricing.certDesc}</span>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            {addons.map((addon) => (
-              <div
-                key={addon.name}
-                className={`rounded-2xl border-2 px-5 py-4 flex items-center justify-between ${addon.borderColor} ${addon.bg}`}
-              >
-                <div>
-                  <div className="font-bold text-[#1F3864] text-base mb-0.5">{addon.name}</div>
-                  <div className="text-gray-600 text-sm font-medium">{addon.desc}</div>
-                </div>
-                <div className="text-right ml-4 shrink-0">
-                  <div className="text-gray-400 text-xs line-through">{addon.originalPrice}</div>
-                  <div className={`font-bold text-xl ${addon.priceColor}`}>{addon.price}</div>
-                  <div className="text-gray-400 text-[10px]">{addon.usd}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </motion.div>
+
 
         {/* ── 주석 ── */}
         <motion.p
