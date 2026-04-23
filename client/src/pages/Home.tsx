@@ -14,6 +14,7 @@ import PricingSection from "@/components/PricingSection";
 import GlobalSection from "@/components/GlobalSection";
 import LawyersSection from "@/components/LawyersSection";
 import ReviewsSection from "@/components/ReviewsSection";
+import HeirServiceSection from "@/components/HeirServiceSection";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -26,6 +27,7 @@ export default function Home() {
       <ServicesSection />
       <BadgeSection />
       <PricingSection />
+      <HeirServiceSection />
       <GlobalSection />
       <LawyersSection />
       <ReviewsSection />
