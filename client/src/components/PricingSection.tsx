@@ -126,30 +126,6 @@ export default function PricingSection() {
       ctaClass: "bg-[#C9A961] text-[#1F3864] font-bold hover:bg-[#d4b870]",
     },
     {
-      id: "10y",
-      icon: Clock,
-      name: isKo ? "10년 플랜" : "10-Year Plan",
-      description: isKo ? "10년 보관" : "10-year storage",
-      baseFee: 49000,
-      storageFee: 109890, // 9,900 × 11 = 108,900 (10년 = 9년 추가)
-      discount: 30890,    // 할인액
-      total: 128000,
-      usd: "$128",
-      badge: null,
-      highlight: false,
-      accent: "border-purple-100 bg-purple-50/30",
-      iconBg: "bg-purple-100",
-      iconColor: "text-purple-500",
-      features: [
-        isKo ? "eKYC 법적 효력 보장" : "eKYC Legal Validity",
-        isKo ? "은행급 보안" : "Bank-Level Security",
-        isKo ? "10년 보관" : "10-Year Storage",
-        isKo ? "유족 자동 알림" : "Auto Family Notification",
-      ],
-      cta: isKo ? "시작하기 >" : "Start >",
-      ctaClass: "bg-[#1F3864] text-white hover:bg-[#1F3864]/90",
-    },
-    {
       id: "life",
       icon: Crown,
       name: isKo ? "영구 플랜" : "Lifetime Plan",
