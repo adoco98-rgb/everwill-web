@@ -198,6 +198,8 @@ type TranslationData = {
   invest_valuation: string;
   invest_use: string;
   invest_use_items: { label: string; pct: string; desc: string }[];
+  invest_detail_title: string;
+  invest_detail_items: { category: string; items: { name: string; amount: string; note: string }[] }[];
   cta_title: string;
   cta_sub: string;
   cta_btn: string;
@@ -292,12 +294,40 @@ const T: Record<Lang, TranslationData> = {
     invest_round: "시드 라운드",
     invest_amount: "목표 조달액: ₩5억 ~ ₩10억",
     invest_valuation: "Pre-money Valuation: ₩30억",
-    invest_use: "투자금 사용 계획",
+    invest_use: "투자금 사용 계획 (총 ₩10억 기준)",
     invest_use_items: [
-      { label: "제품 개발", pct: "40%", desc: "AI 유언 작성 엔진, eKYC, 블록체인 인증" },
-      { label: "마케팅·영업", pct: "30%", desc: "한국·일본 런칭 캠페인, 재외한인 타깃" },
-      { label: "법무·컴플라이언스", pct: "15%", desc: "각국 법률 검토, 변호사 파트너십" },
-      { label: "운영·인프라", pct: "15%", desc: "서버, 보안, 고객 지원 시스템" },
+      { label: "제품 개발", pct: "40%", desc: "₩4억 — AI 유언 작성 엔진, eKYC, 블록체인 인증" },
+      { label: "마케팅·영업", pct: "30%", desc: "₩3억 — 한국·일본 런칭 캠페인, 재외한인 타깃" },
+      { label: "법무·컴플라이언스", pct: "15%", desc: "₩1.5억 — 각국 법률 검토, 변호사 파트너십" },
+      { label: "운영·인프라", pct: "15%", desc: "₩1.5억 — 서버, 보안, 고객 지원 시스템" },
+    ],
+    invest_detail_title: "항목별 세부 자금 계획",
+    invest_detail_items: [
+      { category: "제품 개발 (₩4억)", items: [
+        { name: "AI 유언 작성 엔진", amount: "₩120,000,000", note: "GPT-4/Claude API 연동, 법률 문장 자동 변환" },
+        { name: "eKYC 본인인증 연동", amount: "₩60,000,000", note: "NICE평가정보, Veriff 연동" },
+        { name: "블록체인 해시 기록", amount: "₩40,000,000", note: "Polygon 네트워크, RFC 3161 타임스탬프" },
+        { name: "영상 유언 녹화 시스템", amount: "₩50,000,000", note: "녹화·저장·암호화·공개 타이밍 설정" },
+        { name: "Badge NFC/QR 연동", amount: "₩50,000,000", note: "Badge 제조 파트너 연결, 앱 연동" },
+        { name: "보안·인프라 구축", amount: "₩80,000,000", note: "E2E 암호화, ISMS 준비, 서버 구축" },
+      ]},
+      { category: "마케팅·영업 (₩3억)", items: [
+        { name: "한국 런칭 캠페인", amount: "₩80,000,000", note: "SNS 광고, 검색 광고, PR" },
+        { name: "일본 진출 마케팅", amount: "₩70,000,000", note: "야후재팬, LINE 광고, 현지 PR" },
+        { name: "재외한인 타깃 광고", amount: "₩60,000,000", note: "미주·일본·중국 한인 커뮤니티" },
+        { name: "인플루언서·콘텐츠", amount: "₩50,000,000", note: "유튜브·인스타 크리에이터 협업" },
+        { name: "영업·파트너십", amount: "₩40,000,000", note: "장례식장·병원·은행 제휴" },
+      ]},
+      { category: "법무·컴플라이언스 (₩1.5억)", items: [
+        { name: "한국 법률 자문", amount: "₩50,000,000", note: "변호사법·전자서명법·개인정보보호법" },
+        { name: "일본·미국 법률 검토", amount: "₩60,000,000", note: "각국 유언법·상속법 검토" },
+        { name: "변호사 파트너십 구축", amount: "₩40,000,000", note: "Year 1 큐레이션형 10명 영입" },
+      ]},
+      { category: "운영·인프라 (₩1.5억)", items: [
+        { name: "클라우드 서버·CDN", amount: "₩50,000,000", note: "Vercel, Cloudflare, AWS" },
+        { name: "고객 지원 시스템", amount: "₩40,000,000", note: "CS 툴, 챗봇, 다국어 지원" },
+        { name: "운영 인력 채용", amount: "₩60,000,000", note: "개발자 1명, CS 1명 (6개월)" },
+      ]},
     ],
     cta_title: "함께 만들어 갑시다",
     cta_sub: "EverWill의 글로벌 여정에 함께하실 투자자를 찾습니다.\n지금 바로 연락해 주세요.",
@@ -396,12 +426,40 @@ const T: Record<Lang, TranslationData> = {
     invest_round: "Seed Round",
     invest_amount: "Target: ₩500M ~ ₩1B (≈ $380K ~ $760K)",
     invest_valuation: "Pre-money Valuation: ₩3B (≈ $2.3M)",
-    invest_use: "Use of Proceeds",
+    invest_use: "Use of Proceeds (Total ₩1B / ≈$760K)",
     invest_use_items: [
-      { label: "Product Development", pct: "40%", desc: "AI will engine, eKYC, blockchain certification" },
-      { label: "Marketing & Sales", pct: "30%", desc: "Korea & Japan launch campaigns, Korean diaspora targeting" },
-      { label: "Legal & Compliance", pct: "15%", desc: "Multi-country legal review, lawyer partnerships" },
-      { label: "Operations & Infra", pct: "15%", desc: "Servers, security, customer support systems" },
+      { label: "Product Development", pct: "40%", desc: "₩400M ($304K) — AI will engine, eKYC, blockchain" },
+      { label: "Marketing & Sales", pct: "30%", desc: "₩300M ($228K) — Korea & Japan launch, diaspora" },
+      { label: "Legal & Compliance", pct: "15%", desc: "₩150M ($114K) — Multi-country legal, lawyer network" },
+      { label: "Operations & Infra", pct: "15%", desc: "₩150M ($114K) — Servers, security, support" },
+    ],
+    invest_detail_title: "Detailed Budget Breakdown",
+    invest_detail_items: [
+      { category: "Product Development (₩400M / $304K)", items: [
+        { name: "AI Will Writing Engine", amount: "₩120M ($91K)", note: "GPT-4/Claude API, legal text auto-generation" },
+        { name: "eKYC Integration", amount: "₩60M ($46K)", note: "NICE, Veriff identity verification" },
+        { name: "Blockchain Hash Record", amount: "₩40M ($30K)", note: "Polygon network, RFC 3161 timestamp" },
+        { name: "Video Will Recording", amount: "₩50M ($38K)", note: "Recording, storage, encryption, timed release" },
+        { name: "Badge NFC/QR System", amount: "₩50M ($38K)", note: "Badge manufacturing partner, app integration" },
+        { name: "Security & Infrastructure", amount: "₩80M ($61K)", note: "E2E encryption, ISMS prep, server setup" },
+      ]},
+      { category: "Marketing & Sales (₩300M / $228K)", items: [
+        { name: "Korea Launch Campaign", amount: "₩80M ($61K)", note: "SNS ads, search ads, PR" },
+        { name: "Japan Market Entry", amount: "₩70M ($53K)", note: "Yahoo Japan, LINE ads, local PR" },
+        { name: "Korean Diaspora Ads", amount: "₩60M ($46K)", note: "US, Japan, China Korean communities" },
+        { name: "Influencer & Content", amount: "₩50M ($38K)", note: "YouTube & Instagram creator partnerships" },
+        { name: "B2B Partnerships", amount: "₩40M ($30K)", note: "Funeral homes, hospitals, banks" },
+      ]},
+      { category: "Legal & Compliance (₩150M / $114K)", items: [
+        { name: "Korea Legal Counsel", amount: "₩50M ($38K)", note: "Attorney Act, e-signature, privacy law" },
+        { name: "Japan & US Legal Review", amount: "₩60M ($46K)", note: "Local will & inheritance law review" },
+        { name: "Lawyer Network Setup", amount: "₩40M ($30K)", note: "Year 1: curated 10 lawyers" },
+      ]},
+      { category: "Operations & Infra (₩150M / $114K)", items: [
+        { name: "Cloud Servers & CDN", amount: "₩50M ($38K)", note: "Vercel, Cloudflare, AWS" },
+        { name: "Customer Support System", amount: "₩40M ($30K)", note: "CS tools, chatbot, multilingual" },
+        { name: "Initial Hiring", amount: "₩60M ($46K)", note: "1 developer + 1 CS (6 months)" },
+      ]},
     ],
     cta_title: "Let's Build Together",
     cta_sub: "We're looking for investors to join EverWill's global journey.\nReach out to us today.",
@@ -500,12 +558,40 @@ const T: Record<Lang, TranslationData> = {
     invest_round: "シードラウンド",
     invest_amount: "目標調達額：₩5億〜₩10億（≈¥5,550万〜¥1.11億）",
     invest_valuation: "Pre-money Valuation：₩30億（≈¥3.33億）",
-    invest_use: "投資金使途計画",
+    invest_use: "投賄金使途計画（総額 ₩10億）",
     invest_use_items: [
-      { label: "製品開発", pct: "40%", desc: "AI遺言作成エンジン、eKYC、ブロックチェーン認証" },
-      { label: "マーケティング・営業", pct: "30%", desc: "韓国・日本ローンチキャンペーン、在外韓国人ターゲット" },
-      { label: "法務・コンプライアンス", pct: "15%", desc: "各国法律審査、弁護士パートナーシップ" },
-      { label: "運営・インフラ", pct: "15%", desc: "サーバー、セキュリティ、カスタマーサポート" },
+      { label: "製品開発", pct: "40%", desc: "₩4億（¿¥4,440万）— AI遺言エンジン、eKYC、ブロックチェーン" },
+      { label: "マーケティング・営業", pct: "30%", desc: "₩3億（¿¥3,330万）— 韓国・日本ローンチ、在外韓国人" },
+      { label: "法務・コンプライアンス", pct: "15%", desc: "₩1.5億（¿¥1,665万）— 各国法律審査、弁護士ネットワーク" },
+      { label: "運営・インフラ", pct: "15%", desc: "₩1.5億（¿¥1,665万）— サーバー、セキュリティ、サポート" },
+    ],
+    invest_detail_title: "項目別詳細資金計画",
+    invest_detail_items: [
+      { category: "製品開発（₩4億）", items: [
+        { name: "AI遺言作成エンジン", amount: "₩1.2億", note: "GPT-4/Claude API連携、法律文章自動変換" },
+        { name: "eKYC本人認証連携", amount: "₩6,000万", note: "NICE、Veriff連携" },
+        { name: "ブロックチェーンハッシュ記録", amount: "₩4,000万", note: "Polygonネットワーク、RFC 3161タイムスタンプ" },
+        { name: "映像遺言録画システム", amount: "₩5,000万", note: "録画・保存・暗号化・公開タイミング設定" },
+        { name: "Badge NFC/QR連携", amount: "₩5,000万", note: "Badge製造パートナー連携、アプリ連携" },
+        { name: "セキュリティ・インフラ構築", amount: "₩8,000万", note: "E2E暗号化、ISMS準備、サーバー構築" },
+      ]},
+      { category: "マーケティング・営業（₩3億）", items: [
+        { name: "韓国ローンチキャンペーン", amount: "₩8,000万", note: "SNS広告、検索広告、PR" },
+        { name: "日本進出マーケティング", amount: "₩7,000万", note: "Yahoo! Japan、LINE広告、現地PR" },
+        { name: "在外韓国人ターゲット広告", amount: "₩6,000万", note: "米国・日本・中国韓人コミュニティ" },
+        { name: "インフルエンサー・コンテンツ", amount: "₩5,000万", note: "YouTube・Instagramクリエイター協業" },
+        { name: "営業・パートナーシップ", amount: "₩4,000万", note: "葯儀屋・病院・銀行提携" },
+      ]},
+      { category: "法務・コンプライアンス（₩1.5億）", items: [
+        { name: "韓国法律アドバイザリー", amount: "₩5,000万", note: "弁護士法・電子署名法・個人情報保護法" },
+        { name: "日本・米国法律審査", amount: "₩6,000万", note: "各国遺言法・相続法審査" },
+        { name: "弁護士ネットワーク構築", amount: "₩4,000万", note: "Year 1 キュレーション型10名採用" },
+      ]},
+      { category: "運営・インフラ（₩1.5億）", items: [
+        { name: "クラウドサーバー・CDN", amount: "₩5,000万", note: "Vercel、Cloudflare、AWS" },
+        { name: "カスタマーサポートシステム", amount: "₩4,000万", note: "CSツール、チャットボット、多言語対応" },
+        { name: "運営人材採用", amount: "₩6,000万", note: "開発者１名、CS１名（6ヶ月）" },
+      ]},
     ],
     cta_title: "共に作りましょう",
     cta_sub: "EverWillのグローバルな旅に参加する投資家を募集しています。\n今すぐご連絡ください。",
@@ -604,12 +690,40 @@ const T: Record<Lang, TranslationData> = {
     invest_round: "种子轮",
     invest_amount: "目标募资：₩5亿〜₩10亿（约¥360万〜¥720万）",
     invest_valuation: "投前估值：₩30亿（约¥2,160万）",
-    invest_use: "资金使用计划",
+    invest_use: "资金使用计划（总计 ₩10亿）",
     invest_use_items: [
-      { label: "产品开发", pct: "40%", desc: "AI遗嘱引擎、eKYC、区块链认证" },
-      { label: "营销与销售", pct: "30%", desc: "韩国、日本启动活动，海外韩国人定向" },
-      { label: "法务与合规", pct: "15%", desc: "各国法律审查，律师合作" },
-      { label: "运营与基础设施", pct: "15%", desc: "服务器、安全、客户支持系统" },
+      { label: "产品开发", pct: "40%", desc: "₩4亿（¿¥288万）— AI遗嘱引擎、eKYC、区块链" },
+      { label: "营销与销售", pct: "30%", desc: "₩3亿（¿¥216万）— 韩日启动、海外韩人" },
+      { label: "法务与合规", pct: "15%", desc: "₩1.5亿（¿¥108万）— 各国法律、律师网络" },
+      { label: "运营与基础设施", pct: "15%", desc: "₩1.5亿（¿¥108万）— 服务器、安全、支持" },
+    ],
+    invest_detail_title: "项目详细资金计划",
+    invest_detail_items: [
+      { category: "产品开发（₩4亿）", items: [
+        { name: "AI遗嘱写作引擎", amount: "₩1.2亿", note: "GPT-4/Claude API集成，法律文本自动转换" },
+        { name: "eKYC身份认证集成", amount: "₩6,000万", note: "NICE、Veriff集成" },
+        { name: "区块链哈希记录", amount: "₩4,000万", note: "Polygon网络，RFC 3161时间戳" },
+        { name: "视频遗嘱录制系统", amount: "₩5,000万", note: "录制、存储、加密、定时公开设置" },
+        { name: "Badge NFC/QR集成", amount: "₩5,000万", note: "Badge制造合作伙伴，App集成" },
+        { name: "安全与基础设施", amount: "₩8,000万", note: "E2E加密、ISMS准备、服务器构建" },
+      ]},
+      { category: "营销与销售（₩3亿）", items: [
+        { name: "韩国启动活动", amount: "₩8,000万", note: "SNS广告、搜索广告、PR" },
+        { name: "日本市场进入", amount: "₩7,000万", note: "Yahoo Japan、LINE广告、当地PR" },
+        { name: "海外韩人定向广告", amount: "₩6,000万", note: "美国、日本、中国韩人社区" },
+        { name: "网红与内容营销", amount: "₩5,000万", note: "YouTube、Instagram创作者合作" },
+        { name: "B2B合作伙伴", amount: "₩4,000万", note: "殖仪馆、医院、銀行合作" },
+      ]},
+      { category: "法务与合规（₩1.5亿）", items: [
+        { name: "韩国法律顾问", amount: "₩5,000万", note: "律师法、电子签名法、隐私保护法" },
+        { name: "日本及美国法律审查", amount: "₩6,000万", note: "各国遗嘱法、继承法审查" },
+        { name: "律师网络建设", amount: "₩4,000万", note: "Year 1精选型10名律师" },
+      ]},
+      { category: "运营与基础设施（₩1.5亿）", items: [
+        { name: "云服务器与CDN", amount: "₩5,000万", note: "Vercel、Cloudflare、AWS" },
+        { name: "客户支持系统", amount: "₩4,000万", note: "CS工具、聊天机器人、多语言支持" },
+        { name: "初期招聘", amount: "₩6,000万", note: "开发1名、CS 1名（6个月）" },
+      ]},
     ],
     cta_title: "让我们共同创造",
     cta_sub: "我们正在寻找愿意加入EverWill全球旅程的投资者。\n立即联系我们。",
@@ -708,12 +822,40 @@ const T: Record<Lang, TranslationData> = {
     invest_round: "Seed-Runde",
     invest_amount: "Ziel: ₩500M ~ ₩1B (≈ €380K ~ €760K)",
     invest_valuation: "Pre-money Bewertung: ₩3B (≈ €2,1M)",
-    invest_use: "Mittelverwendung",
+    invest_use: "Mittelverwendung (Gesamt ₩1B / ≈€760K)",
     invest_use_items: [
-      { label: "Produktentwicklung", pct: "40%", desc: "KI-Testament-Engine, eKYC, Blockchain-Zertifizierung" },
-      { label: "Marketing & Vertrieb", pct: "30%", desc: "Korea & Japan Launch-Kampagnen, koreanische Diaspora" },
-      { label: "Rechts & Compliance", pct: "15%", desc: "Länderübergreifende Rechtsprüfung, Anwaltspartnerschaften" },
-      { label: "Betrieb & Infrastruktur", pct: "15%", desc: "Server, Sicherheit, Kundensupport-Systeme" },
+      { label: "Produktentwicklung", pct: "40%", desc: "₩400M (≈€304K) — KI-Engine, eKYC, Blockchain" },
+      { label: "Marketing & Vertrieb", pct: "30%", desc: "₩300M (≈€228K) — Korea & Japan Launch, Diaspora" },
+      { label: "Rechts & Compliance", pct: "15%", desc: "₩150M (≈€114K) — Rechtspüfung, Anwaltsnetzwerk" },
+      { label: "Betrieb & Infrastruktur", pct: "15%", desc: "₩150M (≈€114K) — Server, Sicherheit, Support" },
+    ],
+    invest_detail_title: "Detaillierter Budgetplan",
+    invest_detail_items: [
+      { category: "Produktentwicklung (₩400M / ≈€304K)", items: [
+        { name: "KI-Testament-Engine", amount: "₩120M (≈€91K)", note: "GPT-4/Claude API, automatische Rechtsgenerierung" },
+        { name: "eKYC-Integration", amount: "₩60M (≈€46K)", note: "NICE, Veriff Identitätsprüfung" },
+        { name: "Blockchain-Hash-Aufzeichnung", amount: "₩40M (≈€30K)", note: "Polygon-Netzwerk, RFC 3161 Zeitstempel" },
+        { name: "Video-Testament-System", amount: "₩50M (≈€38K)", note: "Aufnahme, Speicherung, Verschlüsselung, zeitgesteuerter Zugang" },
+        { name: "Badge NFC/QR-System", amount: "₩50M (≈€38K)", note: "Badge-Hersteller, App-Integration" },
+        { name: "Sicherheit & Infrastruktur", amount: "₩80M (≈€61K)", note: "E2E-Verschlüsselung, ISMS, Server" },
+      ]},
+      { category: "Marketing & Vertrieb (₩300M / ≈€228K)", items: [
+        { name: "Korea-Launch-Kampagne", amount: "₩80M (≈€61K)", note: "SNS-Werbung, Suchanzeigen, PR" },
+        { name: "Japan-Markteintritt", amount: "₩70M (≈€53K)", note: "Yahoo Japan, LINE-Anzeigen, lokales PR" },
+        { name: "Koreanische Diaspora-Anzeigen", amount: "₩60M (≈€46K)", note: "US, Japan, China koreanische Communities" },
+        { name: "Influencer & Content", amount: "₩50M (≈€38K)", note: "YouTube & Instagram Creator-Partnerschaften" },
+        { name: "B2B-Partnerschaften", amount: "₩40M (≈€30K)", note: "Bestattungsunternehmen, Krankenhäuser, Banken" },
+      ]},
+      { category: "Rechts & Compliance (₩150M / ≈€114K)", items: [
+        { name: "Korea-Rechtsberatung", amount: "₩50M (≈€38K)", note: "Anwaltsgesetz, E-Signatur, Datenschutz" },
+        { name: "Japan & USA Rechtsprüfung", amount: "₩60M (≈€46K)", note: "Lokales Testament- und Erbrecht" },
+        { name: "Anwaltsnetzwerk-Aufbau", amount: "₩40M (≈€30K)", note: "Jahr 1: 10 kuratierte Anwälte" },
+      ]},
+      { category: "Betrieb & Infrastruktur (₩150M / ≈€114K)", items: [
+        { name: "Cloud-Server & CDN", amount: "₩50M (≈€38K)", note: "Vercel, Cloudflare, AWS" },
+        { name: "Kundensupport-System", amount: "₩40M (≈€30K)", note: "CS-Tools, Chatbot, mehrsprachig" },
+        { name: "Ersteinstellungen", amount: "₩60M (≈€46K)", note: "1 Entwickler + 1 CS (6 Monate)" },
+      ]},
     ],
     cta_title: "Lassen Sie uns gemeinsam aufbauen",
     cta_sub: "Wir suchen Investoren, die EverWills globale Reise begleiten.\nKontaktieren Sie uns noch heute.",
@@ -812,12 +954,40 @@ const T: Record<Lang, TranslationData> = {
     invest_round: "Ronda Semilla",
     invest_amount: "Objetivo: ₩500M ~ ₩1B (≈ $380K ~ $760K)",
     invest_valuation: "Valoración Pre-money: ₩3B (≈ $2,3M)",
-    invest_use: "Uso de los Fondos",
+    invest_use: "Uso de los Fondos (Total ₩1B / ≈$760K)",
     invest_use_items: [
-      { label: "Desarrollo de Producto", pct: "40%", desc: "Motor de testamento IA, eKYC, certificación blockchain" },
-      { label: "Marketing y Ventas", pct: "30%", desc: "Campañas de lanzamiento en Corea y Japón, diáspora coreana" },
-      { label: "Legal y Cumplimiento", pct: "15%", desc: "Revisión legal multinacional, asociaciones de abogados" },
-      { label: "Operaciones e Infraestructura", pct: "15%", desc: "Servidores, seguridad, sistemas de soporte al cliente" },
+      { label: "Desarrollo de Producto", pct: "40%", desc: "₩400M ($304K) — Motor IA, eKYC, blockchain" },
+      { label: "Marketing y Ventas", pct: "30%", desc: "₩300M ($228K) — Lanzamiento Corea & Japón, diáspora" },
+      { label: "Legal y Cumplimiento", pct: "15%", desc: "₩150M ($114K) — Revisión legal, red de abogados" },
+      { label: "Operaciones e Infraestructura", pct: "15%", desc: "₩150M ($114K) — Servidores, seguridad, soporte" },
+    ],
+    invest_detail_title: "Desglose Detallado del Presupuesto",
+    invest_detail_items: [
+      { category: "Desarrollo de Producto (₩400M / $304K)", items: [
+        { name: "Motor de Testamento IA", amount: "₩120M ($91K)", note: "GPT-4/Claude API, generación automática de texto legal" },
+        { name: "Integración eKYC", amount: "₩60M ($46K)", note: "NICE, Veriff verificación de identidad" },
+        { name: "Registro Hash Blockchain", amount: "₩40M ($30K)", note: "Red Polygon, marca de tiempo RFC 3161" },
+        { name: "Sistema de Testamento en Video", amount: "₩50M ($38K)", note: "Grabación, almacenamiento, cifrado, lanzamiento programado" },
+        { name: "Sistema Badge NFC/QR", amount: "₩50M ($38K)", note: "Fabricante de Badge, integración de app" },
+        { name: "Seguridad e Infraestructura", amount: "₩80M ($61K)", note: "Cifrado E2E, preparación ISMS, configuración de servidor" },
+      ]},
+      { category: "Marketing y Ventas (₩300M / $228K)", items: [
+        { name: "Campaña de Lanzamiento en Corea", amount: "₩80M ($61K)", note: "Anuncios SNS, búsqueda, PR" },
+        { name: "Entrada al Mercado Japonés", amount: "₩70M ($53K)", note: "Yahoo Japan, anuncios LINE, PR local" },
+        { name: "Anuncios Diáspora Coreana", amount: "₩60M ($46K)", note: "Comunidades coreanas en EE.UU., Japón, China" },
+        { name: "Influencers y Contenido", amount: "₩50M ($38K)", note: "Asociaciones con creadores de YouTube e Instagram" },
+        { name: "Alianzas B2B", amount: "₩40M ($30K)", note: "Funerarias, hospitales, bancos" },
+      ]},
+      { category: "Legal y Cumplimiento (₩150M / $114K)", items: [
+        { name: "Asesoría Legal en Corea", amount: "₩50M ($38K)", note: "Ley de Abogados, firma electrónica, privacidad" },
+        { name: "Revisión Legal Japón & EE.UU.", amount: "₩60M ($46K)", note: "Revisión de ley de testamentos y herencias" },
+        { name: "Construcción de Red de Abogados", amount: "₩40M ($30K)", note: "Año 1: 10 abogados seleccionados" },
+      ]},
+      { category: "Operaciones e Infraestructura (₩150M / $114K)", items: [
+        { name: "Servidores en la Nube & CDN", amount: "₩50M ($38K)", note: "Vercel, Cloudflare, AWS" },
+        { name: "Sistema de Soporte al Cliente", amount: "₩40M ($30K)", note: "Herramientas CS, chatbot, multilingüe" },
+        { name: "Contratación Inicial", amount: "₩60M ($46K)", note: "1 desarrollador + 1 CS (6 meses)" },
+      ]},
     ],
     cta_title: "Construyamos Juntos",
     cta_sub: "Buscamos inversores para unirse al viaje global de EverWill.\nContáctenos hoy mismo.",
@@ -916,12 +1086,40 @@ const T: Record<Lang, TranslationData> = {
     invest_round: "جولة البذر",
     invest_amount: "الهدف: ₩500M ~ ₩1B (≈ $380K ~ $760K)",
     invest_valuation: "التقييم قبل الاستثمار: ₩3B (≈ $2.3M)",
-    invest_use: "خطة استخدام الأموال",
+    invest_use: "خطة استخدام الأموال (الإجمالي ₩1B / ≈$760K)",
     invest_use_items: [
-      { label: "تطوير المنتج", pct: "40%", desc: "محرك وصية AI، eKYC، شهادة blockchain" },
-      { label: "التسويق والمبيعات", pct: "30%", desc: "حملات إطلاق كوريا واليابان، الكوريون في الخارج" },
-      { label: "القانوني والامتثال", pct: "15%", desc: "مراجعة قانونية متعددة الدول، شراكات المحامين" },
-      { label: "العمليات والبنية التحتية", pct: "15%", desc: "الخوادم والأمان وأنظمة دعم العملاء" },
+      { label: "تطوير المنتج", pct: "40%", desc: "₩400M ($304K) — محرك AI، eKYC، بلوكشين" },
+      { label: "التسويق والمبيعات", pct: "30%", desc: "₩300M ($228K) — إطلاق كوريا واليابان، الكوريون" },
+      { label: "القانوني والامتثال", pct: "15%", desc: "₩150M ($114K) — مراجعة قانونية، شبكة محامين" },
+      { label: "العمليات والبنية التحتية", pct: "15%", desc: "₩150M ($114K) — خوادم، أمان، دعم" },
+    ],
+    invest_detail_title: "خطة الميزانية التفصيلية",
+    invest_detail_items: [
+      { category: "تطوير المنتج (₩400M / $304K)", items: [
+        { name: "محرك كتابة الوصية بالذكاء الاصطناعي", amount: "₩120M ($91K)", note: "GPT-4/Claude API، توليد نص قانوني تلقائي" },
+        { name: "تكامل eKYC", amount: "₩60M ($46K)", note: "NICE، Veriff للتحقق من الهوية" },
+        { name: "تسجيل هاش البلوكشين", amount: "₩40M ($30K)", note: "شبكة Polygon، ختم زمني RFC 3161" },
+        { name: "نظام تسجيل الوصية بالفيديو", amount: "₩50M ($38K)", note: "تسجيل، تخزين، تشفير، إصدار مجدول" },
+        { name: "نظام Badge NFC/QR", amount: "₩50M ($38K)", note: "شريك تصنيع Badge، تكامل التطبيق" },
+        { name: "الأمان والبنية التحتية", amount: "₩80M ($61K)", note: "تشفير E2E، إعداد ISMS، إعداد الخادم" },
+      ]},
+      { category: "التسويق والمبيعات (₩300M / $228K)", items: [
+        { name: "حملة إطلاق كوريا", amount: "₩80M ($61K)", note: "إعلانات SNS، بحث، PR" },
+        { name: "دخول السوق الياباني", amount: "₩70M ($53K)", note: "Yahoo Japan، إعلانات LINE، PR محلي" },
+        { name: "إعلانات الكوريين في الخارج", amount: "₩60M ($46K)", note: "مجتمعات كورية في أمريكا واليابان والصين" },
+        { name: "المؤثرون والمحتوى", amount: "₩50M ($38K)", note: "شراكات مبدعي YouTube وInstagram" },
+        { name: "شراكات B2B", amount: "₩40M ($30K)", note: "دور الجنازة، مستشفيات، بنوك" },
+      ]},
+      { category: "القانوني والامتثال (₩150M / $114K)", items: [
+        { name: "الاستشارة القانونية في كوريا", amount: "₩50M ($38K)", note: "قانون المحاماة، التوقيع الإلكتروني، خصوصية البيانات" },
+        { name: "مراجعة قانونية لليابان وأمريكا", amount: "₩60M ($46K)", note: "مراجعة قانون الوصايا والميراث المحلي" },
+        { name: "بناء شبكة المحامين", amount: "₩40M ($30K)", note: "السنة 1: 10 محامين مختارين" },
+      ]},
+      { category: "العمليات والبنية التحتية (₩150M / $114K)", items: [
+        { name: "خوادم سحابية وCDN", amount: "₩50M ($38K)", note: "Vercel، Cloudflare، AWS" },
+        { name: "نظام دعم العملاء", amount: "₩40M ($30K)", note: "أدوات CS، روبوت محادثة، متعدد اللغات" },
+        { name: "التوظيف الأولي", amount: "₩60M ($46K)", note: "مطور 1 + CS 1 (ستة أشهر)" },
+      ]},
     ],
     cta_title: "لنبني معاً",
     cta_sub: "نبحث عن مستثمرين للانضمام إلى رحلة EverWill العالمية.\nتواصل معنا اليوم.",
@@ -1529,6 +1727,36 @@ export default function InvestorPage() {
                         className="h-full rounded-full transition-all duration-700"
                         style={{ width: `${pctNum}%`, background: colors[i] }}
                       />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          {/* 세부 자금 계획 테이블 */}
+          <div className="mt-8">
+            <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+              <BarChart3 className="w-6 h-6 text-[#C9A961]" />
+              {t.invest_detail_title}
+            </h3>
+            <div className="space-y-4">
+              {t.invest_detail_items.map((group, gi) => {
+                const catColors = ["#C9A961", "#10B981", "#8B5CF6", "#3B82F6"];
+                return (
+                  <div key={gi} className="bg-[#1a2035] rounded-2xl border border-white/5 overflow-hidden">
+                    <div className="px-6 py-4 border-b border-white/5" style={{ background: `${catColors[gi]}15` }}>
+                      <h4 className="font-bold text-base" style={{ color: catColors[gi] }}>{group.category}</h4>
+                    </div>
+                    <div className="divide-y divide-white/5">
+                      {group.items.map((row, ri) => (
+                        <div key={ri} className="px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                          <div className="flex-1">
+                            <span className="text-white text-sm font-medium">{row.name}</span>
+                            <span className="text-white/40 text-xs ml-2">— {row.note}</span>
+                          </div>
+                          <span className="font-bold text-sm whitespace-nowrap" style={{ color: catColors[gi] }}>{row.amount}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 );
