@@ -10,9 +10,13 @@ import { zh } from "./zh";
 import { de } from "./de";
 import { es } from "./es";
 import { ar } from "./ar";
+import { fr } from "./fr";
+import { ru } from "./ru";
+import { hi } from "./hi";
+import { pt } from "./pt";
 
 export type TranslationKeys = typeof ko;
-export type Language = "ko" | "en" | "ja" | "zh" | "de" | "es" | "ar";
+export type Language = "ko" | "en" | "ja" | "zh" | "de" | "es" | "ar" | "fr" | "ru" | "hi" | "pt";
 
 export const translations: Record<Language, TranslationKeys> = {
   ko,
@@ -22,6 +26,10 @@ export const translations: Record<Language, TranslationKeys> = {
   de,
   es,
   ar,
+  fr,
+  ru,
+  hi,
+  pt,
 };
 
 export const languageNames: Record<Language, string> = {
@@ -32,6 +40,10 @@ export const languageNames: Record<Language, string> = {
   de: "Deutsch",
   es: "Español",
   ar: "العربية",
+  fr: "Français",
+  ru: "Русский",
+  hi: "हिन्दी",
+  pt: "Português",
 };
 
 export const languageFlags: Record<Language, string> = {
@@ -42,9 +54,13 @@ export const languageFlags: Record<Language, string> = {
   de: "🇩🇪",
   es: "🇪🇸",
   ar: "🇸🇦",
+  fr: "🇫🇷",
+  ru: "🇷🇺",
+  hi: "🇮🇳",
+  pt: "🇧🇷",
 };
 
 /** RTL 언어 목록 */
 export const RTL_LANGUAGES: Language[] = ["ar"];
 
-export { ko, en, ja, zh, de, es, ar };
+export { ko, en, ja, zh, de, es, ar, fr, ru, hi, pt };
