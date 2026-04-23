@@ -32,7 +32,7 @@ export default function PricingSection() {
       id: "free",
       icon: Zap,
       name: isKo ? "무료 시작" : "Free Start",
-      description: isKo ? "AI 유언장 작성 무한" : "Unlimited AI will writing",
+      description: isKo ? "AI 유언장 작성 · 저장까지 무료" : "AI will writing — free until certification",
       baseFee: 0,
       storageFee: null,
       discount: null,
@@ -44,12 +44,15 @@ export default function PricingSection() {
       iconBg: "bg-gray-100",
       iconColor: "text-gray-500",
       features: [
-        isKo ? "AI 체크박스 유언 작성" : "AI Checkbox Will Writing",
-        isKo ? "영상 유언장" : "Video Will",
-        isKo ? "자필 유언 스캔 인증" : "Handwritten Will Scan",
-        isKo ? "4중 사망 감지 시스템" : "4-Layer Death Detection",
+        isKo ? "AI 유언장 작성 (무료)" : "AI Will Writing (Free)",
+        isKo ? "상속자 등록 (무료)" : "Heir Registration (Free)",
+        isKo ? "자산 분배 설계 (무료)" : "Asset Distribution (Free)",
+        isKo ? "미리보기 확인 (무료)" : "Preview & Review (Free)",
       ],
-      cta: isKo ? "무료 시작 >" : "Start Free >",
+      paywallNote: isKo
+        ? "🔐 전자 인증(₩49,000) 후 법적 효력 · 72시간 임시 저장"
+        : "🔐 Legal effect after certification ($39) · 72hr temp save",
+      cta: isKo ? "무료로 시작하기 >" : "Start Free >",
       ctaClass: "bg-[#1F3864] text-white hover:bg-[#1F3864]/90",
     },
     {
@@ -245,6 +248,15 @@ export default function PricingSection() {
                       </div>
                     ))}
                   </div>
+
+                  {/* 무료 플랜 페이월 안내 노트 */}
+                  {plan.id === "free" && (plan as any).paywallNote && (
+                    <div className="hidden lg:flex flex-shrink-0 w-52 items-center justify-end">
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-center">
+                        <p className="text-[10px] text-amber-700 font-medium leading-tight">{(plan as any).paywallNote}</p>
+                      </div>
+                    </div>
+                  )}
 
                   {/* 가격 세분화 */}
                   {showBreakdown ? (

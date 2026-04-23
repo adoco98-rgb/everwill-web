@@ -1,10 +1,11 @@
 /**
  * EverWill AI 가이드 모드 - 10단계 마법사 + 서명 단계
  * 한국 민법 기준 유언장 자동 작성
+ * 페이월: 1~9단계 무료, 9→10 전환 시 결제 게이트 표시
  */
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Save, CheckCircle2, Building2, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, Save, CheckCircle2, Building2, Users, Lock, Sparkles, Shield, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { AI_STEPS, initialWillData } from "@/lib/willTypes";
 import type { WillData, Heir } from "@/lib/willTypes";
@@ -29,6 +30,8 @@ export default function AIWizard({ onBack }: Props) {
   const [step, setStep] = useState(1);
   const [will, setWill] = useState<WillData>({ ...initialWillData, mode: "ai" });
   const [autoLoaded, setAutoLoaded] = useState(false);
+  // 페이월 모달 상태
+  const [showPaywall, setShowPaywall] = useState(false);
   const { isAuthenticated } = useAuth();
 
   // 등록된 재산 + 상속자 자동 불러오기
@@ -108,23 +111,141 @@ export default function AIWizard({ onBack }: Props) {
     setWill((prev) => ({ ...prev, ...partial }));
 
   const next = () => {
+    // Step9 → Step10 전환 시 페이월 게이트 표시
+    if (step === 9) {
+      setShowPaywall(true);
+      return;
+    }
     if (step < 10) setStep((s) => s + 1);
   };
+
   const prev = () => {
     if (step > 1) setStep((s) => s - 1);
     else onBack();
   };
 
+  // 페이월 확인 → Step10으로 이동
+  const handlePaywallConfirm = () => {
+    setShowPaywall(false);
+    setStep(10);
+  };
+
+  // 임시 저장 (72시간 유효)
   const handleSaveDraft = () => {
-    const saved = { ...will, isDraft: true, lastSaved: new Date().toISOString() };
+    const expiry = Date.now() + 72 * 60 * 60 * 1000; // 72시간
+    const saved = { ...will, isDraft: true, lastSaved: new Date().toISOString(), expiry };
     localStorage.setItem("saram_will_draft", JSON.stringify(saved));
-    toast.success("임시 저장 완료");
+    toast.success("임시 저장 완료 (72시간 보관)");
   };
 
   const stepProps = { will, update, onNext: next, onPrev: prev };
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
+
+      {/* ── 페이월 모달 ── */}
+      <AnimatePresence>
+        {showPaywall && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden"
+            >
+              {/* 상단 네이비 배너 */}
+              <div className="bg-gradient-to-r from-[#1F3864] to-[#2d4f8a] px-6 py-5 text-center">
+                <div className="w-14 h-14 bg-[#C9A961]/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Lock className="w-7 h-7 text-[#C9A961]" />
+                </div>
+                <h3 className="text-white font-bold text-xl" style={{ fontFamily: "'Playfair Display', serif" }}>
+                  유언장 완성까지 한 단계!
+                </h3>
+                <p className="text-blue-200 text-sm mt-1">전자 인증으로 법적 효력을 부여하세요</p>
+              </div>
+
+              {/* 본문 */}
+              <div className="px-6 py-5">
+                {/* 무료 vs 유료 비교 */}
+                <div className="grid grid-cols-2 gap-3 mb-5">
+                  <div className="bg-gray-50 rounded-xl p-3 border border-gray-200">
+                    <p className="text-xs text-gray-400 font-medium mb-2">✅ 무료 완료</p>
+                    <ul className="space-y-1">
+                      {["AI 유언장 작성", "상속자 등록", "자산 분배 설계", "미리보기 확인"].map((item) => (
+                        <li key={item} className="flex items-center gap-1.5 text-xs text-gray-600">
+                          <CheckCircle2 className="w-3 h-3 text-green-500 flex-shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="bg-[#1F3864]/5 rounded-xl p-3 border border-[#C9A961]/30">
+                    <p className="text-xs text-[#C9A961] font-medium mb-2">🔐 인증 후 활성화</p>
+                    <ul className="space-y-1">
+                      {["전자 서명 + 본인인증", "법적 효력 부여", "블록체인 기록", "상속자 자동 알림"].map((item) => (
+                        <li key={item} className="flex items-center gap-1.5 text-xs text-[#1F3864]">
+                          <Lock className="w-3 h-3 text-[#C9A961] flex-shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* 가격 */}
+                <div className="bg-gradient-to-r from-[#C9A961]/10 to-[#C9A961]/5 rounded-xl p-4 mb-4 text-center border border-[#C9A961]/20">
+                  <p className="text-gray-500 text-xs mb-1">전자 인증 1회</p>
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-3xl font-bold text-[#1F3864]">₩49,000</span>
+                    <span className="text-gray-400 text-sm">/ $39</span>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">수정 시 재인증 ₩15,000 · 평생 보관</p>
+                </div>
+
+                {/* 혜택 아이콘 */}
+                <div className="flex justify-around mb-5">
+                  {[
+                    { icon: Shield, label: "법적 효력", sub: "민법 준수" },
+                    { icon: Sparkles, label: "AI 검증", sub: "오류 0건" },
+                    { icon: Clock, label: "평생 보관", sub: "안전 저장" },
+                  ].map(({ icon: Icon, label, sub }) => (
+                    <div key={label} className="text-center">
+                      <div className="w-9 h-9 bg-[#1F3864]/10 rounded-full flex items-center justify-center mx-auto mb-1">
+                        <Icon className="w-4 h-4 text-[#1F3864]" />
+                      </div>
+                      <p className="text-xs font-semibold text-[#1F3864]">{label}</p>
+                      <p className="text-xs text-gray-400">{sub}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 버튼 */}
+                <button
+                  onClick={handlePaywallConfirm}
+                  className="w-full bg-gradient-to-r from-[#C9A961] to-[#a88840] text-white font-bold py-3.5 rounded-xl text-sm hover:opacity-90 transition-opacity shadow-lg"
+                >
+                  전자 인증하고 완성하기 →
+                </button>
+                <button
+                  onClick={() => {
+                    handleSaveDraft();
+                    setShowPaywall(false);
+                  }}
+                  className="w-full text-gray-400 text-xs py-2 mt-2 hover:text-gray-600 transition-colors"
+                >
+                  나중에 하기 (72시간 임시 저장됨)
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* 진행 표시 */}
       <div className="mb-8">
         {/* 스텝 바 */}
@@ -203,8 +324,8 @@ export default function AIWizard({ onBack }: Props) {
               onClick={next}
               className="btn-gold flex items-center gap-2 px-8 py-3 rounded-full font-semibold text-sm"
             >
+              <Lock className="w-4 h-4" />
               서명 및 인증하기
-              <ArrowRight className="w-4 h-4" />
             </button>
           ) : (
             <button
@@ -215,6 +336,19 @@ export default function AIWizard({ onBack }: Props) {
               <ArrowRight className="w-4 h-4" />
             </button>
           )}
+        </div>
+      )}
+
+      {/* Step9 하단 안내 배너 */}
+      {step === 9 && (
+        <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start gap-3">
+          <Lock className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-semibold text-amber-700">전자 인증 후 법적 효력이 부여됩니다</p>
+            <p className="text-xs text-amber-600 mt-0.5">
+              작성하신 유언장은 72시간 임시 저장됩니다. 전자 인증(₩49,000)을 완료하면 법적 효력과 함께 평생 보관됩니다.
+            </p>
+          </div>
         </div>
       )}
     </div>
