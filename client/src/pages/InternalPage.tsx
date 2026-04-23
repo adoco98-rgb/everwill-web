@@ -48,7 +48,7 @@ import {
 } from "recharts";
 
 // ── 비밀번호 (환경에서 관리하거나 서버 검증으로 교체 권장) ──
-const ACCESS_CODE = "799805";
+const ACCESS_CODE = "0712";
 
 // ── 월별 현금흐름 데이터 (단위: 만원) ──
 const CASHFLOW_DATA = [
