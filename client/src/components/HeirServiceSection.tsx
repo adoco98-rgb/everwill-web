@@ -151,19 +151,20 @@ export default function HeirServiceSection() {
         </motion.div>
 
         {/* ── 2단 레이아웃: 가입 절차 + 수수료 계산기 ── */}
-        <div className="grid lg:grid-cols-2 gap-10 items-start">
+        <div className="grid lg:grid-cols-2 gap-10 items-stretch">
 
           {/* 왼쪽: 가입 절차 */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.7, delay: 0.1 }}
+            className="flex flex-col"
           >
             <h3 className="text-xl font-bold text-[#1F3864] mb-6 flex items-center gap-2">
               <ArrowRight className="w-5 h-5 text-[#C9A961]" />
               {isKo ? "상속인 가입 절차" : "Heir Registration Process"}
             </h3>
-            <div className="space-y-4">
+            <div className="space-y-4 flex-1">
               {steps.map((step, i) => {
                 const Icon = step.icon;
                 return (
@@ -213,7 +214,7 @@ export default function HeirServiceSection() {
             initial={{ opacity: 0, x: 30 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.7, delay: 0.2 }}
-            className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8"
+            className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 flex flex-col"
           >
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-[#C9A961]/15 flex items-center justify-center">
@@ -303,6 +304,7 @@ export default function HeirServiceSection() {
             )}
 
             {/* CTA */}
+            <div className="flex-1" />
             <button
               onClick={() => {
                 const el = document.getElementById("heir-register");
