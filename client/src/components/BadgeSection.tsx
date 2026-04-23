@@ -23,7 +23,8 @@ const membershipCardBenefits = [
 export default function BadgeSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const isKo = language === 'ko';
 
   const badgeRoles = [
     { icon: Heart, title: t.badge.role1, description: t.badge.role1Desc, color: "text-red-400" },
@@ -164,79 +165,23 @@ export default function BadgeSection() {
           </div>
         </motion.div>
 
-        {/* Badge 라인업 */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7, delay: 0.35 }}
-        >
-          <h3 className="text-center text-white text-xl font-bold mb-8" style={{ fontFamily: "'Playfair Display', serif" }}>
-            멤버십별 골드 카드 혜택
-          </h3>
-
-          {/* 멤버십 플랜별 카드 혜택 - 가로 리스트 */}
-          <div className="space-y-3">
-            {membershipTiers.map((tier, i) => (
-              <motion.div
-                key={tier.name}
-                initial={{ opacity: 0, x: -20 }}
-                animate={isInView ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.5, delay: 0.4 + i * 0.07 }}
-                className={`relative rounded-xl border px-5 py-4 flex items-center gap-5 transition-all hover:scale-[1.01] ${tier.color}`}
-              >
-                {tier.popular && (
-                  <div className="absolute -top-2.5 left-6 bg-[#C9A961] text-[#1F3864] text-[10px] font-black px-3 py-0.5 rounded-full">
-                    추천
-                  </div>
-                )}
-                {/* 플랜명 */}
-                <div className="w-24 flex-shrink-0">
-                  <div className="text-white font-bold text-sm">{tier.name}</div>
-                  <div className="text-white/40 text-xs">{tier.plan}</div>
-                </div>
-                {/* 구분선 */}
-                <div className="w-px h-8 bg-white/15 flex-shrink-0" />
-                {/* 카드 혜택 */}
-                <div className="flex items-center gap-2 flex-1">
-                  <CreditCard className="w-4 h-4 text-[#C9A961] flex-shrink-0" />
-                  <span className="text-white/80 text-sm">{tier.card}</span>
-                </div>
-                {/* 포함 뱃지 */}
-                <div className="flex items-center gap-1 bg-[#C9A961]/15 border border-[#C9A961]/30 rounded-full px-3 py-1 flex-shrink-0">
-                  <Gift className="w-3 h-3 text-[#C9A961]" />
-                  <span className="text-[#C9A961] text-[10px] font-semibold">카드 포함</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* 얼리버드 배너 */}
+        {/* 바로 시작하기 CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-8"
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="mt-8 text-center"
         >
-          <div className="bg-white/5 border border-white/15 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
-            <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0">
-              <Clock className="w-6 h-6 text-red-400" />
-            </div>
-            <div className="flex-1">
-              <div className="text-white font-bold text-base mb-1">
-                {t.pricing.earlyBird}
-              </div>
-              <p className="text-white/50 text-sm">
-                {t.pricing.earlyBirdNote}
-              </p>
-            </div>
-            <button
-              onClick={() => toast.info(t.pricing.earlyBirdBtn)}
-              className="btn-gold px-6 py-2.5 rounded-full text-sm font-bold whitespace-nowrap flex-shrink-0"
-            >
-              {t.pricing.earlyBirdBtn}
-            </button>
-          </div>
+          <button
+            onClick={() => { window.location.href = '/login'; }}
+            className="btn-gold px-10 py-4 rounded-full text-lg font-black inline-flex items-center gap-3 shadow-lg hover:shadow-xl transition-all"
+          >
+            <Gift className="w-5 h-5" />
+            {isKo ? '지금 바로 시작하기 →' : 'Get Started Now →'}
+          </button>
+          <p className="text-white/40 text-sm mt-3">
+            {isKo ? 'AI 유언장 작성 무료 · 전자인증 ₩49,000' : 'AI Will Writing Free · E-Certification ₩49,000'}
+          </p>
         </motion.div>
 
       </div>
