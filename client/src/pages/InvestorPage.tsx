@@ -200,6 +200,17 @@ type TranslationData = {
   invest_use_items: { label: string; pct: string; desc: string }[];
   invest_detail_title: string;
   invest_detail_items: { category: string; items: { name: string; amount: string; note: string }[] }[];
+  timeline_title: string;
+  timeline_sub: string;
+  timeline_items: {
+    category: string;
+    color: string;
+    amount: string;
+    duration: string;
+    months: [number, number]; // [start, end] 1-indexed
+    milestones: { month: number; label: string }[];
+  }[];
+  timeline_month_label: string;
   cta_title: string;
   cta_sub: string;
   cta_btn: string;
@@ -328,6 +339,65 @@ const T: Record<Lang, TranslationData> = {
         { name: "고객 지원 시스템", amount: "₩40,000,000", note: "CS 툴, 챗봇, 다국어 지원" },
         { name: "운영 인력 채용", amount: "₩60,000,000", note: "개발자 1명, CS 1명 (6개월)" },
       ]},
+    ],
+    timeline_title: "투자금 집행 타임라인",
+    timeline_sub: "총 ₩10억 기준 · 12개월 집행 계획",
+    timeline_month_label: "월차",
+    timeline_items: [
+      {
+        category: "제품 개발",
+        color: "#C9A961",
+        amount: "₩4억",
+        duration: "M1 ~ M9",
+        months: [1, 9],
+        milestones: [
+          { month: 2, label: "AI 유언 엔진 베타" },
+          { month: 4, label: "eKYC 연동 완료" },
+          { month: 6, label: "블록체인 해시 적용" },
+          { month: 8, label: "Badge NFC 연동" },
+          { month: 9, label: "MVP 정식 론칭" },
+        ],
+      },
+      {
+        category: "마케팅·영업",
+        color: "#10B981",
+        amount: "₩3억",
+        duration: "M3 ~ M12",
+        months: [3, 12],
+        milestones: [
+          { month: 3, label: "한국 사전 등록 시작" },
+          { month: 5, label: "한국 정식 런칭 광고" },
+          { month: 7, label: "일본 진출 마케팅" },
+          { month: 9, label: "재외한인 타깃 시작" },
+          { month: 12, label: "MAU 5,000 달성" },
+        ],
+      },
+      {
+        category: "법무·컴플라이언스",
+        color: "#8B5CF6",
+        amount: "₩1.5억",
+        duration: "M1 ~ M8",
+        months: [1, 8],
+        milestones: [
+          { month: 1, label: "한국 법률 검토 착수" },
+          { month: 3, label: "변호사 5명 영입" },
+          { month: 5, label: "일본·미국 법률 검토" },
+          { month: 8, label: "변호사 10명 네트워크 완성" },
+        ],
+      },
+      {
+        category: "운영·인프라",
+        color: "#3B82F6",
+        amount: "₩1.5억",
+        duration: "M1 ~ M12",
+        months: [1, 12],
+        milestones: [
+          { month: 1, label: "클라우드 인프라 구축" },
+          { month: 3, label: "CS 시스템 론칭" },
+          { month: 6, label: "운영 인력 채용" },
+          { month: 12, label: "안정적 운영 체계 완성" },
+        ],
+      },
     ],
     cta_title: "함께 만들어 갑시다",
     cta_sub: "EverWill의 글로벌 여정에 함께하실 투자자를 찾습니다.\n지금 바로 연락해 주세요.",
@@ -461,6 +531,65 @@ const T: Record<Lang, TranslationData> = {
         { name: "Initial Hiring", amount: "₩60M ($46K)", note: "1 developer + 1 CS (6 months)" },
       ]},
     ],
+    timeline_title: "Investment Execution Timeline",
+    timeline_sub: "Total ₩1B (≈$760K) · 12-Month Execution Plan",
+    timeline_month_label: "Month",
+    timeline_items: [
+      {
+        category: "Product Development",
+        color: "#C9A961",
+        amount: "₩400M ($304K)",
+        duration: "M1 ~ M9",
+        months: [1, 9],
+        milestones: [
+          { month: 2, label: "AI Will Engine Beta" },
+          { month: 4, label: "eKYC Integration Done" },
+          { month: 6, label: "Blockchain Hash Applied" },
+          { month: 8, label: "Badge NFC Connected" },
+          { month: 9, label: "MVP Official Launch" },
+        ],
+      },
+      {
+        category: "Marketing & Sales",
+        color: "#10B981",
+        amount: "₩300M ($228K)",
+        duration: "M3 ~ M12",
+        months: [3, 12],
+        milestones: [
+          { month: 3, label: "Korea Pre-registration" },
+          { month: 5, label: "Korea Official Launch Ads" },
+          { month: 7, label: "Japan Market Entry" },
+          { month: 9, label: "Diaspora Campaign Start" },
+          { month: 12, label: "MAU 5,000 Achieved" },
+        ],
+      },
+      {
+        category: "Legal & Compliance",
+        color: "#8B5CF6",
+        amount: "₩150M ($114K)",
+        duration: "M1 ~ M8",
+        months: [1, 8],
+        milestones: [
+          { month: 1, label: "Korea Legal Review Starts" },
+          { month: 3, label: "5 Lawyers Onboarded" },
+          { month: 5, label: "Japan & US Legal Review" },
+          { month: 8, label: "10-Lawyer Network Complete" },
+        ],
+      },
+      {
+        category: "Operations & Infra",
+        color: "#3B82F6",
+        amount: "₩150M ($114K)",
+        duration: "M1 ~ M12",
+        months: [1, 12],
+        milestones: [
+          { month: 1, label: "Cloud Infrastructure Setup" },
+          { month: 3, label: "CS System Launch" },
+          { month: 6, label: "Operations Team Hired" },
+          { month: 12, label: "Stable Operations Complete" },
+        ],
+      },
+    ],
     cta_title: "Let's Build Together",
     cta_sub: "We're looking for investors to join EverWill's global journey.\nReach out to us today.",
     cta_btn: "Send Investment Inquiry",
@@ -592,6 +721,65 @@ const T: Record<Lang, TranslationData> = {
         { name: "カスタマーサポートシステム", amount: "₩4,000万", note: "CSツール、チャットボット、多言語対応" },
         { name: "運営人材採用", amount: "₩6,000万", note: "開発者１名、CS１名（6ヶ月）" },
       ]},
+    ],
+    timeline_title: "投賄金実行タイムライン",
+    timeline_sub: "総額 ₩10億 · 12ヶ月実行計画",
+    timeline_month_label: "ヶ月目",
+    timeline_items: [
+      {
+        category: "製品開発",
+        color: "#C9A961",
+        amount: "₩4億",
+        duration: "M1 ~ M9",
+        months: [1, 9],
+        milestones: [
+          { month: 2, label: "AI遺言エンジンベータ" },
+          { month: 4, label: "eKYC連携完了" },
+          { month: 6, label: "ブロックチェーン適用" },
+          { month: 8, label: "Badge NFC連携" },
+          { month: 9, label: "MVP正式ローンチ" },
+        ],
+      },
+      {
+        category: "マーケティング・営業",
+        color: "#10B981",
+        amount: "₩3億",
+        duration: "M3 ~ M12",
+        months: [3, 12],
+        milestones: [
+          { month: 3, label: "韓国事前登録開始" },
+          { month: 5, label: "韓国正式ローンチ広告" },
+          { month: 7, label: "日本進出マーケティング" },
+          { month: 9, label: "在外韓国人ターゲット開始" },
+          { month: 12, label: "MAU 5,000達成" },
+        ],
+      },
+      {
+        category: "法務・コンプライアンス",
+        color: "#8B5CF6",
+        amount: "₩1.5億",
+        duration: "M1 ~ M8",
+        months: [1, 8],
+        milestones: [
+          { month: 1, label: "韓国法律審査開始" },
+          { month: 3, label: "弁護士5名採用" },
+          { month: 5, label: "日本・米国法律審査" },
+          { month: 8, label: "弁護10名ネットワーク完成" },
+        ],
+      },
+      {
+        category: "運営・インフラ",
+        color: "#3B82F6",
+        amount: "₩1.5億",
+        duration: "M1 ~ M12",
+        months: [1, 12],
+        milestones: [
+          { month: 1, label: "クラウドインフラ構築" },
+          { month: 3, label: "CSシステムローンチ" },
+          { month: 6, label: "運営人材採用" },
+          { month: 12, label: "安定運営体制完成" },
+        ],
+      },
     ],
     cta_title: "共に作りましょう",
     cta_sub: "EverWillのグローバルな旅に参加する投資家を募集しています。\n今すぐご連絡ください。",
@@ -725,6 +913,65 @@ const T: Record<Lang, TranslationData> = {
         { name: "初期招聘", amount: "₩6,000万", note: "开发1名、CS 1名（6个月）" },
       ]},
     ],
+    timeline_title: "投资执行时间表",
+    timeline_sub: "总额 ₩10亿 · 12个月执行计划",
+    timeline_month_label: "月",
+    timeline_items: [
+      {
+        category: "产品开发",
+        color: "#C9A961",
+        amount: "₩4亿",
+        duration: "M1 ~ M9",
+        months: [1, 9],
+        milestones: [
+          { month: 2, label: "AI遗嘱引擎测试版" },
+          { month: 4, label: "eKYC集成完成" },
+          { month: 6, label: "区块链哈希应用" },
+          { month: 8, label: "Badge NFC连接" },
+          { month: 9, label: "MVP正式发布" },
+        ],
+      },
+      {
+        category: "市场营销",
+        color: "#10B981",
+        amount: "₩3亿",
+        duration: "M3 ~ M12",
+        months: [3, 12],
+        milestones: [
+          { month: 3, label: "韩国预登记开始" },
+          { month: 5, label: "韩国正式发布广告" },
+          { month: 7, label: "日本市场进入" },
+          { month: 9, label: "海外韩人目标开始" },
+          { month: 12, label: "MAU 5,000达成" },
+        ],
+      },
+      {
+        category: "法务合规",
+        color: "#8B5CF6",
+        amount: "₩1.5亿",
+        duration: "M1 ~ M8",
+        months: [1, 8],
+        milestones: [
+          { month: 1, label: "韩国法律审查开始" },
+          { month: 3, label: "律庈5名入伙" },
+          { month: 5, label: "日本美国法律审查" },
+          { month: 8, label: "律庈10名网络完成" },
+        ],
+      },
+      {
+        category: "运营基础设施",
+        color: "#3B82F6",
+        amount: "₩1.5亿",
+        duration: "M1 ~ M12",
+        months: [1, 12],
+        milestones: [
+          { month: 1, label: "云基础设施建设" },
+          { month: 3, label: "CS系统上线" },
+          { month: 6, label: "运营团队招聘" },
+          { month: 12, label: "稳定运营体系建成" },
+        ],
+      },
+    ],
     cta_title: "让我们共同创造",
     cta_sub: "我们正在寻找愿意加入EverWill全球旅程的投资者。\n立即联系我们。",
     cta_btn: "发送投资咨询",
@@ -856,6 +1103,65 @@ const T: Record<Lang, TranslationData> = {
         { name: "Kundensupport-System", amount: "₩40M (≈€30K)", note: "CS-Tools, Chatbot, mehrsprachig" },
         { name: "Ersteinstellungen", amount: "₩60M (≈€46K)", note: "1 Entwickler + 1 CS (6 Monate)" },
       ]},
+    ],
+    timeline_title: "Investitions-Zeitplan",
+    timeline_sub: "Gesamt ₩10 Mrd. · 12-Monats-Ausführungsplan",
+    timeline_month_label: "Monat",
+    timeline_items: [
+      {
+        category: "Produktentwicklung",
+        color: "#C9A961",
+        amount: "₩4 Mrd.",
+        duration: "M1 ~ M9",
+        months: [1, 9],
+        milestones: [
+          { month: 2, label: "AI-Testament-Engine Beta" },
+          { month: 4, label: "eKYC-Integration abgeschlossen" },
+          { month: 6, label: "Blockchain-Hash angewendet" },
+          { month: 8, label: "Badge NFC verbunden" },
+          { month: 9, label: "MVP offiziell gestartet" },
+        ],
+      },
+      {
+        category: "Marketing & Vertrieb",
+        color: "#10B981",
+        amount: "₩3 Mrd.",
+        duration: "M3 ~ M12",
+        months: [3, 12],
+        milestones: [
+          { month: 3, label: "Korea-Vorregistrierung" },
+          { month: 5, label: "Korea-Launch-Werbung" },
+          { month: 7, label: "Japan-Markteintritt" },
+          { month: 9, label: "Diaspora-Kampagne" },
+          { month: 12, label: "MAU 5.000 erreicht" },
+        ],
+      },
+      {
+        category: "Recht & Compliance",
+        color: "#8B5CF6",
+        amount: "₩1,5 Mrd.",
+        duration: "M1 ~ M8",
+        months: [1, 8],
+        milestones: [
+          { month: 1, label: "Korea-Rechtsprüfung" },
+          { month: 3, label: "5 Anwälte eingestellt" },
+          { month: 5, label: "Japan & USA Rechtsprüfung" },
+          { month: 8, label: "10-Anwalts-Netzwerk fertig" },
+        ],
+      },
+      {
+        category: "Betrieb & Infrastruktur",
+        color: "#3B82F6",
+        amount: "₩1,5 Mrd.",
+        duration: "M1 ~ M12",
+        months: [1, 12],
+        milestones: [
+          { month: 1, label: "Cloud-Infrastruktur aufgebaut" },
+          { month: 3, label: "CS-System gestartet" },
+          { month: 6, label: "Betriebsteam eingestellt" },
+          { month: 12, label: "Stabiler Betrieb abgeschlossen" },
+        ],
+      },
     ],
     cta_title: "Lassen Sie uns gemeinsam aufbauen",
     cta_sub: "Wir suchen Investoren, die EverWills globale Reise begleiten.\nKontaktieren Sie uns noch heute.",
@@ -989,6 +1295,65 @@ const T: Record<Lang, TranslationData> = {
         { name: "Contratación Inicial", amount: "₩60M ($46K)", note: "1 desarrollador + 1 CS (6 meses)" },
       ]},
     ],
+    timeline_title: "Cronograma de Ejecución",
+    timeline_sub: "Total ₩10 mil millones · Plan de 12 meses",
+    timeline_month_label: "Mes",
+    timeline_items: [
+      {
+        category: "Desarrollo de Producto",
+        color: "#C9A961",
+        amount: "₩4 mil millones",
+        duration: "M1 ~ M9",
+        months: [1, 9],
+        milestones: [
+          { month: 2, label: "Beta Motor IA Testamento" },
+          { month: 4, label: "Integración eKYC completa" },
+          { month: 6, label: "Hash blockchain aplicado" },
+          { month: 8, label: "Badge NFC conectado" },
+          { month: 9, label: "MVP lanzado oficialmente" },
+        ],
+      },
+      {
+        category: "Marketing y Ventas",
+        color: "#10B981",
+        amount: "₩3 mil millones",
+        duration: "M3 ~ M12",
+        months: [3, 12],
+        milestones: [
+          { month: 3, label: "Pre-registro Corea" },
+          { month: 5, label: "Publicidad lanzamiento Corea" },
+          { month: 7, label: "Entrada mercado Japón" },
+          { month: 9, label: "Campaña diáspora" },
+          { month: 12, label: "MAU 5.000 alcanzado" },
+        ],
+      },
+      {
+        category: "Legal y Cumplimiento",
+        color: "#8B5CF6",
+        amount: "₩1,5 mil millones",
+        duration: "M1 ~ M8",
+        months: [1, 8],
+        milestones: [
+          { month: 1, label: "Revisión legal Corea" },
+          { month: 3, label: "5 abogados contratados" },
+          { month: 5, label: "Revisión legal Japón y EEUU" },
+          { month: 8, label: "Red de 10 abogados completa" },
+        ],
+      },
+      {
+        category: "Operaciones e Infraestructura",
+        color: "#3B82F6",
+        amount: "₩1,5 mil millones",
+        duration: "M1 ~ M12",
+        months: [1, 12],
+        milestones: [
+          { month: 1, label: "Infraestructura cloud" },
+          { month: 3, label: "Sistema CS lanzado" },
+          { month: 6, label: "Equipo operativo contratado" },
+          { month: 12, label: "Operación estable completa" },
+        ],
+      },
+    ],
     cta_title: "Construyamos Juntos",
     cta_sub: "Buscamos inversores para unirse al viaje global de EverWill.\nContáctenos hoy mismo.",
     cta_btn: "Enviar Consulta de Inversión",
@@ -1120,6 +1485,65 @@ const T: Record<Lang, TranslationData> = {
         { name: "نظام دعم العملاء", amount: "₩40M ($30K)", note: "أدوات CS، روبوت محادثة، متعدد اللغات" },
         { name: "التوظيف الأولي", amount: "₩60M ($46K)", note: "مطور 1 + CS 1 (ستة أشهر)" },
       ]},
+    ],
+    timeline_title: "جدول تنفيذ الاستثمار",
+    timeline_sub: "إجمالي ₩10 مليار · خطة تنفيذ 12 شهراً",
+    timeline_month_label: "شهر",
+    timeline_items: [
+      {
+        category: "تطوير المنتج",
+        color: "#C9A961",
+        amount: "₩4 مليار",
+        duration: "M1 ~ M9",
+        months: [1, 9],
+        milestones: [
+          { month: 2, label: "نسخة تجريبية محرك AI" },
+          { month: 4, label: "اكتمال تكامل eKYC" },
+          { month: 6, label: "تطبيق تجزئة البلوكشين" },
+          { month: 8, label: "ربط Badge NFC" },
+          { month: 9, label: "إطلاق MVP رسمي" },
+        ],
+      },
+      {
+        category: "تسويق ومبيعات",
+        color: "#10B981",
+        amount: "₩3 مليار",
+        duration: "M3 ~ M12",
+        months: [3, 12],
+        milestones: [
+          { month: 3, label: "بدء التسجيل المسبق" },
+          { month: 5, label: "إعلان الإطلاق الرسمي" },
+          { month: 7, label: "دخول السوق الياباني" },
+          { month: 9, label: "حملة المغتربين" },
+          { month: 12, label: "تحقيق MAU 5,000" },
+        ],
+      },
+      {
+        category: "شؤون قانونية",
+        color: "#8B5CF6",
+        amount: "₩1.5 مليار",
+        duration: "M1 ~ M8",
+        months: [1, 8],
+        milestones: [
+          { month: 1, label: "مراجعة قانونية كوريا" },
+          { month: 3, label: "توظيف 5 محامين" },
+          { month: 5, label: "مراجعة قانون يابان وأمريكا" },
+          { month: 8, label: "شبكة 10 محامين مكتملة" },
+        ],
+      },
+      {
+        category: "عمليات وبنية تحتية",
+        color: "#3B82F6",
+        amount: "₩1.5 مليار",
+        duration: "M1 ~ M12",
+        months: [1, 12],
+        milestones: [
+          { month: 1, label: "بناء بنية سحابية" },
+          { month: 3, label: "إطلاق نظام CS" },
+          { month: 6, label: "توظيف فريق التشغيل" },
+          { month: 12, label: "اكتمال نظام تشغيل مستقر" },
+        ],
+      },
     ],
     cta_title: "لنبني معاً",
     cta_sub: "نبحث عن مستثمرين للانضمام إلى رحلة EverWill العالمية.\nتواصل معنا اليوم.",
@@ -1762,6 +2186,95 @@ export default function InvestorPage() {
                 );
               })}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 투자금 집행 타임라인 ── */}
+      <section className="py-24 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-extrabold text-white mb-4">{t.timeline_title}</h2>
+            <p className="text-white/50 text-lg">{t.timeline_sub}</p>
+          </div>
+          {/* 간트차트 */}
+          <div className="bg-[#1a2035] rounded-3xl p-8 border border-white/5 overflow-x-auto">
+            {/* 월 헤더 */}
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-44 flex-shrink-0" />
+              <div className="flex-1 grid grid-cols-12 gap-0">
+                {Array.from({ length: 12 }, (_, i) => (
+                  <div key={i} className="text-center text-xs text-white/40 font-medium">M{i + 1}</div>
+                ))}
+              </div>
+            </div>
+            {/* 각 카테고리 행 */}
+            <div className="space-y-6">
+              {t.timeline_items.map((item, idx) => (
+                <div key={idx}>
+                  {/* 카테고리 레이블 + 바 */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-44 flex-shrink-0">
+                      <div className="text-sm font-bold" style={{ color: item.color }}>{item.category}</div>
+                      <div className="text-xs text-white/40">{item.amount} · {item.duration}</div>
+                    </div>
+                    <div className="flex-1 relative h-8">
+                      {/* 배경 그리드 */}
+                      <div className="absolute inset-0 grid grid-cols-12 gap-0">
+                        {Array.from({ length: 12 }, (_, i) => (
+                          <div key={i} className="border-l border-white/5 h-full" />
+                        ))}
+                      </div>
+                      {/* 진행 바 */}
+                      <div
+                        className="absolute top-1 bottom-1 rounded-full opacity-80"
+                        style={{
+                          left: `${((item.months[0] - 1) / 12) * 100}%`,
+                          width: `${((item.months[1] - item.months[0] + 1) / 12) * 100}%`,
+                          background: `linear-gradient(90deg, ${item.color}cc, ${item.color}66)`,
+                          border: `1px solid ${item.color}`,
+                        }}
+                      />
+                      {/* 마일스톤 점 */}
+                      {item.milestones.map((ms, mi) => (
+                        <div
+                          key={mi}
+                          className="absolute top-1/2 -translate-y-1/2 group"
+                          style={{ left: `${((ms.month - 0.5) / 12) * 100}%` }}
+                        >
+                          <div
+                            className="w-3 h-3 rounded-full border-2 border-white cursor-pointer"
+                            style={{ background: item.color }}
+                          />
+                          {/* 툴팁 */}
+                          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-[#0d1525] border border-white/10 rounded-lg px-2 py-1 text-xs text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                            M{ms.month}: {ms.label}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* 마일스톤 레이블 (모바일용) */}
+                  <div className="ml-44 pl-2 flex flex-wrap gap-2 mt-1">
+                    {item.milestones.map((ms, mi) => (
+                      <span key={mi} className="text-xs px-2 py-0.5 rounded-full border" style={{ color: item.color, borderColor: `${item.color}40`, background: `${item.color}10` }}>
+                        M{ms.month} {ms.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* 범례 */}
+          <div className="mt-6 flex flex-wrap gap-4 justify-center">
+            {t.timeline_items.map((item, i) => (
+              <div key={i} className="flex items-center gap-2 text-sm">
+                <div className="w-4 h-2 rounded-full" style={{ background: item.color }} />
+                <span className="text-white/60">{item.category}</span>
+                <span className="font-bold" style={{ color: item.color }}>{item.amount}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
