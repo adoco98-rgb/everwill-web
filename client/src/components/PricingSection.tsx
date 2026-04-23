@@ -1,7 +1,6 @@
 /**
  * EverWill 가격 섹션
- * 가로 긴 직사각형 카드 레이아웃
- * ₩0 → ₩49,000 → ₩73,900 → ₩88,000 → ₩128,000 → ₩248,000 순서
+ * 기본비용(₩49,000) + 보관비용 + 할인 → 합계 세분화 표시
  */
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
@@ -15,6 +14,7 @@ import {
   Clock,
   Infinity as InfinityIcon,
   ChevronRight,
+  Minus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -22,185 +22,162 @@ import { useLanguage } from "@/contexts/LanguageContext";
 export default function PricingSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const isKo = language === "ko";
 
-  /* ─── 전체 가격 플랜 (세로 순서: ₩0 → ₩248,000) ─── */
-  const allPlans = [
+  /* ─── 가격 플랜 데이터 ─── */
+  /* baseFee: 기본 인증비, storageFee: 보관비(정가), discount: 할인액, total: 최종 합계 */
+  const plans = [
     {
       id: "free",
       icon: Zap,
-      name: t.pricing.free,
-      price: "₩0",
+      name: isKo ? "무료 시작" : "Free Start",
+      description: isKo ? "AI 유언장 작성 무한" : "Unlimited AI will writing",
+      baseFee: 0,
+      storageFee: null,
+      discount: null,
+      total: 0,
       usd: "Free",
-      originalPrice: null,
       badge: null,
       highlight: false,
       accent: "border-gray-200 bg-[#FAFAF8]",
-      priceColor: "text-[#1F3864]",
       iconBg: "bg-gray-100",
       iconColor: "text-gray-500",
-      description: t.pricing.freeDesc,
       features: [
-        t.services.s1Title,
-        t.services.s2Title,
-        t.services.s3Title,
-        t.services.s4Title,
-        t.services.s5Title,
-        t.services.s6Title,
+        isKo ? "AI 체크박스 유언 작성" : "AI Checkbox Will Writing",
+        isKo ? "영상 유언장" : "Video Will",
+        isKo ? "자필 유언 스캔 인증" : "Handwritten Will Scan",
+        isKo ? "4중 사망 감지 시스템" : "4-Layer Death Detection",
       ],
-      cta: t.pricing.free,
+      cta: isKo ? "무료 시작 >" : "Start Free >",
       ctaClass: "bg-[#1F3864] text-white hover:bg-[#1F3864]/90",
-    },
-    {
-      id: "storage1y",
-      icon: Clock,
-      name: "1년 추가 보관",
-      price: "₩9,900",
-      usd: "$9",
-      originalPrice: null,
-      badge: null,
-      highlight: false,
-      accent: "border-teal-200 bg-teal-50/40",
-      priceColor: "text-teal-700",
-      iconBg: "bg-teal-100",
-      iconColor: "text-teal-600",
-      description: "기존 가입자 전용",
-      features: [
-        "유언장 1년 추가 보관",
-        "기존 가입자 전용",
-        "언제든지 갱신 가능",
-      ],
-      cta: "보관 연장하기 →",
-      ctaClass: "bg-teal-600 text-white hover:bg-teal-700",
     },
     {
       id: "cert",
       icon: Shield,
-      name: t.pricing.certTitle,
-      price: "₩49,000",
+      name: isKo ? "유언장 인증" : "Will Certification",
+      description: isKo ? "법적 효력 있는 유언장 + 사후 자동 집행" : "Legally valid will + auto execution",
+      baseFee: 49000,
+      storageFee: 9900,   // 1년 보관 정가
+      discount: 9900,     // 1년 무료 포함 (100% 할인)
+      total: 49000,
       usd: "$39",
-      originalPrice: "₩118,000",
-      badge: "59% " + t.pricing.discount,
+      badge: isKo ? "59% 할인" : "59% OFF",
+      subBadge: isKo ? "★ 1년 무료 보관 포함" : "★ 1yr free storage",
       highlight: true,
       accent: "border-[#1F3864] bg-[#1F3864]",
-      priceColor: "text-[#C9A961]",
       iconBg: "bg-white/15",
       iconColor: "text-[#C9A961]",
-      description: t.pricing.certDesc,
-      subBadge: t.pricing.freeStorage,
       features: [
-        t.pricing.free,
-        "eKYC " + t.trust.s2Title,
-        t.trust.s4Title,
-        t.trust.s5Title,
-        t.lawyers.step2Title,
-        t.lawyers.step3Title,
-        t.pricing.freeStorage,
+        isKo ? "무료 시작" : "Free Start",
+        isKo ? "eKYC 법적 효력 보장" : "eKYC Legal Validity",
+        isKo ? "은행급 보안" : "Bank-Level Security",
+        isKo ? "사후 자동 집행" : "Auto Post-Death Execution",
       ],
-      cta: t.pricing.certStart,
-      ctaClass: "bg-[#C9A961] text-[#1F3864] font-bold hover:bg-[#C9A961]/90",
+      cta: isKo ? "지금 인증 시작하기 →" : "Start Certification →",
+      ctaClass: "bg-[#C9A961] text-[#1F3864] font-bold hover:bg-[#d4b870]",
     },
     {
       id: "3y",
       icon: Clock,
-      name: t.pricing.plan3y,
-      price: "₩73,900",
+      name: isKo ? "3년 플랜" : "3-Year Plan",
+      description: isKo ? "3년 보관" : "3-year storage",
+      baseFee: 49000,
+      storageFee: 39600,  // 9,900 × 4 = 39,600 (3년 = 2년 추가)
+      discount: 14700,    // 할인액
+      total: 73900,
       usd: "$74",
-      originalPrice: null,
       badge: null,
       highlight: false,
       accent: "border-blue-100 bg-blue-50/40",
-      priceColor: "text-[#1F3864]",
       iconBg: "bg-blue-100",
       iconColor: "text-blue-500",
-      description: t.pricing.plan3yStorage,
       features: [
-        "eKYC " + t.trust.s2Title,
-        t.trust.s4Title,
-        t.pricing.plan3yStorage,
-        t.lawyers.step2Title,
-        t.trust.s5Title,
+        isKo ? "eKYC 법적 효력 보장" : "eKYC Legal Validity",
+        isKo ? "은행급 보안" : "Bank-Level Security",
+        isKo ? "3년 보관" : "3-Year Storage",
+        isKo ? "유족 자동 알림" : "Auto Family Notification",
       ],
-      cta: t.pricing.startBtn,
+      cta: isKo ? "시작하기 >" : "Start >",
       ctaClass: "bg-[#1F3864] text-white hover:bg-[#1F3864]/90",
     },
     {
       id: "5y",
       icon: Star,
-      name: t.pricing.plan5y,
-      price: "₩88,000",
+      name: isKo ? "5년 플랜" : "5-Year Plan",
+      description: isKo ? "5년 보관" : "5-year storage",
+      baseFee: 49000,
+      storageFee: 59400,  // 9,900 × 6 = 59,400 (5년 = 4년 추가)
+      discount: 20400,    // 할인액
+      total: 88000,
       usd: "$88",
-      originalPrice: null,
-      badge: t.pricing.lowestUnit,
+      badge: isKo ? "최저 단가" : "Best Value",
       highlight: false,
       accent: "border-[#C9A961]/50 bg-amber-50/40",
-      priceColor: "text-[#1F3864]",
       iconBg: "bg-amber-100",
       iconColor: "text-[#C9A961]",
-      description: t.pricing.plan5yStorage,
       features: [
-        "eKYC " + t.trust.s2Title,
-        t.trust.s4Title,
-        t.pricing.plan5yStorage,
-        t.lawyers.step2Title,
-        t.trust.s5Title,
-        "₩7,800/yr",
+        isKo ? "eKYC 법적 효력 보장" : "eKYC Legal Validity",
+        isKo ? "은행급 보안" : "Bank-Level Security",
+        isKo ? "5년 보관" : "5-Year Storage",
+        isKo ? "유족 자동 알림" : "Auto Family Notification",
       ],
-      cta: t.pricing.startNow,
-      ctaClass: "bg-[#C9A961] text-[#1F3864] font-bold hover:bg-[#C9A961]/90",
+      cta: isKo ? "지금 시작하기 →" : "Start Now →",
+      ctaClass: "bg-[#C9A961] text-[#1F3864] font-bold hover:bg-[#d4b870]",
     },
     {
       id: "10y",
       icon: Clock,
-      name: t.pricing.plan10y,
-      price: "₩128,000",
+      name: isKo ? "10년 플랜" : "10-Year Plan",
+      description: isKo ? "10년 보관" : "10-year storage",
+      baseFee: 49000,
+      storageFee: 109890, // 9,900 × 11 = 108,900 (10년 = 9년 추가)
+      discount: 30890,    // 할인액
+      total: 128000,
       usd: "$128",
-      originalPrice: null,
       badge: null,
       highlight: false,
       accent: "border-purple-100 bg-purple-50/30",
-      priceColor: "text-[#1F3864]",
       iconBg: "bg-purple-100",
       iconColor: "text-purple-500",
-      description: t.pricing.plan10yStorage,
       features: [
-        "eKYC " + t.trust.s2Title,
-        t.trust.s4Title,
-        t.pricing.plan10yStorage,
-        t.lawyers.step2Title,
-        t.trust.s5Title,
+        isKo ? "eKYC 법적 효력 보장" : "eKYC Legal Validity",
+        isKo ? "은행급 보안" : "Bank-Level Security",
+        isKo ? "10년 보관" : "10-Year Storage",
+        isKo ? "유족 자동 알림" : "Auto Family Notification",
       ],
-      cta: t.pricing.startBtn,
+      cta: isKo ? "시작하기 >" : "Start >",
       ctaClass: "bg-[#1F3864] text-white hover:bg-[#1F3864]/90",
     },
     {
       id: "life",
       icon: Crown,
-      name: t.pricing.planPerm,
-      price: "₩248,000",
+      name: isKo ? "영구 플랜" : "Lifetime Plan",
+      description: isKo ? "영구 보관" : "Lifetime storage",
+      baseFee: 49000,
+      storageFee: 299000, // 영구 보관 정가
+      discount: 100000,   // 할인액
+      total: 248000,
       usd: "$248",
-      originalPrice: null,
-      badge: t.pricing.planPermStorage,
+      badge: isKo ? "영구 보관" : "Lifetime",
       highlight: false,
       accent: "border-[#C9A961]/40 bg-gradient-to-r from-amber-50/60 to-[#FAFAF8]",
-      priceColor: "text-[#1F3864]",
       iconBg: "bg-amber-100",
       iconColor: "text-[#C9A961]",
-      description: t.pricing.planPermStorage,
       features: [
-        "eKYC " + t.trust.s2Title,
-        t.trust.s4Title,
-        t.pricing.planPermStorage,
-        t.lawyers.step2Title,
-        t.trust.s5Title,
-        t.pricing.lowestPrice,
+        isKo ? "eKYC 법적 효력 보장" : "eKYC Legal Validity",
+        isKo ? "은행급 보안" : "Bank-Level Security",
+        isKo ? "영구 보관" : "Lifetime Storage",
+        isKo ? "유족 자동 알림" : "Auto Family Notification",
       ],
-      cta: t.pricing.permanentStart,
+      cta: isKo ? "영구 보관 시작 >" : "Start Lifetime >",
       ctaClass: "bg-gradient-to-r from-[#C9A961] to-amber-500 text-[#1F3864] font-bold hover:opacity-90",
     },
   ];
 
-
+  function fmt(n: number) {
+    return "₩" + n.toLocaleString("ko-KR");
+  }
 
   return (
     <section id="pricing" className="py-20 lg:py-28 bg-white" ref={ref}>
@@ -229,17 +206,19 @@ export default function PricingSection() {
           </div>
         </motion.div>
 
-        {/* ── 가로 긴 직사각형 카드 목록 ── */}
+        {/* ── 가격 카드 목록 ── */}
         <div className="space-y-3">
-          {allPlans.map((plan, i) => {
+          {plans.map((plan, i) => {
             const Icon = plan.icon;
+            const showBreakdown = plan.id !== "free";
+
             return (
               <motion.div
                 key={plan.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={isInView ? { opacity: 1, x: 0 } : {}}
                 transition={{ duration: 0.5, delay: i * 0.07 }}
-                className={`relative rounded-2xl border-2 px-6 py-5 flex items-center gap-6 transition-all hover:shadow-lg hover:-translate-y-0.5 ${plan.accent}`}
+                className={`relative rounded-2xl border-2 px-6 py-5 transition-all hover:shadow-lg hover:-translate-y-0.5 ${plan.accent}`}
               >
                 {/* 뱃지 */}
                 {plan.badge && (
@@ -254,76 +233,115 @@ export default function PricingSection() {
                   </div>
                 )}
 
-                {/* 아이콘 */}
-                <div className={`w-11 h-11 rounded-xl ${plan.iconBg} flex items-center justify-center flex-shrink-0`}>
-                  {plan.id === "life"
-                    ? <InfinityIcon className={`w-5 h-5 ${plan.iconColor}`} />
-                    : <Icon className={`w-5 h-5 ${plan.iconColor}`} />
-                  }
-                </div>
+                <div className="flex items-center gap-5">
+                  {/* 아이콘 */}
+                  <div className={`w-11 h-11 rounded-xl ${plan.iconBg} flex items-center justify-center flex-shrink-0`}>
+                    {plan.id === "life"
+                      ? <InfinityIcon className={`w-5 h-5 ${plan.iconColor}`} />
+                      : <Icon className={`w-5 h-5 ${plan.iconColor}`} />
+                    }
+                  </div>
 
-                {/* 플랜명 + 설명 */}
-                <div className="w-44 flex-shrink-0">
-                  <div className={`font-bold text-base mb-0.5 ${plan.highlight ? "text-white" : "text-[#1F3864]"}`} style={{fontWeight:700}}>
-                    {plan.name}
+                  {/* 플랜명 + 설명 */}
+                  <div className="w-40 flex-shrink-0">
+                    <div className={`font-bold text-base mb-0.5 ${plan.highlight ? "text-white" : "text-[#1F3864]"}`}>
+                      {plan.name}
+                    </div>
+                    <div className={`text-xs leading-tight ${plan.highlight ? "text-white/70" : "text-gray-500"}`}>
+                      {plan.description}
+                    </div>
+                    {(plan as any).subBadge && (
+                      <div className="mt-1 inline-flex items-center gap-1 bg-[#C9A961]/20 border border-[#C9A961]/40 rounded-full px-2 py-0.5">
+                        <span className="text-[10px] font-bold text-[#C9A961]">{(plan as any).subBadge}</span>
+                      </div>
+                    )}
                   </div>
-                  <div className={`text-xs leading-tight font-medium ${plan.highlight ? "text-white/80" : "text-gray-600"}`}>
-                    {plan.description}
+
+                  {/* 구분선 */}
+                  <div className={`w-px h-12 flex-shrink-0 ${plan.highlight ? "bg-white/20" : "bg-gray-200"}`} />
+
+                  {/* 기능 목록 */}
+                  <div className="flex-1 flex flex-wrap gap-x-4 gap-y-1">
+                    {plan.features.slice(0, 4).map((f) => (
+                      <div key={f} className="flex items-center gap-1">
+                        <Check className={`w-3 h-3 flex-shrink-0 ${plan.highlight ? "text-[#C9A961]" : "text-green-500"}`} />
+                        <span className={`text-sm font-semibold ${plan.highlight ? "text-white" : "text-gray-800"}`}>{f}</span>
+                      </div>
+                    ))}
                   </div>
-                  {(plan as any).subBadge && (
-                    <div className="mt-1 inline-flex items-center gap-1 bg-[#C9A961]/20 border border-[#C9A961]/40 rounded-full px-2 py-0.5">
-                      <span className="text-[10px] font-bold text-[#C9A961]">★ {(plan as any).subBadge}</span>
+
+                  {/* 가격 세분화 */}
+                  {showBreakdown ? (
+                    <div className="flex-shrink-0 w-52 text-right">
+                      {/* 기본비용 */}
+                      <div className="flex justify-between items-center mb-0.5">
+                        <span className={`text-xs ${plan.highlight ? "text-white/60" : "text-gray-400"}`}>
+                          {isKo ? "기본 인증비" : "Base fee"}
+                        </span>
+                        <span className={`text-xs font-semibold ${plan.highlight ? "text-white/80" : "text-gray-600"}`}>
+                          {fmt(plan.baseFee)}
+                        </span>
+                      </div>
+                      {/* 보관비 */}
+                      {plan.storageFee !== null && (
+                        <div className="flex justify-between items-center mb-0.5">
+                          <span className={`text-xs ${plan.highlight ? "text-white/60" : "text-gray-400"}`}>
+                            {isKo ? "보관비 (정가)" : "Storage (list)"}
+                          </span>
+                          <span className={`text-xs font-semibold ${plan.highlight ? "text-white/80" : "text-gray-600"}`}>
+                            +{fmt(plan.storageFee!)}
+                          </span>
+                        </div>
+                      )}
+                      {/* 할인 */}
+                      {plan.discount !== null && plan.discount > 0 && (
+                        <div className="flex justify-between items-center mb-1">
+                          <span className={`text-xs ${plan.highlight ? "text-[#C9A961]" : "text-red-500"}`}>
+                            {isKo ? "할인" : "Discount"}
+                          </span>
+                          <span className={`text-xs font-bold ${plan.highlight ? "text-[#C9A961]" : "text-red-500"}`}>
+                            <Minus className="w-2.5 h-2.5 inline" />{fmt(plan.discount!)}
+                          </span>
+                        </div>
+                      )}
+                      {/* 구분선 */}
+                      <div className={`h-px mb-1 ${plan.highlight ? "bg-white/20" : "bg-gray-200"}`} />
+                      {/* 합계 */}
+                      <div className="flex justify-between items-center">
+                        <span className={`text-xs font-bold ${plan.highlight ? "text-white/80" : "text-gray-500"}`}>
+                          {isKo ? "합계" : "Total"}
+                        </span>
+                        <div className="text-right">
+                          <div className={`text-xl font-extrabold ${plan.highlight ? "text-[#C9A961]" : "text-[#1F3864]"}`}>
+                            {fmt(plan.total)}
+                          </div>
+                          <div className={`text-[10px] ${plan.highlight ? "text-white/50" : "text-gray-400"}`}>
+                            {plan.usd}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    /* 무료 플랜은 단순 표시 */
+                    <div className="flex-shrink-0 w-28 text-right">
+                      <div className="text-2xl font-extrabold text-[#1F3864]">₩0</div>
+                      <div className="text-xs text-gray-400">Free</div>
                     </div>
                   )}
+
+                  {/* CTA 버튼 */}
+                  <button
+                    onClick={() => toast.info(isKo ? "서비스 준비 중입니다. 곧 오픈합니다!" : "Coming soon!")}
+                    className={`flex-shrink-0 flex items-center gap-1 px-5 py-2.5 rounded-xl font-semibold text-xs transition-all whitespace-nowrap ${plan.ctaClass}`}
+                  >
+                    {plan.cta}
+                    <ChevronRight className="w-3 h-3" />
+                  </button>
                 </div>
-
-                {/* 구분선 */}
-                <div className={`w-px h-10 flex-shrink-0 ${plan.highlight ? "bg-white/20" : "bg-gray-200"}`} />
-
-                {/* 기능 목록 (가로) */}
-                <div className="flex-1 flex flex-wrap gap-x-4 gap-y-1">
-                  {plan.features.slice(0, 4).map((f) => (
-                    <div key={f} className="flex items-center gap-1">
-                      <Check className={`w-3 h-3 flex-shrink-0 ${plan.highlight ? "text-[#C9A961]" : "text-green-500"}`} />
-                      <span className={`text-sm font-semibold ${plan.highlight ? "text-white" : "text-gray-800"}`}>{f}</span>
-                    </div>
-                  ))}
-                  {plan.features.length > 4 && (
-                    <span className={`text-sm font-semibold ${plan.highlight ? "text-white/70" : "text-gray-600"}`}>
-                      +{plan.features.length - 4}개
-                    </span>
-                  )}
-                </div>
-
-                {/* 가격 */}
-                <div className="text-right flex-shrink-0 w-28">
-                  {plan.originalPrice && (
-                    <div className={`text-xs line-through mb-0.5 ${plan.highlight ? "text-white/50" : "text-gray-400"}`}>
-                      {plan.originalPrice}
-                    </div>
-                  )}
-                  <div className={`text-2xl font-extrabold ${plan.priceColor}`}>
-                    {plan.price}
-                  </div>
-                  <div className={`text-xs font-semibold ${plan.highlight ? "text-white/70" : "text-gray-500"}`}>
-                    {plan.usd}
-                  </div>
-                </div>
-
-                {/* CTA 버튼 */}
-                <button
-                  onClick={() => toast.info("서비스 준비 중입니다. 곧 오픈합니다!")}
-                  className={`flex-shrink-0 flex items-center gap-1 px-5 py-2.5 rounded-xl font-semibold text-xs transition-all whitespace-nowrap ${plan.ctaClass}`}
-                >
-                  {plan.cta}
-                  <ChevronRight className="w-3 h-3" />
-                </button>
               </motion.div>
             );
           })}
         </div>
-
-
 
         {/* ── 주석 ── */}
         <motion.p
