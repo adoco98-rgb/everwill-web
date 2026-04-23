@@ -1,26 +1,24 @@
 /**
  * EverWill 투자유치 사업설명회 랜딩페이지 (/investor)
- * - 네비게이션 미노출 (주소 직접 접근만 가능)
  * - 7개국어 지원: ko, en, ja, zh, de, es, ar
- * - 섹션: 히어로 → 핵심지표 → 시장기회(차트) → 경쟁사비교 → 차별화 → 수익모델(차트) → 재무전망(차트) → 로드맵 → 팀 → 투자조건 → CTA
- * - 사업계획서 다운로드 버튼 없음 (모든 내용 인라인 표시)
+ * - 최상단 슬라이드 (자동 재생 + 수동 이동)
+ * - 언어별 통화 단위 표시 (원화/달러/엔화/위안/유로/페소/리얄)
+ * - 경쟁사 비교표에 각국 국기 표시
+ * - 광고/마케팅 섹션 추가
  */
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
-  Globe, TrendingUp, Shield, Zap, Users, DollarSign,
-  ChevronDown, CheckCircle, BarChart3,
-  Target, Rocket, Award, Mail,
+  Globe, TrendingUp, Users, DollarSign,
+  ChevronDown, BarChart3,
+  Target, Rocket, Mail, ChevronLeft, ChevronRight,
+  Megaphone, Smartphone, Monitor, UserPlus,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell, Legend, Area, AreaChart,
+  LineChart, Line, PieChart, Pie, Cell, Area, AreaChart,
 } from "recharts";
 
-// ─────────────────────────────────────────────
-// 7개국어 번역 데이터
-// ─────────────────────────────────────────────
 type Lang = "ko" | "en" | "ja" | "zh" | "de" | "es" | "ar";
-
 const LANGS: { code: Lang; label: string; flag: string; rtl?: boolean }[] = [
   { code: "ko", label: "한국어", flag: "🇰🇷" },
   { code: "en", label: "English", flag: "🇺🇸" },
@@ -31,33 +29,129 @@ const LANGS: { code: Lang; label: string; flag: string; rtl?: boolean }[] = [
   { code: "ar", label: "العربية", flag: "🇸🇦", rtl: true },
 ];
 
-const T: Record<Lang, {
+// 언어별 통화 설정 (USD 1 = 각국 통화 환율 기준)
+const CURRENCY: Record<Lang, {
+  formatArr: (usdM: number) => string;
+  formatMarket: (usdB: number) => string;
+  arrMultiplier: number;
+  marketMultiplier: number;
+  arrSuffix: string;
+  marketSuffix: string;
+}> = {
+  ko: {
+    arrMultiplier: 13.2, marketMultiplier: 1.32, arrSuffix: "억원", marketSuffix: "조원",
+    formatArr: (v) => `${Math.round(v * 13.2 * 10) / 10}억원`,
+    formatMarket: (v) => `${Math.round(v * 1.32 * 10) / 10}조원`,
+  },
+  en: {
+    arrMultiplier: 1, marketMultiplier: 1, arrSuffix: "M", marketSuffix: "B",
+    formatArr: (v) => `$${v}M`, formatMarket: (v) => `$${v}B`,
+  },
+  ja: {
+    arrMultiplier: 148, marketMultiplier: 14.8, arrSuffix: "億円", marketSuffix: "兆円",
+    formatArr: (v) => `${Math.round(v * 148)}億円`,
+    formatMarket: (v) => `${Math.round(v * 14.8 * 10) / 10}兆円`,
+  },
+  zh: {
+    arrMultiplier: 7.2, marketMultiplier: 7.2, arrSuffix: "百万元", marketSuffix: "十亿元",
+    formatArr: (v) => `${Math.round(v * 7.2 * 10) / 10}百万元`,
+    formatMarket: (v) => `${Math.round(v * 7.2 * 10) / 10}十亿元`,
+  },
+  de: {
+    arrMultiplier: 0.93, marketMultiplier: 0.93, arrSuffix: "Mio.", marketSuffix: "Mrd.",
+    formatArr: (v) => `€${Math.round(v * 0.93 * 10) / 10}Mio.`,
+    formatMarket: (v) => `€${Math.round(v * 0.93 * 10) / 10}Mrd.`,
+  },
+  es: {
+    arrMultiplier: 1, marketMultiplier: 1, arrSuffix: "M", marketSuffix: "B",
+    formatArr: (v) => `$${v}M`, formatMarket: (v) => `$${v}B`,
+  },
+  ar: {
+    arrMultiplier: 3.75, marketMultiplier: 3.75, arrSuffix: "م﷼", marketSuffix: "م﷼",
+    formatArr: (v) => `${Math.round(v * 3.75 * 10) / 10}م﷼`,
+    formatMarket: (v) => `${Math.round(v * 3.75 * 10) / 10}م﷼`,
+  },
+};
+
+function getArrData(lang: Lang) {
+  const base = [0.3, 2.1, 12];
+  const c = CURRENCY[lang];
+  return base.map((v, i) => ({
+    year: `Year ${i + 1}`,
+    arr: Math.round(v * c.arrMultiplier * 10) / 10,
+    label: c.formatArr(v),
+  }));
+}
+
+function getMarketBarData(lang: Lang) {
+  const usdB = [67, 28, 18, 15, 8, 12, 11];
+  const flags = ["🇺🇸", "🇯🇵", "🇩🇪", "🇬🇧", "🇰🇷", "🇨🇳", "🌍"];
+  const fills = ["#8B5CF6", "#EF4444", "#3B82F6", "#10B981", "#F59E0B", "#EC4899", "#6B7280"];
+  const names: Record<Lang, string[]> = {
+    ko: ["미국", "일본", "독일", "영국", "한국", "중국", "기타"],
+    en: ["USA", "Japan", "Germany", "UK", "Korea", "China", "Others"],
+    ja: ["米国", "日本", "ドイツ", "英国", "韓国", "中国", "その他"],
+    zh: ["美国", "日本", "德国", "英国", "韩国", "中国", "其他"],
+    de: ["USA", "Japan", "Deutschland", "UK", "Korea", "China", "Andere"],
+    es: ["EE.UU.", "Japón", "Alemania", "UK", "Corea", "China", "Otros"],
+    ar: ["أمريكا", "اليابان", "ألمانيا", "المملكة المتحدة", "كوريا", "الصين", "أخرى"],
+  };
+  const c = CURRENCY[lang];
+  return usdB.map((v, i) => ({
+    name: `${flags[i]} ${names[lang][i]}`,
+    value: Math.round(v * c.marketMultiplier * 10) / 10,
+    fill: fills[i],
+    label: c.formatMarket(v),
+  }));
+}
+
+function getMarketGrowthData(lang: Lang) {
+  const usdB = [89, 98, 112, 121, 128, 133, 137, 139];
+  const years = ["2023", "2024", "2025", "2026", "2027", "2028", "2029", "2030"];
+  const c = CURRENCY[lang];
+  return usdB.map((v, i) => ({
+    year: years[i],
+    value: Math.round(v * c.marketMultiplier * 10) / 10,
+  }));
+}
+
+const USER_DATA = [
+  { year: "Year 1", users: 2000 },
+  { year: "Year 2", users: 18000 },
+  { year: "Year 3", users: 85000 },
+];
+
+const REVENUE_PIE_DATA = [
+  { name: "Certification", value: 40, fill: "#C9A961" },
+  { name: "Membership", value: 20, fill: "#1F3864" },
+  { name: "Badge", value: 25, fill: "#8B5CF6" },
+  { name: "Lawyer", value: 15, fill: "#10B981" },
+];
+// ─────────────────────────────────────────────
+// 7개국어 번역 데이터
+// ─────────────────────────────────────────────
+type TranslationData = {
   nav_invest: string;
   hero_badge: string;
   hero_title: string;
   hero_sub: string;
   hero_cta: string;
-  // 핵심 지표
-  metrics_title: string;
   m1_label: string; m1_val: string;
   m2_label: string; m2_val: string;
   m3_label: string; m3_val: string;
   m4_label: string; m4_val: string;
-  // 시장 기회
   market_title: string;
   market_sub: string;
   market_chart_title: string;
   market_growth_title: string;
-  // 경쟁사 비교
   comp_title: string;
   comp_sub: string;
   comp_feature: string;
   comp_everwill: string;
-  comp_tw: string;
-  comp_fw: string;
-  comp_gt: string;
+  comp_tw: string; comp_tw_country: string;
+  comp_fw: string; comp_fw_country: string;
+  comp_gt: string; comp_gt_country: string;
   comp_rows: { feature: string; ew: string; tw: string; fw: string; gt: string }[];
-  // 차별화
   diff_title: string;
   diff_sub: string;
   diff_1_title: string; diff_1_desc: string;
@@ -66,7 +160,6 @@ const T: Record<Lang, {
   diff_4_title: string; diff_4_desc: string;
   diff_5_title: string; diff_5_desc: string;
   diff_6_title: string; diff_6_desc: string;
-  // 수익 모델
   revenue_title: string;
   revenue_sub: string;
   rev_pie_title: string;
@@ -75,11 +168,19 @@ const T: Record<Lang, {
   rev_3: string; rev_3_val: string;
   rev_4: string; rev_4_val: string;
   ltv_label: string; ltv_val: string;
-  // 재무 전망
   finance_title: string;
   finance_sub: string;
   finance_arr_title: string;
   finance_user_title: string;
+  // 광고 섹션
+  ads_title: string;
+  ads_sub: string;
+  ads_media_title: string; ads_media_desc: string;
+  ads_sns_title: string; ads_sns_desc: string;
+  ads_online_title: string; ads_online_desc: string;
+  ads_user_title: string; ads_user_desc: string;
+  ads_budget_title: string;
+  ads_budget_items: { label: string; pct: string; desc: string }[];
   // 로드맵
   roadmap_title: string;
   roadmap_sub: string;
@@ -87,10 +188,9 @@ const T: Record<Lang, {
   rm_2_q: string; rm_2_title: string; rm_2_items: string[];
   rm_3_q: string; rm_3_title: string; rm_3_items: string[];
   rm_4_q: string; rm_4_title: string; rm_4_items: string[];
-  // 팀
-  team_title: string; team_sub: string;
+  team_title: string;
+  team_sub: string;
   t1_name: string; t1_role: string; t1_desc: string;
-  // 투자 조건
   invest_title: string;
   invest_sub: string;
   invest_round: string;
@@ -98,35 +198,37 @@ const T: Record<Lang, {
   invest_valuation: string;
   invest_use: string;
   invest_use_items: { label: string; pct: string; desc: string }[];
-  // CTA
   cta_title: string;
   cta_sub: string;
   cta_btn: string;
   cta_email: string;
   footer_conf: string;
-}> = {
+  // 슬라이드
+  slides: { badge: string; title: string; sub: string; highlight: string }[];
+};
+
+const T: Record<Lang, TranslationData> = {
   ko: {
     nav_invest: "투자자 전용",
     hero_badge: "🌍 세계 최초 디지털 유언 OS",
     hero_title: "유언 산업의\nOS가 됩니다",
     hero_sub: "Trust & Will·Farewill·GoodTrust를 뛰어넘는 올인원 글로벌 유언 플랫폼.\n작성부터 사후 자동 집행까지, 전 과정을 책임집니다.",
     hero_cta: "투자 문의하기",
-    metrics_title: "핵심 지표",
     m1_label: "목표 MAU (Year 2)", m1_val: "50,000",
-    m2_label: "목표 ARR (Year 3)", m2_val: "$12M",
+    m2_label: "목표 ARR (Year 3)", m2_val: "1,584억원",
     m3_label: "목표 국가", m3_val: "7개국",
-    m4_label: "고객 LTV", m4_val: "$5,500+",
+    m4_label: "고객 LTV", m4_val: "₩7,260,000+",
     market_title: "글로벌 유언 시장 기회",
     market_sub: "전 세계 고령화와 디지털 전환이 만드는 거대한 시장 기회",
-    market_chart_title: "국가별 시장 규모 (2030년 전망, $B)",
-    market_growth_title: "글로벌 시장 성장 전망 ($B)",
+    market_chart_title: "국가별 시장 규모 (2030년 전망, 조원)",
+    market_growth_title: "글로벌 시장 성장 전망 (조원)",
     comp_title: "경쟁사 비교",
     comp_sub: "EverWill만이 제공하는 독창적 기능",
     comp_feature: "기능",
     comp_everwill: "EverWill",
-    comp_tw: "Trust & Will",
-    comp_fw: "Farewill",
-    comp_gt: "GoodTrust",
+    comp_tw: "Trust & Will", comp_tw_country: "🇺🇸 미국",
+    comp_fw: "Farewill", comp_fw_country: "🇬🇧 영국",
+    comp_gt: "GoodTrust", comp_gt_country: "🇺🇸 미국",
     comp_rows: [
       { feature: "물리적 Badge 시스템", ew: "✅ 세계 최초", tw: "❌", fw: "❌", gt: "❌" },
       { feature: "4중 사망 감지", ew: "✅ 자동화", tw: "❌ 수동", fw: "❌ 수동", gt: "❌ 수동" },
@@ -152,11 +254,24 @@ const T: Record<Lang, {
     rev_2: "연 멤버십", rev_2_val: "₩29,000 / 년",
     rev_3: "Badge 판매", rev_3_val: "₩49,000 ~ ₩299,000",
     rev_4: "변호사 수수료", rev_4_val: "보수의 15~25%",
-    ltv_label: "고객 생애 가치 (LTV)", ltv_val: "$5,500+",
+    ltv_label: "고객 생애 가치 (LTV)", ltv_val: "₩7,260,000+",
     finance_title: "재무 전망",
-    finance_sub: "보수적 시나리오 기준 3개년 목표",
-    finance_arr_title: "연간 반복 매출 (ARR) 목표",
+    finance_sub: "보수적 시나리오 기준 3개년 목표 (원화 기준)",
+    finance_arr_title: "연간 반복 매출 (ARR) 목표 (억원)",
     finance_user_title: "누적 인증 사용자 목표",
+    ads_title: "마케팅 전략",
+    ads_sub: "미디어·SNS·온라인 광고로 글로벌 가입자 유치",
+    ads_media_title: "미디어 광고", ads_media_desc: "TV·라디오·신문·잡지 등 전통 미디어 + 유튜브 프리롤 광고. 재외한인 커뮤니티 방송 집중 노출.",
+    ads_sns_title: "SNS 마케팅", ads_sns_desc: "인스타그램·페이스북·카카오·LINE·WeChat 타깃 광고. 50~70대 고령층 + 재외한인 맞춤 콘텐츠.",
+    ads_online_title: "온라인 광고", ads_online_desc: "구글 검색 광고 (유언장, 상속, 유언 작성 키워드). 네이버·야후재팬·바이두 검색 광고 동시 운영.",
+    ads_user_title: "가입자 유치 캠페인", ads_user_desc: "무료 AI 유언 작성 체험 → 전자인증 전환 유도. 추천인 제도: 1인 추천 시 재인증 1회 무료 제공.",
+    ads_budget_title: "마케팅 예산 배분 계획",
+    ads_budget_items: [
+      { label: "SNS 광고", pct: "35%", desc: "인스타그램·페이스북·카카오·LINE" },
+      { label: "검색 광고", pct: "30%", desc: "구글·네이버·야후재팬·바이두" },
+      { label: "미디어 광고", pct: "20%", desc: "유튜브·TV·라디오·재외한인 방송" },
+      { label: "추천·바이럴", pct: "15%", desc: "추천인 제도·인플루언서·커뮤니티" },
+    ],
     roadmap_title: "글로벌 출시 로드맵",
     roadmap_sub: "12개월 안에 4개국 동시 진출",
     rm_1_q: "Q1 2026", rm_1_title: "🇰🇷 한국 런칭",
@@ -189,6 +304,13 @@ const T: Record<Lang, {
     cta_btn: "투자 문의 보내기",
     cta_email: "adoco98@gmail.com",
     footer_conf: "본 자료는 기밀입니다. 무단 배포를 금합니다.",
+    slides: [
+      { badge: "세계 최초", title: "유언 산업의 OS", sub: "작성부터 사후 자동 집행까지", highlight: "Trust & Will을 뛰어넘는 글로벌 플랫폼" },
+      { badge: "핵심 차별화", title: "물리적 Badge 시스템", sub: "MedicAlert + AirTag + 유언 인증", highlight: "전 세계 어떤 유언 플랫폼도 시도하지 않은 혁신" },
+      { badge: "글로벌 시장", title: "1,840억 달러 시장", sub: "2030년 글로벌 유언 시장 규모", highlight: "한국·일본·미국·중국 동시 진출" },
+      { badge: "수익 모델", title: "LTV ₩7,260,000+", sub: "Trust & Will 대비 28배 고객 생애 가치", highlight: "재인증 ₩15,000으로 평생 반복 수익" },
+      { badge: "투자 기회", title: "시드 라운드 모집 중", sub: "목표 조달액: ₩5억 ~ ₩10억", highlight: "Pre-money Valuation: ₩30억" },
+    ],
   },
   en: {
     nav_invest: "Investors Only",
@@ -196,7 +318,6 @@ const T: Record<Lang, {
     hero_title: "Becoming the OS\nof the Will Industry",
     hero_sub: "An all-in-one global will platform surpassing Trust & Will, Farewill, and GoodTrust.\nFrom writing to automatic post-death execution — we own the entire journey.",
     hero_cta: "Contact for Investment",
-    metrics_title: "Key Metrics",
     m1_label: "Target MAU (Year 2)", m1_val: "50,000",
     m2_label: "Target ARR (Year 3)", m2_val: "$12M",
     m3_label: "Target Countries", m3_val: "7",
@@ -209,14 +330,14 @@ const T: Record<Lang, {
     comp_sub: "Unique features only EverWill provides",
     comp_feature: "Feature",
     comp_everwill: "EverWill",
-    comp_tw: "Trust & Will",
-    comp_fw: "Farewill",
-    comp_gt: "GoodTrust",
+    comp_tw: "Trust & Will", comp_tw_country: "🇺🇸 USA",
+    comp_fw: "Farewill", comp_fw_country: "🇬🇧 UK",
+    comp_gt: "GoodTrust", comp_gt_country: "🇺🇸 USA",
     comp_rows: [
-      { feature: "Physical Badge System", ew: "✅ World's First", tw: "❌", fw: "❌", gt: "❌" },
+      { feature: "Physical Badge System", ew: "✅ World First", tw: "❌", fw: "❌", gt: "❌" },
       { feature: "4-Layer Death Detection", ew: "✅ Automated", tw: "❌ Manual", fw: "❌ Manual", gt: "❌ Manual" },
-      { feature: "Lawyer Marketplace", ew: "✅ Post-death exec.", tw: "⚠️ Pre-death only", fw: "⚠️ Limited", gt: "❌" },
-      { feature: "Global Multi-jurisdiction", ew: "✅ 7 countries", tw: "❌ US only", fw: "❌ UK only", gt: "❌ US only" },
+      { feature: "Lawyer Marketplace", ew: "✅ Post-death exec.", tw: "⚠️ Life only", fw: "⚠️ Limited", gt: "❌" },
+      { feature: "Global Multi-jurisdiction", ew: "✅ 7 Countries", tw: "❌ US only", fw: "❌ UK only", gt: "❌ US only" },
       { feature: "AI Checkbox Writing", ew: "✅ 17 minutes", tw: "⚠️ Complex", fw: "⚠️ Complex", gt: "⚠️ Complex" },
       { feature: "Video Will", ew: "✅ Included", tw: "❌", fw: "❌", gt: "⚠️ Limited" },
       { feature: "7 Languages (RTL)", ew: "✅ RTL included", tw: "❌ English only", fw: "❌ English only", gt: "❌ English only" },
@@ -239,9 +360,22 @@ const T: Record<Lang, {
     rev_4: "Lawyer Commission", rev_4_val: "15~25% of fees",
     ltv_label: "Customer Lifetime Value (LTV)", ltv_val: "$5,500+",
     finance_title: "Financial Projections",
-    finance_sub: "3-year targets based on conservative scenario",
-    finance_arr_title: "Annual Recurring Revenue (ARR) Target",
+    finance_sub: "3-year targets based on conservative scenario (USD)",
+    finance_arr_title: "Annual Recurring Revenue (ARR) Target ($M)",
     finance_user_title: "Cumulative Certified Users Target",
+    ads_title: "Marketing Strategy",
+    ads_sub: "Acquiring global subscribers via Media, SNS & Online Advertising",
+    ads_media_title: "Media Advertising", ads_media_desc: "TV, radio, print + YouTube pre-roll ads. Focused exposure on Korean diaspora community broadcasts.",
+    ads_sns_title: "SNS Marketing", ads_sns_desc: "Targeted ads on Instagram, Facebook, KakaoTalk, LINE, WeChat. Custom content for 50-70 age group & Korean diaspora.",
+    ads_online_title: "Online Advertising", ads_online_desc: "Google Search Ads (will, inheritance, estate planning keywords). Simultaneous campaigns on Naver, Yahoo Japan, Baidu.",
+    ads_user_title: "User Acquisition Campaign", ads_user_desc: "Free AI will writing trial → conversion to e-certification. Referral program: 1 referral = 1 free re-certification.",
+    ads_budget_title: "Marketing Budget Allocation",
+    ads_budget_items: [
+      { label: "SNS Ads", pct: "35%", desc: "Instagram, Facebook, KakaoTalk, LINE" },
+      { label: "Search Ads", pct: "30%", desc: "Google, Naver, Yahoo Japan, Baidu" },
+      { label: "Media Ads", pct: "20%", desc: "YouTube, TV, Radio, Diaspora broadcasts" },
+      { label: "Referral & Viral", pct: "15%", desc: "Referral program, influencers, communities" },
+    ],
     roadmap_title: "Global Launch Roadmap",
     roadmap_sub: "4 countries in 12 months",
     rm_1_q: "Q1 2026", rm_1_title: "🇰🇷 Korea Launch",
@@ -274,6 +408,13 @@ const T: Record<Lang, {
     cta_btn: "Send Investment Inquiry",
     cta_email: "adoco98@gmail.com",
     footer_conf: "This document is confidential. Unauthorized distribution is prohibited.",
+    slides: [
+      { badge: "World's First", title: "OS of the Will Industry", sub: "From writing to automatic post-death execution", highlight: "The global platform surpassing Trust & Will" },
+      { badge: "Key Differentiator", title: "Physical Badge System", sub: "MedicAlert + AirTag + Will Certification", highlight: "Innovation no will platform has attempted worldwide" },
+      { badge: "Global Market", title: "$184B Market", sub: "2030 global will market size", highlight: "Simultaneous entry: Korea, Japan, USA, China" },
+      { badge: "Revenue Model", title: "LTV $5,500+", sub: "28x customer lifetime value vs Trust & Will", highlight: "$15 re-certification drives lifetime recurring revenue" },
+      { badge: "Investment", title: "Seed Round Open", sub: "Target: ₩500M ~ ₩1B", highlight: "Pre-money Valuation: ₩3B (≈ $2.3M)" },
+    ],
   },
   ja: {
     nav_invest: "投資家専用",
@@ -281,60 +422,72 @@ const T: Record<Lang, {
     hero_title: "遺言業界の\nOSになります",
     hero_sub: "Trust & Will・Farewill・GoodTrustを超えるオールインワングローバル遺言プラットフォーム。\n作成から死後自動執行まで、全プロセスを担います。",
     hero_cta: "投資お問い合わせ",
-    metrics_title: "主要指標",
     m1_label: "目標MAU（Year 2）", m1_val: "50,000",
-    m2_label: "目標ARR（Year 3）", m2_val: "$12M",
+    m2_label: "目標ARR（Year 3）", m2_val: "1,776億円",
     m3_label: "目標国数", m3_val: "7カ国",
-    m4_label: "顧客LTV", m4_val: "$5,500+",
+    m4_label: "顧客LTV", m4_val: "¥814,800+",
     market_title: "グローバル遺言市場の機会",
     market_sub: "世界的な高齢化とデジタル転換が生む巨大な市場機会",
-    market_chart_title: "国別市場規模（2030年予測、$B）",
-    market_growth_title: "グローバル市場成長予測（$B）",
+    market_chart_title: "国別市場規模（2030年予測、兆円）",
+    market_growth_title: "グローバル市場成長予測（兆円）",
     comp_title: "競合比較",
     comp_sub: "EverWillだけが提供する独自機能",
     comp_feature: "機能",
     comp_everwill: "EverWill",
-    comp_tw: "Trust & Will",
-    comp_fw: "Farewill",
-    comp_gt: "GoodTrust",
+    comp_tw: "Trust & Will", comp_tw_country: "🇺🇸 米国",
+    comp_fw: "Farewill", comp_fw_country: "🇬🇧 英国",
+    comp_gt: "GoodTrust", comp_gt_country: "🇺🇸 米国",
     comp_rows: [
       { feature: "物理的Badgeシステム", ew: "✅ 世界初", tw: "❌", fw: "❌", gt: "❌" },
       { feature: "4重死亡検知", ew: "✅ 自動化", tw: "❌ 手動", fw: "❌ 手動", gt: "❌ 手動" },
-      { feature: "弁護士マーケット", ew: "✅ 死後執行", tw: "⚠️ 生前のみ", fw: "⚠️ 限定的", gt: "❌" },
+      { feature: "弁護士マーケットプレイス", ew: "✅ 死後執行", tw: "⚠️ 生前のみ", fw: "⚠️ 制限的", gt: "❌" },
       { feature: "グローバル多管轄", ew: "✅ 7カ国", tw: "❌ 米国のみ", fw: "❌ 英国のみ", gt: "❌ 米国のみ" },
-      { feature: "AIチェックボックス", ew: "✅ 17分", tw: "⚠️ 複雑", fw: "⚠️ 複雑", gt: "⚠️ 複雑" },
-      { feature: "動画遺言", ew: "✅ 含む", tw: "❌", fw: "❌", gt: "⚠️ 限定的" },
+      { feature: "AIチェックボックス作成", ew: "✅ 17分", tw: "⚠️ 複雑", fw: "⚠️ 複雑", gt: "⚠️ 複雑" },
+      { feature: "動画遺言", ew: "✅ 含む", tw: "❌", fw: "❌", gt: "⚠️ 制限的" },
       { feature: "7言語対応（RTL）", ew: "✅ RTL含む", tw: "❌ 英語のみ", fw: "❌ 英語のみ", gt: "❌ 英語のみ" },
-      { feature: "再認証費用", ew: "✅ ¥1,500", tw: "❌ $299/年", fw: "❌ £90/年", gt: "❌ $149/年" },
+      { feature: "再認証費用", ew: "✅ ¥2,220", tw: "❌ $299/年", fw: "❌ £90/年", gt: "❌ $149/年" },
     ],
-    diff_title: "なぜEverWillなのか？",
+    diff_title: "なぜEverWillか？",
     diff_sub: "既存競合が解決できなかった10の革新",
     diff_1_title: "物理的Badgeシステム", diff_1_desc: "MedicAlert + AirTag + 遺言認証を一つに。世界のどの遺言プラットフォームも試みていない永続的差別化。",
-    diff_2_title: "4重死亡検知", diff_2_desc: "家族申告 → 政府DB → Dead Man's Switch → 緊急発見者。自動執行トリガーシステム。",
-    diff_3_title: "弁護士マーケット", diff_3_desc: "生前0%、死後100%。本当に必要な瞬間だけ登場する専門家ネットワーク。",
-    diff_4_title: "チェックボックス17分完成", diff_4_desc: "白紙の恐怖をなくしました。AIがチェックボックスを法律文章に自動変換。",
-    diff_5_title: "グローバル多管轄", diff_5_desc: "韓国+米国+日本の資産を同時に。このようなサービスは現在世界に存在しません。",
-    diff_6_title: "LTV 28倍", diff_6_desc: "再認証¥1,500で人生イベントごとに再訪問。Trust & Will比28倍LTV。",
+    diff_2_title: "4重死亡検知", diff_2_desc: "家族報告 → 政府DB → Dead Man's Switch → 緊急発見者。自動執行トリガーシステム。",
+    diff_3_title: "弁護士マーケットプレイス", diff_3_desc: "平時0%、死後100%。本当に必要な瞬間だけ登場する専門家ネットワーク。",
+    diff_4_title: "チェックボックス17分完成", diff_4_desc: "白紙の恐怖を排除。AIがチェックボックスを法律文章に自動変換。",
+    diff_5_title: "グローバル多管轄", diff_5_desc: "韓国 + 米国 + 日本の資産を同時に。このようなサービスは現在世界に存在しません。",
+    diff_6_title: "LTV 28倍", diff_6_desc: "¥2,220再認証で生涯イベントごとに再訪問。Trust & Will比28倍のLTV。",
     revenue_title: "収益モデル",
     revenue_sub: "多層収益構造による安定成長",
     rev_pie_title: "収益構成比率",
-    rev_1: "電子認証", rev_1_val: "¥5,000 / 件",
-    rev_2: "年間メンバーシップ", rev_2_val: "¥3,000 / 年",
-    rev_3: "Badge販売", rev_3_val: "¥5,000 ~ ¥30,000",
+    rev_1: "電子認証", rev_1_val: "¥5,772 / 件",
+    rev_2: "年間メンバーシップ", rev_2_val: "¥4,292 / 年",
+    rev_3: "Badge販売", rev_3_val: "¥7,252 ~ ¥44,252",
     rev_4: "弁護士手数料", rev_4_val: "報酬の15~25%",
-    ltv_label: "顧客生涯価値（LTV）", ltv_val: "$5,500+",
+    ltv_label: "顧客生涯価値（LTV）", ltv_val: "¥814,800+",
     finance_title: "財務予測",
-    finance_sub: "保守的シナリオに基づく3年間目標",
-    finance_arr_title: "年間反復収益（ARR）目標",
+    finance_sub: "保守的シナリオ基準3カ年目標（円建て）",
+    finance_arr_title: "年間反復売上（ARR）目標（億円）",
     finance_user_title: "累積認証ユーザー目標",
+    ads_title: "マーケティング戦略",
+    ads_sub: "メディア・SNS・オンライン広告でグローバル会員獲得",
+    ads_media_title: "メディア広告", ads_media_desc: "TV・ラジオ・新聞・雑誌 + YouTube プレロール広告。在日韓国人コミュニティ放送への集中露出。",
+    ads_sns_title: "SNSマーケティング", ads_sns_desc: "Instagram・Facebook・LINE・WeChat ターゲット広告。50〜70代高齢層 + 在外韓国人向けカスタムコンテンツ。",
+    ads_online_title: "オンライン広告", ads_online_desc: "Google検索広告（遺言書、相続、遺言作成キーワード）。Yahoo!Japan・百度同時運用。",
+    ads_user_title: "会員獲得キャンペーン", ads_user_desc: "無料AI遺言作成体験 → 電子認証への転換誘導。紹介制度：1人紹介で再認証1回無料。",
+    ads_budget_title: "マーケティング予算配分計画",
+    ads_budget_items: [
+      { label: "SNS広告", pct: "35%", desc: "Instagram・Facebook・LINE・WeChat" },
+      { label: "検索広告", pct: "30%", desc: "Google・Yahoo!Japan・百度" },
+      { label: "メディア広告", pct: "20%", desc: "YouTube・TV・ラジオ・在外韓国人放送" },
+      { label: "紹介・バイラル", pct: "15%", desc: "紹介制度・インフルエンサー・コミュニティ" },
+    ],
     roadmap_title: "グローバル展開ロードマップ",
     roadmap_sub: "12ヶ月で4カ国同時進出",
     rm_1_q: "Q1 2026", rm_1_title: "🇰🇷 韓国ローンチ",
-    rm_1_items: ["MVP公開", "eKYC連携", "Toss決済", "Badge生産"],
+    rm_1_items: ["MVPリリース", "eKYC連携", "Toss Payments決済", "Badge生産"],
     rm_2_q: "Q2 2026", rm_2_title: "🇯🇵 日本進出",
     rm_2_items: ["公正証書デジタル化対応", "日本語完全対応", "PayPay連携", "現地弁護士採用"],
     rm_3_q: "Q3 2026", rm_3_title: "🇨🇳 中華圏進出",
-    rm_3_items: ["香港・台湾から先行", "WeChat Pay連携", "中国語簡体字対応", "現地パートナーシップ"],
+    rm_3_items: ["香港・台湾から先行", "WeChat Pay連携", "簡体字中国語対応", "現地パートナーシップ"],
     rm_4_q: "Q4 2026", rm_4_title: "🇺🇸 米国進出",
     rm_4_items: ["在米韓国人100万人ターゲット", "Stripe決済", "英語完全対応", "CA・NY法律適用"],
     team_title: "チーム",
@@ -343,14 +496,14 @@ const T: Record<Lang, {
     t1_role: "CEO · 株式会社SARAM",
     t1_desc: "30年の事業経験。製品開発・企画の専門家。グローバル遺言プラットフォーム1位を目指します。",
     invest_title: "投資条件",
-    invest_sub: "シードラウンド調達中",
+    invest_sub: "シードラウンド投資募集中",
     invest_round: "シードラウンド",
-    invest_amount: "目標調達額：₩5億〜₩10億",
-    invest_valuation: "Pre-money Valuation：₩30億",
-    invest_use: "資金使途",
+    invest_amount: "目標調達額：₩5億〜₩10億（≈¥5,550万〜¥1.11億）",
+    invest_valuation: "Pre-money Valuation：₩30億（≈¥3.33億）",
+    invest_use: "投資金使途計画",
     invest_use_items: [
-      { label: "製品開発", pct: "40%", desc: "AI遺言エンジン、eKYC、ブロックチェーン認証" },
-      { label: "マーケティング・営業", pct: "30%", desc: "韓国・日本ローンチキャンペーン" },
+      { label: "製品開発", pct: "40%", desc: "AI遺言作成エンジン、eKYC、ブロックチェーン認証" },
+      { label: "マーケティング・営業", pct: "30%", desc: "韓国・日本ローンチキャンペーン、在外韓国人ターゲット" },
       { label: "法務・コンプライアンス", pct: "15%", desc: "各国法律審査、弁護士パートナーシップ" },
       { label: "運営・インフラ", pct: "15%", desc: "サーバー、セキュリティ、カスタマーサポート" },
     ],
@@ -359,34 +512,40 @@ const T: Record<Lang, {
     cta_btn: "投資お問い合わせを送る",
     cta_email: "adoco98@gmail.com",
     footer_conf: "本資料は機密です。無断配布を禁じます。",
+    slides: [
+      { badge: "世界初", title: "遺言業界のOS", sub: "作成から死後自動執行まで", highlight: "Trust & Willを超えるグローバルプラットフォーム" },
+      { badge: "核心差別化", title: "物理的Badgeシステム", sub: "MedicAlert + AirTag + 遺言認証", highlight: "世界のどの遺言プラットフォームも試みていない革新" },
+      { badge: "グローバル市場", title: "1,840億ドル市場", sub: "2030年グローバル遺言市場規模", highlight: "韓国・日本・米国・中国同時進出" },
+      { badge: "収益モデル", title: "LTV ¥814,800+", sub: "Trust & Will比28倍の顧客生涯価値", highlight: "¥2,220再認証で生涯反復収益" },
+      { badge: "投資機会", title: "シードラウンド募集中", sub: "目標調達額：₩5億〜₩10億", highlight: "Pre-money Valuation：₩30億" },
+    ],
   },
   zh: {
     nav_invest: "仅限投资者",
     hero_badge: "🌍 全球首个数字遗嘱OS",
     hero_title: "成为遗嘱行业的\nOS",
-    hero_sub: "超越Trust & Will、Farewill、GoodTrust的一站式全球遗嘱平台。\n从撰写到身后自动执行，全程负责。",
+    hero_sub: "超越Trust & Will、Farewill、GoodTrust的一体化全球遗嘱平台。\n从撰写到身后自动执行，全程负责。",
     hero_cta: "投资咨询",
-    metrics_title: "核心指标",
     m1_label: "目标MAU（第2年）", m1_val: "50,000",
-    m2_label: "目标ARR（第3年）", m2_val: "$12M",
+    m2_label: "目标ARR（第3年）", m2_val: "8,640万元",
     m3_label: "目标国家", m3_val: "7个国家",
-    m4_label: "客户LTV", m4_val: "$5,500+",
+    m4_label: "客户LTV", m4_val: "¥39,600+",
     market_title: "全球遗嘱市场机会",
     market_sub: "全球老龄化与数字化转型带来的巨大市场机会",
-    market_chart_title: "各国市场规模（2030年预测，$B）",
-    market_growth_title: "全球市场增长预测（$B）",
+    market_chart_title: "各国市场规模（2030年预测，十亿元）",
+    market_growth_title: "全球市场增长预测（十亿元）",
     comp_title: "竞争对手比较",
-    comp_sub: "只有EverWill提供的独特功能",
+    comp_sub: "只有EverWill提供的独创功能",
     comp_feature: "功能",
     comp_everwill: "EverWill",
-    comp_tw: "Trust & Will",
-    comp_fw: "Farewill",
-    comp_gt: "GoodTrust",
+    comp_tw: "Trust & Will", comp_tw_country: "🇺🇸 美国",
+    comp_fw: "Farewill", comp_fw_country: "🇬🇧 英国",
+    comp_gt: "GoodTrust", comp_gt_country: "🇺🇸 美国",
     comp_rows: [
-      { feature: "物理Badge系统", ew: "✅ 全球首创", tw: "❌", fw: "❌", gt: "❌" },
+      { feature: "实体Badge系统", ew: "✅ 全球首创", tw: "❌", fw: "❌", gt: "❌" },
       { feature: "四重死亡检测", ew: "✅ 自动化", tw: "❌ 手动", fw: "❌ 手动", gt: "❌ 手动" },
       { feature: "律师市场", ew: "✅ 身后执行", tw: "⚠️ 仅生前", fw: "⚠️ 有限", gt: "❌" },
-      { feature: "全球多司法管辖", ew: "✅ 7个国家", tw: "❌ 仅美国", fw: "❌ 仅英国", gt: "❌ 仅美国" },
+      { feature: "全球多管辖权", ew: "✅ 7个国家", tw: "❌ 仅美国", fw: "❌ 仅英国", gt: "❌ 仅美国" },
       { feature: "AI复选框撰写", ew: "✅ 17分钟", tw: "⚠️ 复杂", fw: "⚠️ 复杂", gt: "⚠️ 复杂" },
       { feature: "视频遗嘱", ew: "✅ 包含", tw: "❌", fw: "❌", gt: "⚠️ 有限" },
       { feature: "7种语言（RTL）", ew: "✅ 含RTL", tw: "❌ 仅英语", fw: "❌ 仅英语", gt: "❌ 仅英语" },
@@ -394,149 +553,187 @@ const T: Record<Lang, {
     ],
     diff_title: "为什么选择EverWill？",
     diff_sub: "现有竞争对手未能解决的10项创新",
-    diff_1_title: "物理Badge系统", diff_1_desc: "MedicAlert + AirTag + 遗嘱认证合而为一。全球任何遗嘱平台都未尝试过的永久差异化。",
-    diff_2_title: "四重死亡检测", diff_2_desc: "家属申报 → 政府DB → Dead Man's Switch → 紧急发现者。自动执行触发系统。",
-    diff_3_title: "律师市场", diff_3_desc: "生前0%，身后100%。只在真正需要时出现的专家网络。",
-    diff_4_title: "复选框17分钟完成", diff_4_desc: "消除了空白页的恐惧。AI自动将复选框转换为法律语言。",
-    diff_5_title: "全球多司法管辖", diff_5_desc: "同时管理韩国+美国+日本资产。目前全球没有此类服务。",
-    diff_6_title: "LTV 28倍", diff_6_desc: "¥108重新认证在每个人生事件时重复访问。LTV是Trust & Will的28倍。",
+    diff_1_title: "实体Badge系统", diff_1_desc: "MedicAlert + AirTag + 遗嘱认证合一。全球任何遗嘱平台都未尝试的永久差异化。",
+    diff_2_title: "四重死亡检测", diff_2_desc: "家属报告 → 政府数据库 → Dead Man's Switch → 紧急发现者。自动执行触发系统。",
+    diff_3_title: "律师市场", diff_3_desc: "平时0%，身后100%。只在真正需要时出现的专家网络。",
+    diff_4_title: "复选框17分钟完成", diff_4_desc: "消除了白纸恐惧。AI自动将复选框转换为法律语言。",
+    diff_5_title: "全球多管辖权", diff_5_desc: "同时管理韩国+美国+日本资产。目前全球没有此类服务。",
+    diff_6_title: "LTV 28倍", diff_6_desc: "¥108重新认证驱动每次生命事件的重复访问。LTV是Trust & Will的28倍。",
     revenue_title: "收益模式",
-    revenue_sub: "多层次收益结构实现稳定增长",
+    revenue_sub: "多层收益结构实现稳定增长",
     rev_pie_title: "收益构成比例",
-    rev_1: "电子认证", rev_1_val: "¥280 / 件",
-    rev_2: "年度会员", rev_2_val: "¥200 / 年",
-    rev_3: "Badge销售", rev_3_val: "¥280 ~ ¥2,100",
+    rev_1: "电子认证", rev_1_val: "¥281 / 件",
+    rev_2: "年度会员", rev_2_val: "¥209 / 年",
+    rev_3: "Badge销售", rev_3_val: "¥353 ~ ¥2,160",
     rev_4: "律师佣金", rev_4_val: "报酬的15~25%",
-    ltv_label: "客户生命周期价值（LTV）", ltv_val: "$5,500+",
+    ltv_label: "客户终身价值（LTV）", ltv_val: "¥39,600+",
     finance_title: "财务预测",
-    finance_sub: "基于保守情景的3年目标",
-    finance_arr_title: "年度经常性收入（ARR）目标",
+    finance_sub: "基于保守情景的3年目标（人民币）",
+    finance_arr_title: "年度经常性收入（ARR）目标（百万元）",
     finance_user_title: "累计认证用户目标",
+    ads_title: "营销策略",
+    ads_sub: "通过媒体、SNS和在线广告获取全球用户",
+    ads_media_title: "媒体广告", ads_media_desc: "电视、广播、报纸 + YouTube前贴片广告。重点投放海外韩国人社区频道。",
+    ads_sns_title: "SNS营销", ads_sns_desc: "微信、微博、Instagram、Facebook定向广告。针对50-70岁老年群体和海外韩国人的定制内容。",
+    ads_online_title: "在线广告", ads_online_desc: "百度搜索广告（遗嘱、继承、遗产规划关键词）。同时运营Google、Naver、Yahoo Japan。",
+    ads_user_title: "用户获取活动", ads_user_desc: "免费AI遗嘱撰写体验 → 引导电子认证转化。推荐计划：推荐1人可获1次免费重新认证。",
+    ads_budget_title: "营销预算分配计划",
+    ads_budget_items: [
+      { label: "SNS广告", pct: "35%", desc: "微信、微博、Instagram、Facebook" },
+      { label: "搜索广告", pct: "30%", desc: "百度、Google、Naver、Yahoo Japan" },
+      { label: "媒体广告", pct: "20%", desc: "YouTube、电视、广播、海外韩国人频道" },
+      { label: "推荐与病毒式传播", pct: "15%", desc: "推荐计划、网红、社区" },
+    ],
     roadmap_title: "全球发布路线图",
     roadmap_sub: "12个月内同时进入4个国家",
-    rm_1_q: "Q1 2026", rm_1_title: "🇰🇷 韩国上线",
+    rm_1_q: "Q1 2026", rm_1_title: "🇰🇷 韩国启动",
     rm_1_items: ["MVP发布", "eKYC集成", "Toss支付", "Badge生产"],
     rm_2_q: "Q2 2026", rm_2_title: "🇯🇵 进入日本",
-    rm_2_items: ["公证书数字化支持", "完整日语支持", "PayPay集成", "本地律师招募"],
+    rm_2_items: ["公证书数字化支持", "完整日语支持", "PayPay集成", "当地律师招募"],
     rm_3_q: "Q3 2026", rm_3_title: "🇨🇳 进入中华圈",
-    rm_3_items: ["香港·台湾优先", "微信支付集成", "简体中文支持", "本地合作伙伴"],
+    rm_3_items: ["香港、台湾优先", "微信支付集成", "简体中文支持", "当地合作伙伴"],
     rm_4_q: "Q4 2026", rm_4_title: "🇺🇸 进入美国",
-    rm_4_items: ["100万韩裔美国人目标", "Stripe支付", "完整英语支持", "CA·NY法律"],
+    rm_4_items: ["100万韩裔美国人目标", "Stripe支付", "完整英语支持", "加州纽约法律"],
     team_title: "团队",
     team_sub: "执行愿景的人们",
     t1_name: "Jeff Lah（라수환）",
-    t1_role: "CEO · SARAM Corp.",
+    t1_role: "CEO · SARAM公司",
     t1_desc: "30年商业经验。产品开发与规划专家。目标成为全球遗嘱平台第一。",
     invest_title: "投资条件",
-    invest_sub: "正在进行种子轮融资",
+    invest_sub: "正在募集种子轮投资",
     invest_round: "种子轮",
-    invest_amount: "目标融资额：₩5亿~₩10亿",
-    invest_valuation: "Pre-money估值：₩30亿",
-    invest_use: "资金用途",
+    invest_amount: "目标募资：₩5亿〜₩10亿（约¥360万〜¥720万）",
+    invest_valuation: "投前估值：₩30亿（约¥2,160万）",
+    invest_use: "资金使用计划",
     invest_use_items: [
       { label: "产品开发", pct: "40%", desc: "AI遗嘱引擎、eKYC、区块链认证" },
-      { label: "营销与销售", pct: "30%", desc: "韩国·日本上线活动，海外韩裔定向" },
-      { label: "法务与合规", pct: "15%", desc: "各国法律审查，律师合作关系" },
+      { label: "营销与销售", pct: "30%", desc: "韩国、日本启动活动，海外韩国人定向" },
+      { label: "法务与合规", pct: "15%", desc: "各国法律审查，律师合作" },
       { label: "运营与基础设施", pct: "15%", desc: "服务器、安全、客户支持系统" },
     ],
     cta_title: "让我们共同创造",
     cta_sub: "我们正在寻找愿意加入EverWill全球旅程的投资者。\n立即联系我们。",
     cta_btn: "发送投资咨询",
     cta_email: "adoco98@gmail.com",
-    footer_conf: "本资料为机密。禁止未经授权的分发。",
+    footer_conf: "本文件为机密文件，禁止未经授权的分发。",
+    slides: [
+      { badge: "全球首创", title: "遗嘱行业的OS", sub: "从撰写到身后自动执行", highlight: "超越Trust & Will的全球平台" },
+      { badge: "核心差异化", title: "实体Badge系统", sub: "MedicAlert + AirTag + 遗嘱认证", highlight: "全球任何遗嘱平台都未尝试的创新" },
+      { badge: "全球市场", title: "1,840亿美元市场", sub: "2030年全球遗嘱市场规模", highlight: "韩国、日本、美国、中国同时进入" },
+      { badge: "收益模式", title: "LTV ¥39,600+", sub: "客户终身价值是Trust & Will的28倍", highlight: "¥108重新认证驱动终身循环收益" },
+      { badge: "投资机会", title: "种子轮开放中", sub: "目标募资：₩5亿〜₩10亿", highlight: "投前估值：₩30亿" },
+    ],
   },
   de: {
     nav_invest: "Nur für Investoren",
     hero_badge: "🌍 Weltweit erstes digitales Testament-OS",
-    hero_title: "Das OS der\nTestamentsbranche werden",
-    hero_sub: "Eine All-in-One-Plattform, die Trust & Will, Farewill und GoodTrust übertrifft.\nVon der Erstellung bis zur automatischen posthumen Ausführung.",
+    hero_title: "Das OS der\nTestament-Industrie werden",
+    hero_sub: "Eine All-in-One-Plattform, die Trust & Will, Farewill und GoodTrust übertrifft.\nVon der Erstellung bis zur automatischen Nachlass-Abwicklung.",
     hero_cta: "Investitionsanfrage",
-    metrics_title: "Schlüsselkennzahlen",
     m1_label: "Ziel-MAU (Jahr 2)", m1_val: "50.000",
-    m2_label: "Ziel-ARR (Jahr 3)", m2_val: "$12M",
-    m3_label: "Zielmärkte", m3_val: "7 Länder",
-    m4_label: "Kunden-LTV", m4_val: "$5.500+",
-    market_title: "Globale Testamentsmarkt-Chance",
+    m2_label: "Ziel-ARR (Jahr 3)", m2_val: "€11,2Mio.",
+    m3_label: "Zielländer", m3_val: "7 Länder",
+    m4_label: "Kunden-LTV", m4_val: "€5.115+",
+    market_title: "Globale Testament-Marktchance",
     market_sub: "Riesige Marktchance durch globale Alterung und digitale Transformation",
-    market_chart_title: "Marktgröße nach Land (2030 Prognose, $B)",
-    market_growth_title: "Globales Marktwachstum ($B)",
+    market_chart_title: "Marktgröße nach Land (Prognose 2030, Mrd. €)",
+    market_growth_title: "Globale Marktentwicklung (Mrd. €)",
     comp_title: "Wettbewerbsanalyse",
     comp_sub: "Einzigartige Funktionen, die nur EverWill bietet",
     comp_feature: "Funktion",
     comp_everwill: "EverWill",
-    comp_tw: "Trust & Will",
-    comp_fw: "Farewill",
-    comp_gt: "GoodTrust",
+    comp_tw: "Trust & Will", comp_tw_country: "🇺🇸 USA",
+    comp_fw: "Farewill", comp_fw_country: "🇬🇧 UK",
+    comp_gt: "GoodTrust", comp_gt_country: "🇺🇸 USA",
     comp_rows: [
-      { feature: "Physisches Badge-System", ew: "✅ Weltweit 1.", tw: "❌", fw: "❌", gt: "❌" },
-      { feature: "4-fache Todeserkennung", ew: "✅ Automatisch", tw: "❌ Manuell", fw: "❌ Manuell", gt: "❌ Manuell" },
-      { feature: "Anwalts-Marktplatz", ew: "✅ Posthume Ausf.", tw: "⚠️ Nur zu Lebzeiten", fw: "⚠️ Begrenzt", gt: "❌" },
+      { feature: "Physisches Badge-System", ew: "✅ Weltweit Erste", tw: "❌", fw: "❌", gt: "❌" },
+      { feature: "4-Schicht-Todeserkennung", ew: "✅ Automatisiert", tw: "❌ Manuell", fw: "❌ Manuell", gt: "❌ Manuell" },
+      { feature: "Anwalts-Marktplatz", ew: "✅ Nachlassabwicklung", tw: "⚠️ Nur Lebzeiten", fw: "⚠️ Begrenzt", gt: "❌" },
       { feature: "Globale Multi-Jurisdiktion", ew: "✅ 7 Länder", tw: "❌ Nur USA", fw: "❌ Nur UK", gt: "❌ Nur USA" },
       { feature: "KI-Checkbox-Erstellung", ew: "✅ 17 Minuten", tw: "⚠️ Komplex", fw: "⚠️ Komplex", gt: "⚠️ Komplex" },
-      { feature: "Video-Testament", ew: "✅ Inklusive", tw: "❌", fw: "❌", gt: "⚠️ Begrenzt" },
-      { feature: "7 Sprachen (RTL)", ew: "✅ RTL inklusive", tw: "❌ Nur Englisch", fw: "❌ Nur Englisch", gt: "❌ Nur Englisch" },
+      { feature: "Video-Testament", ew: "✅ Enthalten", tw: "❌", fw: "❌", gt: "⚠️ Begrenzt" },
+      { feature: "7 Sprachen (RTL)", ew: "✅ RTL enthalten", tw: "❌ Nur Englisch", fw: "❌ Nur Englisch", gt: "❌ Nur Englisch" },
       { feature: "Re-Zertifizierungskosten", ew: "✅ €14", tw: "❌ $299/Jahr", fw: "❌ £90/Jahr", gt: "❌ $149/Jahr" },
     ],
     diff_title: "Warum EverWill?",
     diff_sub: "10 Innovationen, die Wettbewerber nicht gelöst haben",
-    diff_1_title: "Physisches Badge-System", diff_1_desc: "MedicAlert + AirTag + Testamentsauthentifizierung in einem. Permanente Differenzierung, die keine Testamentsplattform versucht hat.",
-    diff_2_title: "4-fache Todeserkennung", diff_2_desc: "Familienmeldung → Regierungs-DB → Dead Man's Switch → Notfallentdecker. Automatischer Ausführungstrigger.",
+    diff_1_title: "Physisches Badge-System", diff_1_desc: "MedicAlert + AirTag + Testament-Zertifizierung in einem. Permanente Differenzierung, die kein Testament-Anbieter versucht hat.",
+    diff_2_title: "4-Schicht-Todeserkennung", diff_2_desc: "Familienmeldung → Regierungs-DB → Dead Man's Switch → Notfallentdecker. Automatischer Ausführungsauslöser.",
     diff_3_title: "Anwalts-Marktplatz", diff_3_desc: "0% zu Lebzeiten, 100% nach dem Tod. Expertennetzwerk, das nur erscheint, wenn es wirklich gebraucht wird.",
     diff_4_title: "Checkbox in 17 Minuten", diff_4_desc: "Die Angst vor dem leeren Blatt beseitigt. KI konvertiert Checkboxen automatisch in Rechtssprache.",
-    diff_5_title: "Globale Multi-Jurisdiktion", diff_5_desc: "Koreanische + US + japanische Vermögenswerte gleichzeitig. Solch einen Service gibt es derzeit nirgendwo auf der Welt.",
-    diff_6_title: "28x LTV", diff_6_desc: "€14 Re-Zertifizierung treibt Wiederbesuche bei jedem Lebensereignis. 28x LTV vs. Trust & Will.",
+    diff_5_title: "Globale Multi-Jurisdiktion", diff_5_desc: "Korea + USA + Japan-Vermögen gleichzeitig. Solch einen Service gibt es derzeit nirgendwo auf der Welt.",
+    diff_6_title: "28x LTV", diff_6_desc: "€14 Re-Zertifizierung treibt Wiederholungsbesuche bei jedem Lebensereignis. 28x LTV vs. Trust & Will.",
     revenue_title: "Umsatzmodell",
     revenue_sub: "Stabiles Wachstum durch mehrschichtige Umsatzstruktur",
     rev_pie_title: "Umsatzmix",
-    rev_1: "Elektronische Zertifizierung", rev_1_val: "€37 / Zert.",
+    rev_1: "Elektronische Zertifizierung", rev_1_val: "€36 / Zert.",
     rev_2: "Jahresmitgliedschaft", rev_2_val: "€27 / Jahr",
-    rev_3: "Badge-Verkauf", rev_3_val: "€46 ~ €280",
-    rev_4: "Anwaltsgebühren", rev_4_val: "15~25% der Honorare",
-    ltv_label: "Kunden-Lebenszeitwert (LTV)", ltv_val: "$5.500+",
-    finance_title: "Finanzprognosen",
-    finance_sub: "3-Jahres-Ziele basierend auf konservativem Szenario",
-    finance_arr_title: "Jährlich wiederkehrender Umsatz (ARR) Ziel",
+    rev_3: "Badge-Verkauf", rev_3_val: "€46 ~ €278",
+    rev_4: "Anwaltsgebühren", rev_4_val: "15~25% der Vergütung",
+    ltv_label: "Kunden-Lebenszeitwert (LTV)", ltv_val: "€5.115+",
+    finance_title: "Finanzprognose",
+    finance_sub: "3-Jahres-Ziele basierend auf konservativem Szenario (EUR)",
+    finance_arr_title: "Jährlich wiederkehrender Umsatz (ARR) Ziel (Mio. €)",
     finance_user_title: "Kumulierte zertifizierte Nutzer Ziel",
-    roadmap_title: "Globaler Einführungs-Fahrplan",
+    ads_title: "Marketingstrategie",
+    ads_sub: "Globale Nutzergewinnung durch Medien, SNS & Online-Werbung",
+    ads_media_title: "Medienwerbung", ads_media_desc: "TV, Radio, Print + YouTube Pre-Roll-Anzeigen. Fokussierte Präsenz in koreanischen Diaspora-Gemeinschaftsmedien.",
+    ads_sns_title: "SNS-Marketing", ads_sns_desc: "Gezielte Anzeigen auf Instagram, Facebook, LINE, WeChat. Maßgeschneiderte Inhalte für 50-70-Jährige und koreanische Diaspora.",
+    ads_online_title: "Online-Werbung", ads_online_desc: "Google-Suchanzeigen (Testament, Erbschaft, Nachlassplanung). Gleichzeitige Kampagnen auf Naver, Yahoo Japan, Baidu.",
+    ads_user_title: "Nutzerakquisitionskampagne", ads_user_desc: "Kostenlose KI-Testament-Erstellung → Konvertierung zur E-Zertifizierung. Empfehlungsprogramm: 1 Empfehlung = 1 kostenlose Re-Zertifizierung.",
+    ads_budget_title: "Marketingbudget-Aufteilung",
+    ads_budget_items: [
+      { label: "SNS-Anzeigen", pct: "35%", desc: "Instagram, Facebook, LINE, WeChat" },
+      { label: "Suchanzeigen", pct: "30%", desc: "Google, Naver, Yahoo Japan, Baidu" },
+      { label: "Medienanzeigen", pct: "20%", desc: "YouTube, TV, Radio, Diaspora-Sender" },
+      { label: "Empfehlung & Viral", pct: "15%", desc: "Empfehlungsprogramm, Influencer, Communities" },
+    ],
+    roadmap_title: "Globaler Launch-Fahrplan",
     roadmap_sub: "4 Länder in 12 Monaten",
     rm_1_q: "Q1 2026", rm_1_title: "🇰🇷 Korea-Start",
     rm_1_items: ["MVP-Launch", "eKYC-Integration", "Toss Payments", "Badge-Produktion"],
     rm_2_q: "Q2 2026", rm_2_title: "🇯🇵 Japan-Eintritt",
     rm_2_items: ["Digitale Beurkundung", "Vollständige Japanisch-Unterstützung", "PayPay-Integration", "Lokale Anwälte"],
     rm_3_q: "Q3 2026", rm_3_title: "🇨🇳 Chinesischer Markt",
-    rm_3_items: ["HK & Taiwan zuerst", "WeChat Pay", "Vereinfachtes Chinesisch", "Lokale Partnerschaften"],
+    rm_3_items: ["HK & Taiwan zuerst", "WeChat Pay", "Vereinfachtes Chinesisch", "Lokale Partner"],
     rm_4_q: "Q4 2026", rm_4_title: "🇺🇸 USA-Eintritt",
-    rm_4_items: ["1M Koreanisch-Amerikaner", "Stripe-Zahlungen", "Vollständige Englisch-Unterstützung", "CA & NY Recht"],
+    rm_4_items: ["1M Koreanisch-Amerikaner", "Stripe", "Vollständiges Englisch", "CA & NY Recht"],
     team_title: "Team",
     team_sub: "Menschen, die die Vision umsetzen",
     t1_name: "Jeff Lah (라수환)",
     t1_role: "CEO · SARAM Corp.",
-    t1_desc: "30 Jahre Geschäftserfahrung. Experte für Produktentwicklung und -planung. Ziel: Nr. 1 globale Testamentsplattform.",
+    t1_desc: "30 Jahre Geschäftserfahrung. Experte für Produktentwicklung und -planung. Ziel: globale Testament-Plattform Nr. 1.",
     invest_title: "Investitionsbedingungen",
-    invest_sub: "Aktuell Seed-Runde im Gange",
+    invest_sub: "Seed-Runde wird derzeit aufgebracht",
     invest_round: "Seed-Runde",
-    invest_amount: "Zielvolumen: ₩500M ~ ₩1B",
-    invest_valuation: "Pre-money Bewertung: ₩3B",
+    invest_amount: "Ziel: ₩500M ~ ₩1B (≈ €380K ~ €760K)",
+    invest_valuation: "Pre-money Bewertung: ₩3B (≈ €2,1M)",
     invest_use: "Mittelverwendung",
     invest_use_items: [
       { label: "Produktentwicklung", pct: "40%", desc: "KI-Testament-Engine, eKYC, Blockchain-Zertifizierung" },
-      { label: "Marketing & Vertrieb", pct: "30%", desc: "Korea & Japan Launch-Kampagnen" },
-      { label: "Recht & Compliance", pct: "15%", desc: "Länderübergreifende Rechtsberatung" },
-      { label: "Betrieb & Infrastruktur", pct: "15%", desc: "Server, Sicherheit, Kundensupport" },
+      { label: "Marketing & Vertrieb", pct: "30%", desc: "Korea & Japan Launch-Kampagnen, koreanische Diaspora" },
+      { label: "Rechts & Compliance", pct: "15%", desc: "Länderübergreifende Rechtsprüfung, Anwaltspartnerschaften" },
+      { label: "Betrieb & Infrastruktur", pct: "15%", desc: "Server, Sicherheit, Kundensupport-Systeme" },
     ],
     cta_title: "Lassen Sie uns gemeinsam aufbauen",
-    cta_sub: "Wir suchen Investoren, die EverWills globale Reise begleiten.\nKontaktieren Sie uns jetzt.",
+    cta_sub: "Wir suchen Investoren, die EverWills globale Reise begleiten.\nKontaktieren Sie uns noch heute.",
     cta_btn: "Investitionsanfrage senden",
     cta_email: "adoco98@gmail.com",
     footer_conf: "Dieses Dokument ist vertraulich. Unbefugte Weitergabe ist verboten.",
+    slides: [
+      { badge: "Weltweit Erste", title: "OS der Testament-Industrie", sub: "Von der Erstellung bis zur automatischen Abwicklung", highlight: "Die globale Plattform, die Trust & Will übertrifft" },
+      { badge: "Kern-Differenzierung", title: "Physisches Badge-System", sub: "MedicAlert + AirTag + Testament-Zertifizierung", highlight: "Innovation, die kein Testament-Anbieter versucht hat" },
+      { badge: "Globaler Markt", title: "$184 Mrd. Markt", sub: "Globale Testament-Marktgröße 2030", highlight: "Gleichzeitiger Eintritt: Korea, Japan, USA, China" },
+      { badge: "Umsatzmodell", title: "LTV €5.115+", sub: "28x Kunden-Lebenszeitwert vs. Trust & Will", highlight: "€14 Re-Zertifizierung treibt lebenslange Einnahmen" },
+      { badge: "Investitionschance", title: "Seed-Runde offen", sub: "Ziel: ₩500M ~ ₩1B", highlight: "Pre-money Bewertung: ₩3B (≈ €2,1M)" },
+    ],
   },
   es: {
-    nav_invest: "Solo Inversores",
-    hero_badge: "🌍 Primer OS Digital de Testamentos del Mundo",
+    nav_invest: "Solo para Inversores",
+    hero_badge: "🌍 El Primer OS Digital de Testamentos del Mundo",
     hero_title: "Convertirse en el OS\nde la industria testamentaria",
     hero_sub: "Una plataforma global todo-en-uno que supera a Trust & Will, Farewill y GoodTrust.\nDesde la redacción hasta la ejecución automática post-mortem.",
     hero_cta: "Consulta de Inversión",
-    metrics_title: "Métricas Clave",
     m1_label: "MAU objetivo (Año 2)", m1_val: "50.000",
     m2_label: "ARR objetivo (Año 3)", m2_val: "$12M",
     m3_label: "Países objetivo", m3_val: "7 países",
@@ -549,9 +746,9 @@ const T: Record<Lang, {
     comp_sub: "Características únicas que solo EverWill proporciona",
     comp_feature: "Función",
     comp_everwill: "EverWill",
-    comp_tw: "Trust & Will",
-    comp_fw: "Farewill",
-    comp_gt: "GoodTrust",
+    comp_tw: "Trust & Will", comp_tw_country: "🇺🇸 EE.UU.",
+    comp_fw: "Farewill", comp_fw_country: "🇬🇧 Reino Unido",
+    comp_gt: "GoodTrust", comp_gt_country: "🇺🇸 EE.UU.",
     comp_rows: [
       { feature: "Sistema de Badge físico", ew: "✅ 1º mundial", tw: "❌", fw: "❌", gt: "❌" },
       { feature: "Detección de muerte 4 capas", ew: "✅ Automatizado", tw: "❌ Manual", fw: "❌ Manual", gt: "❌ Manual" },
@@ -579,9 +776,22 @@ const T: Record<Lang, {
     rev_4: "Comisión de abogados", rev_4_val: "15~25% de honorarios",
     ltv_label: "Valor de vida del cliente (LTV)", ltv_val: "$5.500+",
     finance_title: "Proyecciones Financieras",
-    finance_sub: "Objetivos a 3 años basados en escenario conservador",
-    finance_arr_title: "Objetivo de Ingresos Recurrentes Anuales (ARR)",
+    finance_sub: "Objetivos a 3 años basados en escenario conservador (USD)",
+    finance_arr_title: "Objetivo de Ingresos Recurrentes Anuales (ARR) ($M)",
     finance_user_title: "Objetivo de Usuarios Certificados Acumulados",
+    ads_title: "Estrategia de Marketing",
+    ads_sub: "Adquisición de suscriptores globales mediante Medios, SNS y Publicidad Online",
+    ads_media_title: "Publicidad en Medios", ads_media_desc: "TV, radio, prensa + anuncios pre-roll de YouTube. Exposición concentrada en medios de la comunidad coreana en el extranjero.",
+    ads_sns_title: "Marketing en SNS", ads_sns_desc: "Anuncios dirigidos en Instagram, Facebook, LINE, WeChat. Contenido personalizado para mayores de 50-70 años y coreanos en el extranjero.",
+    ads_online_title: "Publicidad Online", ads_online_desc: "Anuncios de búsqueda en Google (testamento, herencia, planificación patrimonial). Campañas simultáneas en Naver, Yahoo Japan, Baidu.",
+    ads_user_title: "Campaña de Adquisición de Usuarios", ads_user_desc: "Prueba gratuita de redacción de testamento con IA → conversión a e-certificación. Programa de referidos: 1 referido = 1 re-certificación gratuita.",
+    ads_budget_title: "Plan de Asignación de Presupuesto de Marketing",
+    ads_budget_items: [
+      { label: "Anuncios SNS", pct: "35%", desc: "Instagram, Facebook, LINE, WeChat" },
+      { label: "Anuncios de búsqueda", pct: "30%", desc: "Google, Naver, Yahoo Japan, Baidu" },
+      { label: "Anuncios en medios", pct: "20%", desc: "YouTube, TV, Radio, emisoras de la diáspora" },
+      { label: "Referidos y viral", pct: "15%", desc: "Programa de referidos, influencers, comunidades" },
+    ],
     roadmap_title: "Hoja de Ruta de Lanzamiento Global",
     roadmap_sub: "4 países en 12 meses",
     rm_1_q: "Q1 2026", rm_1_title: "🇰🇷 Lanzamiento Corea",
@@ -600,73 +810,92 @@ const T: Record<Lang, {
     invest_title: "Condiciones de Inversión",
     invest_sub: "Actualmente recaudando Ronda Semilla",
     invest_round: "Ronda Semilla",
-    invest_amount: "Objetivo: ₩500M ~ ₩1B",
-    invest_valuation: "Valoración Pre-money: ₩3B",
+    invest_amount: "Objetivo: ₩500M ~ ₩1B (≈ $380K ~ $760K)",
+    invest_valuation: "Valoración Pre-money: ₩3B (≈ $2,3M)",
     invest_use: "Uso de los Fondos",
     invest_use_items: [
-      { label: "Desarrollo de producto", pct: "40%", desc: "Motor IA de testamentos, eKYC, certificación blockchain" },
-      { label: "Marketing y ventas", pct: "30%", desc: "Campañas de lanzamiento en Corea y Japón" },
-      { label: "Legal y cumplimiento", pct: "15%", desc: "Revisión legal multinacional, asociaciones con abogados" },
-      { label: "Operaciones e infraestructura", pct: "15%", desc: "Servidores, seguridad, soporte al cliente" },
+      { label: "Desarrollo de Producto", pct: "40%", desc: "Motor de testamento IA, eKYC, certificación blockchain" },
+      { label: "Marketing y Ventas", pct: "30%", desc: "Campañas de lanzamiento en Corea y Japón, diáspora coreana" },
+      { label: "Legal y Cumplimiento", pct: "15%", desc: "Revisión legal multinacional, asociaciones de abogados" },
+      { label: "Operaciones e Infraestructura", pct: "15%", desc: "Servidores, seguridad, sistemas de soporte al cliente" },
     ],
     cta_title: "Construyamos Juntos",
-    cta_sub: "Buscamos inversores para unirse al viaje global de EverWill.\nContáctenos hoy.",
+    cta_sub: "Buscamos inversores para unirse al viaje global de EverWill.\nContáctenos hoy mismo.",
     cta_btn: "Enviar Consulta de Inversión",
     cta_email: "adoco98@gmail.com",
     footer_conf: "Este documento es confidencial. Se prohíbe su distribución no autorizada.",
+    slides: [
+      { badge: "Primero en el Mundo", title: "OS de la Industria Testamentaria", sub: "Desde la redacción hasta la ejecución automática", highlight: "La plataforma global que supera a Trust & Will" },
+      { badge: "Diferenciación Clave", title: "Sistema de Badge Físico", sub: "MedicAlert + AirTag + Certificación de Testamento", highlight: "Innovación que ninguna plataforma ha intentado" },
+      { badge: "Mercado Global", title: "Mercado de $184B", sub: "Tamaño del mercado global de testamentos 2030", highlight: "Entrada simultánea: Corea, Japón, EE.UU., China" },
+      { badge: "Modelo de Ingresos", title: "LTV $5.500+", sub: "28x valor de vida del cliente vs Trust & Will", highlight: "$15 re-certificación impulsa ingresos recurrentes" },
+      { badge: "Oportunidad de Inversión", title: "Ronda Semilla Abierta", sub: "Objetivo: ₩500M ~ ₩1B", highlight: "Valoración Pre-money: ₩3B (≈ $2,3M)" },
+    ],
   },
   ar: {
     nav_invest: "للمستثمرين فقط",
     hero_badge: "🌍 أول نظام تشغيل رقمي للوصايا في العالم",
-    hero_title: "أن نصبح نظام التشغيل\nلصناعة الوصايا",
-    hero_sub: "منصة وصايا عالمية شاملة تتفوق على Trust & Will وFarewill وGoodTrust.\nمن الكتابة إلى التنفيذ التلقائي بعد الوفاة.",
-    hero_cta: "استفسار استثماري",
-    metrics_title: "المؤشرات الرئيسية",
-    m1_label: "MAU المستهدف (السنة 2)", m1_val: "50,000",
-    m2_label: "ARR المستهدف (السنة 3)", m2_val: "$12M",
+    hero_title: "نصبح نظام التشغيل\nلصناعة الوصايا",
+    hero_sub: "منصة عالمية متكاملة تتفوق على Trust & Will وFarewill وGoodTrust.\nمن الكتابة إلى التنفيذ التلقائي بعد الوفاة.",
+    hero_cta: "استفسار الاستثمار",
+    m1_label: "هدف MAU (السنة 2)", m1_val: "50,000",
+    m2_label: "هدف ARR (السنة 3)", m2_val: "45م﷼",
     m3_label: "الدول المستهدفة", m3_val: "7 دول",
-    m4_label: "LTV العميل", m4_val: "$5,500+",
+    m4_label: "قيمة عمر العميل", m4_val: "﷼20,625+",
     market_title: "فرصة سوق الوصايا العالمي",
-    market_sub: "فرصة سوق ضخمة ناتجة عن الشيخوخة العالمية والتحول الرقمي",
-    market_chart_title: "حجم السوق حسب الدولة (توقعات 2030، $B)",
-    market_growth_title: "توقعات نمو السوق العالمي ($B)",
-    comp_title: "التحليل التنافسي",
-    comp_sub: "ميزات فريدة لا يوفرها إلا EverWill",
+    market_sub: "فرصة سوق ضخمة يخلقها الشيخوخة العالمية والتحول الرقمي",
+    market_chart_title: "حجم السوق حسب الدولة (توقعات 2030، مليار﷼)",
+    market_growth_title: "توقعات نمو السوق العالمي (مليار﷼)",
+    comp_title: "مقارنة المنافسين",
+    comp_sub: "ميزات فريدة يوفرها EverWill فقط",
     comp_feature: "الميزة",
     comp_everwill: "EverWill",
-    comp_tw: "Trust & Will",
-    comp_fw: "Farewill",
-    comp_gt: "GoodTrust",
+    comp_tw: "Trust & Will", comp_tw_country: "🇺🇸 أمريكا",
+    comp_fw: "Farewill", comp_fw_country: "🇬🇧 المملكة المتحدة",
+    comp_gt: "GoodTrust", comp_gt_country: "🇺🇸 أمريكا",
     comp_rows: [
       { feature: "نظام Badge المادي", ew: "✅ الأول عالمياً", tw: "❌", fw: "❌", gt: "❌" },
-      { feature: "كشف الوفاة 4 طبقات", ew: "✅ تلقائي", tw: "❌ يدوي", fw: "❌ يدوي", gt: "❌ يدوي" },
-      { feature: "سوق المحامين", ew: "✅ تنفيذ ما بعد الوفاة", tw: "⚠️ قبل الوفاة فقط", fw: "⚠️ محدود", gt: "❌" },
-      { feature: "متعدد الولايات القضائية", ew: "✅ 7 دول", tw: "❌ الولايات المتحدة فقط", fw: "❌ المملكة المتحدة فقط", gt: "❌ الولايات المتحدة فقط" },
+      { feature: "كشف الوفاة 4 طبقات", ew: "✅ آلي", tw: "❌ يدوي", fw: "❌ يدوي", gt: "❌ يدوي" },
+      { feature: "سوق المحامين", ew: "✅ تنفيذ ما بعد الوفاة", tw: "⚠️ حياة فقط", fw: "⚠️ محدود", gt: "❌" },
+      { feature: "الولاية القضائية المتعددة", ew: "✅ 7 دول", tw: "❌ أمريكا فقط", fw: "❌ المملكة المتحدة فقط", gt: "❌ أمريكا فقط" },
       { feature: "كتابة AI بمربعات الاختيار", ew: "✅ 17 دقيقة", tw: "⚠️ معقد", fw: "⚠️ معقد", gt: "⚠️ معقد" },
-      { feature: "الوصية المرئية", ew: "✅ مضمّنة", tw: "❌", fw: "❌", gt: "⚠️ محدودة" },
-      { feature: "7 لغات (RTL)", ew: "✅ يشمل RTL", tw: "❌ إنجليزية فقط", fw: "❌ إنجليزية فقط", gt: "❌ إنجليزية فقط" },
-      { feature: "تكلفة إعادة التصديق", ew: "✅ $15", tw: "❌ $299/سنة", fw: "❌ £90/سنة", gt: "❌ $149/سنة" },
+      { feature: "وصية فيديو", ew: "✅ مضمنة", tw: "❌", fw: "❌", gt: "⚠️ محدودة" },
+      { feature: "7 لغات (RTL)", ew: "✅ RTL مضمن", tw: "❌ إنجليزية فقط", fw: "❌ إنجليزية فقط", gt: "❌ إنجليزية فقط" },
+      { feature: "تكلفة إعادة التصديق", ew: "✅ ﷼56", tw: "❌ $299/سنة", fw: "❌ £90/سنة", gt: "❌ $149/سنة" },
     ],
     diff_title: "لماذا EverWill؟",
     diff_sub: "10 ابتكارات لم يحلها المنافسون",
     diff_1_title: "نظام Badge المادي", diff_1_desc: "MedicAlert + AirTag + توثيق الوصية في واحد. تمييز دائم لم تحاوله أي منصة وصايا في العالم.",
-    diff_2_title: "كشف الوفاة 4 طبقات", diff_2_desc: "إبلاغ العائلة → قاعدة بيانات حكومية → Dead Man's Switch → مكتشف الطوارئ. نظام تشغيل تلقائي.",
+    diff_2_title: "كشف الوفاة 4 طبقات", diff_2_desc: "تقرير الأسرة → قاعدة بيانات الحكومة → Dead Man's Switch → مكتشف الطوارئ. نظام تشغيل تلقائي.",
     diff_3_title: "سوق المحامين", diff_3_desc: "0% في الحياة، 100% بعد الوفاة. شبكة خبراء تظهر فقط عند الحاجة الحقيقية.",
-    diff_4_title: "مربعات اختيار في 17 دقيقة", diff_4_desc: "أزلنا خوف الصفحة الفارغة. يحول الذكاء الاصطناعي مربعات الاختيار إلى لغة قانونية تلقائياً.",
-    diff_5_title: "متعدد الولايات القضائية", diff_5_desc: "أصول كوريا + الولايات المتحدة + اليابان في آنٍ واحد. لا توجد خدمة مماثلة في العالم حالياً.",
-    diff_6_title: "LTV أعلى بـ28 مرة", diff_6_desc: "إعادة التصديق بـ$15 تدفع الزيارات المتكررة في كل حدث حياتي. LTV أعلى بـ28 مرة من Trust & Will.",
+    diff_4_title: "مربعات الاختيار في 17 دقيقة", diff_4_desc: "أزلنا الخوف من الصفحة البيضاء. يحول الذكاء الاصطناعي مربعات الاختيار إلى لغة قانونية تلقائياً.",
+    diff_5_title: "الولاية القضائية المتعددة العالمية", diff_5_desc: "أصول كوريا + أمريكا + اليابان في آنٍ واحد. لا توجد خدمة كهذه في العالم حالياً.",
+    diff_6_title: "LTV 28 ضعفاً", diff_6_desc: "إعادة التصديق بـ﷼56 تدفع الزيارات المتكررة في كل حدث حياتي. LTV أعلى 28 مرة من Trust & Will.",
     revenue_title: "نموذج الإيرادات",
     revenue_sub: "نمو مستقر من خلال هيكل إيرادات متعدد الطبقات",
-    rev_pie_title: "تكوين الإيرادات",
-    rev_1: "التصديق الإلكتروني", rev_1_val: "$39 / شهادة",
-    rev_2: "العضوية السنوية", rev_2_val: "$29 / سنة",
-    rev_3: "مبيعات Badge", rev_3_val: "$49 ~ $299",
-    rev_4: "عمولة المحامين", rev_4_val: "15~25% من الأتعاب",
-    ltv_label: "قيمة العميل مدى الحياة (LTV)", ltv_val: "$5,500+",
+    rev_pie_title: "توزيع الإيرادات",
+    rev_1: "التصديق الإلكتروني", rev_1_val: "﷼146 / شهادة",
+    rev_2: "العضوية السنوية", rev_2_val: "﷼109 / سنة",
+    rev_3: "مبيعات Badge", rev_3_val: "﷼184 ~ ﷼1,121",
+    rev_4: "عمولة المحامي", rev_4_val: "15~25% من الأتعاب",
+    ltv_label: "قيمة عمر العميل (LTV)", ltv_val: "﷼20,625+",
     finance_title: "التوقعات المالية",
-    finance_sub: "أهداف 3 سنوات بناءً على سيناريو محافظ",
-    finance_arr_title: "هدف الإيرادات المتكررة السنوية (ARR)",
-    finance_user_title: "هدف المستخدمين المعتمدين التراكميين",
+    finance_sub: "أهداف 3 سنوات بناءً على سيناريو محافظ (ريال سعودي)",
+    finance_arr_title: "هدف الإيرادات المتكررة السنوية (ARR) (مليون﷼)",
+    finance_user_title: "هدف المستخدمين المعتمدين التراكمي",
+    ads_title: "استراتيجية التسويق",
+    ads_sub: "اكتساب مشتركين عالميين عبر الإعلام ووسائل التواصل والإعلانات الإلكترونية",
+    ads_media_title: "الإعلانات الإعلامية", ads_media_desc: "تلفزيون وراديو وصحافة + إعلانات YouTube. تركيز على وسائل إعلام مجتمع الكوريين في الخارج.",
+    ads_sns_title: "تسويق وسائل التواصل الاجتماعي", ads_sns_desc: "إعلانات موجهة على Instagram وFacebook وLINE وWeChat. محتوى مخصص لفئة 50-70 سنة والكوريين في الخارج.",
+    ads_online_title: "الإعلانات الإلكترونية", ads_online_desc: "إعلانات بحث Google (وصية، إرث، تخطيط التركة). حملات متزامنة على Naver وYahoo Japan وBaidu.",
+    ads_user_title: "حملة اكتساب المستخدمين", ads_user_desc: "تجربة كتابة وصية AI مجانية → تحويل إلى التصديق الإلكتروني. برنامج الإحالة: إحالة 1 = إعادة تصديق مجانية 1.",
+    ads_budget_title: "خطة توزيع ميزانية التسويق",
+    ads_budget_items: [
+      { label: "إعلانات SNS", pct: "35%", desc: "Instagram وFacebook وLINE وWeChat" },
+      { label: "إعلانات البحث", pct: "30%", desc: "Google وNaver وYahoo Japan وBaidu" },
+      { label: "الإعلانات الإعلامية", pct: "20%", desc: "YouTube والتلفزيون والراديو وقنوات الكوريين" },
+      { label: "الإحالة والانتشار", pct: "15%", desc: "برنامج الإحالة والمؤثرون والمجتمعات" },
+    ],
     roadmap_title: "خارطة طريق الإطلاق العالمي",
     roadmap_sub: "4 دول في 12 شهراً",
     rm_1_q: "Q1 2026", rm_1_title: "🇰🇷 إطلاق كوريا",
@@ -674,93 +903,64 @@ const T: Record<Lang, {
     rm_2_q: "Q2 2026", rm_2_title: "🇯🇵 دخول اليابان",
     rm_2_items: ["دعم التوثيق الرقمي", "دعم ياباني كامل", "تكامل PayPay", "توظيف محامين محليين"],
     rm_3_q: "Q3 2026", rm_3_title: "🇨🇳 السوق الصيني",
-    rm_3_items: ["هونغ كونغ وتايوان أولاً", "تكامل WeChat Pay", "الصينية المبسطة", "شراكات محلية"],
-    rm_4_q: "Q4 2026", rm_4_title: "🇺🇸 دخول الولايات المتحدة",
-    rm_4_items: ["مليون كوري أمريكي", "مدفوعات Stripe", "دعم إنجليزي كامل", "قانون CA و NY"],
+    rm_3_items: ["هونج كونج وتايوان أولاً", "WeChat Pay", "الصينية المبسطة", "شراكات محلية"],
+    rm_4_q: "Q4 2026", rm_4_title: "🇺🇸 دخول أمريكا",
+    rm_4_items: ["مليون كوري أمريكي", "Stripe", "إنجليزية كاملة", "قانون CA وNY"],
     team_title: "الفريق",
     team_sub: "الأشخاص الذين ينفذون الرؤية",
     t1_name: "Jeff Lah (라수환)",
-    t1_role: "الرئيس التنفيذي · SARAM Corp.",
-    t1_desc: "30 عاماً من الخبرة التجارية. خبير في تطوير المنتجات والتخطيط. الهدف: منصة الوصايا العالمية الأولى.",
+    t1_role: "الرئيس التنفيذي · شركة SARAM",
+    t1_desc: "30 عاماً من الخبرة التجارية. خبير في تطوير المنتجات والتخطيط. الهدف: المنصة الأولى عالمياً للوصايا.",
     invest_title: "شروط الاستثمار",
-    invest_sub: "جمع تمويل الجولة التأسيسية حالياً",
-    invest_round: "الجولة التأسيسية",
-    invest_amount: "الهدف: ₩500M ~ ₩1B",
-    invest_valuation: "التقييم قبل الاستثمار: ₩3B",
-    invest_use: "استخدام العائدات",
+    invest_sub: "جولة البذر قيد التمويل حالياً",
+    invest_round: "جولة البذر",
+    invest_amount: "الهدف: ₩500M ~ ₩1B (≈ $380K ~ $760K)",
+    invest_valuation: "التقييم قبل الاستثمار: ₩3B (≈ $2.3M)",
+    invest_use: "خطة استخدام الأموال",
     invest_use_items: [
-      { label: "تطوير المنتج", pct: "40%", desc: "محرك الوصايا بالذكاء الاصطناعي، eKYC، توثيق البلوكتشين" },
-      { label: "التسويق والمبيعات", pct: "30%", desc: "حملات إطلاق كوريا واليابان" },
-      { label: "القانونية والامتثال", pct: "15%", desc: "مراجعة قانونية متعددة الدول" },
-      { label: "العمليات والبنية التحتية", pct: "15%", desc: "الخوادم، الأمان، دعم العملاء" },
+      { label: "تطوير المنتج", pct: "40%", desc: "محرك وصية AI، eKYC، شهادة blockchain" },
+      { label: "التسويق والمبيعات", pct: "30%", desc: "حملات إطلاق كوريا واليابان، الكوريون في الخارج" },
+      { label: "القانوني والامتثال", pct: "15%", desc: "مراجعة قانونية متعددة الدول، شراكات المحامين" },
+      { label: "العمليات والبنية التحتية", pct: "15%", desc: "الخوادم والأمان وأنظمة دعم العملاء" },
     ],
     cta_title: "لنبني معاً",
-    cta_sub: "نبحث عن مستثمرين للانضمام إلى رحلة EverWill العالمية.\nتواصل معنا الآن.",
+    cta_sub: "نبحث عن مستثمرين للانضمام إلى رحلة EverWill العالمية.\nتواصل معنا اليوم.",
     cta_btn: "إرسال استفسار الاستثمار",
     cta_email: "adoco98@gmail.com",
     footer_conf: "هذه الوثيقة سرية. يُحظر التوزيع غير المصرح به.",
+    slides: [
+      { badge: "الأول عالمياً", title: "نظام تشغيل صناعة الوصايا", sub: "من الكتابة إلى التنفيذ التلقائي بعد الوفاة", highlight: "المنصة العالمية التي تتفوق على Trust & Will" },
+      { badge: "التمييز الجوهري", title: "نظام Badge المادي", sub: "MedicAlert + AirTag + توثيق الوصية", highlight: "ابتكار لم تحاوله أي منصة وصايا في العالم" },
+      { badge: "السوق العالمي", title: "سوق 184 مليار دولار", sub: "حجم سوق الوصايا العالمي 2030", highlight: "دخول متزامن: كوريا، اليابان، أمريكا، الصين" },
+      { badge: "نموذج الإيرادات", title: "LTV ﷼20,625+", sub: "28 ضعف قيمة عمر العميل مقارنة بـ Trust & Will", highlight: "﷼56 إعادة تصديق تدفع إيرادات متكررة مدى الحياة" },
+      { badge: "فرصة الاستثمار", title: "جولة البذر مفتوحة", sub: "الهدف: ₩500M ~ ₩1B", highlight: "التقييم قبل الاستثمار: ₩3B (≈ $2.3M)" },
+    ],
   },
 };
-
 // ─────────────────────────────────────────────
-// 차트 데이터 (언어 무관, 숫자/영문 라벨)
+// 커스텀 툴팁 (언어별 통화 단위 표시)
 // ─────────────────────────────────────────────
-const MARKET_BAR_DATA = [
-  { name: "USA", value: 67, fill: "#8B5CF6" },
-  { name: "Japan", value: 28, fill: "#EF4444" },
-  { name: "Germany", value: 18, fill: "#3B82F6" },
-  { name: "UK", value: 15, fill: "#10B981" },
-  { name: "Korea", value: 8, fill: "#F59E0B" },
-  { name: "China", value: 12, fill: "#EC4899" },
-  { name: "Others", value: 11, fill: "#6B7280" },
-];
+function CustomBarTooltip({ active, payload, label, lang }: { active?: boolean; payload?: Array<{ value: number }>; label?: string; lang: Lang }) {
+  if (!active || !payload?.length) return null;
+  const c = CURRENCY[lang];
+  return (
+    <div className="bg-[#1a2035] border border-white/20 rounded-xl px-4 py-3 shadow-2xl">
+      <p className="text-white/60 text-xs mb-1">{label}</p>
+      <p className="text-[#C9A961] font-bold text-sm">{c.formatMarket(payload[0].value / c.marketMultiplier)}</p>
+    </div>
+  );
+}
 
-const MARKET_GROWTH_DATA = [
-  { year: "2023", value: 89 },
-  { year: "2024", value: 98 },
-  { year: "2025", value: 112 },
-  { year: "2026", value: 121 },
-  { year: "2027", value: 128 },
-  { year: "2028", value: 133 },
-  { year: "2029", value: 137 },
-  { year: "2030", value: 139 },
-];
-
-const REVENUE_PIE_DATA = [
-  { name: "Certification", value: 40, fill: "#C9A961" },
-  { name: "Membership", value: 20, fill: "#1F3864" },
-  { name: "Badge", value: 25, fill: "#8B5CF6" },
-  { name: "Lawyer", value: 15, fill: "#10B981" },
-];
-
-const ARR_DATA = [
-  { year: "Year 1", arr: 0.3 },
-  { year: "Year 2", arr: 2.1 },
-  { year: "Year 3", arr: 12 },
-];
-
-const USER_DATA = [
-  { year: "Year 1", users: 2000 },
-  { year: "Year 2", users: 18000 },
-  { year: "Year 3", users: 85000 },
-];
-
-// ─────────────────────────────────────────────
-// 커스텀 툴팁
-// ─────────────────────────────────────────────
-const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number; name: string }[]; label?: string }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-[#1a2035] border border-white/10 rounded-xl px-4 py-2 text-sm text-white shadow-xl">
-        <p className="font-bold text-[#C9A961]">{label}</p>
-        {payload.map((p, i) => (
-          <p key={i} className="text-white/80">{p.name}: <span className="text-white font-semibold">{p.value}</span></p>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
+function CustomArrTooltip({ active, payload, label, lang }: { active?: boolean; payload?: Array<{ value: number }>; label?: string; lang: Lang }) {
+  if (!active || !payload?.length) return null;
+  const c = CURRENCY[lang];
+  return (
+    <div className="bg-[#1a2035] border border-white/20 rounded-xl px-4 py-3 shadow-2xl">
+      <p className="text-white/60 text-xs mb-1">{label}</p>
+      <p className="text-[#C9A961] font-bold text-sm">{c.formatArr(payload[0].value / c.arrMultiplier)}</p>
+    </div>
+  );
+}
 
 // ─────────────────────────────────────────────
 // 메인 컴포넌트
@@ -768,24 +968,92 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
 export default function InvestorPage() {
   const [lang, setLang] = useState<Lang>("ko");
   const [langOpen, setLangOpen] = useState(false);
-
+  const [slideIdx, setSlideIdx] = useState(0);
   const t = T[lang];
   const currentLang = LANGS.find((l) => l.code === lang)!;
   const isRTL = currentLang.rtl;
 
+  // 슬라이드 자동 재생
+  const nextSlide = useCallback(() => {
+    setSlideIdx((prev) => (prev + 1) % t.slides.length);
+  }, [t.slides.length]);
+
+  useEffect(() => {
+    const timer = setInterval(nextSlide, 4500);
+    return () => clearInterval(timer);
+  }, [nextSlide]);
+
+  const prevSlide = () => setSlideIdx((prev) => (prev - 1 + t.slides.length) % t.slides.length);
+
+  const arrData = getArrData(lang);
+  const marketBarData = getMarketBarData(lang);
+  const marketGrowthData = getMarketGrowthData(lang);
+  const c = CURRENCY[lang];
+
   return (
-    <div
-      className="min-h-screen bg-[#0a0f1e] text-white font-sans"
-      dir={isRTL ? "rtl" : "ltr"}
-    >
+    <div className="min-h-screen bg-[#0a0f1e] text-white font-sans" dir={isRTL ? "rtl" : "ltr"}>
+
+      {/* ── 최상단 슬라이드 ── */}
+      <div className="relative w-full h-[420px] md:h-[500px] overflow-hidden bg-gradient-to-br from-[#1F3864] via-[#0a0f1e] to-[#0d1525]">
+        {/* 배경 장식 */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-10 left-1/4 w-96 h-96 bg-[#C9A961]/8 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-[#1F3864]/40 rounded-full blur-3xl" />
+        </div>
+        {/* 슬라이드 콘텐츠 */}
+        <div className="relative h-full flex items-center justify-center px-8">
+          {t.slides.map((slide, i) => (
+            <div
+              key={i}
+              className={`absolute inset-0 flex flex-col items-center justify-center px-8 text-center transition-all duration-700 ${
+                i === slideIdx ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+              }`}
+            >
+              <span className="inline-block bg-[#C9A961]/20 border border-[#C9A961]/40 text-[#C9A961] text-xs font-bold px-4 py-1.5 rounded-full mb-5 tracking-wider uppercase">
+                {slide.badge}
+              </span>
+              <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-4 leading-tight">
+                {slide.title}
+              </h1>
+              <p className="text-lg md:text-xl text-white/60 mb-4">{slide.sub}</p>
+              <p className="text-base md:text-lg text-[#C9A961] font-semibold">{slide.highlight}</p>
+            </div>
+          ))}
+        </div>
+        {/* 슬라이드 컨트롤 */}
+        <button
+          onClick={prevSlide}
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors z-10"
+        >
+          <ChevronLeft className="w-5 h-5 text-white" />
+        </button>
+        <button
+          onClick={nextSlide}
+          className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors z-10"
+        >
+          <ChevronRight className="w-5 h-5 text-white" />
+        </button>
+        {/* 슬라이드 인디케이터 */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+          {t.slides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setSlideIdx(i)}
+              className={`rounded-full transition-all duration-300 ${
+                i === slideIdx ? "w-8 h-2 bg-[#C9A961]" : "w-2 h-2 bg-white/30 hover:bg-white/50"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
       {/* ── 네비게이션 ── */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-[#0a0f1e]/90 backdrop-blur-md border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="sticky top-0 z-50 bg-[#0a0f1e]/95 backdrop-blur-md border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-xl font-extrabold text-white tracking-tight">EverWill</span>
+            <span className="text-lg font-extrabold text-white tracking-tight">EverWill</span>
             <span className="text-xs bg-red-500/80 text-white px-2 py-0.5 rounded-full">{t.nav_invest}</span>
           </div>
-          {/* 언어 드롭다운 */}
           <div className="relative">
             <button
               onClick={() => setLangOpen(!langOpen)}
@@ -814,18 +1082,17 @@ export default function InvestorPage() {
       </div>
 
       {/* ── HERO ── */}
-      <section className="pt-32 pb-24 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1F3864]/40 via-[#0a0f1e] to-[#0a0f1e]" />
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#C9A961]/5 rounded-full blur-3xl" />
+      <section className="pt-20 pb-20 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#1F3864]/30 via-[#0a0f1e] to-[#0a0f1e]" />
         <div className="relative max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-[#C9A961]/10 border border-[#C9A961]/30 text-[#C9A961] px-4 py-2 rounded-full text-sm font-medium mb-8">
             <Globe className="w-4 h-4" />
             {t.hero_badge}
           </div>
-          <h1 className="text-5xl md:text-7xl font-extrabold leading-tight mb-6 whitespace-pre-line">
+          <h1 className="text-5xl md:text-7xl font-extrabold leading-tight mb-6">
             {t.hero_title.split("\n").map((line, i) => (
-              <span key={i} className={i === 1 ? "text-[#C9A961]" : "text-white"}>
-                {line}{i === 0 && "\n"}
+              <span key={i} className={i === 1 ? "text-[#C9A961] block" : "block"}>
+                {line}
               </span>
             ))}
           </h1>
@@ -843,7 +1110,7 @@ export default function InvestorPage() {
       </section>
 
       {/* ── 핵심 지표 ── */}
-      <section className="py-16 px-6 bg-[#1F3864]/20 border-y border-white/5">
+      <section className="py-14 px-6 bg-[#1F3864]/20 border-y border-white/5">
         <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
             { label: t.m1_label, val: t.m1_val, icon: Users },
@@ -853,7 +1120,7 @@ export default function InvestorPage() {
           ].map((m, i) => (
             <div key={i} className="text-center">
               <m.icon className="w-6 h-6 text-[#C9A961] mx-auto mb-2 opacity-80" />
-              <div className="text-3xl font-extrabold text-[#C9A961]">{m.val}</div>
+              <div className="text-2xl md:text-3xl font-extrabold text-[#C9A961]">{m.val}</div>
               <div className="text-xs text-white/50 mt-1">{m.label}</div>
             </div>
           ))}
@@ -869,74 +1136,101 @@ export default function InvestorPage() {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* 국가별 시장 규모 바차트 */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-white font-bold text-lg mb-6">{t.market_chart_title}</h3>
+            <div className="bg-[#1a2035] rounded-3xl p-6 border border-white/5">
+              <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-[#C9A961]" />
+                {t.market_chart_title}
+              </h3>
               <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={MARKET_BAR_DATA} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="name" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <Tooltip content={<CustomTooltip />} />
+                <BarChart data={marketBarData} margin={{ top: 5, right: 10, left: 10, bottom: 60 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+                  <XAxis dataKey="name" tick={{ fill: "#ffffff60", fontSize: 11 }} angle={-30} textAnchor="end" interval={0} />
+                  <YAxis tick={{ fill: "#ffffff60", fontSize: 11 }} unit={` ${c.marketSuffix}`} />
+                  <Tooltip content={<CustomBarTooltip lang={lang} />} />
                   <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                    {MARKET_BAR_DATA.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    {marketBarData.map((entry, index) => (
+                      <Cell key={index} fill={entry.fill} />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            {/* 시장 성장 전망 에어리어차트 */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-white font-bold text-lg mb-6">{t.market_growth_title}</h3>
+            {/* 시장 성장 에어리어차트 */}
+            <div className="bg-[#1a2035] rounded-3xl p-6 border border-white/5">
+              <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-[#C9A961]" />
+                {t.market_growth_title}
+              </h3>
               <ResponsiveContainer width="100%" height={280}>
-                <AreaChart data={MARKET_GROWTH_DATA} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                <AreaChart data={marketGrowthData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                   <defs>
-                    <linearGradient id="marketGradient" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="growthGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#C9A961" stopOpacity={0.3} />
                       <stop offset="95%" stopColor="#C9A961" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="year" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 12 }} axisLine={false} tickLine={false} domain={[80, 145]} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="value" stroke="#C9A961" strokeWidth={2.5} fill="url(#marketGradient)" dot={{ fill: "#C9A961", r: 4 }} activeDot={{ r: 6, fill: "#C9A961" }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+                  <XAxis dataKey="year" tick={{ fill: "#ffffff60", fontSize: 11 }} />
+                  <YAxis tick={{ fill: "#ffffff60", fontSize: 11 }} unit={` ${c.marketSuffix}`} />
+                  <Tooltip
+                    contentStyle={{ background: "#1a2035", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px" }}
+                    labelStyle={{ color: "#ffffff60" }}
+                    itemStyle={{ color: "#C9A961" }}
+                    formatter={(v: number) => [c.formatMarket(v / c.marketMultiplier), ""]}
+                  />
+                  <Area type="monotone" dataKey="value" stroke="#C9A961" strokeWidth={2.5} fill="url(#growthGrad)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
         </div>
       </section>
-
-      {/* ── 경쟁사 비교표 ── */}
-      <section className="py-24 px-6 bg-[#0d1428]">
+      {/* ── 경쟁사 비교표 (국기 포함) ── */}
+      <section className="py-24 px-6 bg-[#0d1525]">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-extrabold text-white mb-4">{t.comp_title}</h2>
             <p className="text-white/50 text-lg">{t.comp_sub}</p>
           </div>
-          <div className="overflow-x-auto rounded-2xl border border-white/10">
+          <div className="overflow-x-auto rounded-3xl border border-white/10">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-[#1F3864]/40 border-b border-white/10">
-                  <th className="text-left px-6 py-4 text-white/60 font-semibold">{t.comp_feature}</th>
-                  <th className="px-6 py-4 text-center">
-                    <span className="text-[#C9A961] font-extrabold text-base">{t.comp_everwill}</span>
-                    <div className="text-xs text-[#C9A961]/60 mt-0.5">★ Our Product</div>
+                <tr className="bg-[#1F3864]/60">
+                  <th className="px-5 py-4 text-left text-white/60 font-medium">{t.comp_feature}</th>
+                  <th className="px-5 py-4 text-center">
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-[#C9A961] font-bold text-base">{t.comp_everwill}</span>
+                      <span className="text-xs text-[#C9A961]/60">🇰🇷 Korea</span>
+                    </div>
                   </th>
-                  <th className="px-6 py-4 text-center text-white/50 font-semibold">{t.comp_tw}</th>
-                  <th className="px-6 py-4 text-center text-white/50 font-semibold">{t.comp_fw}</th>
-                  <th className="px-6 py-4 text-center text-white/50 font-semibold">{t.comp_gt}</th>
+                  <th className="px-5 py-4 text-center">
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-white/70 font-medium">{t.comp_tw}</span>
+                      <span className="text-xs text-white/40">{t.comp_tw_country}</span>
+                    </div>
+                  </th>
+                  <th className="px-5 py-4 text-center">
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-white/70 font-medium">{t.comp_fw}</span>
+                      <span className="text-xs text-white/40">{t.comp_fw_country}</span>
+                    </div>
+                  </th>
+                  <th className="px-5 py-4 text-center">
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-white/70 font-medium">{t.comp_gt}</span>
+                      <span className="text-xs text-white/40">{t.comp_gt_country}</span>
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {t.comp_rows.map((row, i) => (
-                  <tr key={i} className={`border-b border-white/5 ${i % 2 === 0 ? "bg-white/2" : "bg-transparent"} hover:bg-white/5 transition-colors`}>
-                    <td className="px-6 py-4 text-white/70 font-medium">{row.feature}</td>
-                    <td className="px-6 py-4 text-center bg-[#C9A961]/5 font-semibold text-[#C9A961]">{row.ew}</td>
-                    <td className="px-6 py-4 text-center text-white/50">{row.tw}</td>
-                    <td className="px-6 py-4 text-center text-white/50">{row.fw}</td>
-                    <td className="px-6 py-4 text-center text-white/50">{row.gt}</td>
+                  <tr key={i} className={`border-t border-white/5 ${i % 2 === 0 ? "bg-[#1a2035]/40" : "bg-transparent"}`}>
+                    <td className="px-5 py-3.5 text-white/70 font-medium">{row.feature}</td>
+                    <td className="px-5 py-3.5 text-center text-[#C9A961] font-semibold">{row.ew}</td>
+                    <td className="px-5 py-3.5 text-center text-white/50">{row.tw}</td>
+                    <td className="px-5 py-3.5 text-center text-white/50">{row.fw}</td>
+                    <td className="px-5 py-3.5 text-center text-white/50">{row.gt}</td>
                   </tr>
                 ))}
               </tbody>
@@ -945,28 +1239,25 @@ export default function InvestorPage() {
         </div>
       </section>
 
-      {/* ── 차별화 ── */}
+      {/* ── 차별화 포인트 ── */}
       <section className="py-24 px-6">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-extrabold text-white mb-4">{t.diff_title}</h2>
             <p className="text-white/50 text-lg">{t.diff_sub}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { title: t.diff_1_title, desc: t.diff_1_desc, icon: Award, num: "01" },
-              { title: t.diff_2_title, desc: t.diff_2_desc, icon: Shield, num: "02" },
-              { title: t.diff_3_title, desc: t.diff_3_desc, icon: Users, num: "03" },
-              { title: t.diff_4_title, desc: t.diff_4_desc, icon: Zap, num: "04" },
-              { title: t.diff_5_title, desc: t.diff_5_desc, icon: Globe, num: "05" },
-              { title: t.diff_6_title, desc: t.diff_6_desc, icon: TrendingUp, num: "06" },
+              { icon: "🏅", title: t.diff_1_title, desc: t.diff_1_desc },
+              { icon: "🔍", title: t.diff_2_title, desc: t.diff_2_desc },
+              { icon: "⚖️", title: t.diff_3_title, desc: t.diff_3_desc },
+              { icon: "☑️", title: t.diff_4_title, desc: t.diff_4_desc },
+              { icon: "🌍", title: t.diff_5_title, desc: t.diff_5_desc },
+              { icon: "📈", title: t.diff_6_title, desc: t.diff_6_desc },
             ].map((d, i) => (
-              <div key={i} className="bg-white/5 hover:bg-white/8 border border-white/10 rounded-2xl p-6 transition-all group relative overflow-hidden">
-                <div className="absolute top-4 right-4 text-4xl font-extrabold text-white/5 select-none">{d.num}</div>
-                <div className="w-10 h-10 bg-[#C9A961]/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#C9A961]/20 transition-colors">
-                  <d.icon className="w-5 h-5 text-[#C9A961]" />
-                </div>
-                <h3 className="font-bold text-white text-base mb-2">{d.title}</h3>
+              <div key={i} className="bg-[#1a2035] rounded-3xl p-6 border border-white/5 hover:border-[#C9A961]/30 transition-colors">
+                <div className="text-3xl mb-4">{d.icon}</div>
+                <h3 className="text-lg font-bold text-white mb-3">{d.title}</h3>
                 <p className="text-white/50 text-sm leading-relaxed">{d.desc}</p>
               </div>
             ))}
@@ -974,70 +1265,65 @@ export default function InvestorPage() {
         </div>
       </section>
 
-      {/* ── 수익 모델 (파이차트) ── */}
-      <section className="py-24 px-6 bg-[#0d1428]">
+      {/* ── 수익 모델 ── */}
+      <section className="py-24 px-6 bg-[#0d1525]">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-extrabold text-white mb-4">{t.revenue_title}</h2>
             <p className="text-white/50 text-lg">{t.revenue_sub}</p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            {/* 수익 파이차트 */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-white font-bold text-lg mb-4 text-center">{t.rev_pie_title}</h3>
-              <ResponsiveContainer width="100%" height={280}>
+            {/* 파이차트 */}
+            <div className="bg-[#1a2035] rounded-3xl p-6 border border-white/5">
+              <h3 className="text-lg font-bold text-white mb-4 text-center">{t.rev_pie_title}</h3>
+              <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
-                  <Pie
-                    data={REVENUE_PIE_DATA}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={70}
-                    outerRadius={110}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
+                  <Pie data={REVENUE_PIE_DATA} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={3} dataKey="value">
                     {REVENUE_PIE_DATA.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                      <Cell key={index} fill={entry.fill} />
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => [`${value}%`, ""]}
-                    contentStyle={{ background: "#1a2035", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", color: "white" }}
-                  />
-                  <Legend
-                    formatter={(value) => <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "13px" }}>{value}</span>}
+                    contentStyle={{ background: "#1a2035", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px" }}
+                    formatter={(v: number) => [`${v}%`, ""]}
                   />
                 </PieChart>
               </ResponsiveContainer>
+              <div className="flex flex-wrap justify-center gap-3 mt-2">
+                {REVENUE_PIE_DATA.map((d, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-xs text-white/60">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: d.fill }} />
+                    {d.name} {d.value}%
+                  </div>
+                ))}
+              </div>
             </div>
-            {/* 수익 항목 목록 */}
+            {/* 수익 항목 */}
             <div className="space-y-4">
               {[
-                { label: t.rev_1, val: t.rev_1_val, icon: Shield, color: "#C9A961" },
-                { label: t.rev_2, val: t.rev_2_val, icon: TrendingUp, color: "#1F3864" },
-                { label: t.rev_3, val: t.rev_3_val, icon: Award, color: "#8B5CF6" },
-                { label: t.rev_4, val: t.rev_4_val, icon: Users, color: "#10B981" },
+                { label: t.rev_1, val: t.rev_1_val, color: "#C9A961" },
+                { label: t.rev_2, val: t.rev_2_val, color: "#1F3864" },
+                { label: t.rev_3, val: t.rev_3_val, color: "#8B5CF6" },
+                { label: t.rev_4, val: t.rev_4_val, color: "#10B981" },
               ].map((r, i) => (
-                <div key={i} className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl p-5">
-                  <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: r.color }} />
-                  <div className="flex-1">
-                    <div className="text-white/60 text-sm">{r.label}</div>
-                    <div className="text-white font-bold text-lg">{r.val}</div>
+                <div key={i} className="bg-[#1a2035] rounded-2xl p-5 border border-white/5 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: r.color }} />
+                    <span className="text-white/70 font-medium">{r.label}</span>
                   </div>
+                  <span className="text-[#C9A961] font-bold text-sm">{r.val}</span>
                 </div>
               ))}
-              {/* LTV 강조 */}
-              <div className="bg-gradient-to-r from-[#C9A961]/20 to-[#C9A961]/5 border border-[#C9A961]/30 rounded-2xl p-6 text-center mt-2">
-                <div className="text-white/60 text-sm mb-1">{t.ltv_label}</div>
-                <div className="text-5xl font-extrabold text-[#C9A961]">{t.ltv_val}</div>
-                <div className="text-white/40 text-xs mt-1">vs Trust & Will $197</div>
+              <div className="bg-gradient-to-r from-[#C9A961]/20 to-[#C9A961]/5 rounded-2xl p-5 border border-[#C9A961]/30 flex items-center justify-between">
+                <span className="text-white font-bold">{t.ltv_label}</span>
+                <span className="text-[#C9A961] font-extrabold text-xl">{t.ltv_val}</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── 재무 전망 (바차트 + 라인차트) ── */}
+      {/* ── 재무 전망 (ARR + 사용자) ── */}
       <section className="py-24 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
@@ -1046,88 +1332,134 @@ export default function InvestorPage() {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* ARR 바차트 */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-white font-bold text-lg mb-6">{t.finance_arr_title}</h3>
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={ARR_DATA} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="year" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 13 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v}M`} />
-                  <Tooltip
-                    formatter={(v: number) => [`$${v}M`, "ARR"]}
-                    contentStyle={{ background: "#1a2035", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", color: "white" }}
-                  />
-                  <Bar dataKey="arr" radius={[8, 8, 0, 0]}>
-                    {ARR_DATA.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={index === 2 ? "#C9A961" : index === 1 ? "#C9A961aa" : "#C9A96155"} />
-                    ))}
-                  </Bar>
+            <div className="bg-[#1a2035] rounded-3xl p-6 border border-white/5">
+              <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                <Target className="w-5 h-5 text-[#C9A961]" />
+                {t.finance_arr_title}
+              </h3>
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={arrData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+                  <XAxis dataKey="year" tick={{ fill: "#ffffff60", fontSize: 12 }} />
+                  <YAxis tick={{ fill: "#ffffff60", fontSize: 12 }} unit={` ${c.arrSuffix}`} />
+                  <Tooltip content={<CustomArrTooltip lang={lang} />} />
+                  <Bar dataKey="arr" fill="#C9A961" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-              <div className="flex justify-around mt-4">
-                {ARR_DATA.map((d, i) => (
-                  <div key={i} className="text-center">
-                    <div className="text-[#C9A961] font-extrabold text-xl">${d.arr}M</div>
-                    <div className="text-white/40 text-xs">{d.year}</div>
-                  </div>
-                ))}
-              </div>
             </div>
             {/* 사용자 라인차트 */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-white font-bold text-lg mb-6">{t.finance_user_title}</h3>
-              <ResponsiveContainer width="100%" height={260}>
-                <LineChart data={USER_DATA} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+            <div className="bg-[#1a2035] rounded-3xl p-6 border border-white/5">
+              <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                <Users className="w-5 h-5 text-[#C9A961]" />
+                {t.finance_user_title}
+              </h3>
+              <ResponsiveContainer width="100%" height={240}>
+                <LineChart data={USER_DATA} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                   <defs>
-                    <linearGradient id="userGradient" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#1F3864" />
-                      <stop offset="100%" stopColor="#C9A961" />
+                    <linearGradient id="userGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#1F3864" stopOpacity={0.5} />
+                      <stop offset="95%" stopColor="#1F3864" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="year" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 13 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${v / 1000}K` : v.toString()} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+                  <XAxis dataKey="year" tick={{ fill: "#ffffff60", fontSize: 12 }} />
+                  <YAxis tick={{ fill: "#ffffff60", fontSize: 12 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`} />
                   <Tooltip
-                    formatter={(v: number) => [v.toLocaleString(), "Users"]}
-                    contentStyle={{ background: "#1a2035", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", color: "white" }}
+                    contentStyle={{ background: "#1a2035", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px" }}
+                    formatter={(v: number) => [`${v.toLocaleString()}명`, ""]}
                   />
-                  <Line type="monotone" dataKey="users" stroke="url(#userGradient)" strokeWidth={3} dot={{ fill: "#C9A961", r: 6, strokeWidth: 2, stroke: "#0a0f1e" }} activeDot={{ r: 8, fill: "#C9A961" }} />
+                  <Line type="monotone" dataKey="users" stroke="#1F3864" strokeWidth={3} dot={{ fill: "#C9A961", r: 6 }} activeDot={{ r: 8 }} />
                 </LineChart>
               </ResponsiveContainer>
-              <div className="flex justify-around mt-4">
-                {USER_DATA.map((d, i) => (
-                  <div key={i} className="text-center">
-                    <div className="text-[#C9A961] font-extrabold text-xl">{d.users.toLocaleString()}</div>
-                    <div className="text-white/40 text-xs">{d.year}</div>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── 로드맵 ── */}
-      <section className="py-24 px-6 bg-[#0d1428]">
-        <div className="max-w-5xl mx-auto">
+      {/* ── 마케팅/광고 전략 ── */}
+      <section className="py-24 px-6 bg-[#0d1525]">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-extrabold text-white mb-4">{t.ads_title}</h2>
+            <p className="text-white/50 text-lg">{t.ads_sub}</p>
+          </div>
+          {/* 4가지 광고 채널 카드 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            {[
+              { icon: Monitor, title: t.ads_media_title, desc: t.ads_media_desc, color: "#8B5CF6" },
+              { icon: Smartphone, title: t.ads_sns_title, desc: t.ads_sns_desc, color: "#EC4899" },
+              { icon: BarChart3, title: t.ads_online_title, desc: t.ads_online_desc, color: "#3B82F6" },
+              { icon: UserPlus, title: t.ads_user_title, desc: t.ads_user_desc, color: "#10B981" },
+            ].map((ad, i) => (
+              <div key={i} className="bg-[#1a2035] rounded-3xl p-6 border border-white/5 hover:border-white/10 transition-colors">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: `${ad.color}20` }}>
+                    <ad.icon className="w-6 h-6" style={{ color: ad.color }} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white mb-2">{ad.title}</h3>
+                    <p className="text-white/50 text-sm leading-relaxed">{ad.desc}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* 마케팅 예산 배분 */}
+          <div className="bg-[#1a2035] rounded-3xl p-8 border border-white/5">
+            <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+              <Megaphone className="w-5 h-5 text-[#C9A961]" />
+              {t.ads_budget_title}
+            </h3>
+            <div className="space-y-5">
+              {t.ads_budget_items.map((item, i) => {
+                const pctNum = parseInt(item.pct);
+                const colors = ["#C9A961", "#EC4899", "#8B5CF6", "#10B981"];
+                return (
+                  <div key={i}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <span className="text-white font-semibold text-sm">{item.label}</span>
+                        <span className="text-white/40 text-xs ml-2">— {item.desc}</span>
+                      </div>
+                      <span className="font-bold text-sm" style={{ color: colors[i] }}>{item.pct}</span>
+                    </div>
+                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{ width: `${pctNum}%`, background: colors[i] }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 글로벌 로드맵 ── */}
+      <section className="py-24 px-6">
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-extrabold text-white mb-4">{t.roadmap_title}</h2>
             <p className="text-white/50 text-lg">{t.roadmap_sub}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { q: t.rm_1_q, title: t.rm_1_title, items: t.rm_1_items, active: true },
-              { q: t.rm_2_q, title: t.rm_2_title, items: t.rm_2_items, active: false },
-              { q: t.rm_3_q, title: t.rm_3_title, items: t.rm_3_items, active: false },
-              { q: t.rm_4_q, title: t.rm_4_title, items: t.rm_4_items, active: false },
+              { q: t.rm_1_q, title: t.rm_1_title, items: t.rm_1_items, color: "#C9A961" },
+              { q: t.rm_2_q, title: t.rm_2_title, items: t.rm_2_items, color: "#8B5CF6" },
+              { q: t.rm_3_q, title: t.rm_3_title, items: t.rm_3_items, color: "#EC4899" },
+              { q: t.rm_4_q, title: t.rm_4_title, items: t.rm_4_items, color: "#3B82F6" },
             ].map((rm, i) => (
-              <div key={i} className={`rounded-2xl p-6 border ${rm.active ? "bg-[#C9A961]/10 border-[#C9A961]/40" : "bg-white/5 border-white/10"}`}>
-                <div className={`text-xs font-bold mb-2 ${rm.active ? "text-[#C9A961]" : "text-white/40"}`}>{rm.q}</div>
-                <div className="font-bold text-white text-base mb-4">{rm.title}</div>
+              <div key={i} className="bg-[#1a2035] rounded-3xl p-6 border border-white/5">
+                <div className="text-xs font-bold mb-2 px-3 py-1 rounded-full inline-block" style={{ background: `${rm.color}20`, color: rm.color }}>
+                  {rm.q}
+                </div>
+                <h3 className="text-lg font-bold text-white mt-3 mb-4">{rm.title}</h3>
                 <ul className="space-y-2">
                   {rm.items.map((item, j) => (
                     <li key={j} className="flex items-start gap-2 text-sm text-white/60">
-                      <CheckCircle className={`w-4 h-4 shrink-0 mt-0.5 ${rm.active ? "text-[#C9A961]" : "text-white/20"}`} />
+                      <span className="mt-0.5 flex-shrink-0" style={{ color: rm.color }}>▸</span>
                       {item}
                     </li>
                   ))}
@@ -1139,71 +1471,64 @@ export default function InvestorPage() {
       </section>
 
       {/* ── 팀 ── */}
-      <section className="py-24 px-6">
-        <div className="max-w-3xl mx-auto">
+      <section className="py-24 px-6 bg-[#0d1525]">
+        <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-extrabold text-white mb-4">{t.team_title}</h2>
             <p className="text-white/50 text-lg">{t.team_sub}</p>
           </div>
-          <div className="bg-gradient-to-br from-[#1F3864]/40 to-[#1F3864]/10 border border-[#1F3864]/50 rounded-3xl p-8 flex flex-col md:flex-row items-center gap-8">
-            <div className="w-24 h-24 bg-[#C9A961] rounded-2xl flex items-center justify-center text-[#1F3864] font-extrabold text-3xl shrink-0">
-              JL
-            </div>
-            <div>
-              <div className="text-2xl font-extrabold text-white mb-1">{t.t1_name}</div>
-              <div className="text-[#C9A961] font-semibold text-sm mb-3">{t.t1_role}</div>
-              <p className="text-white/60 leading-relaxed">{t.t1_desc}</p>
-              <div className="flex flex-wrap gap-2 mt-4">
-                {["Product", "Design", "Finance", "30yr Experience"].map((tag) => (
-                  <span key={tag} className="text-xs bg-white/10 text-white/60 px-3 py-1 rounded-full">{tag}</span>
-                ))}
+          <div className="flex justify-center">
+            <div className="bg-[#1a2035] rounded-3xl p-8 border border-white/5 max-w-md w-full text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-[#C9A961] to-[#1F3864] rounded-full flex items-center justify-center mx-auto mb-5 text-3xl font-extrabold text-white">
+                J
               </div>
+              <h3 className="text-2xl font-extrabold text-white mb-1">{t.t1_name}</h3>
+              <p className="text-[#C9A961] font-semibold mb-4">{t.t1_role}</p>
+              <p className="text-white/60 text-sm leading-relaxed">{t.t1_desc}</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* ── 투자 조건 ── */}
-      <section className="py-24 px-6 bg-[#0d1428]">
+      <section className="py-24 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-extrabold text-white mb-4">{t.invest_title}</h2>
             <p className="text-white/50 text-lg">{t.invest_sub}</p>
           </div>
-          {/* 라운드 정보 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             {[
-              { label: "Round", value: t.invest_round, icon: Target },
-              { label: "Amount", value: t.invest_amount, icon: DollarSign },
-              { label: "Valuation", value: t.invest_valuation, icon: BarChart3 },
+              { label: t.invest_round, icon: Rocket, color: "#C9A961" },
+              { label: t.invest_amount, icon: DollarSign, color: "#10B981" },
+              { label: t.invest_valuation, icon: TrendingUp, color: "#8B5CF6" },
             ].map((item, i) => (
-              <div key={i} className="bg-gradient-to-b from-[#C9A961]/10 to-transparent border border-[#C9A961]/20 rounded-2xl p-6 text-center">
-                <item.icon className="w-8 h-8 text-[#C9A961] mx-auto mb-3" />
-                <div className="text-white/50 text-xs mb-1">{item.label}</div>
-                <div className="text-white font-bold text-base leading-snug">{item.value}</div>
+              <div key={i} className="bg-[#1a2035] rounded-3xl p-6 border border-white/5 text-center">
+                <item.icon className="w-8 h-8 mx-auto mb-3" style={{ color: item.color }} />
+                <p className="text-white font-bold text-lg leading-snug">{item.label}</p>
               </div>
             ))}
           </div>
-          {/* 투자금 사용 계획 */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
-            <h3 className="text-white font-bold text-xl mb-6">{t.invest_use}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-[#1a2035] rounded-3xl p-8 border border-white/5">
+            <h3 className="text-xl font-bold text-white mb-6">{t.invest_use}</h3>
+            <div className="space-y-5">
               {t.invest_use_items.map((item, i) => {
-                const pct = parseInt(item.pct);
-                const colors = ["#C9A961", "#1F3864", "#8B5CF6", "#10B981"];
+                const pctNum = parseInt(item.pct);
+                const colors = ["#C9A961", "#10B981", "#8B5CF6", "#3B82F6"];
                 return (
-                  <div key={i} className="flex items-start gap-4">
-                    <div className="shrink-0 mt-1">
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center font-extrabold text-sm" style={{ backgroundColor: `${colors[i]}22`, color: colors[i] }}>
-                        {item.pct}
+                  <div key={i}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <span className="text-white font-semibold text-sm">{item.label}</span>
+                        <span className="text-white/40 text-xs ml-2">— {item.desc}</span>
                       </div>
+                      <span className="font-bold text-sm" style={{ color: colors[i] }}>{item.pct}</span>
                     </div>
-                    <div className="flex-1">
-                      <div className="text-white font-semibold text-sm mb-1">{item.label}</div>
-                      <div className="text-white/50 text-xs leading-relaxed mb-2">{item.desc}</div>
-                      <div className="w-full bg-white/10 rounded-full h-1.5">
-                        <div className="h-1.5 rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: colors[i] }} />
-                      </div>
+                    <div className="h-2.5 bg-white/10 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{ width: `${pctNum}%`, background: colors[i] }}
+                      />
                     </div>
                   </div>
                 );
@@ -1216,27 +1541,23 @@ export default function InvestorPage() {
       {/* ── CTA ── */}
       <section className="py-24 px-6 bg-gradient-to-br from-[#1F3864] to-[#0a0f1e]">
         <div className="max-w-3xl mx-auto text-center">
-          <Rocket className="w-12 h-12 text-[#C9A961] mx-auto mb-6" />
           <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6">{t.cta_title}</h2>
-          <p className="text-white/60 text-lg mb-10 whitespace-pre-line leading-relaxed">{t.cta_sub}</p>
+          <p className="text-xl text-white/60 mb-10 whitespace-pre-line">{t.cta_sub}</p>
           <a
             href={`mailto:${t.cta_email}?subject=EverWill Investment Inquiry`}
-            className="inline-flex items-center gap-3 bg-[#C9A961] hover:bg-[#d4b870] text-[#1F3864] font-extrabold px-10 py-5 rounded-2xl text-xl transition-all shadow-2xl shadow-[#C9A961]/30"
+            className="inline-flex items-center justify-center gap-3 bg-[#C9A961] hover:bg-[#d4b870] text-[#1F3864] font-bold px-10 py-5 rounded-2xl text-xl transition-all shadow-2xl shadow-[#C9A961]/20"
           >
             <Mail className="w-6 h-6" />
             {t.cta_btn}
           </a>
-          <div className="mt-6 flex items-center justify-center gap-2 text-white/40 text-sm">
-            <Mail className="w-4 h-4" />
-            <span>{t.cta_email}</span>
-          </div>
+          <p className="mt-6 text-white/40 text-sm">{t.cta_email}</p>
         </div>
       </section>
 
       {/* ── 푸터 ── */}
-      <footer className="py-8 px-6 border-t border-white/10 text-center">
-        <p className="text-white/30 text-sm">{t.footer_conf}</p>
-        <p className="text-white/20 text-xs mt-2">© 2026 SARAM Corp. (주식회사 사람) · EverWill · All Rights Reserved</p>
+      <footer className="py-8 px-6 border-t border-white/5 text-center">
+        <p className="text-white/30 text-xs">{t.footer_conf}</p>
+        <p className="text-white/20 text-xs mt-2">© 2025 SARAM Corp. · EverWill · adoco98@gmail.com</p>
       </footer>
     </div>
   );
