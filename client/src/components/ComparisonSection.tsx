@@ -1,6 +1,6 @@
 /**
  * 기존 공증 vs EverWill 전자공증 비교 섹션
- * 비용·시간·절차를 한눈에 비교하여 EverWill의 가치를 설득
+ * 텍스트 크게 + 진하게 강화
  */
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
@@ -14,7 +14,6 @@ export default function ComparisonSection() {
   const { language } = useLanguage();
   const isKo = language === "ko";
 
-  /* ─── 비교 항목 데이터 ─── */
   const rows = [
     {
       icon: DollarSign,
@@ -85,40 +84,40 @@ export default function ComparisonSection() {
         >
           <div className="section-divider mx-auto mb-6" />
           <h2
-            className="text-3xl lg:text-5xl font-bold text-[#1F3864] mb-4"
+            className="text-4xl lg:text-6xl font-extrabold text-[#1F3864] mb-4"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             {isKo ? "왜 EverWill인가?" : "Why EverWill?"}
           </h2>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-700 text-xl font-semibold max-w-2xl mx-auto">
             {isKo
               ? "기존 공증 방식과 EverWill 전자공증을 직접 비교해보세요."
               : "Compare traditional notarization with EverWill's digital certification."}
           </p>
         </motion.div>
 
-        {/* ── 비교 테이블 헤더 ── */}
+        {/* ── 테이블 헤더 ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="grid grid-cols-3 gap-4 mb-3 px-4"
+          className="grid grid-cols-3 gap-4 mb-4 px-2"
         >
-          <div className="text-sm font-bold text-gray-400 uppercase tracking-wider">
+          <div className="text-base font-extrabold text-gray-500 uppercase tracking-wider">
             {isKo ? "비교 항목" : "Category"}
           </div>
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-2">
-              <X className="w-4 h-4 text-red-500" />
-              <span className="text-sm font-bold text-red-600">
+            <div className="inline-flex items-center gap-2 bg-red-50 border-2 border-red-300 rounded-xl px-5 py-2.5">
+              <X className="w-5 h-5 text-red-500" />
+              <span className="text-base font-extrabold text-red-600">
                 {isKo ? "기존 공증" : "Traditional Notary"}
               </span>
             </div>
           </div>
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 bg-[#1F3864] rounded-xl px-4 py-2">
-              <Check className="w-4 h-4 text-[#C9A961]" />
-              <span className="text-sm font-bold text-white">EverWill</span>
+            <div className="inline-flex items-center gap-2 bg-[#1F3864] rounded-xl px-5 py-2.5">
+              <Check className="w-5 h-5 text-[#C9A961]" />
+              <span className="text-base font-extrabold text-white">EverWill</span>
             </div>
           </div>
         </motion.div>
@@ -133,38 +132,38 @@ export default function ComparisonSection() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={isInView ? { opacity: 1, x: 0 } : {}}
                 transition={{ duration: 0.5, delay: 0.15 + i * 0.08 }}
-                className="grid grid-cols-3 gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+                className="grid grid-cols-3 gap-0 bg-white rounded-2xl border-2 border-gray-100 shadow-sm overflow-hidden"
               >
                 {/* 항목명 */}
-                <div className="flex items-center gap-3 px-5 py-4 bg-gray-50 border-r border-gray-100">
-                  <div className="w-9 h-9 rounded-xl bg-[#1F3864]/10 flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-4 h-4 text-[#1F3864]" />
+                <div className="flex items-center gap-3 px-5 py-5 bg-gray-50 border-r-2 border-gray-100">
+                  <div className="w-10 h-10 rounded-xl bg-[#1F3864]/10 flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-5 h-5 text-[#1F3864]" />
                   </div>
-                  <span className="font-bold text-[#1F3864] text-sm">{row.label}</span>
+                  <span className="font-extrabold text-[#1F3864] text-base">{row.label}</span>
                 </div>
 
                 {/* 기존 공증 */}
-                <div className="px-5 py-4 border-r border-gray-100">
+                <div className="px-5 py-5 border-r-2 border-gray-100">
                   <div className="flex items-start gap-2">
-                    <X className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                    <X className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <div className={`font-bold text-sm ${row.highlight ? "text-red-600 text-base" : "text-gray-700"}`}>
+                      <div className={`font-extrabold ${row.highlight ? "text-red-600 text-xl" : "text-gray-800 text-base"}`}>
                         {row.traditional}
                       </div>
-                      <div className="text-xs text-gray-400 mt-0.5 leading-relaxed">{row.traditionalSub}</div>
+                      <div className="text-sm text-gray-500 mt-1 leading-relaxed font-medium">{row.traditionalSub}</div>
                     </div>
                   </div>
                 </div>
 
                 {/* EverWill */}
-                <div className={`px-5 py-4 ${row.highlight ? "bg-[#1F3864]/5" : ""}`}>
+                <div className={`px-5 py-5 ${row.highlight ? "bg-[#1F3864]/5" : ""}`}>
                   <div className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-[#C9A961] flex-shrink-0 mt-0.5" />
+                    <Check className="w-5 h-5 text-[#C9A961] flex-shrink-0 mt-0.5" />
                     <div>
-                      <div className={`font-bold text-sm ${row.highlight ? "text-[#1F3864] text-base" : "text-gray-700"}`}>
+                      <div className={`font-extrabold ${row.highlight ? "text-[#1F3864] text-xl" : "text-gray-800 text-base"}`}>
                         {row.everwill}
                       </div>
-                      <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">{row.everwillSub}</div>
+                      <div className="text-sm text-gray-600 mt-1 leading-relaxed font-medium">{row.everwillSub}</div>
                     </div>
                   </div>
                 </div>
@@ -178,25 +177,25 @@ export default function ComparisonSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.7 }}
-          className="mt-10 bg-[#1F3864] rounded-2xl p-8 text-center"
+          className="mt-10 bg-[#1F3864] rounded-2xl p-10 text-center"
         >
-          <div className="text-white/70 text-sm mb-2 font-medium">
+          <div className="text-white/70 text-base mb-5 font-semibold">
             {isKo ? "기존 공증 대비 EverWill" : "EverWill vs Traditional Notary"}
           </div>
-          <div className="flex justify-center gap-12 flex-wrap">
+          <div className="flex justify-center gap-16 flex-wrap">
             <div>
-              <div className="text-4xl font-extrabold text-[#C9A961]">97%</div>
-              <div className="text-white/80 text-sm mt-1">{isKo ? "비용 절감" : "Cost Savings"}</div>
+              <div className="text-6xl font-extrabold text-[#C9A961]">97%</div>
+              <div className="text-white text-lg font-bold mt-2">{isKo ? "비용 절감" : "Cost Savings"}</div>
             </div>
             <div className="w-px bg-white/20 hidden sm:block" />
             <div>
-              <div className="text-4xl font-extrabold text-[#C9A961]">99%</div>
-              <div className="text-white/80 text-sm mt-1">{isKo ? "시간 단축" : "Time Saved"}</div>
+              <div className="text-6xl font-extrabold text-[#C9A961]">99%</div>
+              <div className="text-white text-lg font-bold mt-2">{isKo ? "시간 단축" : "Time Saved"}</div>
             </div>
             <div className="w-px bg-white/20 hidden sm:block" />
             <div>
-              <div className="text-4xl font-extrabold text-[#C9A961]">100%</div>
-              <div className="text-white/80 text-sm mt-1">{isKo ? "분실 위험 제거" : "Zero Loss Risk"}</div>
+              <div className="text-6xl font-extrabold text-[#C9A961]">100%</div>
+              <div className="text-white text-lg font-bold mt-2">{isKo ? "분실 위험 제거" : "Zero Loss Risk"}</div>
             </div>
           </div>
         </motion.div>
