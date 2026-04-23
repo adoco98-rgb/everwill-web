@@ -18,7 +18,7 @@ export default function ComparisonSection() {
     {
       icon: DollarSign,
       label: isKo ? "총 비용" : "Total Cost",
-      traditional: isKo ? "₩300,000 ~ ₩1,500,000+" : "₩300K ~ ₩1.5M+",
+      traditional: isKo ? "₩300K~₩1.5M+" : "₩300K~₩1.5M+",
       traditionalSub: isKo ? "변호사 수임료 + 공증료 + 증인 교통비 등" : "Attorney fee + notary fee + witness costs",
       everwill: "₩49,000",
       everwillSub: isKo ? "모든 비용 포함 (1년 무료 보관)" : "All-inclusive (1yr free storage)",

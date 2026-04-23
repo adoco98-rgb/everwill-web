@@ -187,10 +187,11 @@ export default function LawyersSection() {
             })}
           </div>
 
-          {/* 비교 표 */}
-          <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
-            <h4 className="text-white font-bold mb-5 text-sm">{t.lawyers.cmpTitle}</h4>
-            <div className="overflow-x-auto">
+          {/* 비교 표 - 모바일 카드형 */}
+          <div className="bg-white/5 rounded-2xl p-4 sm:p-6 border border-white/10">
+            <h4 className="text-white font-bold mb-4 text-sm">{t.lawyers.cmpTitle}</h4>
+            {/* 데스크탑: 테이블 */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-white/10">
@@ -211,6 +212,22 @@ export default function LawyersSection() {
                   ))}
                 </tbody>
               </table>
+            </div>
+            {/* 모바일: 카드형 */}
+            <div className="sm:hidden space-y-3">
+              {/* 헤더 */}
+              <div className="grid grid-cols-3 gap-1 pb-2 border-b border-white/10">
+                <div className="text-white/50 text-[10px] font-medium"></div>
+                <div className="text-white/50 text-[10px] font-medium text-center">{t.lawyers.cmpOld}</div>
+                <div className="text-[#C9A961] text-[10px] font-bold text-center">{t.lawyers.cmpFuture}</div>
+              </div>
+              {comparisonRows.map(([item, old, _now, future], i) => (
+                <div key={i} className="grid grid-cols-3 gap-1 py-2 border-b border-white/5 items-center">
+                  <div className="text-white/80 text-[11px] font-semibold leading-tight">{item}</div>
+                  <div className="text-white/40 text-[11px] text-center leading-tight">{old}</div>
+                  <div className="text-[#C9A961] text-[11px] font-bold text-center leading-tight">{future}</div>
+                </div>
+              ))}
             </div>
           </div>
 
