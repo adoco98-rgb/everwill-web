@@ -34,6 +34,9 @@
 - [ ] Navbar 로그인 상태 반영
 
 ## 예정
+- [ ] /investor 투자유치 랜딩페이지 - 7개국어 지원, 네비게이션 미노출
+- [ ] 투자유치 페이지 섹션: 히어로, 시장 기회, 차별화, 수익 모델, 로드맵, 팀, CTA
+- [ ] App.tsx에 /investor 라우트 등록 (Navbar/Footer 제외)
 - [ ] 알리고 SMS OTP 연동
 - [ ] Badge 주문 페이지 (/badge)
 - [ ] 유언장 저장/불러오기 (Supabase 연동)

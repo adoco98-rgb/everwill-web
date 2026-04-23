@@ -21,6 +21,7 @@ import TaxReportPage from "./pages/TaxReportPage";
 import InvestPage from "./pages/InvestPage";
 import PitchPage from "./pages/PitchPage";
 import AssetsPage from "./pages/AssetsPage";
+import InvestorPage from "./pages/InvestorPage";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -46,6 +47,8 @@ function Router() {
       <Route path={"/pitch"} component={PitchPage} />
       {/* 재산 등록 관리 */}
       <Route path={"/assets"} component={AssetsPage} />
+      {/* 투자유치 사업설명회 - 비공개 URL */}
+      <Route path={"/investor"} component={InvestorPage} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
