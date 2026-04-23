@@ -15,6 +15,7 @@ import LawyersSection from "@/components/LawyersSection";
 import HeirServiceSection from "@/components/HeirServiceSection";
 import ReviewsSection from "@/components/ReviewsSection";
 import PricingSection from "@/components/PricingSection";
+import CertifiedCounterBanner from "@/components/CertifiedCounterBanner";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -41,7 +42,13 @@ export default function Home() {
       <HeirServiceSection />
       {/* 10. 고객 후기 */}
       <ReviewsSection />
-      {/* 11. 가격 정책 (맨 아래 - 구매 결정) */}
+      {/* 11. 인증회원 카운터 */}
+      <section className="py-10 bg-[#FAFAF8]">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <CertifiedCounterBanner />
+        </div>
+      </section>
+      {/* 12. 가격 정책 (맨 아래 - 구매 결정) */}
       <PricingSection />
       <Footer />
     </div>

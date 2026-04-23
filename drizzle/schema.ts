@@ -193,3 +193,19 @@ export const emailOtps = mysqlTable("emailOtps", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type EmailOtp = typeof emailOtps.$inferSelect;
+
+/**
+ * 사이트 통계 테이블
+ * 인증회원 수 등 관리자가 수동 조정 가능한 카운터
+ */
+export const siteStats = mysqlTable("siteStats", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 통계 키 (예: certified_members) */
+  key: varchar("key", { length: 64 }).notNull().unique(),
+  /** 통계 값 */
+  value: bigint("value", { mode: "number" }).default(0).notNull(),
+  /** 설명 */
+  label: varchar("label", { length: 128 }),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type SiteStat = typeof siteStats.$inferSelect;

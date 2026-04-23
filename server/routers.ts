@@ -5,6 +5,7 @@ import { publicProcedure, router } from "./_core/trpc";
 import { willRouter } from "./routers/willRouter";
 import { taxRouter } from "./routers/taxRouter";
 import { assetRouter } from "./routers/assetRouter";
+import { statsRouter } from "./routers/statsRouter";
 import { emailAuthRouter } from "./routers/emailAuthRouter";
 
 export const appRouter = router({
@@ -29,6 +30,8 @@ export const appRouter = router({
   tax: taxRouter,
   // 재산·상속자 관리 라우터
   asset: assetRouter,
+  // 사이트 통계 라우터 (인증회원 카운터)
+  stats: statsRouter,
 });
 
 export type AppRouter = typeof appRouter;

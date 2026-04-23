@@ -36,6 +36,13 @@
       "when": 1776841586590,
       "tag": "0004_familiar_ricochet",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1776908122217,
+      "tag": "0005_shiny_the_fallen",
+      "breakpoints": true
     }
   ]
 }

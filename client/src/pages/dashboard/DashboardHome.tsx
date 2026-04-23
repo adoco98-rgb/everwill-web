@@ -2,13 +2,14 @@
  * EverWill 대시보드 홈 (/dashboard)
  * 사용자 현황 요약 카드 + 자산 등록 현황
  */
+import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { motion } from "framer-motion";
 import {
   FileText, CreditCard, Award, Shield, ArrowRight,
   Clock, CheckCircle2, AlertCircle, Building2, Users,
-  PlusCircle, TrendingUp, ChevronRight,
+  PlusCircle, TrendingUp, ChevronRight, ShieldCheck, Pencil, Check, X,
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -28,6 +29,82 @@ function formatKRW(value?: number | null) {
   if (value >= 100_000_000) return `${(value / 100_000_000).toFixed(1)}억`;
   if (value >= 10_000) return `${(value / 10_000).toFixed(0)}만원`;
   return `${value.toLocaleString()}원`;
+}
+
+/** 관리자 전용 인증회원 카운터 수정 카드 */
+function AdminCounterCard() {
+  const [editing, setEditing] = useState(false);
+  const [inputVal, setInputVal] = useState("");
+  const { data, refetch } = trpc.stats.getCertifiedCount.useQuery();
+  const setCount = trpc.stats.setCertifiedCount.useMutation({
+    onSuccess: () => { refetch(); setEditing(false); },
+  });
+  const count = data?.count ?? 0;
+
+  function handleSave() {
+    const n = parseInt(inputVal.replace(/[^0-9]/g, ""), 10);
+    if (isNaN(n) || n < 0) return;
+    setCount.mutate({ count: n });
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-[#1F3864] rounded-2xl p-5 text-white"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-5 h-5 text-[#C9A961]" />
+          <span className="font-bold text-sm">인증회원 카운터 관리</span>
+          <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">관리자 전용</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-4">
+        <div>
+          <p className="text-white/60 text-xs mb-1">현재 인증회원 수</p>
+          <p className="text-4xl font-extrabold text-[#C9A961]">{count.toLocaleString()}<span className="text-lg ml-1 text-white/60">명</span></p>
+        </div>
+        <div className="flex-1">
+          {editing ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                inputMode="numeric"
+                value={inputVal}
+                onChange={(e) => setInputVal(e.target.value)}
+                placeholder="새 숫자 입력"
+                className="flex-1 px-3 py-2 rounded-xl text-[#1F3864] font-bold text-lg focus:outline-none"
+                autoFocus
+              />
+              <button
+                onClick={handleSave}
+                disabled={setCount.isPending}
+                className="w-10 h-10 rounded-xl bg-[#C9A961] flex items-center justify-center hover:bg-[#d4b870] transition-colors"
+              >
+                <Check className="w-5 h-5 text-[#1F3864]" />
+              </button>
+              <button
+                onClick={() => setEditing(false)}
+                className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => { setInputVal(String(count)); setEditing(true); }}
+              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
+            >
+              <Pencil className="w-4 h-4" />
+              숫자 수정하기
+            </button>
+          )}
+          <p className="text-white/40 text-xs mt-2">홈페이지에 실시간으로 표시됩니다.</p>
+        </div>
+      </div>
+    </motion.div>
+  );
 }
 
 export default function DashboardHome() {
@@ -247,6 +324,9 @@ export default function DashboardHome() {
           ))}
         </div>
       </div>
+
+      {/* 관리자 전용: 인증회원 카운터 수정 */}
+      {user?.role === "admin" && <AdminCounterCard />}
 
       {/* 안내 배너 */}
       <motion.div
