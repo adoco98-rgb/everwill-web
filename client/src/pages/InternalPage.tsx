@@ -472,7 +472,8 @@ export default function InternalPage() {
   // ── 내부 문서 본문 ──
   const NAV_ITEMS = [
     { id: "overview", label: "개요", icon: FileText },
-    { id: "investment", label: "투자처 세부", icon: DollarSign },
+    { id: "invest-terms", label: "투자 조건", icon: DollarSign },
+    { id: "investment", label: "투자처 세부", icon: BarChart3 },
     { id: "cashflow", label: "현금흐름", icon: TrendingUp },
     { id: "marketing", label: "마케팅 KPI", icon: Target },
     { id: "risk", label: "리스크 분석", icon: AlertTriangle },
@@ -582,6 +583,165 @@ export default function InternalPage() {
             </div>
           </section>
 
+          {/* ── 투자 조건 섹션 ── */}
+          <section id="invest-terms">
+            <h2 className="text-3xl font-extrabold text-white mb-2">투자 조건 (기밀)</h2>
+            <p className="text-white/50 mb-8">시드 라운드 · 외부 비공개 · 협상용 내부 자료</p>
+            {/* 핵심 지표 */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+              {[
+                { label: "라운드", value: "시드 (Seed)", color: "#C9A961", icon: "🚀" },
+                { label: "목표 조달액", value: "₩5억 ~ ₩10억", color: "#10B981", icon: "💰" },
+                { label: "Pre-money Valuation", value: "₩30억", color: "#8B5CF6", icon: "📈" },
+                { label: "지분 희석률", value: "14.3% ~ 25%", color: "#EF4444", icon: "📊" },
+                { label: "투자 기간", value: "12개월 런웨이", color: "#3B82F6", icon: "⏱️" },
+                { label: "목표 BEP", value: "M10 (투자 후)", color: "#F59E0B", icon: "🎯" },
+              ].map((item, i) => (
+                <div key={i} className="bg-[#1a2035] rounded-2xl p-5 border border-white/5">
+                  <div className="text-2xl mb-2">{item.icon}</div>
+                  <p className="text-white/40 text-xs mb-1">{item.label}</p>
+                  <p className="font-bold text-lg" style={{ color: item.color }}>{item.value}</p>
+                </div>
+              ))}
+            </div>
+            {/* 투자금 사용 계획 진행바 */}
+            <div className="bg-[#1a2035] rounded-3xl p-8 border border-white/5 mb-6">
+              <h3 className="text-xl font-bold text-white mb-6">투자금 사용 계획 (총 ₩10억 기준)</h3>
+              <div className="space-y-5">
+                {[
+                  { label: "제품 개발", pct: 40, amount: "₩4억", desc: "AI 유언 엔진, eKYC, 블록체인", color: "#C9A961" },
+                  { label: "마케팅·영업", pct: 30, amount: "₩3억", desc: "한국·일본 런칭, 재외한인 타깃", color: "#10B981" },
+                  { label: "법무·컴플라이언스", pct: 15, amount: "₩1.5억", desc: "각국 법률 검토, 변호사 파트너십", color: "#8B5CF6" },
+                  { label: "운영·인프라", pct: 15, amount: "₩1.5억", desc: "서버, 보안, CS 시스템", color: "#3B82F6" },
+                ].map((item, i) => (
+                  <div key={i}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <span className="text-white font-semibold text-sm">{item.label}</span>
+                        <span className="font-bold ml-2 text-sm" style={{ color: item.color }}>{item.amount}</span>
+                        <span className="text-white/40 text-xs ml-2">— {item.desc}</span>
+                      </div>
+                      <span className="font-bold text-sm" style={{ color: item.color }}>{item.pct}%</span>
+                    </div>
+                    <div className="h-2.5 bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${item.pct}%`, background: item.color }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* 투자 조건 세부 표 */}
+            <div className="bg-[#1a2035] rounded-3xl p-8 border border-white/5 mb-6">
+              <h3 className="text-xl font-bold text-white mb-6">투자 조건 세부 (협상용)</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-white/10">
+                      <th className="text-left py-3 px-4 text-white/50 font-medium">항목</th>
+                      <th className="text-left py-3 px-4 text-white/50 font-medium">내용</th>
+                      <th className="text-left py-3 px-4 text-white/50 font-medium">비고</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { item: "라운드", value: "시드 (Seed)", note: "2025 Q4 ~ 2026 Q1" },
+                      { item: "목표 조달액", value: "₩5억 ~ ₩10억", note: "$380K ~ $760K" },
+                      { item: "Pre-money Valuation", value: "₩30억 ($2.3M)", note: "협상 가능" },
+                      { item: "지분 희석률", value: "14.3% ~ 25%", note: "조달액에 따라 변동" },
+                      { item: "투자 형태", value: "보통주 또는 전환사채 (CB)", note: "투자자 협의" },
+                      { item: "이사회 구성", value: "창업자 2 : 투자자 1", note: "시드 기준" },
+                      { item: "우선청산권", value: "1x Non-participating", note: "표준 조건" },
+                      { item: "반희석 조항", value: "Broad-based WA", note: "표준 조건" },
+                      { item: "락업 기간", value: "창업자 2년", note: "Cliff 1년" },
+                      { item: "다음 라운드 목표", value: "Series A ₩30억 (Year 2)", note: "MAU 50,000 달성 시" },
+                    ].map((row, i) => (
+                      <tr key={i} className={`border-b border-white/5 ${i % 2 === 0 ? 'bg-white/[0.02]' : ''}`}>
+                        <td className="py-3 px-4 text-white/70 font-medium">{row.item}</td>
+                        <td className="py-3 px-4 font-semibold" style={{ color: '#C9A961' }}>{row.value}</td>
+                        <td className="py-3 px-4 text-white/40 text-xs">{row.note}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            {/* 투자금 집행 타임라인 */}
+            <div className="bg-[#1a2035] rounded-3xl p-8 border border-white/5">
+              <h3 className="text-xl font-bold text-white mb-6">투자금 집행 타임라인 (12개월)</h3>
+              <div className="space-y-6">
+                {[
+                  { category: "제품 개발", amount: "₩4억", color: "#C9A961", months: [1, 9] as [number, number],
+                    milestones: [
+                      { month: 2, label: "AI MVP" }, { month: 4, label: "eKYC" },
+                      { month: 6, label: "블록체인" }, { month: 9, label: "Badge" }
+                    ]
+                  },
+                  { category: "마케팅·영업", amount: "₩3억", color: "#10B981", months: [3, 12] as [number, number],
+                    milestones: [
+                      { month: 3, label: "한국 런칭" }, { month: 6, label: "재외한인" },
+                      { month: 9, label: "일본" }, { month: 12, label: "MAU 50K" }
+                    ]
+                  },
+                  { category: "법무·컴플라이언스", amount: "₩1.5억", color: "#8B5CF6", months: [1, 8] as [number, number],
+                    milestones: [
+                      { month: 1, label: "한국 법률" }, { month: 4, label: "일본" }, { month: 8, label: "미국" }
+                    ]
+                  },
+                  { category: "운영·인프라", amount: "₩1.5억", color: "#3B82F6", months: [1, 12] as [number, number],
+                    milestones: [
+                      { month: 1, label: "서버" }, { month: 3, label: "보안" },
+                      { month: 6, label: "CS" }, { month: 12, label: "ISMS" }
+                    ]
+                  },
+                ].map((item, idx) => (
+                  <div key={idx}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-36 flex-shrink-0">
+                        <div className="text-sm font-bold" style={{ color: item.color }}>{item.category}</div>
+                        <div className="text-xs text-white/40">{item.amount}</div>
+                      </div>
+                      <div className="flex-1 relative h-8">
+                        <div className="absolute inset-0 grid grid-cols-12 gap-0">
+                          {Array.from({ length: 12 }, (_, i) => (
+                            <div key={i} className="border-l border-white/5 h-full" />
+                          ))}
+                        </div>
+                        <div
+                          className="absolute top-1 bottom-1 rounded-full opacity-80"
+                          style={{
+                            left: `${((item.months[0] - 1) / 12) * 100}%`,
+                            width: `${((item.months[1] - item.months[0] + 1) / 12) * 100}%`,
+                            background: `linear-gradient(90deg, ${item.color}cc, ${item.color}66)`,
+                            border: `1px solid ${item.color}`,
+                          }}
+                        />
+                        {item.milestones.map((ms, mi) => (
+                          <div key={mi} className="absolute top-1/2 -translate-y-1/2 group" style={{ left: `${((ms.month - 0.5) / 12) * 100}%` }}>
+                            <div className="w-3 h-3 rounded-full border-2 border-white cursor-pointer" style={{ background: item.color }} />
+                            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-[#0d1525] border border-white/10 rounded-lg px-2 py-1 text-xs text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                              M{ms.month}: {ms.label}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="ml-36 pl-2 flex flex-wrap gap-2 mt-1">
+                      {item.milestones.map((ms, mi) => (
+                        <span key={mi} className="text-xs px-2 py-0.5 rounded-full border" style={{ color: item.color, borderColor: `${item.color}40`, background: `${item.color}10` }}>
+                          M{ms.month} {ms.label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 ml-36 pl-2 grid grid-cols-12 gap-0">
+                {Array.from({ length: 12 }, (_, i) => (
+                  <div key={i} className="text-center text-xs text-white/30">M{i + 1}</div>
+                ))}
+              </div>
+            </div>
+          </section>
           {/* ── 투자처 세부 섹션 ── */}
           <section id="investment">
             <h2 className="text-3xl font-extrabold text-white mb-2">투자처 세부 내역</h2>

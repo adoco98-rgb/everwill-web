@@ -243,6 +243,8 @@ const T: Record<Lang, TranslationData> = {
     comp_fw: "Farewill", comp_fw_country: "🇬🇧 영국",
     comp_gt: "GoodTrust", comp_gt_country: "🇺🇸 미국",
     comp_rows: [
+      { feature: "연간 매출 규모 (2024)", ew: "출시 전", tw: "₩430억 ($32M)", fw: "₩230억 (£12.9M 매각)", gt: "₩22억 ($1.6M)" },
+      { feature: "누적 투자 유치", ew: "시드 모집 중", tw: "₩1,110억 ($82.5M)", fw: "₩540억 (£40M)", gt: "₩67억 ($5M)" },
       { feature: "물리적 Badge 시스템", ew: "✅ 세계 최초", tw: "❌", fw: "❌", gt: "❌" },
       { feature: "4중 사망 감지", ew: "✅ 자동화", tw: "❌ 수동", fw: "❌ 수동", gt: "❌ 수동" },
       { feature: "변호사 마켓플레이스", ew: "✅ 사후 집행", tw: "⚠️ 생전만", fw: "⚠️ 제한적", gt: "❌" },
@@ -434,6 +436,8 @@ const T: Record<Lang, TranslationData> = {
     comp_fw: "Farewill", comp_fw_country: "🇬🇧 UK",
     comp_gt: "GoodTrust", comp_gt_country: "🇺🇸 USA",
     comp_rows: [
+      { feature: "Annual Revenue (2024)", ew: "Pre-launch", tw: "$32M (₩430B)", fw: "£12.9M acquired", gt: "$1.6M" },
+      { feature: "Total Funding Raised", ew: "Seed raising", tw: "$82.5M", fw: "£40M", gt: "$5M" },
       { feature: "Physical Badge System", ew: "✅ World First", tw: "❌", fw: "❌", gt: "❌" },
       { feature: "4-Layer Death Detection", ew: "✅ Automated", tw: "❌ Manual", fw: "❌ Manual", gt: "❌ Manual" },
       { feature: "Lawyer Marketplace", ew: "✅ Post-death exec.", tw: "⚠️ Life only", fw: "⚠️ Limited", gt: "❌" },
@@ -625,6 +629,8 @@ const T: Record<Lang, TranslationData> = {
     comp_fw: "Farewill", comp_fw_country: "🇬🇧 英国",
     comp_gt: "GoodTrust", comp_gt_country: "🇺🇸 米国",
     comp_rows: [
+      { feature: "年間売上高 (2024)", ew: "リリース前", tw: "$32M (₩430億)", fw: "£12.9M 買収", gt: "$1.6M" },
+      { feature: "累積資金調達", ew: "シード募集中", tw: "$82.5M", fw: "£40M", gt: "$5M" },
       { feature: "物理的Badgeシステム", ew: "✅ 世界初", tw: "❌", fw: "❌", gt: "❌" },
       { feature: "4重死亡検知", ew: "✅ 自動化", tw: "❌ 手動", fw: "❌ 手動", gt: "❌ 手動" },
       { feature: "弁護士マーケットプレイス", ew: "✅ 死後執行", tw: "⚠️ 生前のみ", fw: "⚠️ 制限的", gt: "❌" },
@@ -816,6 +822,8 @@ const T: Record<Lang, TranslationData> = {
     comp_fw: "Farewill", comp_fw_country: "🇬🇧 英国",
     comp_gt: "GoodTrust", comp_gt_country: "🇺🇸 美国",
     comp_rows: [
+      { feature: "年度收入规模 (2024)", ew: "尚未发布", tw: "$32M (₩430亿)", fw: "£12.9M 被收购", gt: "$1.6M" },
+      { feature: "累计融资金额", ew: "种子轮寻求中", tw: "$82.5M", fw: "£40M", gt: "$5M" },
       { feature: "实体Badge系统", ew: "✅ 全球首创", tw: "❌", fw: "❌", gt: "❌" },
       { feature: "四重死亡检测", ew: "✅ 自动化", tw: "❌ 手动", fw: "❌ 手动", gt: "❌ 手动" },
       { feature: "律师市场", ew: "✅ 身后执行", tw: "⚠️ 仅生前", fw: "⚠️ 有限", gt: "❌" },
@@ -1007,6 +1015,8 @@ const T: Record<Lang, TranslationData> = {
     comp_fw: "Farewill", comp_fw_country: "🇬🇧 UK",
     comp_gt: "GoodTrust", comp_gt_country: "🇺🇸 USA",
     comp_rows: [
+      { feature: "Jahresumsatz (2024)", ew: "Vor Launch", tw: "$32M (₩430B)", fw: "£12,9M Akquisition", gt: "$1,6M" },
+      { feature: "Gesamtfinanzierung", ew: "Seed-Runde läuft", tw: "$82,5M", fw: "£40M", gt: "$5M" },
       { feature: "Physisches Badge-System", ew: "✅ Weltweit Erste", tw: "❌", fw: "❌", gt: "❌" },
       { feature: "4-Schicht-Todeserkennung", ew: "✅ Automatisiert", tw: "❌ Manuell", fw: "❌ Manuell", gt: "❌ Manuell" },
       { feature: "Anwalts-Marktplatz", ew: "✅ Nachlassabwicklung", tw: "⚠️ Nur Lebzeiten", fw: "⚠️ Begrenzt", gt: "❌" },
@@ -1198,6 +1208,8 @@ const T: Record<Lang, TranslationData> = {
     comp_fw: "Farewill", comp_fw_country: "🇬🇧 Reino Unido",
     comp_gt: "GoodTrust", comp_gt_country: "🇺🇸 EE.UU.",
     comp_rows: [
+      { feature: "Ingresos anuales (2024)", ew: "Pre-lanzamiento", tw: "$32M (₩430B)", fw: "£12,9M adquirida", gt: "$1,6M" },
+      { feature: "Financiación total", ew: "Ronda seed en curso", tw: "$82,5M", fw: "£40M", gt: "$5M" },
       { feature: "Sistema de Badge físico", ew: "✅ 1º mundial", tw: "❌", fw: "❌", gt: "❌" },
       { feature: "Detección de muerte 4 capas", ew: "✅ Automatizado", tw: "❌ Manual", fw: "❌ Manual", gt: "❌ Manual" },
       { feature: "Mercado de abogados", ew: "✅ Ejec. post-mort.", tw: "⚠️ Solo en vida", fw: "⚠️ Limitado", gt: "❌" },
@@ -1389,6 +1401,8 @@ const T: Record<Lang, TranslationData> = {
     comp_fw: "Farewill", comp_fw_country: "🇬🇧 المملكة المتحدة",
     comp_gt: "GoodTrust", comp_gt_country: "🇺🇸 أمريكا",
     comp_rows: [
+      { feature: "الإيرادات السنوية (2024)", ew: "قبل الإطلاق", tw: "$32M (₩430B)", fw: "£12.9M اكتسبت", gt: "$1.6M" },
+      { feature: "إجمالي التمويل", ew: "جولة البذرة", tw: "$82.5M", fw: "£40M", gt: "$5M" },
       { feature: "نظام Badge المادي", ew: "✅ الأول عالمياً", tw: "❌", fw: "❌", gt: "❌" },
       { feature: "كشف الوفاة 4 طبقات", ew: "✅ آلي", tw: "❌ يدوي", fw: "❌ يدوي", gt: "❌ يدوي" },
       { feature: "سوق المحامين", ew: "✅ تنفيذ ما بعد الوفاة", tw: "⚠️ حياة فقط", fw: "⚠️ محدود", gt: "❌" },
@@ -2111,174 +2125,6 @@ export default function InvestorPage() {
           </div>
         </div>
       </section>
-
-      {/* ── 투자 조건 ── */}
-      <section className="py-24 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-white mb-4">{t.invest_title}</h2>
-            <p className="text-white/50 text-lg">{t.invest_sub}</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            {[
-              { label: t.invest_round, icon: Rocket, color: "#C9A961" },
-              { label: t.invest_amount, icon: DollarSign, color: "#10B981" },
-              { label: t.invest_valuation, icon: TrendingUp, color: "#8B5CF6" },
-            ].map((item, i) => (
-              <div key={i} className="bg-[#1a2035] rounded-3xl p-6 border border-white/5 text-center">
-                <item.icon className="w-8 h-8 mx-auto mb-3" style={{ color: item.color }} />
-                <p className="text-white font-bold text-lg leading-snug">{item.label}</p>
-              </div>
-            ))}
-          </div>
-          <div className="bg-[#1a2035] rounded-3xl p-8 border border-white/5">
-            <h3 className="text-xl font-bold text-white mb-6">{t.invest_use}</h3>
-            <div className="space-y-5">
-              {t.invest_use_items.map((item, i) => {
-                const pctNum = parseInt(item.pct);
-                const colors = ["#C9A961", "#10B981", "#8B5CF6", "#3B82F6"];
-                return (
-                  <div key={i}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <span className="text-white font-semibold text-sm">{item.label}</span>
-                        <span className="text-white/40 text-xs ml-2">— {item.desc}</span>
-                      </div>
-                      <span className="font-bold text-sm" style={{ color: colors[i] }}>{item.pct}</span>
-                    </div>
-                    <div className="h-2.5 bg-white/10 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-700"
-                        style={{ width: `${pctNum}%`, background: colors[i] }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          {/* 세부 자금 계획 테이블 */}
-          <div className="mt-8">
-            <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-              <BarChart3 className="w-6 h-6 text-[#C9A961]" />
-              {t.invest_detail_title}
-            </h3>
-            <div className="space-y-4">
-              {t.invest_detail_items.map((group, gi) => {
-                const catColors = ["#C9A961", "#10B981", "#8B5CF6", "#3B82F6"];
-                return (
-                  <div key={gi} className="bg-[#1a2035] rounded-2xl border border-white/5 overflow-hidden">
-                    <div className="px-6 py-4 border-b border-white/5" style={{ background: `${catColors[gi]}15` }}>
-                      <h4 className="font-bold text-base" style={{ color: catColors[gi] }}>{group.category}</h4>
-                    </div>
-                    <div className="divide-y divide-white/5">
-                      {group.items.map((row, ri) => (
-                        <div key={ri} className="px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                          <div className="flex-1">
-                            <span className="text-white text-sm font-medium">{row.name}</span>
-                            <span className="text-white/40 text-xs ml-2">— {row.note}</span>
-                          </div>
-                          <span className="font-bold text-sm whitespace-nowrap" style={{ color: catColors[gi] }}>{row.amount}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 투자금 집행 타임라인 ── */}
-      <section className="py-24 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-white mb-4">{t.timeline_title}</h2>
-            <p className="text-white/50 text-lg">{t.timeline_sub}</p>
-          </div>
-          {/* 간트차트 */}
-          <div className="bg-[#1a2035] rounded-3xl p-8 border border-white/5 overflow-x-auto">
-            {/* 월 헤더 */}
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-44 flex-shrink-0" />
-              <div className="flex-1 grid grid-cols-12 gap-0">
-                {Array.from({ length: 12 }, (_, i) => (
-                  <div key={i} className="text-center text-xs text-white/40 font-medium">M{i + 1}</div>
-                ))}
-              </div>
-            </div>
-            {/* 각 카테고리 행 */}
-            <div className="space-y-6">
-              {t.timeline_items.map((item, idx) => (
-                <div key={idx}>
-                  {/* 카테고리 레이블 + 바 */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-44 flex-shrink-0">
-                      <div className="text-sm font-bold" style={{ color: item.color }}>{item.category}</div>
-                      <div className="text-xs text-white/40">{item.amount} · {item.duration}</div>
-                    </div>
-                    <div className="flex-1 relative h-8">
-                      {/* 배경 그리드 */}
-                      <div className="absolute inset-0 grid grid-cols-12 gap-0">
-                        {Array.from({ length: 12 }, (_, i) => (
-                          <div key={i} className="border-l border-white/5 h-full" />
-                        ))}
-                      </div>
-                      {/* 진행 바 */}
-                      <div
-                        className="absolute top-1 bottom-1 rounded-full opacity-80"
-                        style={{
-                          left: `${((item.months[0] - 1) / 12) * 100}%`,
-                          width: `${((item.months[1] - item.months[0] + 1) / 12) * 100}%`,
-                          background: `linear-gradient(90deg, ${item.color}cc, ${item.color}66)`,
-                          border: `1px solid ${item.color}`,
-                        }}
-                      />
-                      {/* 마일스톤 점 */}
-                      {item.milestones.map((ms, mi) => (
-                        <div
-                          key={mi}
-                          className="absolute top-1/2 -translate-y-1/2 group"
-                          style={{ left: `${((ms.month - 0.5) / 12) * 100}%` }}
-                        >
-                          <div
-                            className="w-3 h-3 rounded-full border-2 border-white cursor-pointer"
-                            style={{ background: item.color }}
-                          />
-                          {/* 툴팁 */}
-                          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-[#0d1525] border border-white/10 rounded-lg px-2 py-1 text-xs text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                            M{ms.month}: {ms.label}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  {/* 마일스톤 레이블 (모바일용) */}
-                  <div className="ml-44 pl-2 flex flex-wrap gap-2 mt-1">
-                    {item.milestones.map((ms, mi) => (
-                      <span key={mi} className="text-xs px-2 py-0.5 rounded-full border" style={{ color: item.color, borderColor: `${item.color}40`, background: `${item.color}10` }}>
-                        M{ms.month} {ms.label}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* 범례 */}
-          <div className="mt-6 flex flex-wrap gap-4 justify-center">
-            {t.timeline_items.map((item, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm">
-                <div className="w-4 h-2 rounded-full" style={{ background: item.color }} />
-                <span className="text-white/60">{item.category}</span>
-                <span className="font-bold" style={{ color: item.color }}>{item.amount}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── CTA ── */}
       <section className="py-24 px-6 bg-gradient-to-br from-[#1F3864] to-[#0a0f1e]">
         <div className="max-w-3xl mx-auto text-center">
