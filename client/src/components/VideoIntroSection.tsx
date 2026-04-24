@@ -2,6 +2,7 @@
  * EverWill 소개 슬라이드 섹션
  * 동영상 대신 이미지 슬라이드 + 다국어 텍스트 오버레이
  * 자동 재생 + 수동 이동 지원
+ * slide3: 11개국 국기 이모지 표시
  */
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -20,6 +21,21 @@ const ACCENTS = [
   "from-[#0d1f3c]/85 via-[#0d1f3c]/50 to-transparent",
   "from-[#0d1f3c]/75 via-[#0d1f3c]/40 to-transparent",
   "from-[#0d1f3c]/80 via-[#0d1f3c]/50 to-transparent",
+];
+
+// 11개국 국기 + 언어명
+const GLOBAL_FLAGS = [
+  { flag: "🇰🇷", name: "한국어", code: "KO" },
+  { flag: "🇺🇸", name: "English", code: "EN" },
+  { flag: "🇯🇵", name: "日本語", code: "JA" },
+  { flag: "🇨🇳", name: "中文", code: "ZH" },
+  { flag: "🇩🇪", name: "Deutsch", code: "DE" },
+  { flag: "🇪🇸", name: "Español", code: "ES" },
+  { flag: "🇸🇦", name: "العربية", code: "AR" },
+  { flag: "🇫🇷", name: "Français", code: "FR" },
+  { flag: "🇷🇺", name: "Русский", code: "RU" },
+  { flag: "🇮🇳", name: "हिन्दी", code: "HI" },
+  { flag: "🇧🇷", name: "Português", code: "PT" },
 ];
 
 const INTERVAL = 5000; // 5초 자동 전환
@@ -42,6 +58,7 @@ export default function VideoIntroSection() {
       highlight: vi.slide0Highlight,
       desc: vi.slide0Desc,
       accent: ACCENTS[0],
+      isGlobal: false,
     },
     {
       id: 1,
@@ -52,6 +69,7 @@ export default function VideoIntroSection() {
       highlight: vi.slide1Highlight,
       desc: vi.slide1Desc,
       accent: ACCENTS[1],
+      isGlobal: false,
     },
     {
       id: 2,
@@ -62,6 +80,7 @@ export default function VideoIntroSection() {
       highlight: vi.slide2Highlight,
       desc: vi.slide2Desc,
       accent: ACCENTS[2],
+      isGlobal: false,
     },
     {
       id: 3,
@@ -72,6 +91,7 @@ export default function VideoIntroSection() {
       highlight: vi.slide3Highlight,
       desc: vi.slide3Desc,
       accent: ACCENTS[3],
+      isGlobal: true, // 국기 표시 슬라이드
     },
   ];
 
@@ -179,17 +199,37 @@ export default function VideoIntroSection() {
               >
                 {slide.title}
               </h3>
-              {/* 하이라이트 */}
-              <p
-                className="text-3xl md:text-4xl font-bold mb-4 drop-shadow-xl"
-                style={{
-                  color: "#C9A961",
-                  textShadow: "0 2px 12px rgba(0,0,0,0.6)",
-                  fontFamily: "'Noto Serif KR', serif",
-                }}
-              >
-                {slide.highlight}
-              </p>
+
+              {/* 슬라이드 3: 11개국 국기 표시 */}
+              {slide.isGlobal ? (
+                <div className="mb-4">
+                  {/* 국기 그리드 - 2줄 */}
+                  <div className="flex flex-wrap gap-2 max-w-xl">
+                    {GLOBAL_FLAGS.map((item) => (
+                      <div
+                        key={item.code}
+                        className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-2.5 py-1"
+                      >
+                        <span className="text-lg leading-none">{item.flag}</span>
+                        <span className="text-white text-xs font-semibold leading-none">{item.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                /* 일반 슬라이드: 하이라이트 텍스트 */
+                <p
+                  className="text-3xl md:text-4xl font-bold mb-4 drop-shadow-xl"
+                  style={{
+                    color: "#C9A961",
+                    textShadow: "0 2px 12px rgba(0,0,0,0.6)",
+                    fontFamily: "'Noto Serif KR', serif",
+                  }}
+                >
+                  {slide.highlight}
+                </p>
+              )}
+
               {/* 설명 */}
               <p
                 className="text-white/90 text-base md:text-lg max-w-xl leading-relaxed drop-shadow-md"
