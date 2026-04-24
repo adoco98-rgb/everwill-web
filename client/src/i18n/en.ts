@@ -287,7 +287,7 @@ export const en = {
     slide3Tag: "Global Service",
     slide3Title: "11 languages\nanywhere in the world",
     slide3Highlight: "Korea · USA · Japan · China",
-    slide3Desc: "A global will platform for overseas Koreans, international asset holders, and multinational families.",
+    slide3Desc: "EverWill serves everyone around the world who needs a digital will. We solve life's hardest challenges together with people worldwide.",
     tag0: "AI Will Writing Free",
     tag1: "E-Certification $39",
     tag2: "11 Languages",

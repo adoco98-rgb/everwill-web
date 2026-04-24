@@ -287,7 +287,7 @@ export const zh = {
     slide3Tag: "全球服务",
     slide3Title: "11种语言\n全球随时随地",
     slide3Highlight: "韩国·美国·日本·中国",
-    slide3Desc: "专为海外华人、境外资产持有者和跨国家庭打造的全球遗嘱平台。",
+    slide3Desc: "为全球所有需要电子签名遗嘱的人提供服务。EverWill与世界各地的人们共同解决难题。",
     tag0: "AI遗嘱撰写免费",
     tag1: "电子认证¥280",
     tag2: "11种语言",

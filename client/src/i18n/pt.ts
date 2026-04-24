@@ -287,7 +287,7 @@ export const pt = {
     slide3Tag: "Serviço global",
     slide3Title: "11 idiomas\nem qualquer lugar do mundo",
     slide3Highlight: "Coreia · EUA · Japão · China",
-    slide3Desc: "Uma plataforma global de testamentos para coreanos no exterior, detentores de ativos internacionais e famílias multinacionais.",
+    slide3Desc: "EverWill serve todas as pessoas no mundo que precisam de um testamento com assinatura digital. Juntos, resolvemos os desafios mais difíceis da vida.",
     tag0: "Testamento IA grátis",
     tag1: "Certificação $45",
     tag2: "11 idiomas",

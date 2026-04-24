@@ -287,7 +287,7 @@ export const de = {
     slide3Tag: "Globaler Service",
     slide3Title: "11 Sprachen\nüberall auf der Welt",
     slide3Highlight: "Korea · USA · Japan · China",
-    slide3Desc: "Eine globale Testament-Plattform für Auslandskoraner, internationale Vermögensinhaber und multinationale Familien.",
+    slide3Desc: "EverWill dient allen Menschen weltweit, die ein digital beglaubigtes Testament benötigen. Gemeinsam lösen wir die schwierigsten Herausforderungen des Lebens.",
     tag0: "KI-Testament kostenlos",
     tag1: "E-Zertifizierung 40€",
     tag2: "11 Sprachen",
