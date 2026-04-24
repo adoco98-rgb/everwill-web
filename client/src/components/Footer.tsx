@@ -79,12 +79,6 @@ export default function Footer() {
                 {t.cta.btn}
                 <ArrowRight className="w-5 h-5" />
               </button>
-              <button
-                onClick={() => toast.info("서비스 준비 중입니다")}
-                className="flex items-center justify-center gap-2 px-10 py-4 rounded-full text-base font-medium text-white border border-white/30 hover:border-[#C9A961]/60 hover:text-[#C9A961] transition-all duration-300"
-              >
-                {t.lawyers.step3Title}
-              </button>
             </div>
 
             <p className="text-white/30 text-sm mt-8">
