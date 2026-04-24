@@ -1,64 +1,83 @@
 /**
  * EverWill 소개 슬라이드 섹션
- * 동영상 대신 이미지 슬라이드 + 한글 텍스트 오버레이
+ * 동영상 대신 이미지 슬라이드 + 다국어 텍스트 오버레이
  * 자동 재생 + 수동 이동 지원
  */
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-const slides = [
-  {
-    id: 0,
-    bg: "/manus-storage/slide1_writing_2c37efd7.jpg",
-    tag: "AI 유언장 작성",
-    tagColor: "#C9A961",
-    title: "체크 몇 번이면\n유언장 완성",
-    highlight: "17분 · 무료",
-    desc: "복잡한 법률 용어 없이, AI가 안내하는 대로 체크만 하면 완성됩니다.",
-    accent: "from-[#0d1f3c]/85 via-[#0d1f3c]/50 to-transparent",
-  },
-  {
-    id: 1,
-    bg: "/manus-storage/slide2_pen_d0fa71fc.jpg",
-    tag: "전자인증",
-    tagColor: "#C9A961",
-    title: "법적 효력 있는\n디지털 유언장",
-    highlight: "₩49,000 · 1회",
-    desc: "블록체인 타임스탬프와 전자서명으로 법원에서 인정받는 유언장을 만드세요.",
-    accent: "from-[#0d1f3c]/85 via-[#0d1f3c]/50 to-transparent",
-  },
-  {
-    id: 2,
-    bg: "/manus-storage/slide3_family_c5897e79.jpg",
-    tag: "가족을 위한 선물",
-    tagColor: "#C9A961",
-    title: "가족이 받게 될\n가장 큰 사랑",
-    highlight: "사후 자동 집행",
-    desc: "사망 감지 시 상속자에게 자동 알림, 변호사 매칭, 자산 집행까지 EverWill이 책임집니다.",
-    accent: "from-[#0d1f3c]/75 via-[#0d1f3c]/40 to-transparent",
-  },
-  {
-    id: 3,
-    bg: "/manus-storage/slide4_legacy_f680f72a.png",
-    tag: "글로벌 서비스",
-    tagColor: "#C9A961",
-    title: "7개국 언어\n전 세계 어디서나",
-    highlight: "한국 · 미국 · 일본 · 중국",
-    desc: "재외동포, 해외 자산 보유자, 다국적 가족 모두를 위한 글로벌 유언 플랫폼입니다.",
-    accent: "from-[#0d1f3c]/80 via-[#0d1f3c]/50 to-transparent",
-  },
+const SLIDE_BGS = [
+  "/manus-storage/slide1_writing_2c37efd7.jpg",
+  "/manus-storage/slide2_pen_d0fa71fc.jpg",
+  "/manus-storage/slide3_family_c5897e79.jpg",
+  "/manus-storage/slide4_legacy_f680f72a.png",
+];
+
+const ACCENTS = [
+  "from-[#0d1f3c]/85 via-[#0d1f3c]/50 to-transparent",
+  "from-[#0d1f3c]/85 via-[#0d1f3c]/50 to-transparent",
+  "from-[#0d1f3c]/75 via-[#0d1f3c]/40 to-transparent",
+  "from-[#0d1f3c]/80 via-[#0d1f3c]/50 to-transparent",
 ];
 
 const INTERVAL = 5000; // 5초 자동 전환
 
 export default function VideoIntroSection() {
+  const { t } = useLanguage();
+  const vi = t.videoIntro;
+
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
 
+  // 번역 기반 슬라이드 데이터
+  const slides = [
+    {
+      id: 0,
+      bg: SLIDE_BGS[0],
+      tag: vi.slide0Tag,
+      tagColor: "#C9A961",
+      title: vi.slide0Title,
+      highlight: vi.slide0Highlight,
+      desc: vi.slide0Desc,
+      accent: ACCENTS[0],
+    },
+    {
+      id: 1,
+      bg: SLIDE_BGS[1],
+      tag: vi.slide1Tag,
+      tagColor: "#C9A961",
+      title: vi.slide1Title,
+      highlight: vi.slide1Highlight,
+      desc: vi.slide1Desc,
+      accent: ACCENTS[1],
+    },
+    {
+      id: 2,
+      bg: SLIDE_BGS[2],
+      tag: vi.slide2Tag,
+      tagColor: "#C9A961",
+      title: vi.slide2Title,
+      highlight: vi.slide2Highlight,
+      desc: vi.slide2Desc,
+      accent: ACCENTS[2],
+    },
+    {
+      id: 3,
+      bg: SLIDE_BGS[3],
+      tag: vi.slide3Tag,
+      tagColor: "#C9A961",
+      title: vi.slide3Title,
+      highlight: vi.slide3Highlight,
+      desc: vi.slide3Desc,
+      accent: ACCENTS[3],
+    },
+  ];
+
   const next = useCallback(() => {
     setCurrent((c) => (c + 1) % slides.length);
-  }, []);
+  }, [slides.length]);
 
   const prev = () => {
     setCurrent((c) => (c - 1 + slides.length) % slides.length);
@@ -72,6 +91,9 @@ export default function VideoIntroSection() {
   }, [paused, next]);
 
   const slide = slides[current];
+
+  // 하단 태그 목록
+  const bottomTags = [vi.tag0, vi.tag1, vi.tag2, vi.tag3, vi.tag4];
 
   return (
     <section className="py-20 bg-[#FAFAFA]">
@@ -87,30 +109,29 @@ export default function VideoIntroSection() {
           <div className="flex items-center justify-center gap-2 mb-4">
             <div className="w-8 h-px bg-[#C9A961]" />
             <span className="text-[#C9A961] text-sm font-semibold tracking-widest uppercase">
-              EverWill 소개
+              {vi.sectionLabel}
             </span>
             <div className="w-8 h-px bg-[#C9A961]" />
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-[#1F3864] mb-4">
-            세계 최초 디지털 유언 OS
+            {vi.title}
           </h2>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto">
-            유언 작성부터 사후 자동 집행까지, 전 과정을 책임지는 EverWill을 소개합니다.
+            {vi.subtitle}
           </p>
         </motion.div>
 
-        {/* 슬라이드 컨테이너 */}
+        {/* 슬라이드 */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.97 }}
-          whileInView={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          className="relative rounded-3xl overflow-hidden shadow-2xl bg-[#0d1f3c]"
-          style={{ aspectRatio: "16/9" }}
+          transition={{ duration: 0.7 }}
+          className="relative w-full aspect-[16/9] md:aspect-[21/9] rounded-2xl overflow-hidden shadow-2xl cursor-pointer"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >
-          {/* 배경 이미지 슬라이드 */}
+          {/* 배경 이미지 */}
           <AnimatePresence mode="sync">
             <motion.div
               key={slide.id}
@@ -151,7 +172,6 @@ export default function VideoIntroSection() {
               >
                 {slide.tag}
               </span>
-
               {/* 메인 제목 */}
               <h3
                 className="text-white text-4xl md:text-6xl font-extrabold leading-tight mb-3 drop-shadow-2xl whitespace-pre-line"
@@ -159,7 +179,6 @@ export default function VideoIntroSection() {
               >
                 {slide.title}
               </h3>
-
               {/* 하이라이트 */}
               <p
                 className="text-3xl md:text-4xl font-bold mb-4 drop-shadow-xl"
@@ -171,7 +190,6 @@ export default function VideoIntroSection() {
               >
                 {slide.highlight}
               </p>
-
               {/* 설명 */}
               <p
                 className="text-white/90 text-base md:text-lg max-w-xl leading-relaxed drop-shadow-md"
@@ -233,13 +251,7 @@ export default function VideoIntroSection() {
           transition={{ duration: 0.5, delay: 0.4 }}
           className="flex flex-wrap justify-center gap-3 mt-8"
         >
-          {[
-            "AI 유언장 작성 무료",
-            "전자인증 ₩49,000",
-            "7개 언어 지원",
-            "사후 자동 집행",
-            "4중 사망 감지",
-          ].map((tag) => (
+          {bottomTags.map((tag) => (
             <span
               key={tag}
               className="px-4 py-1.5 bg-white border border-[#C9A961]/30 text-[#1F3864] text-sm font-medium rounded-full shadow-sm"

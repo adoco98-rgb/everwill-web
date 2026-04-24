@@ -287,6 +287,34 @@ export const ko = {
     note: "신용카드 불필요 · 언제든 수정 가능",
   },
 
+  // VideoIntro Section
+  videoIntro: {
+    sectionLabel: "EverWill 소개",
+    title: "세계 최초 디지털 유언 OS",
+    subtitle: "유언 작성부터 사후 자동 집행까지, 전 과정을 책임지는 EverWill을 소개합니다.",
+    slide0Tag: "AI 유언장 작성",
+    slide0Title: "체크 몇 번이면\n유언장 완성",
+    slide0Highlight: "17분 · 무료",
+    slide0Desc: "복잡한 법률 용어 없이, AI가 안내하는 대로 체크만 하면 완성됩니다.",
+    slide1Tag: "전자인증",
+    slide1Title: "법적 효력 있는\n디지털 유언장",
+    slide1Highlight: "₩49,000 · 1회",
+    slide1Desc: "블록체인 타임스탬프와 전자서명으로 법원에서 인정받는 유언장을 만드세요.",
+    slide2Tag: "가족을 위한 선물",
+    slide2Title: "가족이 받게 될\n가장 큰 사랑",
+    slide2Highlight: "사후 자동 집행",
+    slide2Desc: "사망 감지 시 상속자에게 자동 알림, 변호사 매칭, 자산 집행까지 EverWill이 책임집니다.",
+    slide3Tag: "글로벌 서비스",
+    slide3Title: "11개국 언어\n전 세계 어디서나",
+    slide3Highlight: "한국 · 미국 · 일본 · 중국",
+    slide3Desc: "재외동포, 해외 자산 보유자, 다국적 가족 모두를 위한 글로벌 유언 플랫폼입니다.",
+    tag0: "AI 유언장 작성 무료",
+    tag1: "전자인증 ₩49,000",
+    tag2: "11개 언어 지원",
+    tag3: "사후 자동 집행",
+    tag4: "4중 사망 감지",
+  },
+
   // Footer
   footer: {
     company: "주식회사 사람",
