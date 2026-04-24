@@ -191,25 +191,41 @@ export default function Navbar() {
         <div className="w-full">
           <div className="flex items-center justify-center gap-1 py-1.5 overflow-x-auto scrollbar-hide px-4">
             {languages.map((lang) => (
-              <button
+              <motion.button
                 key={lang.code}
                 onClick={() => handleSetLanguage(lang.code)}
                 title={lang.label}
-                className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
+                whileHover={{ scale: 1.12, y: -2 }}
+                whileTap={{ scale: 0.92 }}
+                animate={language === lang.code ? { scale: 1.08 } : { scale: 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                className={`relative flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg whitespace-nowrap flex-shrink-0 ${
                   language === lang.code
                     ? "bg-[#C9A961]/20 ring-1 ring-[#C9A961]"
                     : "hover:bg-white/10"
                 }`}
               >
+                {/* 선택 시 발광 효과 */}
+                {language === lang.code && (
+                  <motion.div
+                    layoutId="activeLang"
+                    className="absolute inset-0 rounded-lg bg-[#C9A961]/15"
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                )}
                 <img
                   src={lang.flagImg}
                   alt={lang.label}
-                  className={`w-7 h-5 object-cover rounded-sm ${language === lang.code ? "ring-1 ring-[#C9A961]" : ""}`}
+                  className={`w-7 h-5 object-cover rounded-sm relative z-10 ${
+                    language === lang.code ? "ring-1 ring-[#C9A961] shadow-sm shadow-[#C9A961]/40" : ""
+                  }`}
                 />
-                <span className={`text-[10px] font-medium ${language === lang.code ? "text-[#C9A961]" : "text-white/50"}`}>
+                <span className={`text-[10px] font-medium relative z-10 transition-colors ${
+                  language === lang.code ? "text-[#C9A961]" : "text-white/50"
+                }`}>
                   {lang.code.toUpperCase()}
                 </span>
-              </button>
+              </motion.button>
             ))}
           </div>
         </div>
