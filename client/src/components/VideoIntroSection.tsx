@@ -23,19 +23,19 @@ const ACCENTS = [
   "from-[#0d1f3c]/80 via-[#0d1f3c]/50 to-transparent",
 ];
 
-// 11개국 국기 + 언어명
+// 11개국 국기 + 언어명 (flagcdn 이미지 사용)
 const GLOBAL_FLAGS = [
-  { flag: "🇰🇷", name: "한국어", code: "KO" },
-  { flag: "🇺🇸", name: "English", code: "EN" },
-  { flag: "🇯🇵", name: "日本語", code: "JA" },
-  { flag: "🇨🇳", name: "中文", code: "ZH" },
-  { flag: "🇩🇪", name: "Deutsch", code: "DE" },
-  { flag: "🇪🇸", name: "Español", code: "ES" },
-  { flag: "🇸🇦", name: "العربية", code: "AR" },
-  { flag: "🇫🇷", name: "Français", code: "FR" },
-  { flag: "🇷🇺", name: "Русский", code: "RU" },
-  { flag: "🇮🇳", name: "हिन्दी", code: "HI" },
-  { flag: "🇧🇷", name: "Português", code: "PT" },
+  { flagImg: "https://flagcdn.com/w80/kr.png", flagSvg: "https://flagcdn.com/kr.svg", name: "한국어", code: "KO" },
+  { flagImg: "https://flagcdn.com/w80/us.png", flagSvg: "https://flagcdn.com/us.svg", name: "English", code: "EN" },
+  { flagImg: "https://flagcdn.com/w80/jp.png", flagSvg: "https://flagcdn.com/jp.svg", name: "日本語", code: "JA" },
+  { flagImg: "https://flagcdn.com/w80/cn.png", flagSvg: "https://flagcdn.com/cn.svg", name: "中文", code: "ZH" },
+  { flagImg: "https://flagcdn.com/w80/de.png", flagSvg: "https://flagcdn.com/de.svg", name: "Deutsch", code: "DE" },
+  { flagImg: "https://flagcdn.com/w80/es.png", flagSvg: "https://flagcdn.com/es.svg", name: "Español", code: "ES" },
+  { flagImg: "https://flagcdn.com/w80/sa.png", flagSvg: "https://flagcdn.com/sa.svg", name: "العربية", code: "AR" },
+  { flagImg: "https://flagcdn.com/w80/fr.png", flagSvg: "https://flagcdn.com/fr.svg", name: "Français", code: "FR" },
+  { flagImg: "https://flagcdn.com/w80/ru.png", flagSvg: "https://flagcdn.com/ru.svg", name: "Русский", code: "RU" },
+  { flagImg: "https://flagcdn.com/w80/in.png", flagSvg: "https://flagcdn.com/in.svg", name: "हिन्दी", code: "HI" },
+  { flagImg: "https://flagcdn.com/w80/br.png", flagSvg: "https://flagcdn.com/br.svg", name: "Português", code: "PT" },
 ];
 
 const INTERVAL = 5000; // 5초 자동 전환
@@ -210,7 +210,10 @@ export default function VideoIntroSection() {
                         key={item.code}
                         className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-2.5 py-1"
                       >
-                        <span className="text-lg leading-none">{item.flag}</span>
+                        <picture>
+                          <source srcSet={item.flagSvg} type="image/svg+xml" />
+                          <img src={item.flagImg} alt={item.name} className="w-5 h-3.5 object-cover rounded-sm" />
+                        </picture>
                         <span className="text-white text-xs font-semibold leading-none">{item.name}</span>
                       </div>
                     ))}
