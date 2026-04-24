@@ -1,6 +1,7 @@
 /**
  * EverWill 네비게이션 바
- * 11개 언어 국기 버튼 UI + IP 기반 자동 언어 감지
+ * 11개 언어 국기 버튼 바 (네비게이션 바 하단에 항상 표시)
+ * IP 기반 자동 언어 감지
  */
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,12 +45,9 @@ const countryToLanguage: Record<string, Language> = {
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [langOpen, setLangOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
   const { language, setLanguage, t } = useLanguage();
-
-  const currentLang = languages.find((l) => l.code === language) ?? languages[0];
 
   // 스크롤 감지
   useEffect(() => {
@@ -61,19 +59,16 @@ export default function Navbar() {
   // IP 기반 자동 언어 감지 (최초 1회, 사용자가 직접 변경하지 않은 경우만)
   useEffect(() => {
     const saved = localStorage.getItem("everwill-lang-manual");
-    if (saved) return; // 사용자가 직접 선택한 경우 건너뜀
+    if (saved) return;
 
     fetch("https://ipapi.co/json/")
       .then((res) => res.json())
       .then((data) => {
         const countryCode = data.country_code as string;
         const detectedLang = countryToLanguage[countryCode];
-        if (detectedLang) {
-          setLanguage(detectedLang);
-        }
+        if (detectedLang) setLanguage(detectedLang);
       })
       .catch(() => {
-        // 실패 시 브라우저 언어 기반 폴백
         const browserLang = navigator.language.slice(0, 2);
         const langMap: Record<string, Language> = {
           ko: "ko", en: "en", ja: "ja", zh: "zh",
@@ -88,7 +83,6 @@ export default function Navbar() {
   const handleSetLanguage = (code: Language) => {
     setLanguage(code);
     localStorage.setItem("everwill-lang-manual", code);
-    setLangOpen(false);
     setMobileOpen(false);
   };
 
@@ -124,14 +118,15 @@ export default function Navbar() {
           : "bg-[#1F3864]"
       }`}
     >
+      {/* 메인 네비게이션 바 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-24">
+        <div className="flex items-center justify-between h-20">
           {/* 로고 */}
           <a href="/" className="flex items-center group">
             <img
               src="/manus-storage/everwill-logo-white-text_9aa1b26e.png"
               alt="EverWill Logo"
-              className="h-16 w-auto object-contain"
+              className="h-14 w-auto object-contain"
             />
           </a>
 
@@ -153,64 +148,6 @@ export default function Navbar() {
 
           {/* 우측 액션 */}
           <div className="hidden lg:flex items-center gap-3">
-            {/* 국기 언어 선택기 */}
-            <div className="relative">
-              <button
-                onClick={() => setLangOpen(!langOpen)}
-                className="flex items-center gap-1.5 text-white/80 hover:text-white transition-colors px-2 py-1.5 rounded-lg hover:bg-white/10"
-                aria-label="언어 선택"
-                aria-expanded={langOpen}
-              >
-                <span className="text-2xl leading-none">{currentLang.flag}</span>
-                <span className="text-xs font-medium text-white/60">{currentLang.code.toUpperCase()}</span>
-              </button>
-
-              <AnimatePresence>
-                {langOpen && (
-                  <>
-                    {/* 배경 클릭 닫기 */}
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setLangOpen(false)}
-                    />
-                    <motion.div
-                      initial={{ opacity: 0, y: -8, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -8, scale: 0.95 }}
-                      className="absolute right-0 top-full mt-2 z-50 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden p-3"
-                      style={{ direction: "ltr", width: "280px" }}
-                      role="menu"
-                    >
-                      <p className="text-xs text-gray-400 font-medium mb-2 px-1">언어 선택 / Select Language</p>
-                      {/* 국기 그리드 */}
-                      <div className="grid grid-cols-4 gap-1">
-                        {languages.map((lang) => (
-                          <button
-                            key={lang.code}
-                            onClick={() => handleSetLanguage(lang.code)}
-                            className={`flex flex-col items-center gap-1 p-2 rounded-xl text-center transition-all hover:scale-105 ${
-                              language === lang.code
-                                ? "bg-[#1F3864] ring-2 ring-[#C9A961]"
-                                : "hover:bg-gray-50"
-                            }`}
-                            role="menuitem"
-                            title={lang.label}
-                          >
-                            <span className="text-2xl leading-none">{lang.flag}</span>
-                            <span className={`text-[10px] font-medium leading-tight ${
-                              language === lang.code ? "text-white" : "text-gray-600"
-                            }`}>
-                              {lang.code.toUpperCase()}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-            </div>
-
             {isAuthenticated ? (
               <button
                 onClick={() => navigate("/dashboard")}
@@ -249,6 +186,29 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* 국기 언어 선택 바 - 네비게이션 바 하단에 항상 표시 */}
+      <div className="border-t border-white/10 bg-[#162d52]/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center gap-1 py-1.5 overflow-x-auto scrollbar-hide">
+            {languages.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => handleSetLanguage(lang.code)}
+                title={lang.label}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+                  language === lang.code
+                    ? "bg-[#C9A961] text-[#1F3864] shadow-sm"
+                    : "text-white/60 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                <span className="text-base leading-none">{lang.flag}</span>
+                <span className="hidden sm:inline">{lang.code.toUpperCase()}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* 모바일 메뉴 */}
       <AnimatePresence>
         {mobileOpen && (
@@ -268,32 +228,6 @@ export default function Navbar() {
                   {link.label}
                 </button>
               ))}
-
-              {/* 모바일 국기 언어 선택 */}
-              <div className="py-3 border-b border-white/5">
-                <p className="text-white/40 text-xs mb-3 px-2">언어 선택 / Select Language</p>
-                <div className="grid grid-cols-6 gap-2 px-1">
-                  {languages.map((lang) => (
-                    <button
-                      key={lang.code}
-                      onClick={() => handleSetLanguage(lang.code)}
-                      className={`flex flex-col items-center gap-0.5 p-2 rounded-xl transition-all ${
-                        language === lang.code
-                          ? "bg-[#C9A961] ring-2 ring-white/50"
-                          : "bg-white/10 hover:bg-white/20"
-                      }`}
-                      title={lang.label}
-                    >
-                      <span className="text-xl leading-none">{lang.flag}</span>
-                      <span className={`text-[9px] font-bold ${
-                        language === lang.code ? "text-white" : "text-white/60"
-                      }`}>
-                        {lang.code.toUpperCase()}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
 
               <div className="pt-3 flex flex-col gap-2">
                 {isAuthenticated ? (
