@@ -12,19 +12,19 @@ import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Language } from "@/i18n";
 
-// 11개 언어 국기 목록
-const languages: { code: Language; label: string; flag: string }[] = [
-  { code: "ko", label: "한국어", flag: "🇰🇷" },
-  { code: "en", label: "English", flag: "🇺🇸" },
-  { code: "ja", label: "日本語", flag: "🇯🇵" },
-  { code: "zh", label: "中文", flag: "🇨🇳" },
-  { code: "de", label: "Deutsch", flag: "🇩🇪" },
-  { code: "es", label: "Español", flag: "🇪🇸" },
-  { code: "ar", label: "العربية", flag: "🇸🇦" },
-  { code: "fr", label: "Français", flag: "🇫🇷" },
-  { code: "ru", label: "Русский", flag: "🇷🇺" },
-  { code: "hi", label: "हिन्दी", flag: "🇮🇳" },
-  { code: "pt", label: "Português", flag: "🇧🇷" },
+// 11개 언어 국기 목록 (twemoji CDN 이미지 사용)
+const languages: { code: Language; label: string; flagImg: string }[] = [
+  { code: "ko", label: "한국어", flagImg: "https://flagcdn.com/w40/kr.png" },
+  { code: "en", label: "English", flagImg: "https://flagcdn.com/w40/us.png" },
+  { code: "ja", label: "日本語", flagImg: "https://flagcdn.com/w40/jp.png" },
+  { code: "zh", label: "中文", flagImg: "https://flagcdn.com/w40/cn.png" },
+  { code: "de", label: "Deutsch", flagImg: "https://flagcdn.com/w40/de.png" },
+  { code: "es", label: "Español", flagImg: "https://flagcdn.com/w40/es.png" },
+  { code: "ar", label: "العربية", flagImg: "https://flagcdn.com/w40/sa.png" },
+  { code: "fr", label: "Français", flagImg: "https://flagcdn.com/w40/fr.png" },
+  { code: "ru", label: "Русский", flagImg: "https://flagcdn.com/w40/ru.png" },
+  { code: "hi", label: "हिन्दी", flagImg: "https://flagcdn.com/w40/in.png" },
+  { code: "pt", label: "Português", flagImg: "https://flagcdn.com/w40/br.png" },
 ];
 
 // IP 기반 국가 → 언어 매핑
@@ -195,14 +195,20 @@ export default function Navbar() {
                 key={lang.code}
                 onClick={() => handleSetLanguage(lang.code)}
                 title={lang.label}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+                className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
                   language === lang.code
-                    ? "bg-[#C9A961] text-[#1F3864] shadow-sm"
-                    : "text-white/60 hover:text-white hover:bg-white/10"
+                    ? "bg-[#C9A961]/20 ring-1 ring-[#C9A961]"
+                    : "hover:bg-white/10"
                 }`}
               >
-                <span className="text-base leading-none">{lang.flag}</span>
-                <span className="hidden sm:inline">{lang.code.toUpperCase()}</span>
+                <img
+                  src={lang.flagImg}
+                  alt={lang.label}
+                  className={`w-7 h-5 object-cover rounded-sm ${language === lang.code ? "ring-1 ring-[#C9A961]" : ""}`}
+                />
+                <span className={`text-[10px] font-medium ${language === lang.code ? "text-[#C9A961]" : "text-white/50"}`}>
+                  {lang.code.toUpperCase()}
+                </span>
               </button>
             ))}
           </div>
