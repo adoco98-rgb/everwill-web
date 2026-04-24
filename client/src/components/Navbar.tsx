@@ -12,19 +12,19 @@ import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Language } from "@/i18n";
 
-// 11개 언어 국기 목록 (twemoji CDN 이미지 사용)
-const languages: { code: Language; label: string; flagImg: string }[] = [
-  { code: "ko", label: "한국어", flagImg: "https://flagcdn.com/w40/kr.png" },
-  { code: "en", label: "English", flagImg: "https://flagcdn.com/w40/us.png" },
-  { code: "ja", label: "日本語", flagImg: "https://flagcdn.com/w40/jp.png" },
-  { code: "zh", label: "中文", flagImg: "https://flagcdn.com/w40/cn.png" },
-  { code: "de", label: "Deutsch", flagImg: "https://flagcdn.com/w40/de.png" },
-  { code: "es", label: "Español", flagImg: "https://flagcdn.com/w40/es.png" },
-  { code: "ar", label: "العربية", flagImg: "https://flagcdn.com/w40/sa.png" },
-  { code: "fr", label: "Français", flagImg: "https://flagcdn.com/w40/fr.png" },
-  { code: "ru", label: "Русский", flagImg: "https://flagcdn.com/w40/ru.png" },
-  { code: "hi", label: "हिन्दी", flagImg: "https://flagcdn.com/w40/in.png" },
-  { code: "pt", label: "Português", flagImg: "https://flagcdn.com/w40/br.png" },
+// 11개 언어 국기 목록 (flagcdn 80px 고화질 + SVG 지원)
+const languages: { code: Language; label: string; flagImg: string; flagSvg: string }[] = [
+  { code: "ko", label: "한국어", flagImg: "https://flagcdn.com/w80/kr.png", flagSvg: "https://flagcdn.com/kr.svg" },
+  { code: "en", label: "English", flagImg: "https://flagcdn.com/w80/us.png", flagSvg: "https://flagcdn.com/us.svg" },
+  { code: "ja", label: "日本語", flagImg: "https://flagcdn.com/w80/jp.png", flagSvg: "https://flagcdn.com/jp.svg" },
+  { code: "zh", label: "中文", flagImg: "https://flagcdn.com/w80/cn.png", flagSvg: "https://flagcdn.com/cn.svg" },
+  { code: "de", label: "Deutsch", flagImg: "https://flagcdn.com/w80/de.png", flagSvg: "https://flagcdn.com/de.svg" },
+  { code: "es", label: "Español", flagImg: "https://flagcdn.com/w80/es.png", flagSvg: "https://flagcdn.com/es.svg" },
+  { code: "ar", label: "العربية", flagImg: "https://flagcdn.com/w80/sa.png", flagSvg: "https://flagcdn.com/sa.svg" },
+  { code: "fr", label: "Français", flagImg: "https://flagcdn.com/w80/fr.png", flagSvg: "https://flagcdn.com/fr.svg" },
+  { code: "ru", label: "Русский", flagImg: "https://flagcdn.com/w80/ru.png", flagSvg: "https://flagcdn.com/ru.svg" },
+  { code: "hi", label: "हिन्दी", flagImg: "https://flagcdn.com/w80/in.png", flagSvg: "https://flagcdn.com/in.svg" },
+  { code: "pt", label: "Português", flagImg: "https://flagcdn.com/w80/br.png", flagSvg: "https://flagcdn.com/br.svg" },
 ];
 
 // IP 기반 국가 → 언어 매핑
@@ -213,13 +213,23 @@ export default function Navbar() {
                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
                   />
                 )}
-                <img
-                  src={lang.flagImg}
-                  alt={lang.label}
-                  className={`w-7 h-5 object-cover rounded-sm relative z-10 ${
-                    language === lang.code ? "ring-1 ring-[#C9A961] shadow-sm shadow-[#C9A961]/40" : ""
-                  }`}
-                />
+                <picture className="relative z-10">
+                  <source srcSet={lang.flagSvg} type="image/svg+xml" />
+                  <img
+                    src={lang.flagImg}
+                    alt={lang.label}
+                    width={40}
+                    height={28}
+                    loading="eager"
+                    decoding="async"
+                    className={`w-8 h-[22px] object-cover rounded-sm block ${
+                      language === lang.code
+                        ? "ring-1 ring-[#C9A961] shadow-sm shadow-[#C9A961]/50"
+                        : "opacity-80 hover:opacity-100"
+                    }`}
+                    style={{ imageRendering: "crisp-edges" }}
+                  />
+                </picture>
                 <span className={`text-[10px] font-medium relative z-10 transition-colors ${
                   language === lang.code ? "text-[#C9A961]" : "text-white/50"
                 }`}>
