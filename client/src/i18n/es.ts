@@ -4,11 +4,11 @@
 export const es = {
   nav: {
     services: "Servicios",
-    badge: "Insignia",
+    badge: "Tarjeta de Membresía",
     pricing: "Precios",
     global: "Global",
-    lawyers: "Abogados",
-    taxCalc: "Calculadora de Herencia",
+    lawyers: "Servicio Integral",
+    taxCalc: "Servicio de Herencia",
     manager: "Mi Cuenta",
     startFree: "Empezar Gratis",
     login: "Iniciar Sesión",
@@ -96,7 +96,7 @@ export const es = {
     s9Detail6: "Sistema de seguimiento de ubicación del original",
   },
   badge: {
-    tag: "Primero en el Mundo",
+    tag: "Tarjeta de Certificación de Membresía",
     title: "Insignia EverWill",
     subtitle: "DNI en el día a día, info médica en emergencias, disparador de testamento al morir",
     desc: "MedicAlert + AirTag + Trust&Will en uno. Una innovación que ninguna plataforma de testamentos ha intentado.",
@@ -185,6 +185,7 @@ export const es = {
     arabicNote: "Árabe RTL + Ley de herencia Sharia aplicada automáticamente",
   },
   lawyers: {
+    sectionTag: "Servicio Integral",
     phase1Title: "Consulta en Vida (Opcional)",
     phase1Desc: "Consulta de abogado solo para estructuras de activos complejas. Tarifa de emparejamiento desde $30.",
     phase2Title: "Ejecución Post-Mortem (Requerida)",

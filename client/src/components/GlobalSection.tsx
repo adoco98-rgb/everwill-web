@@ -2,23 +2,29 @@
  * EverWill 글로벌 섹션
  * 4단계 글로벌 출시 전략 + 세계 지도 배경
  * 네이비 배경 + 골드 강조
+ * 언어 지원: 11개 언어 전부 표시 (국기 + 언어명 + 코드)
  */
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
-import { MapPin, ArrowRight } from "lucide-react";
+import { MapPin, ArrowRight, Globe } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const GLOBAL_MAP_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/global-map-bg-azf9Vc6ZPzzfcAYoyT8HFS.webp";
 
+// 11개 지원 언어 전체 목록
 const languages = [
-  { lang: "한국어", flag: "🇰🇷", note: "기본" },
-  { lang: "日本語", flag: "🇯🇵", note: "2차" },
-  { lang: "中文", flag: "🇨🇳", note: "3차" },
-  { lang: "English", flag: "🇺🇸", note: "4차" },
-  { lang: "Deutsch", flag: "🇩🇪", note: "5차" },
-  { lang: "Español", flag: "🇪🇸", note: "5차" },
-  { lang: "عربي", flag: "🇸🇦", note: "RTL" },
+  { lang: "한국어", nativeName: "Korean", flag: "🇰🇷", code: "KO", note: "" },
+  { lang: "English", nativeName: "English", flag: "🇺🇸", code: "EN", note: "" },
+  { lang: "日本語", nativeName: "Japanese", flag: "🇯🇵", code: "JA", note: "" },
+  { lang: "中文", nativeName: "Chinese", flag: "🇨🇳", code: "ZH", note: "" },
+  { lang: "Deutsch", nativeName: "German", flag: "🇩🇪", code: "DE", note: "" },
+  { lang: "Español", nativeName: "Spanish", flag: "🇪🇸", code: "ES", note: "" },
+  { lang: "العربية", nativeName: "Arabic", flag: "🇸🇦", code: "AR", note: "RTL" },
+  { lang: "Français", nativeName: "French", flag: "🇫🇷", code: "FR", note: "" },
+  { lang: "Русский", nativeName: "Russian", flag: "🇷🇺", code: "RU", note: "" },
+  { lang: "हिन्दी", nativeName: "Hindi", flag: "🇮🇳", code: "HI", note: "" },
+  { lang: "Português", nativeName: "Portuguese", flag: "🇧🇷", code: "PT", note: "" },
 ];
 
 export default function GlobalSection() {
@@ -135,36 +141,57 @@ export default function GlobalSection() {
           ))}
         </div>
 
-        {/* 언어 지원 */}
+        {/* 언어 지원 — 11개 언어 전부 표시 */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7, delay: 0.4 }}
           className="text-center"
         >
-          <h3 className="text-white/80 text-lg font-semibold mb-6">{t.global.langSupport}</h3>
+          {/* 헤더 */}
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <div className="h-px flex-1 max-w-16 bg-white/20" />
+            <div className="flex items-center gap-2">
+              <Globe className="w-5 h-5 text-[#C9A961]" />
+              <h3 className="text-white/90 text-lg font-bold">{t.global.langSupport}</h3>
+            </div>
+            <div className="h-px flex-1 max-w-16 bg-white/20" />
+          </div>
+
+          {/* 11개 언어 카드 그리드 */}
           <div className="flex flex-wrap justify-center gap-3">
             {languages.map((l, i) => (
               <motion.div
-                key={l.lang}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                transition={{ duration: 0.4, delay: 0.5 + i * 0.06 }}
-                className="flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-2"
+                key={l.code}
+                initial={{ opacity: 0, scale: 0.85, y: 10 }}
+                animate={isInView ? { opacity: 1, scale: 1, y: 0 } : {}}
+                transition={{ duration: 0.4, delay: 0.5 + i * 0.05 }}
+                className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-2xl px-4 py-3 hover:bg-white/15 hover:border-[#C9A961]/40 transition-all group"
               >
-                <span className="text-lg">{l.flag}</span>
-                <span className="text-white font-medium text-sm">{l.lang}</span>
+                {/* 국기 */}
+                <span className="text-2xl">{l.flag}</span>
+
+                {/* 언어 정보 */}
+                <div className="text-left">
+                  <div className="text-white font-bold text-sm leading-tight">{l.lang}</div>
+                  <div className="text-white/40 text-[11px] font-medium">{l.code}</div>
+                </div>
+
+                {/* RTL 배지 */}
                 {l.note === "RTL" && (
-                  <span className="text-[#C9A961] text-xs bg-[#C9A961]/20 px-1.5 py-0.5 rounded">RTL</span>
+                  <span className="text-[#C9A961] text-[10px] font-extrabold bg-[#C9A961]/20 border border-[#C9A961]/30 px-1.5 py-0.5 rounded-md ml-1">
+                    RTL
+                  </span>
                 )}
               </motion.div>
             ))}
           </div>
 
+          {/* 아랍어 특별 안내 */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
-            transition={{ duration: 0.6, delay: 0.8 }}
+            transition={{ duration: 0.6, delay: 1.1 }}
             className="mt-8 inline-flex items-center gap-2 text-[#C9A961] text-sm font-medium"
           >
             <span>{t.global.arabicNote}</span>

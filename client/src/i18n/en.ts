@@ -4,11 +4,11 @@
 export const en = {
   nav: {
     services: "Services",
-    badge: "Badge",
+    badge: "Membership Card",
     pricing: "Pricing",
     global: "Global",
-    lawyers: "Lawyers",
-    taxCalc: "Estate Tax Calculator",
+    lawyers: "One-Stop Service",
+    taxCalc: "Inheritance Service",
     manager: "My Account",
     startFree: "Get Started Free",
     login: "Log In",
@@ -96,7 +96,7 @@ export const en = {
     s9Detail6: "Original location tracking system",
   },
   badge: {
-    tag: "World First",
+    tag: "Membership Certification Card",
     title: "EverWill Badge",
     subtitle: "ID card in daily life, medical info in emergencies, will trigger at death",
     desc: "MedicAlert + AirTag + Trust&Will in one. An innovation no will platform has attempted.",
@@ -185,6 +185,7 @@ export const en = {
     arabicNote: "Arabic RTL + Sharia inheritance law auto-applied",
   },
   lawyers: {
+    sectionTag: "One-Stop Service",
     phase1Title: "Pre-Death Consultation (Optional)",
     phase1Desc: "Attorney consultation for complex assets only. Matching fee from $30.",
     phase2Title: "Post-Death Execution (Required)",

@@ -4,11 +4,11 @@
 export const pt = {
   nav: {
     services: "Serviços",
-    badge: "Badge",
+    badge: "Cartão de Membro",
     pricing: "Preços",
     global: "Global",
-    lawyers: "Advogados",
-    taxCalc: "Calculadora de herança",
+    lawyers: "Serviço Completo",
+    taxCalc: "Serviço de Herança",
     manager: "Minha conta",
     startFree: "Começar grátis",
     login: "Entrar",
@@ -96,7 +96,7 @@ export const pt = {
     s9Detail6: "Sistema de rastreamento de localização original",
   },
   badge: {
-    tag: "Primeiro mundial",
+    tag: "Cartão de Certificação de Membro",
     title: "Badge EverWill",
     subtitle: "Carteira de identidade no dia a dia, informações médicas em emergências, gatilho de testamento ao falecer",
     desc: "MedicAlert + AirTag + Trust&Will em um. Uma inovação que nenhuma plataforma de testamento tentou.",
@@ -185,6 +185,7 @@ export const pt = {
     arabicNote: "Árabe RTL + lei de herança islâmica aplicada automaticamente",
   },
   lawyers: {
+    sectionTag: "Serviço Completo",
     phase1Title: "Consultoria pré-morte (Opcional)",
     phase1Desc: "Consultoria de advogado apenas para ativos complexos. Taxa de correspondência a partir de R$150.",
     phase2Title: "Execução pós-morte (Obrigatório)",

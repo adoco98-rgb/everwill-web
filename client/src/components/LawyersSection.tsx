@@ -68,6 +68,10 @@ export default function LawyersSection() {
           className="text-center mb-16"
         >
           <div className="section-divider mx-auto mb-6" />
+          <div className="inline-flex items-center gap-2 bg-[#1F3864]/10 border border-[#1F3864]/20 rounded-full px-4 py-1.5 mb-5">
+            <Scale className="w-4 h-4 text-[#1F3864]" />
+            <span className="text-[#1F3864] text-sm font-bold">{t.lawyers.sectionTag}</span>
+          </div>
           <h2
             className="text-3xl lg:text-5xl font-bold text-[#1F3864] mb-4"
             style={{ fontFamily: "'Playfair Display', serif" }}

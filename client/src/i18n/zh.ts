@@ -4,11 +4,11 @@
 export const zh = {
   nav: {
     services: "服务",
-    badge: "徽章",
+    badge: "会员认证卡",
     pricing: "价格",
     global: "全球",
-    lawyers: "律师",
-    taxCalc: "遗产税计算器",
+    lawyers: "一站式服务",
+    taxCalc: "遗产服务",
     manager: "我的账户",
     startFree: "免费开始",
     login: "登录",
@@ -96,7 +96,7 @@ export const zh = {
     s9Detail6: "原件位置追踪系统",
   },
   badge: {
-    tag: "全球首创",
+    tag: "会员认证卡",
     title: "EverWill徽章",
     subtitle: "日常是身份证，紧急时是医疗信息，死亡时是遗嘱触发器",
     desc: "MedicAlert＋AirTag＋Trust&Will合而为一。任何遗嘱平台都未曾尝试的创新。",
@@ -185,6 +185,7 @@ export const zh = {
     arabicNote: "阿拉伯语RTL + 伊斯兰继承法自动适用",
   },
   lawyers: {
+    sectionTag: "一站式服务",
     phase1Title: "生前咨询（可选）",
     phase1Desc: "仅复杂资产结构需要律师咨询。匹配费用$30起。",
     phase2Title: "身后执行（必须）",

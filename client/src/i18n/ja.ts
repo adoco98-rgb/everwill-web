@@ -4,11 +4,11 @@
 export const ja = {
   nav: {
     services: "サービス",
-    badge: "バッジ",
+    badge: "会員認証カード",
     pricing: "料金",
     global: "グローバル",
-    lawyers: "弁護士",
-    taxCalc: "相続税計算機",
+    lawyers: "ワンストップサービス",
+    taxCalc: "相続サービス",
     manager: "マイページ",
     startFree: "無料で始める",
     login: "ログイン",
@@ -96,7 +96,7 @@ export const ja = {
     s9Detail6: "原本位置追跡システム",
   },
   badge: {
-    tag: "世界初",
+    tag: "会員認証カード",
     title: "EverWillバッジ",
     subtitle: "普段は身分証、緊急時は医療情報、死亡時は遺言トリガー",
     desc: "MedicAlert＋AirTag＋Trust&Willをひとつに。どの遺言プラットフォームも試みていない革新。",
@@ -185,6 +185,7 @@ export const ja = {
     arabicNote: "アラビア語RTL + シャリア相続法自動適用",
   },
   lawyers: {
+    sectionTag: "ワンストップサービス",
     phase1Title: "生前相談（任意）",
     phase1Desc: "複雑な資産構造のみ弁護士相談。マッチング手数料$30〜",
     phase2Title: "死後執行（必須）",

@@ -4,11 +4,11 @@
 export const de = {
   nav: {
     services: "Dienste",
-    badge: "Badge",
+    badge: "Mitgliedskarte",
     pricing: "Preise",
     global: "Global",
-    lawyers: "Anwälte",
-    taxCalc: "Erbschaftsteuerrechner",
+    lawyers: "One-Stop-Service",
+    taxCalc: "Erbschaftsservice",
     manager: "Mein Konto",
     startFree: "Kostenlos starten",
     login: "Anmelden",
@@ -96,7 +96,7 @@ export const de = {
     s9Detail6: "Originalstandort-Verfolgungssystem",
   },
   badge: {
-    tag: "Weltneuheit",
+    tag: "Mitgliedschaftszertifizierungskarte",
     title: "EverWill Badge",
     subtitle: "Im Alltag Ausweis, im Notfall Medizininfo, beim Tod Testament-Auslöser",
     desc: "MedicAlert + AirTag + Trust&Will in einem. Eine Innovation, die kein Testament-Anbieter je versucht hat.",
@@ -185,6 +185,7 @@ export const de = {
     arabicNote: "Arabisch RTL + Scharia-Erbrecht automatisch angewendet",
   },
   lawyers: {
+    sectionTag: "One-Stop-Service",
     phase1Title: "Lebzeitige Beratung (Optional)",
     phase1Desc: "Anwaltsberatung nur für komplexe Vermögensstrukturen. Vermittlungsgebühr ab $30.",
     phase2Title: "Nachlassvollstreckung (Erforderlich)",

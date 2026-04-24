@@ -4,11 +4,11 @@
 export const fr = {
   nav: {
     services: "Services",
-    badge: "Badge",
+    badge: "Carte de Membre",
     pricing: "Tarifs",
     global: "Mondial",
-    lawyers: "Avocats",
-    taxCalc: "Calculateur de succession",
+    lawyers: "Service Complet",
+    taxCalc: "Service de Succession",
     manager: "Mon compte",
     startFree: "Commencer gratuitement",
     login: "Connexion",
@@ -96,7 +96,7 @@ export const fr = {
     s9Detail6: "Système de suivi de l'emplacement original",
   },
   badge: {
-    tag: "Mondial",
+    tag: "Carte de Certification de Membre",
     title: "Badge EverWill",
     subtitle: "Carte d'identité au quotidien, infos médicales en urgence, déclencheur de testament au décès",
     desc: "MedicAlert + AirTag + Trust&Will en un. Une innovation qu'aucune plateforme de testament n'a tentée.",
@@ -185,6 +185,7 @@ export const fr = {
     arabicNote: "Arabe RTL + droit successoral islamique appliqué automatiquement",
   },
   lawyers: {
+    sectionTag: "Service Complet",
     phase1Title: "Consultation pré-décès (Optionnel)",
     phase1Desc: "Consultation avocat pour actifs complexes uniquement. Frais de mise en relation à partir de €30.",
     phase2Title: "Exécution post-décès (Requis)",

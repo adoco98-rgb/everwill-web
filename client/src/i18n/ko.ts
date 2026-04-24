@@ -5,11 +5,11 @@ export const ko = {
   // Navbar
   nav: {
     services: "서비스",
-    badge: "Badge",
+    badge: "멤버십 인증 카드",
     pricing: "가격",
-    global: "글로벌",
-    lawyers: "변호사",
-    taxCalc: "상속세 계산기",
+    global: "글로벌 서비스",
+    lawyers: "원스톱 서비스",
+    taxCalc: "상속 서비스",
     manager: "EverWill 매니저",
     startFree: "무료로 시작하기",
     login: "로그인",
@@ -105,7 +105,7 @@ export const ko = {
 
   // Badge Section
   badge: {
-    tag: "세계 최초",
+    tag: "멤버십 인증 카드",
     title: "EverWill Badge",
     subtitle: "평소엔 신분증, 응급엔 의료정보, 사망 시엔 유언 트리거",
     desc: "MedicAlert + AirTag + Trust&Will을 하나로. 전 세계 어떤 유언 플랫폼도 시도하지 않은 혁신.",
@@ -200,6 +200,7 @@ export const ko = {
 
   // Lawyers Section
   lawyers: {
+    sectionTag: "원스톱 서비스",
     phase1Title: "생전 자문 (선택)",
     phase1Desc: "복잡한 자산 구조만 변호사 상담. 매칭 수수료 ₩30,000~",
     phase2Title: "사후 집행 (필수)",
