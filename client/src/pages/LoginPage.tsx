@@ -9,7 +9,7 @@ import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, ArrowLeft, Mail, CheckCircle2, RefreshCw,
-  Loader2, HelpCircle, ChevronDown, User, Phone, Calendar, Globe
+  Loader2, HelpCircle, ChevronDown, User, Phone, Calendar, Globe, Gift, Check, X
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect } from "react";
@@ -54,6 +54,10 @@ export default function LoginPage() {
   const [profilePhone, setProfilePhone] = useState("");
   const [profileBirth, setProfileBirth] = useState("");
   const [profileCountry, setProfileCountry] = useState("KR");
+  // 추천인 코드
+  const [referralCode, setReferralCode] = useState("");
+  const [referralValidated, setReferralValidated] = useState<null | { valid: boolean; name: string | null }>(null);
+  const [referralChecking, setReferralChecking] = useState(false);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -84,6 +88,8 @@ export default function LoginPage() {
       inputRefs.current[0]?.focus();
     },
   });
+
+  const applyReferral = trpc.referral.applyReferral.useMutation();
 
   const updateProfile = trpc.auth.email.updateProfile.useMutation({
     onSuccess: () => {
@@ -153,6 +159,13 @@ export default function LoginPage() {
       birthDate: profileBirth || undefined,
       country: profileCountry,
     });
+    // 추천인 코드가 유효하면 적립 처리
+    if (referralCode.trim() && referralValidated?.valid) {
+      applyReferral.mutate(
+        { newUserEmail: email, referralCode: referralCode.trim().toUpperCase() },
+        { onSuccess: () => toast.success("추천인 코드가 적용됐습니다!") }
+      );
+    }
   }
 
   useEffect(() => {
@@ -399,6 +412,59 @@ export default function LoginPage() {
                           <option key={c.code} value={c.code}>{c.label}</option>
                         ))}
                       </select>
+                    </div>
+                    {/* 추천인 코드 (선택) */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        <Gift className="w-3.5 h-3.5 inline mr-1 text-[#C9A961]" />
+                        추천인 코드 <span className="text-gray-300 text-xs font-normal">(선택 · 추천인에게 5,000P 적립)</span>
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={referralCode}
+                          onChange={(e) => {
+                            const v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+                            setReferralCode(v);
+                            setReferralValidated(null);
+                          }}
+                          placeholder="예: AB3K7X"
+                          maxLength={6}
+                          className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-[#C9A961] focus:ring-2 focus:ring-[#C9A961]/10 outline-none text-gray-800 text-sm transition-all font-mono tracking-widest uppercase"
+                        />
+                        <button
+                          type="button"
+                          disabled={referralCode.length !== 6 || referralChecking}
+                          onClick={async () => {
+                            if (referralCode.length !== 6) return;
+                            setReferralChecking(true);
+                            try {
+                              // 직접 fetch로 검증 (tRPC query는 form 내에서 수동 트리거)
+                              const res = await fetch(`/api/trpc/referral.validateCode?input=${encodeURIComponent(JSON.stringify({ json: { code: referralCode } }))}`);
+                              const json = await res.json();
+                              const result = json?.result?.data?.json;
+                              setReferralValidated(result || { valid: false, name: null });
+                            } catch {
+                              setReferralValidated({ valid: false, name: null });
+                            } finally {
+                              setReferralChecking(false);
+                            }
+                          }}
+                          className="px-4 py-3 rounded-xl bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium transition-all whitespace-nowrap"
+                        >
+                          {referralChecking ? <Loader2 className="w-4 h-4 animate-spin" /> : "확인"}
+                        </button>
+                      </div>
+                      {referralValidated !== null && (
+                        <div className={`mt-2 flex items-center gap-1.5 text-xs font-medium ${
+                          referralValidated.valid ? "text-green-600" : "text-red-500"
+                        }`}>
+                          {referralValidated.valid
+                            ? <><Check className="w-3.5 h-3.5" /> {referralValidated.name} 님의 추천 코드가 확인됐습니다.</>
+                            : <><X className="w-3.5 h-3.5" /> 유효하지 않은 추천인 코드입니다.</>
+                          }
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-3 pt-2">
                       <button

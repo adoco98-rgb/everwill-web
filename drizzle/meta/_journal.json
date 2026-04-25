@@ -43,6 +43,13 @@
       "when": 1776908122217,
       "tag": "0005_shiny_the_fallen",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1777156140106,
+      "tag": "0006_tranquil_wendigo",
+      "breakpoints": true
     }
   ]
 }

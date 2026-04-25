@@ -30,6 +30,12 @@ export const users = mysqlTable("users", {
   country: varchar("country", { length: 8 }).default("KR"),
   /** 프로필 완성 여부 (0=미완성, 1=완성) */
   profileCompleted: int("profileCompleted").default(0),
+  /** 나의 추천인 코드 (6자리 대문자+숫자, 회원가입 시 자동 생성) */
+  referralCode: varchar("referralCode", { length: 16 }).unique(),
+  /** 나를 추천한 사람의 추천인 코드 */
+  referredBy: varchar("referredBy", { length: 16 }),
+  /** 포인트 잔액 */
+  pointBalance: int("pointBalance").default(0).notNull(),
 });
 
 export type User = typeof users.$inferSelect;
@@ -209,3 +215,33 @@ export const siteStats = mysqlTable("siteStats", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 export type SiteStat = typeof siteStats.$inferSelect;
+
+/**
+ * 포인트 내역 테이블
+ * 추천인 적립, 사용, 만료 등 포인트 변동 이력
+ */
+export const pointHistory = mysqlTable("pointHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 포인트 소유자 사용자 ID */
+  userId: int("userId").notNull(),
+  /** 포인트 유형 */
+  type: mysqlEnum("type", [
+    "referral_reward",  // 추천인 보상 (추천한 사람에게 지급)
+    "referral_bonus",   // 피추천인 가입 보너스
+    "use",              // 포인트 사용
+    "expire",           // 포인트 만료
+    "admin",            // 관리자 수동 지급
+  ]).notNull(),
+  /** 포인트 변동량 (양수=적립, 음수=차감) */
+  amount: int("amount").notNull(),
+  /** 변동 후 잔액 */
+  balanceAfter: int("balanceAfter").notNull(),
+  /** 설명 (예: '홍길동 님 추천 보상') */
+  description: varchar("description", { length: 256 }),
+  /** 관련 사용자 ID (추천인 적립 시 피추천인 ID) */
+  relatedUserId: int("relatedUserId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type PointHistory = typeof pointHistory.$inferSelect;
+export type InsertPointHistory = typeof pointHistory.$inferInsert;

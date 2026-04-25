@@ -59,3 +59,13 @@
 - [x] 72시간 임시저장 기능 (localStorage 임시 저장)
 - [ ] 미완성 유언장 알림 이메일 발송 (가입자 대상)
 - [x] 홈페이지 가격 섹션에 페이월 구조 안내 반영
+
+## 추천인 시스템
+- [ ] DB 스키마: user 테이블에 referralCode, referredBy 필드 추가
+- [ ] DB 스키마: pointHistory 테이블 생성 (userId, type, amount, description, createdAt)
+- [ ] tRPC: 추천인 코드 검증 프로시저 (validateReferralCode)
+- [ ] tRPC: 회원가입 시 추천인 포인트 5,000점 자동 적립 로직
+- [ ] tRPC: 포인트 내역 조회 프로시저 (getPointHistory)
+- [ ] tRPC: 총 포인트 잔액 조회 프로시저 (getPointBalance)
+- [ ] 회원가입 UI: 추천인 회원번호 입력 필드 추가
+- [ ] 마이페이지: 포인트 잔액 및 적립 내역 탭 구현
