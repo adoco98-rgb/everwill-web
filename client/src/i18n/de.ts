@@ -94,6 +94,12 @@ export const de = {
     s9Detail4: "Fälschungserkennungsalgorithmus",
     s9Detail5: "Blockchain-Integritätsaufzeichnung",
     s9Detail6: "Originalstandort-Verfolgungssystem",
+    s2AdditionalAuth: "Optionaler Zusatz-Zertifizierungsservice",
+    s2LegalNote: "Bereits die Basismitgliedschaft erstellt ein rechtsgültiges Testament. Das Video-Testament ist ein optionaler Zusatz, der Ihre rechtliche Absicherung weiter stärkt.",
+    s2LegalBase: "Deutschland BGB §2232 (Öffentliches Testament) — Videoaufzeichnung stärkt den Nachweis des Testierwillens und die Beweiskraft",
+    s3AdditionalAuth: "Optionaler Zusatz-Zertifizierungsservice",
+    s3LegalNote: "Bereits die Basismitgliedschaft erstellt ein rechtsgültiges Testament. Der handschriftliche Testament-Scan ist ein optionaler Zusatz, der Ihre rechtliche Absicherung weiter stärkt.",
+    s3LegalBase: "Deutschland BGB §2247 (Eigenhändiges Testament) — Vollständig handgeschrieben, datiert und unterschrieben; KI prüft alle gesetzlichen Anforderungen automatisch",
   },
   badge: {
     tag: "Mitgliedschaftszertifizierungskarte",

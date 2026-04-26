@@ -94,6 +94,12 @@ export const fr = {
     s9Detail4: "Algorithme de détection de falsification",
     s9Detail5: "Enregistrement d'intégrité blockchain",
     s9Detail6: "Système de suivi de l'emplacement original",
+    s2AdditionalAuth: "Service de certification supplémentaire (optionnel)",
+    s2LegalNote: "L'abonnement de base crée déjà un testament juridiquement valide. Le testament vidéo est un complément optionnel qui renforce davantage votre certification légale.",
+    s2LegalBase: "France CC Art. 984 (Testament mystique) — L'enregistrement vidéo renforce la preuve de la volonté testamentaire et l'authenticité du testateur",
+    s3AdditionalAuth: "Service de certification supplémentaire (optionnel)",
+    s3LegalNote: "L'abonnement de base crée déjà un testament juridiquement valide. Le scan de testament olographe est un complément optionnel qui renforce davantage votre certification légale.",
+    s3LegalBase: "France CC Art. 970 (Testament olographe) — Entièrement manuscrit, daté et signé; l'IA vérifie automatiquement toutes les exigences légales",
   },
   badge: {
     tag: "Carte de Certification de Membre",

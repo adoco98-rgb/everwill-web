@@ -8,7 +8,7 @@ import { useInView } from "framer-motion";
 import { useRef } from "react";
 import {
   FileText, Video, Scan, Shield, Users,
-  Bell, Globe, Smartphone, RefreshCw
+  Bell, Globe, Smartphone, RefreshCw, Scale
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -36,8 +36,28 @@ export default function ServicesSection() {
 
   const services = [
     { title: t.services.s1Title, description: t.services.s1Desc, tag: t.services.s1Tag },
-    { title: t.services.s2Title, description: t.services.s2Desc, tag: t.services.s2Tag },
-    { title: t.services.s3Title, description: t.services.s3Desc, tag: t.services.s3Tag },
+    {
+      title: t.services.s2Title,
+      description: t.services.s2Desc,
+      tag: t.services.s2Tag,
+      // 영상 유언장: 추가 인증 설명
+      additionalAuth: t.services.s2AdditionalAuth,
+      legalNote: t.services.s2LegalNote,
+      legalBase: t.services.s2LegalBase,
+      legalColor: "bg-purple-50 border-purple-100 text-purple-700",
+      legalBaseColor: "text-purple-500",
+    },
+    {
+      title: t.services.s3Title,
+      description: t.services.s3Desc,
+      tag: t.services.s3Tag,
+      // 자필 유언장 스캔: 추가 인증 설명
+      additionalAuth: t.services.s3AdditionalAuth,
+      legalNote: t.services.s3LegalNote,
+      legalBase: t.services.s3LegalBase,
+      legalColor: "bg-amber-50 border-amber-100 text-amber-700",
+      legalBaseColor: "text-amber-500",
+    },
     { title: t.services.s4Title, description: t.services.s4Desc, tag: t.services.s4Tag },
     { title: t.services.s5Title, description: t.services.s5Desc, tag: t.services.s5Tag },
     { title: t.services.s6Title, description: t.services.s6Desc, tag: t.services.s6Tag },
@@ -116,13 +136,14 @@ export default function ServicesSection() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           {services.map((service, i) => {
             const Icon = serviceIcons[i];
+            const hasAdditionalAuth = !!(service as any).additionalAuth;
             return (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.5, delay: 0.1 + i * 0.05 }}
-                className="bg-white rounded-xl p-5 border border-gray-100 card-hover group cursor-default"
+                className={`bg-white rounded-xl p-5 border border-gray-100 card-hover group cursor-default flex flex-col ${hasAdditionalAuth ? "xl:col-span-1" : ""}`}
               >
                 <div className={`w-10 h-10 rounded-lg ${serviceColors[i]} flex items-center justify-center mb-3`}>
                   <Icon className="w-5 h-5" />
@@ -134,6 +155,26 @@ export default function ServicesSection() {
                 </div>
                 <h3 className="font-bold text-[#1F3864] text-sm mb-2 leading-tight">{service.title}</h3>
                 <p className="text-gray-500 text-xs leading-relaxed">{service.description}</p>
+
+                {/* 추가 인증 설명 (영상유언장·자필유언장 카드만 표시) */}
+                {hasAdditionalAuth && (
+                  <div className={`mt-3 rounded-lg border p-2.5 flex items-start gap-1.5 ${(service as any).legalColor}`}>
+                    <Scale className="w-3 h-3 flex-shrink-0 mt-0.5 opacity-70" />
+                    <div>
+                      <p className="text-[10px] font-bold mb-0.5 leading-tight">
+                        {(service as any).additionalAuth}
+                      </p>
+                      <p className="text-[10px] leading-relaxed opacity-90">
+                        {(service as any).legalNote}
+                      </p>
+                      {(service as any).legalBase && (
+                        <p className={`text-[9px] mt-1 leading-relaxed ${(service as any).legalBaseColor}`}>
+                          {(service as any).legalBase}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </motion.div>
             );
           })}

@@ -94,6 +94,12 @@ export const pt = {
     s9Detail4: "Algoritmo de detecção de falsificação",
     s9Detail5: "Registro de integridade blockchain",
     s9Detail6: "Sistema de rastreamento de localização original",
+    s2AdditionalAuth: "Serviço de certificação adicional (opcional)",
+    s2LegalNote: "A associação básica já cria um testamento com plena validade legal. O testamento em vídeo é um complemento opcional que reforça ainda mais a sua certificação legal.",
+    s2LegalBase: "Brasil CC Art. 1.864 (Testamento público) — A gravação em vídeo reforça a manifestação de vontade e a autenticidade do testador",
+    s3AdditionalAuth: "Serviço de certificação adicional (opcional)",
+    s3LegalNote: "A associação básica já cria um testamento com plena validade legal. A digitalização do testamento holográfico é um complemento opcional que reforça ainda mais a sua certificação legal.",
+    s3LegalBase: "Brasil CC Art. 1.876 (Testamento particular) — Escrito, datado e assinado de próprio punho; a IA verifica automaticamente todos os requisitos legais",
   },
   badge: {
     tag: "Cartão de Certificação de Membro",

@@ -94,6 +94,12 @@ export const en = {
     s9Detail4: "Forgery detection algorithm",
     s9Detail5: "Blockchain integrity recording",
     s9Detail6: "Original location tracking system",
+    s2AdditionalAuth: "Optional Additional Certification",
+    s2LegalNote: "Basic membership already creates a legally valid will. The Video Will is an optional add-on that further strengthens your legal certification.",
+    s2LegalBase: "US: Uniform Electronic Wills Act (2019, 20+ states) — Video recording reinforces testamentary intent and authenticity",
+    s3AdditionalAuth: "Optional Additional Certification",
+    s3LegalNote: "Basic membership already creates a legally valid will. The Handwritten Will Scan is an optional add-on that further strengthens your legal certification.",
+    s3LegalBase: "US: Holographic will (handwritten, signed) recognized in 26+ states — AI validation confirms all legal requirements are met",
   },
   badge: {
     tag: "Membership Certification Card",

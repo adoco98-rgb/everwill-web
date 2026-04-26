@@ -94,6 +94,12 @@ export const es = {
     s9Detail4: "Algoritmo de detección de falsificaciones",
     s9Detail5: "Registro de integridad en blockchain",
     s9Detail6: "Sistema de seguimiento de ubicación del original",
+    s2AdditionalAuth: "Servicio de certificación adicional (opcional)",
+    s2LegalNote: "La membresía básica ya crea un testamento con plena validez legal. El testamento en video es un complemento opcional que refuerza aún más su certificación legal.",
+    s2LegalBase: "España CC Art. 688 (Testamento abierto) — La grabación en video refuerza la manifestación de voluntad y la autenticidad del testador",
+    s3AdditionalAuth: "Servicio de certificación adicional (opcional)",
+    s3LegalNote: "La membresía básica ya crea un testamento con plena validez legal. El escaneo de testamento ológrafo es un complemento opcional que refuerza aún más su certificación legal.",
+    s3LegalBase: "España CC Art. 688 (Testamento ológrafo) — Escrito, fechado y firmado de puño y letra; la IA verifica automáticamente todos los requisitos legales",
   },
   badge: {
     tag: "Tarjeta de Certificación de Membresía",
