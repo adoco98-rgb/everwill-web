@@ -288,6 +288,9 @@ export const es = {
     faqTableRow5Video: "Quienes desean transmitir su mensaje a la familia con su propia voz",
     faqTableRow5Hand: "Quienes ya tienen un testamento ológrafo escrito",
     faqTableNote: "* Ambos servicios son complementos opcionales disponibles tras la certificación electrónica eKYC base (36€).",
+    faqLegalDetailTitle: "Disposiciones legales por país",
+    faqVideoLegalDetail: "España — Código Civil Art. 688 (Testamento abierto): El testamento abierto se otorga ante notario, quien da fe de la voluntad del testador. La grabación en video refuerza significativamente la prueba de la voluntad testamentaria y puede servir como evidencia en caso de disputa. EverWill genera un script de narración con IA y asegura la grabación con un sello de tiempo blockchain según RFC 3161.",
+    faqHandLegalDetail: "España — Código Civil Art. 688 (Testamento ológrafo): Debe estar escrito en su totalidad, fechado y firmado de puño y letra del testador. Requiere protocolización notarial para su ejecución. EverWill verifica automáticamente la escritura manual, la fecha y la firma, y detecta falsificaciones mediante algoritmos de IA.",
   },
   cta: {
     title: "Empieza Hoy",

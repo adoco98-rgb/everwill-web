@@ -288,6 +288,9 @@ export const en = {
     faqTableRow5Video: "Those who want to convey their wishes to family in their own voice",
     faqTableRow5Hand: "Those who already have a handwritten will",
     faqTableNote: "* Both services are optional add-ons available after the base eKYC electronic certification ($39).",
+    faqLegalDetailTitle: "Legal Provisions by Country",
+    faqVideoLegalDetail: "United States — Uniform Electronic Wills Act (2019, adopted in 20+ states): Allows wills to be executed electronically with remote witnesses. The testator must declare the document as their will, and witnesses must attest to the testator's signature. EverWill's AI narration script and blockchain timestamp fulfill these requirements. In states not yet adopting the UEW Act, video recording serves as strong corroborating evidence of testamentary intent.",
+    faqHandLegalDetail: "United States — Holographic Will (recognized in 26+ states): A will entirely in the testator's own handwriting, dated, and signed, with no witnesses required. Key states include California (Prob. Code §6111), Texas (Est. Code §251.052), and New York (EPTL §3-2.2). EverWill's AI automatically verifies handwriting authenticity, date, and signature to confirm all legal requirements are met.",
   },
   cta: {
     title: "Start Today",

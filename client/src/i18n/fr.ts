@@ -288,6 +288,9 @@ export const fr = {
     faqTableRow5Video: "Ceux qui souhaitent transmettre un message personnel à leur famille",
     faqTableRow5Hand: "Ceux qui possèdent déjà un testament olographe",
     faqTableNote: "* Les deux services sont des compléments optionnels disponibles après la certification électronique eKYC de base (36€).",
+    faqLegalDetailTitle: "Dispositions légales par pays",
+    faqVideoLegalDetail: "France — Code Civil Art. 984 (Testament mystique): Le testament mystique est remis clos et scellé à un notaire en présence de témoins. L'enregistrement vidéo renforce considérablement la preuve de la volonté testamentaire et peut servir de preuve en cas de litige. EverWill génère un script de narration IA et sécurise l'enregistrement avec un horodatage blockchain conforme à la RFC 3161.",
+    faqHandLegalDetail: "France — Code Civil Art. 970 (Testament olographe): Il doit être entièrement écrit, daté et signé de la main du testateur. Aucun témoin n'est requis, mais il doit être entièrement manuscrit, sans impression ni dictée. EverWill vérifie automatiquement l'écriture manuscrite, la date et la signature, et détecte les falsifications grâce aux algorithmes d'IA.",
   },
   cta: {
     title: "Commencez aujourd'hui",

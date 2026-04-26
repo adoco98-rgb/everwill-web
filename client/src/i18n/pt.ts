@@ -288,6 +288,9 @@ export const pt = {
     faqTableRow5Video: "Quem deseja transmitir uma mensagem pessoal à família com sua própria voz",
     faqTableRow5Hand: "Quem já possui um testamento holográfico escrito",
     faqTableNote: "* Ambos os serviços são complementos opcionais disponíveis após a certificação eletrônica eKYC base (R$200).",
+    faqLegalDetailTitle: "Disposições legais por país",
+    faqVideoLegalDetail: "Brasil — Código Civil Art. 1.864 (Testamento público): O testamento público é lavrado pelo tabelião em seu livro de notas, na presença de duas testemunhas. A gravação em vídeo fortalece significativamente a prova da vontade testamentária e pode servir como evidência em caso de disputa. EverWill gera um script de narração com IA e protege a gravação com carimbo de tempo blockchain conforme RFC 3161.",
+    faqHandLegalDetail: "Brasil — Código Civil Art. 1.876 (Testamento particular): Pode ser escrito de próprio punho ou mediante processo mecânico. Se escrito de próprio punho, deve ser assinado pelo testador após lido na presença de pelo menos três testemunhas. EverWill verifica automaticamente a escrita manual, a data e a assinatura, e detecta falsificações por meio de algoritmos de IA.",
   },
   cta: {
     title: "Comece hoje",

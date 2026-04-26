@@ -5,7 +5,7 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef, useState } from "react";
-import { Star, ChevronDown, Video, PenLine, Scale, CheckCircle2 } from "lucide-react";
+import { Star, ChevronDown, Video, PenLine, Scale, CheckCircle2, Info } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 // 리뷰는 다국어 번역 없이 원본 유지 (실제 사용자 후기이므로)
@@ -64,6 +64,8 @@ export default function ReviewsSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  // 비교표 법적 근거 드롭다운: 'video' | 'hand' | null
+  const [openLegal, setOpenLegal] = useState<'video' | 'hand' | null>(null);
   const { t } = useLanguage();
 
   const faqs = [
@@ -218,6 +220,7 @@ export default function ReviewsSection() {
                       label: t.reviews.faqTableRow1Label,
                       video: t.reviews.faqTableRow1Video,
                       hand: t.reviews.faqTableRow1Hand,
+                      isLegal: true,   // 법적 근거 행 — 드롭다운 적용
                     },
                     {
                       label: t.reviews.faqTableRow2Label,
@@ -245,16 +248,46 @@ export default function ReviewsSection() {
                       key={i}
                       className={i % 2 === 0 ? "bg-white" : "bg-[#FAFAF8]"}
                     >
-                      <td className="p-4 text-[#1F3864] text-xs font-bold border-b border-gray-100">
+                      {/* 행 레이블 */}
+                      <td className="p-4 text-[#1F3864] text-xs font-bold border-b border-gray-100 align-top">
                         {row.label}
                       </td>
-                      <td className={`p-4 text-center text-xs border-b border-gray-100 ${
+
+                      {/* 영상 유언장 셀 */}
+                      <td className={`p-4 text-center text-xs border-b border-gray-100 align-top ${
                         (row as any).highlight ? "text-purple-700 font-bold text-sm" : "text-gray-600"
                       }`}>
                         {(row as any).highlight ? (
                           <span className="inline-block bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-bold">
                             {row.video}
                           </span>
+                        ) : (row as any).isLegal ? (
+                          /* 법적 근거 행 — 드롭다운 버튼 */
+                          <div className="text-left">
+                            <button
+                              onClick={() => setOpenLegal(openLegal === 'video' ? null : 'video')}
+                              className="w-full flex items-start gap-1.5 group"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5 text-purple-400 flex-shrink-0 mt-0.5" />
+                              <span className="flex-1 text-left group-hover:text-purple-700 transition-colors">{row.video}</span>
+                              <span className="flex items-center gap-0.5 text-purple-500 text-[10px] font-semibold whitespace-nowrap ml-1 flex-shrink-0">
+                                <Info className="w-3 h-3" />
+                                <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${
+                                  openLegal === 'video' ? 'rotate-180' : ''
+                                }`} />
+                              </span>
+                            </button>
+                            {openLegal === 'video' && (
+                              <div className="mt-2 p-3 bg-purple-50 border border-purple-100 rounded-lg text-left">
+                                <p className="text-purple-800 text-[11px] font-bold mb-1">
+                                  {t.reviews.faqLegalDetailTitle}
+                                </p>
+                                <p className="text-purple-700 text-[11px] leading-relaxed">
+                                  {t.reviews.faqVideoLegalDetail}
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         ) : (
                           <span className="flex items-start justify-center gap-1.5">
                             <CheckCircle2 className="w-3.5 h-3.5 text-purple-400 flex-shrink-0 mt-0.5" />
@@ -262,13 +295,42 @@ export default function ReviewsSection() {
                           </span>
                         )}
                       </td>
-                      <td className={`p-4 text-center text-xs border-b border-gray-100 ${
+
+                      {/* 자필 유언장 셀 */}
+                      <td className={`p-4 text-center text-xs border-b border-gray-100 align-top ${
                         (row as any).highlight ? "text-amber-700 font-bold text-sm" : "text-gray-600"
                       }`}>
                         {(row as any).highlight ? (
                           <span className="inline-block bg-amber-100 text-amber-700 px-3 py-1 rounded-full font-bold">
                             {row.hand}
                           </span>
+                        ) : (row as any).isLegal ? (
+                          /* 법적 근거 행 — 드롭다운 버튼 */
+                          <div className="text-left">
+                            <button
+                              onClick={() => setOpenLegal(openLegal === 'hand' ? null : 'hand')}
+                              className="w-full flex items-start gap-1.5 group"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" />
+                              <span className="flex-1 text-left group-hover:text-amber-700 transition-colors">{row.hand}</span>
+                              <span className="flex items-center gap-0.5 text-amber-500 text-[10px] font-semibold whitespace-nowrap ml-1 flex-shrink-0">
+                                <Info className="w-3 h-3" />
+                                <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${
+                                  openLegal === 'hand' ? 'rotate-180' : ''
+                                }`} />
+                              </span>
+                            </button>
+                            {openLegal === 'hand' && (
+                              <div className="mt-2 p-3 bg-amber-50 border border-amber-100 rounded-lg text-left">
+                                <p className="text-amber-800 text-[11px] font-bold mb-1">
+                                  {t.reviews.faqLegalDetailTitle}
+                                </p>
+                                <p className="text-amber-700 text-[11px] leading-relaxed">
+                                  {t.reviews.faqHandLegalDetail}
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         ) : (
                           <span className="flex items-start justify-center gap-1.5">
                             <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" />
