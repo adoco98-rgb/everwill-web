@@ -24,6 +24,7 @@
 - [x] 대시보드 홈 (자산/상속자 현황 카드)
 
 - [x] 자필유언장 업로드 및 영상 유언장 업로드 섹션에 추가 인증 설명 추가 (ServicesSection + Step8Addons, 11개 언어)
+- [x] FAQ 섹션에 영상 유언장 vs 자필 유언장 법적 근거 비교표 추가 (ReviewsSection, 11개 언어, 각국 법률 조항 포함)
 
 ## 진행 중
 - [ ] DB 스키마 설계 (users, payments 테이블)

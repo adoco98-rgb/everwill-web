@@ -5,7 +5,7 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef, useState } from "react";
-import { Star, ChevronDown } from "lucide-react";
+import { Star, ChevronDown, Video, PenLine, Scale, CheckCircle2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 // 리뷰는 다국어 번역 없이 원본 유지 (실제 사용자 후기이므로)
@@ -169,6 +169,124 @@ export default function ReviewsSection() {
               </motion.div>
             ))}
           </div>
+
+          {/* ── 법적 근거 비교표 ── */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.7, delay: 0.5 }}
+            className="mt-16"
+          >
+            {/* 헤더 */}
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-2 bg-[#1F3864]/8 px-4 py-1.5 rounded-full mb-4">
+                <Scale className="w-4 h-4 text-[#C9A961]" />
+                <span className="text-[#1F3864] text-xs font-semibold tracking-wide uppercase">
+                  {t.reviews.faqTableTitle}
+                </span>
+              </div>
+              <p className="text-gray-500 text-sm max-w-2xl mx-auto leading-relaxed">
+                {t.reviews.faqTableSubtitle}
+              </p>
+            </div>
+
+            {/* 비교표 */}
+            <div className="max-w-4xl mx-auto overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr>
+                    <th className="text-left p-4 bg-[#1F3864] text-white text-sm font-semibold rounded-tl-xl w-1/4">
+                      {t.reviews.faqTableCol1}
+                    </th>
+                    <th className="p-4 bg-purple-600 text-white text-sm font-semibold w-[37.5%]">
+                      <div className="flex items-center justify-center gap-2">
+                        <Video className="w-4 h-4" />
+                        {t.reviews.faqTableCol2}
+                      </div>
+                    </th>
+                    <th className="p-4 bg-amber-500 text-white text-sm font-semibold rounded-tr-xl w-[37.5%]">
+                      <div className="flex items-center justify-center gap-2">
+                        <PenLine className="w-4 h-4" />
+                        {t.reviews.faqTableCol3}
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    {
+                      label: t.reviews.faqTableRow1Label,
+                      video: t.reviews.faqTableRow1Video,
+                      hand: t.reviews.faqTableRow1Hand,
+                    },
+                    {
+                      label: t.reviews.faqTableRow2Label,
+                      video: t.reviews.faqTableRow2Video,
+                      hand: t.reviews.faqTableRow2Hand,
+                    },
+                    {
+                      label: t.reviews.faqTableRow3Label,
+                      video: t.reviews.faqTableRow3Video,
+                      hand: t.reviews.faqTableRow3Hand,
+                    },
+                    {
+                      label: t.reviews.faqTableRow4Label,
+                      video: t.reviews.faqTableRow4Video,
+                      hand: t.reviews.faqTableRow4Hand,
+                      highlight: true,
+                    },
+                    {
+                      label: t.reviews.faqTableRow5Label,
+                      video: t.reviews.faqTableRow5Video,
+                      hand: t.reviews.faqTableRow5Hand,
+                    },
+                  ].map((row, i) => (
+                    <tr
+                      key={i}
+                      className={i % 2 === 0 ? "bg-white" : "bg-[#FAFAF8]"}
+                    >
+                      <td className="p-4 text-[#1F3864] text-xs font-bold border-b border-gray-100">
+                        {row.label}
+                      </td>
+                      <td className={`p-4 text-center text-xs border-b border-gray-100 ${
+                        (row as any).highlight ? "text-purple-700 font-bold text-sm" : "text-gray-600"
+                      }`}>
+                        {(row as any).highlight ? (
+                          <span className="inline-block bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-bold">
+                            {row.video}
+                          </span>
+                        ) : (
+                          <span className="flex items-start justify-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-purple-400 flex-shrink-0 mt-0.5" />
+                            {row.video}
+                          </span>
+                        )}
+                      </td>
+                      <td className={`p-4 text-center text-xs border-b border-gray-100 ${
+                        (row as any).highlight ? "text-amber-700 font-bold text-sm" : "text-gray-600"
+                      }`}>
+                        {(row as any).highlight ? (
+                          <span className="inline-block bg-amber-100 text-amber-700 px-3 py-1 rounded-full font-bold">
+                            {row.hand}
+                          </span>
+                        ) : (
+                          <span className="flex items-start justify-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" />
+                            {row.hand}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* 주석 */}
+            <p className="text-center text-gray-400 text-xs mt-4 max-w-2xl mx-auto">
+              {t.reviews.faqTableNote}
+            </p>
+          </motion.div>
         </motion.div>
       </div>
     </section>
