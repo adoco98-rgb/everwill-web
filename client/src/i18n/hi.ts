@@ -297,6 +297,11 @@ export const hi = {
     faqLegalDetailTitle: "देश के अनुसार कानूनी प्रावधान",
     faqVideoLegalDetail: "भारत — भारतीय उत्तराधिकार अधिनियम 1925, धारा 63: वसीयत पर वसीयतकर्ता के हस्ताक्षर होने चाहिए और दो या अधिक गवाहों द्वारा सत्यापित होनी चाहिए। वीडियो रिकॉर्डिंग वसीयतकर्ता की इच्छा और मानसिक क्षमता का मजबूत प्रमाण प्रदान करती है। EverWill एक AI वर्णन स्क्रिप्ट बनाता है और RFC 3161 के अनुसार ब्लॉकचेन टाइमस्टैम्प के साथ रिकॉर्डिंग को सुरक्षित करता है।",
     faqHandLegalDetail: "भारत — भारतीय उत्तराधिकार अधिनियम 1925, धारा 63: हस्तलिखित वसीयत को वसीयतकर्ता द्वारा स्वयं लिखा, दिनांकित और हस्ताक्षरित होना चाहिए। मुस्लिम व्यक्तिगत कानून के तहत, वसीयत (वसीयत) मौखिक या लिखित हो सकती है। EverWill का AI स्वचालित रूप से हस्तलेखन की प्रामाणिकता, तारीख और हस्ताक्षर की जांच करता है।",
+    faqLegalLinkLabel: "कानूनी पाठ देखें",
+    faqVideoLegalUrl: "https://indiacode.nic.in/bitstream/123456789/2396/1/A1925-39.pdf",
+    faqVideoLegalUrlText: "India Code — Indian Succession Act §63",
+    faqHandLegalUrl: "https://indiacode.nic.in/bitstream/123456789/2396/1/A1925-39.pdf",
+    faqHandLegalUrlText: "India Code — Indian Succession Act §63 (Holographic)",
   },
   cta: {
     title: "आज शुरू करें",

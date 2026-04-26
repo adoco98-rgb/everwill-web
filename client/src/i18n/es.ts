@@ -297,6 +297,11 @@ export const es = {
     faqLegalDetailTitle: "Disposiciones legales por país",
     faqVideoLegalDetail: "España — Código Civil Art. 688 (Testamento abierto): El testamento abierto se otorga ante notario, quien da fe de la voluntad del testador. La grabación en video refuerza significativamente la prueba de la voluntad testamentaria y puede servir como evidencia en caso de disputa. EverWill genera un script de narración con IA y asegura la grabación con un sello de tiempo blockchain según RFC 3161.",
     faqHandLegalDetail: "España — Código Civil Art. 688 (Testamento ológrafo): Debe estar escrito en su totalidad, fechado y firmado de puño y letra del testador. Requiere protocolización notarial para su ejecución. EverWill verifica automáticamente la escritura manual, la fecha y la firma, y detecta falsificaciones mediante algoritmos de IA.",
+    faqLegalLinkLabel: "Ver texto legal",
+    faqVideoLegalUrl: "https://www.boe.es/buscar/act.php?id=BOE-A-1889-4763&p=20150726&tn=1#a688",
+    faqVideoLegalUrlText: "BOE — Código Civil Art. 688",
+    faqHandLegalUrl: "https://www.boe.es/buscar/act.php?id=BOE-A-1889-4763&p=20150726&tn=1#a688",
+    faqHandLegalUrlText: "BOE — Código Civil Art. 688 (Testamento ológrafo)",
   },
   cta: {
     title: "Empieza Hoy",

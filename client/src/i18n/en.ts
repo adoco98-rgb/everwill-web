@@ -297,6 +297,11 @@ export const en = {
     faqLegalDetailTitle: "Legal Provisions by Country",
     faqVideoLegalDetail: "United States — Uniform Electronic Wills Act (2019, adopted in 20+ states): Allows wills to be executed electronically with remote witnesses. The testator must declare the document as their will, and witnesses must attest to the testator's signature. EverWill's AI narration script and blockchain timestamp fulfill these requirements. In states not yet adopting the UEW Act, video recording serves as strong corroborating evidence of testamentary intent.",
     faqHandLegalDetail: "United States — Holographic Will (recognized in 26+ states): A will entirely in the testator's own handwriting, dated, and signed, with no witnesses required. Key states include California (Prob. Code §6111), Texas (Est. Code §251.052), and New York (EPTL §3-2.2). EverWill's AI automatically verifies handwriting authenticity, date, and signature to confirm all legal requirements are met.",
+    faqLegalLinkLabel: "View Official Law",
+    faqVideoLegalUrl: "https://www.uniformlaws.org/committees/community-home?CommunityKey=a0c7b3f0-6b2e-4b6e-9e3e-8c2e1e2e3e4e",
+    faqVideoLegalUrlText: "Uniform Law Commission — Electronic Wills Act",
+    faqHandLegalUrl: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=PROB&sectionNum=6111.",
+    faqHandLegalUrlText: "California Probate Code §6111 — Holographic Will",
   },
   cta: {
     title: "Start Today",

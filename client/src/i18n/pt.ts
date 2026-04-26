@@ -297,6 +297,11 @@ export const pt = {
     faqLegalDetailTitle: "Disposições legais por país",
     faqVideoLegalDetail: "Brasil — Código Civil Art. 1.864 (Testamento público): O testamento público é lavrado pelo tabelião em seu livro de notas, na presença de duas testemunhas. A gravação em vídeo fortalece significativamente a prova da vontade testamentária e pode servir como evidência em caso de disputa. EverWill gera um script de narração com IA e protege a gravação com carimbo de tempo blockchain conforme RFC 3161.",
     faqHandLegalDetail: "Brasil — Código Civil Art. 1.876 (Testamento particular): Pode ser escrito de próprio punho ou mediante processo mecânico. Se escrito de próprio punho, deve ser assinado pelo testador após lido na presença de pelo menos três testemunhas. EverWill verifica automaticamente a escrita manual, a data e a assinatura, e detecta falsificações por meio de algoritmos de IA.",
+    faqLegalLinkLabel: "Ver texto legal",
+    faqVideoLegalUrl: "https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm#art1864",
+    faqVideoLegalUrlText: "Planalto — Código Civil Art. 1.864",
+    faqHandLegalUrl: "https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm#art1876",
+    faqHandLegalUrlText: "Planalto — Código Civil Art. 1.876",
   },
   cta: {
     title: "Comece hoje",

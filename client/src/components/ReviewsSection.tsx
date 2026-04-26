@@ -5,7 +5,7 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef, useState } from "react";
-import { Star, ChevronDown, Video, PenLine, Scale, CheckCircle2, Info } from "lucide-react";
+import { Star, ChevronDown, Video, PenLine, Scale, CheckCircle2, Info, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 // 리뷰는 다국어 번역 없이 원본 유지 (실제 사용자 후기이므로)
@@ -293,9 +293,19 @@ export default function ReviewsSection() {
                                 <p className="text-purple-800 text-[11px] font-bold mb-1">
                                   {t.reviews.faqLegalDetailTitle}
                                 </p>
-                                <p className="text-purple-700 text-[11px] leading-relaxed">
+                                <p className="text-purple-700 text-[11px] leading-relaxed mb-2">
                                   {t.reviews.faqVideoLegalDetail}
                                 </p>
+                                {/* 법령 원문 외부 링크 */}
+                                <a
+                                  href={t.reviews.faqVideoLegalUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-purple-600 hover:text-purple-800 text-[11px] font-semibold underline underline-offset-2 transition-colors"
+                                >
+                                  <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                                  {t.reviews.faqVideoLegalUrlText}
+                                </a>
                               </div>
                             )}
                           </div>
@@ -342,9 +352,19 @@ export default function ReviewsSection() {
                                 <p className="text-amber-800 text-[11px] font-bold mb-1">
                                   {t.reviews.faqLegalDetailTitle}
                                 </p>
-                                <p className="text-amber-700 text-[11px] leading-relaxed">
+                                <p className="text-amber-700 text-[11px] leading-relaxed mb-2">
                                   {t.reviews.faqHandLegalDetail}
                                 </p>
+                                {/* 법령 원문 외부 링크 */}
+                                <a
+                                  href={t.reviews.faqHandLegalUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-amber-600 hover:text-amber-800 text-[11px] font-semibold underline underline-offset-2 transition-colors"
+                                >
+                                  <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                                  {t.reviews.faqHandLegalUrlText}
+                                </a>
                               </div>
                             )}
                           </div>

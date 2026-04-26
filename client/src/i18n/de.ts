@@ -297,6 +297,11 @@ export const de = {
     faqLegalDetailTitle: "Rechtliche Bestimmungen nach Land",
     faqVideoLegalDetail: "Deutschland — BGB §2232 (Öffentliches Testament): Das öffentliche Testament wird vor einem Notar errichtet. Der Erblasser erklärt dem Notar seinen letzten Willen mündlich oder übergibt ihm eine Schrift. Eine Videoaufzeichnung stärkt den Nachweis des Testierwillens erheblich und kann im Streitfall als Beweismittel dienen. EverWill erstellt ein KI-Vorleseskript und sichert die Aufnahme mit einem Blockchain-Zeitstempel gemäß RFC 3161.",
     faqHandLegalDetail: "Deutschland — BGB §2247 (Eigenhändiges Testament): Das Testament muss vollständig eigenhändig geschrieben und unterschrieben sein. Datum und Ort sind zwar nicht zwingend, aber dringend empfohlen. Maschinenschriftliche oder gedruckte Testamente sind unwirksam. EverWill prüft automatisch Handschrift, Datum und Unterschrift und erkennt Fälschungen durch KI-Algorithmen.",
+    faqLegalLinkLabel: "Gesetzestext ansehen",
+    faqVideoLegalUrl: "https://www.gesetze-im-internet.de/bgb/__2232.html",
+    faqVideoLegalUrlText: "Gesetze im Internet — BGB §2232",
+    faqHandLegalUrl: "https://www.gesetze-im-internet.de/bgb/__2247.html",
+    faqHandLegalUrlText: "Gesetze im Internet — BGB §2247",
   },
   cta: {
     title: "Heute starten",

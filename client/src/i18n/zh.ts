@@ -297,6 +297,11 @@ export const zh = {
     faqLegalDetailTitle: "各国法律条款详情",
     faqVideoLegalDetail: "中国《民法典》第1137条（录音录像遗嘱）：以录音录像形式立的遗嘱，应当有两个以上见证人在场见证。遗嘱人和见证人应当在录音录像中记明其姓名或者肖像，以及年、月、日。EverWill通过AI朗读脚本确保遗嘱内容清晰完整，并以区块链哈希记录保障录像的不可篡改性，满足《民法典》规定的全部要件。",
     faqHandLegalDetail: "中国《民法典》第1134条（自书遗嘱）：自书遗嘱由遗嘱人亲笔书写，签名，注明年、月、日。无需见证人，但须全文手写，不得打印或代笔。EverWill的AI自动验证手写真实性、日期完整性及签名有效性，并通过区块链记录原件哈希值，防止事后篡改或伪造。",
+    faqLegalLinkLabel: "查看法律原文",
+    faqVideoLegalUrl: "https://www.gov.cn/xinwen/2020-06/01/content_5516649.htm",
+    faqVideoLegalUrlText: "中国政府网 — 《民法典》第1137条",
+    faqHandLegalUrl: "https://www.gov.cn/xinwen/2020-06/01/content_5516649.htm",
+    faqHandLegalUrlText: "中国政府网 — 《民法典》第1134条",
   },
   cta: {
     title: "立即开始",

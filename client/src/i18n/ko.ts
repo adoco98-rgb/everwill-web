@@ -314,6 +314,11 @@ export const ko = {
     faqLegalDetailTitle: "각국 법률 조항 상세",
     faqVideoLegalDetail: "한국 민법 제1067조 (녹음 유언): 유언자가 유언의 취지, 성명, 연월일을 구술하고 이에 참여한 증인이 정확함과 성명을 구술하여야 합니다. 영상 유언의 경우 동일한 원칙이 적용되며, EverWill은 AI 낭독 스크립트와 블록체인 타임스탬프로 이 요건을 충족합니다.",
     faqHandLegalDetail: "한국 민법 제1066조 (자필증서 유언): 유언자가 그 전문과 연월일, 주소, 성명을 자서(自書)하고 날인하여야 합니다. 5가지 요건(전문 자필, 연월일, 주소, 성명, 날인)이 모두 충족되어야 법적 효력이 발생합니다. EverWill AI가 이 5요건을 자동 검증합니다.",
+    faqLegalLinkLabel: "법령 원문 보기",
+    faqVideoLegalUrl: "https://www.law.go.kr/lsInfoP.do?lsiSeq=222976#0000",
+    faqVideoLegalUrlText: "국가법령정보센터 — 민법 제1067조",
+    faqHandLegalUrl: "https://www.law.go.kr/lsInfoP.do?lsiSeq=222976#0000",
+    faqHandLegalUrlText: "국가법령정보센터 — 민법 제1066조",
   },
 
   // CTA Section

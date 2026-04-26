@@ -297,6 +297,11 @@ export const ja = {
     faqLegalDetailTitle: "各国の法律条項の詳細",
     faqVideoLegalDetail: "日本民法第969条（公正証書遺言）・第970条（秘密証書遺言）：公正証書遺言は公証人が作成し、証人2名以上の立会いが必要です。動画遺言は遺言者の意思を明確に記録し、後の争いを防ぐ強力な証拠となります。EverWillはAI朗読スクリプトとブロックチェーンタイムスタンプにより、遺言意思の明確化と真正性を確保します。なお、2025年10月より公正証書のデジタル化が認められ、電子遺言の法的地位が強化されました。",
     faqHandLegalDetail: "日本民法第968条（自筆証書遺言）：遺言者が遺言書の全文・日付・氏名を自書し、押印することが必要です（2019年改正により財産目録はパソコン作成可）。法務局による自筆証書遺言書保管制度（2020年7月施行）も利用可能です。EverWillのAIが4要件（全文自筆・日付・氏名・押印）を自動検証し、偽造検知アルゴリズムで真正性を確認します。",
+    faqLegalLinkLabel: "法令原文を見る",
+    faqVideoLegalUrl: "https://elaws.e-gov.go.jp/document?lawid=129AC0000000089#Mp-At_969",
+    faqVideoLegalUrlText: "e-Gov法令検索 — 民法第969条",
+    faqHandLegalUrl: "https://elaws.e-gov.go.jp/document?lawid=129AC0000000089#Mp-At_968",
+    faqHandLegalUrlText: "e-Gov法令検索 — 民法第968条",
   },
   cta: {
     title: "今すぐ始めましょう",
