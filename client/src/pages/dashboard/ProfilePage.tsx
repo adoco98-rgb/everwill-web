@@ -137,6 +137,7 @@ export default function ProfilePage() {
   const [codeCopied, setCodeCopied] = useState(false);
   const [showSharePanel, setShowSharePanel] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [loadingChannel, setLoadingChannel] = useState<string | null>(null);
 
   // 나의 추천인 코드 + 포인트 잔액 조회
   const { data: referralData, isLoading: referralLoading } = trpc.referral.getMyCode.useQuery();
@@ -179,12 +180,19 @@ export default function ProfilePage() {
   }
 
   /** 소셜 공유 실행 */
-  function handleShare(channel: ShareChannel) {
-    if (!referralCode) return;
+  async function handleShare(channel: ShareChannel) {
+    if (!referralCode || loadingChannel) return;
     const text = getShareText();
+
+    // 로딩 시작
+    setLoadingChannel(channel.id);
+
+    // 최소 700ms 로딩 표시 (UX 피드백)
+    await new Promise((resolve) => setTimeout(resolve, 700));
 
     if (channel.id === "link") {
       copyLink();
+      setLoadingChannel(null);
       return;
     }
 
@@ -194,9 +202,9 @@ export default function ProfilePage() {
         navigator.share({ title: "EverWill 추천", text, url: window.location.origin })
           .catch(() => {});
       } else {
-        // PC 환경: 카카오 공유 URL scheme
         window.open(`https://story.kakao.com/share?url=${encodeURIComponent(window.location.origin)}&text=${encodeURIComponent(text)}`, "_blank", "width=600,height=500");
       }
+      setLoadingChannel(null);
       return;
     }
 
@@ -204,6 +212,7 @@ export default function ProfilePage() {
     if (url) {
       window.open(url, "_blank", "width=600,height=500,noopener,noreferrer");
     }
+    setLoadingChannel(null);
   }
 
   return (
@@ -286,8 +295,17 @@ export default function ProfilePage() {
               disabled={!referralCode}
               className="flex items-center gap-1.5 text-white/60 hover:text-white disabled:opacity-30 text-xs transition-colors"
             >
-              {showSharePanel ? <XIcon className="w-3.5 h-3.5" /> : <Share2 className="w-3.5 h-3.5" />}
-              {showSharePanel ? "닫기" : "공유하기"}
+              {showSharePanel ? (
+                <XIcon className="w-3.5 h-3.5" />
+              ) : loadingChannel ? (
+                <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>
+              ) : (
+                <Share2 className="w-3.5 h-3.5" />
+              )}
+              {showSharePanel ? "닫기" : loadingChannel ? "공유 중..." : "공유하기"}
             </button>
           </div>
 
@@ -323,18 +341,52 @@ export default function ProfilePage() {
                 <div className="mt-4 pt-4 border-t border-white/10">
                   <p className="text-white/60 text-xs mb-3">소셜 미디어로 공유하기</p>
                   <div className="grid grid-cols-3 gap-2">
-                    {SHARE_CHANNELS.map((channel) => (
-                      <button
-                        key={channel.id}
-                        onClick={() => handleShare(channel)}
-                        className={`flex flex-col items-center gap-1.5 p-3 rounded-xl ${channel.bgColor} ${channel.textColor} hover:opacity-90 active:scale-95 transition-all text-xs font-semibold`}
-                      >
-                        <SocialIcon type={channel.icon} size={22} />
-                        <span className="text-[10px] leading-tight text-center">
-                          {channel.id === "link" && linkCopied ? "복사됨!" : channel.label}
-                        </span>
-                      </button>
-                    ))}
+                    {SHARE_CHANNELS.map((channel) => {
+                      const isLoading = loadingChannel === channel.id;
+                      const isDone = channel.id === "link" && linkCopied;
+                      return (
+                        <button
+                          key={channel.id}
+                          onClick={() => handleShare(channel)}
+                          disabled={!!loadingChannel}
+                          className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl ${channel.bgColor} ${channel.textColor} transition-all text-xs font-semibold
+                            ${loadingChannel && !isLoading ? "opacity-40 cursor-not-allowed" : "hover:opacity-90 active:scale-95"}
+                          `}
+                        >
+                          {/* 로딩 링 오버레이 */}
+                          {isLoading && (
+                            <span className="absolute inset-0 rounded-xl flex items-center justify-center bg-black/20">
+                              <svg
+                                className="animate-spin w-6 h-6"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12" cy="12" r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="3"
+                                />
+                                <path
+                                  className="opacity-80"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                />
+                              </svg>
+                            </span>
+                          )}
+                          {/* 완료 체크 */}
+                          {isDone ? (
+                            <Check className="w-5 h-5" />
+                          ) : (
+                            <SocialIcon type={channel.icon} size={22} />
+                          )}
+                          <span className="text-[10px] leading-tight text-center">
+                            {isLoading ? "공유 중..." : isDone ? "복사됨!" : channel.label}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                   {/* 공유 미리보기 */}
                   <div className="mt-3 bg-white/5 rounded-lg p-3">
