@@ -302,6 +302,9 @@ export const fr = {
     faqVideoLegalUrlText: "Légifrance — Code Civil Art. 984",
     faqHandLegalUrl: "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006431476",
     faqHandLegalUrlText: "Légifrance — Code Civil Art. 970",
+    faqLegalDateLabel: "Dernière modification",
+    faqVideoLegalDate: "23.06.2006",
+    faqHandLegalDate: "23.06.2006",
   },
   cta: {
     title: "Commencez aujourd'hui",

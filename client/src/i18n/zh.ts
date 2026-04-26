@@ -302,6 +302,9 @@ export const zh = {
     faqVideoLegalUrlText: "中国政府网 — 《民法典》第1137条",
     faqHandLegalUrl: "https://www.gov.cn/xinwen/2020-06/01/content_5516649.htm",
     faqHandLegalUrlText: "中国政府网 — 《民法典》第1134条",
+    faqLegalDateLabel: "最后修订",
+    faqVideoLegalDate: "2021年1月1日施行",
+    faqHandLegalDate: "2021年1月1日施行",
   },
   cta: {
     title: "立即开始",

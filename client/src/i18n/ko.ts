@@ -319,6 +319,9 @@ export const ko = {
     faqVideoLegalUrlText: "국가법령정보센터 — 민법 제1067조",
     faqHandLegalUrl: "https://www.law.go.kr/lsInfoP.do?lsiSeq=222976#0000",
     faqHandLegalUrlText: "국가법령정보센터 — 민법 제1066조",
+    faqLegalDateLabel: "최종 개정",
+    faqVideoLegalDate: "2024.09.20",
+    faqHandLegalDate: "2024.09.20",
   },
 
   // CTA Section

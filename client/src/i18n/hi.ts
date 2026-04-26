@@ -302,6 +302,9 @@ export const hi = {
     faqVideoLegalUrlText: "India Code — Indian Succession Act §63",
     faqHandLegalUrl: "https://indiacode.nic.in/bitstream/123456789/2396/1/A1925-39.pdf",
     faqHandLegalUrlText: "India Code — Indian Succession Act §63 (Holographic)",
+    faqLegalDateLabel: "अंतिम संशोधन",
+    faqVideoLegalDate: "2025",
+    faqHandLegalDate: "2025",
   },
   cta: {
     title: "आज शुरू करें",

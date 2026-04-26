@@ -302,6 +302,9 @@ export const ar = {
     faqVideoLegalUrlText: "وزارة العدل السعودية — نظام الأحوال الشخصية",
     faqHandLegalUrl: "https://www.moj.gov.sa/ar/Systems/Pages/default.aspx",
     faqHandLegalUrlText: "وزارة العدل السعودية — الوصية الخطية",
+    faqLegalDateLabel: "آخر تعديل",
+    faqVideoLegalDate: "30/12/2021",
+    faqHandLegalDate: "30/12/2021",
   },
   cta: {
     title: "ابدأ اليوم",

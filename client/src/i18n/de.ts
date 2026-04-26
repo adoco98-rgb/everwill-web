@@ -302,6 +302,9 @@ export const de = {
     faqVideoLegalUrlText: "Gesetze im Internet — BGB §2232",
     faqHandLegalUrl: "https://www.gesetze-im-internet.de/bgb/__2247.html",
     faqHandLegalUrlText: "Gesetze im Internet — BGB §2247",
+    faqLegalDateLabel: "Letzte Änderung",
+    faqVideoLegalDate: "10.08.2021",
+    faqHandLegalDate: "10.08.2021",
   },
   cta: {
     title: "Heute starten",

@@ -296,16 +296,23 @@ export default function ReviewsSection() {
                                 <p className="text-purple-700 text-[11px] leading-relaxed mb-2">
                                   {t.reviews.faqVideoLegalDetail}
                                 </p>
-                                {/* 법령 원문 외부 링크 */}
-                                <a
-                                  href={t.reviews.faqVideoLegalUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 text-purple-600 hover:text-purple-800 text-[11px] font-semibold underline underline-offset-2 transition-colors"
-                                >
-                                  <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                                  {t.reviews.faqVideoLegalUrlText}
-                                </a>
+                                {/* 법령 원문 외부 링크 + 최종 개정일 배지 */}
+                                <div className="flex flex-wrap items-center gap-2 mt-1">
+                                  <a
+                                    href={t.reviews.faqVideoLegalUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 text-purple-600 hover:text-purple-800 text-[11px] font-semibold underline underline-offset-2 transition-colors"
+                                  >
+                                    <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                                    {t.reviews.faqVideoLegalUrlText}
+                                  </a>
+                                  {/* 최종 개정일 배지 */}
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-600 border border-purple-200 whitespace-nowrap">
+                                    <span className="opacity-70">{t.reviews.faqLegalDateLabel}:</span>
+                                    <span className="font-bold">{t.reviews.faqVideoLegalDate}</span>
+                                  </span>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -355,16 +362,23 @@ export default function ReviewsSection() {
                                 <p className="text-amber-700 text-[11px] leading-relaxed mb-2">
                                   {t.reviews.faqHandLegalDetail}
                                 </p>
-                                {/* 법령 원문 외부 링크 */}
-                                <a
-                                  href={t.reviews.faqHandLegalUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 text-amber-600 hover:text-amber-800 text-[11px] font-semibold underline underline-offset-2 transition-colors"
-                                >
-                                  <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                                  {t.reviews.faqHandLegalUrlText}
-                                </a>
+                                {/* 법령 원문 외부 링크 + 최종 개정일 배지 */}
+                                <div className="flex flex-wrap items-center gap-2 mt-1">
+                                  <a
+                                    href={t.reviews.faqHandLegalUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 text-amber-600 hover:text-amber-800 text-[11px] font-semibold underline underline-offset-2 transition-colors"
+                                  >
+                                    <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                                    {t.reviews.faqHandLegalUrlText}
+                                  </a>
+                                  {/* 최종 개정일 배지 */}
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-600 border border-amber-200 whitespace-nowrap">
+                                    <span className="opacity-70">{t.reviews.faqLegalDateLabel}:</span>
+                                    <span className="font-bold">{t.reviews.faqHandLegalDate}</span>
+                                  </span>
+                                </div>
                               </div>
                             )}
                           </div>

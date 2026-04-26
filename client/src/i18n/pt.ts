@@ -302,6 +302,9 @@ export const pt = {
     faqVideoLegalUrlText: "Planalto — Código Civil Art. 1.864",
     faqHandLegalUrl: "https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm#art1876",
     faqHandLegalUrlText: "Planalto — Código Civil Art. 1.876",
+    faqLegalDateLabel: "Última alteração",
+    faqVideoLegalDate: "22.12.2022",
+    faqHandLegalDate: "22.12.2022",
   },
   cta: {
     title: "Comece hoje",

@@ -302,6 +302,9 @@ export const ja = {
     faqVideoLegalUrlText: "e-Gov法令検索 — 民法第969条",
     faqHandLegalUrl: "https://elaws.e-gov.go.jp/document?lawid=129AC0000000089#Mp-At_968",
     faqHandLegalUrlText: "e-Gov法令検索 — 民法第968条",
+    faqLegalDateLabel: "最終改正",
+    faqVideoLegalDate: "2023年6月14日",
+    faqHandLegalDate: "2023年6月14日",
   },
   cta: {
     title: "今すぐ始めましょう",

@@ -302,6 +302,9 @@ export const es = {
     faqVideoLegalUrlText: "BOE — Código Civil Art. 688",
     faqHandLegalUrl: "https://www.boe.es/buscar/act.php?id=BOE-A-1889-4763&p=20150726&tn=1#a688",
     faqHandLegalUrlText: "BOE — Código Civil Art. 688 (Testamento ológrafo)",
+    faqLegalDateLabel: "Última modificación",
+    faqVideoLegalDate: "26.07.2015",
+    faqHandLegalDate: "26.07.2015",
   },
   cta: {
     title: "Empieza Hoy",

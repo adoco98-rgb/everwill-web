@@ -302,6 +302,9 @@ export const en = {
     faqVideoLegalUrlText: "Uniform Law Commission — Electronic Wills Act",
     faqHandLegalUrl: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=PROB&sectionNum=6111.",
     faqHandLegalUrlText: "California Probate Code §6111 — Holographic Will",
+    faqLegalDateLabel: "Last amended",
+    faqVideoLegalDate: "2019 (UEW Act)",
+    faqHandLegalDate: "2021 (CA Probate §6111)",
   },
   cta: {
     title: "Start Today",

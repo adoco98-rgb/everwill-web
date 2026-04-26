@@ -302,6 +302,9 @@ export const ru = {
     faqVideoLegalUrlText: "КонсультантПлюс — ГК РФ Ст. 1125",
     faqHandLegalUrl: "https://www.consultant.ru/document/cons_doc_LAW_5142/b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2/",
     faqHandLegalUrlText: "КонсультантПлюс — ГК РФ Ст. 1126",
+    faqLegalDateLabel: "Последнее изменение",
+    faqVideoLegalDate: "21.04.2025",
+    faqHandLegalDate: "21.04.2025",
   },
   cta: {
     title: "Начните сегодня",
