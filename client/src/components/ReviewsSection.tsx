@@ -243,6 +243,17 @@ export default function ReviewsSection() {
                       video: t.reviews.faqTableRow5Video,
                       hand: t.reviews.faqTableRow5Hand,
                     },
+                    {
+                      label: t.reviews.faqTableRow6Label,
+                      video: t.reviews.faqTableRow6Video,
+                      hand: t.reviews.faqTableRow6Hand,
+                    },
+                    {
+                      label: t.reviews.faqTableRow7Label,
+                      video: t.reviews.faqTableRow7Video,
+                      hand: t.reviews.faqTableRow7Hand,
+                      isStorage: true,  // 보관 방법 행 — 아이콘 강조
+                    },
                   ].map((row, i) => (
                     <tr
                       key={i}
@@ -288,6 +299,12 @@ export default function ReviewsSection() {
                               </div>
                             )}
                           </div>
+                        ) : (row as any).isStorage ? (
+                          /* 보관 방법 행 — 잠금 아이콘 + 청록색 */
+                          <span className="flex items-start gap-1.5 text-left text-teal-700">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 flex-shrink-0 mt-0.5" />
+                            {row.video}
+                          </span>
                         ) : (
                           <span className="flex items-start justify-center gap-1.5">
                             <CheckCircle2 className="w-3.5 h-3.5 text-purple-400 flex-shrink-0 mt-0.5" />
@@ -331,6 +348,12 @@ export default function ReviewsSection() {
                               </div>
                             )}
                           </div>
+                        ) : (row as any).isStorage ? (
+                          /* 보관 방법 행 — 청록색 */
+                          <span className="flex items-start gap-1.5 text-left text-teal-700">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 flex-shrink-0 mt-0.5" />
+                            {row.hand}
+                          </span>
                         ) : (
                           <span className="flex items-start justify-center gap-1.5">
                             <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 mt-0.5" />
