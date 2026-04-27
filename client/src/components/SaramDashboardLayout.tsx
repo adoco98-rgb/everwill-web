@@ -16,6 +16,7 @@ import {
   Menu,
   X,
   Home,
+  MessageSquare,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -26,6 +27,7 @@ const menuItems = [
   { icon: CreditCard, label: "결제 내역", path: "/dashboard/payments" },
   { icon: Award, label: "Badge 관리", path: "/dashboard/badge" },
   { icon: Shield, label: "인증 현황", path: "/dashboard/certification" },
+  { icon: MessageSquare, label: "1:1 문의", path: "/dashboard/inquiries" },
   { icon: User, label: "프로필 설정", path: "/dashboard/profile" },
 ];
 

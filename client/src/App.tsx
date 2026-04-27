@@ -14,6 +14,7 @@ import LoginPage from "./pages/LoginPage";
 import DashboardHome from "./pages/dashboard/DashboardHome";
 import PaymentsPage from "./pages/dashboard/PaymentsPage";
 import ProfilePage from "./pages/dashboard/ProfilePage";
+import InquiriesPage from "./pages/dashboard/InquiriesPage";
 import SaramDashboardLayout from "./components/SaramDashboardLayout";
 import ScanVerifyPage from "./pages/ScanVerifyPage";
 import WillChatPage from "./pages/WillChatPage";
@@ -44,6 +45,7 @@ function Router() {
       <Route path={"/dashboard"} component={() => <SaramDashboardLayout><DashboardHome /></SaramDashboardLayout>} />
       <Route path={"/dashboard/payments"} component={() => <SaramDashboardLayout><PaymentsPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/profile"} component={() => <SaramDashboardLayout><ProfilePage /></SaramDashboardLayout>} />
+      <Route path={"/dashboard/inquiries"} component={() => <SaramDashboardLayout><InquiriesPage /></SaramDashboardLayout>} />
       {/* 상속세 계산기 */}
       <Route path={"/tax"} component={TaxCalculatorPage} />
       <Route path={"/tax/report"} component={TaxReportPage} />

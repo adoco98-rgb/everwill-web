@@ -32,6 +32,13 @@ import {
   Building2,
   Handshake,
   Calendar,
+  MessageSquare,
+  Send,
+  CheckCircle2,
+  Clock,
+  Tag,
+  ChevronRight,
+  Loader2,
 } from "lucide-react";
 import {
   BarChart,
@@ -474,11 +481,12 @@ export default function InternalPage() {
   const NAV_ITEMS = [
     { id: "overview", label: "개요", icon: FileText },
     { id: "invest-terms", label: "투자 조건", icon: DollarSign },
-    { id: "investment", label: "투자처 세부", icon: BarChart3 },
+    { id: "investment", label: "투자자 세부", icon: BarChart3 },
     { id: "cashflow", label: "현금흐름", icon: TrendingUp },
     { id: "marketing", label: "마케팅 KPI", icon: Target },
     { id: "risk", label: "리스크 분석", icon: AlertTriangle },
     { id: "partners", label: "파트너십", icon: Handshake },
+    { id: "inquiries", label: "문의 관리", icon: MessageSquare },
   ];
 
   return (
@@ -1009,11 +1017,14 @@ export default function InternalPage() {
             </div>
           </section>
 
+          {/* ── 문의 관리 섹션 ── */}
+          {activeSection === "inquiries" && <AdminInquiriesSection />}
+
         </main>
       </div>
 
       {/* 우수 답변 & 만족도 통계 섹션 */}
-      <FeaturedAnswersSection />
+      {activeSection !== "inquiries" && <FeaturedAnswersSection />}
 
       {/* 푸터 */}
       <footer className="py-6 px-6 border-t border-white/5 text-center mt-12">
@@ -1021,6 +1032,227 @@ export default function InternalPage() {
         <p className="text-white/10 text-xs mt-1">© 2025 SARAM Corp. · adoco98@gmail.com · 기밀 등급 A</p>
       </footer>
     </div>
+  );
+}
+
+/**
+ * 관리자 전체 문의 목록 + 답변 처리 UI
+ */
+function AdminInquiriesSection() {
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  // 문의별 답변 텍스트 상태 분리 (id -> text)
+  const [replyTexts, setReplyTexts] = useState<Record<number, string>>({});
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [replyError, setReplyError] = useState<string | null>(null);
+
+  const { data: inquiries, refetch, isLoading, isError: listError } = trpc.inquiry.adminList.useQuery();
+  const replyMutation = trpc.inquiry.reply.useMutation({
+    onSuccess: (_, vars) => {
+      setReplyTexts(prev => { const n = { ...prev }; delete n[vars.inquiryId]; return n; });
+      setSelectedId(null);
+      setReplyError(null);
+      refetch();
+    },
+    onError: (err) => {
+      setReplyError(err.message || "답변 발송에 실패했습니다. 다시 시도해주세요.");
+    },
+  });
+
+  const CATEGORY_LABELS: Record<string, string> = {
+    general: "일반 문의", service: "서비스 이용",
+    payment: "결제/환불", badge: "Badge 관련",
+    lawyer: "변호사 매칭", other: "기타",
+  };
+
+  const STATUS_COLORS: Record<string, string> = {
+    pending: "text-amber-400 bg-amber-400/10 border-amber-400/30",
+    answered: "text-green-400 bg-green-400/10 border-green-400/30",
+    closed: "text-gray-400 bg-gray-400/10 border-gray-400/30",
+  };
+
+  const STATUS_LABELS: Record<string, string> = {
+    pending: "접수 완료",
+    answered: "답변 완료",
+    closed: "종료",
+  };
+
+  const filtered = inquiries?.filter(i =>
+    filterStatus === "all" ? true : i.status === filterStatus
+  ) ?? [];
+
+  const pending = inquiries?.filter(i => i.status === "pending").length ?? 0;
+  const answered = inquiries?.filter(i => i.status === "answered").length ?? 0;
+
+  return (
+    <section className="w-full">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+            <MessageSquare className="w-6 h-6 text-[#C9A961]" />
+            문의 관리
+          </h2>
+          <p className="text-white/40 text-sm mt-1">전체 문의 목록 및 답변 처리</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 bg-amber-400/10 border border-amber-400/30 px-3 py-1.5 rounded-full">
+            <Clock className="w-3.5 h-3.5 text-amber-400" />
+            <span className="text-amber-400 text-xs font-bold">{pending} 대기</span>
+          </div>
+          <div className="flex items-center gap-1.5 bg-green-400/10 border border-green-400/30 px-3 py-1.5 rounded-full">
+            <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
+            <span className="text-green-400 text-xs font-bold">{answered} 답변</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 필터 탭 */}
+      <div className="flex gap-2 mb-5">
+        {[
+          { value: "all", label: "전체" },
+          { value: "pending", label: "답변 대기" },
+          { value: "answered", label: "답변 완료" },
+          { value: "closed", label: "종료" },
+        ].map(f => (
+          <button
+            key={f.value}
+            onClick={() => setFilterStatus(f.value)}
+            className={`px-4 py-2 rounded-xl text-xs font-medium transition-all ${
+              filterStatus === f.value
+                ? "bg-[#C9A961] text-[#1F3864] font-bold"
+                : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {/* 문의 목록 */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="w-8 h-8 text-[#C9A961] animate-spin" />
+        </div>
+      ) : listError ? (
+        <div className="flex flex-col items-center justify-center py-16 gap-3 bg-[#1a2035] rounded-2xl border border-white/5">
+          <MessageSquare className="w-10 h-10 text-red-400/40" />
+          <p className="text-red-400/70 text-sm">문의 목록을 불러오는 중 오류가 발생했습니다.</p>
+          <button
+            onClick={() => refetch()}
+            className="bg-white/10 hover:bg-white/20 text-white/70 px-4 py-2 rounded-xl text-xs transition-all"
+          >
+            다시 시도
+          </button>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16 bg-[#1a2035] rounded-2xl border border-white/5">
+          <MessageSquare className="w-10 h-10 text-white/20 mx-auto mb-3" />
+          <p className="text-white/30 text-sm">접수된 문의가 없습니다.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((inq) => {
+            const isSelected = selectedId === inq.id;
+            return (
+              <div
+                key={inq.id}
+                className="bg-[#1a2035] rounded-2xl border border-white/5 overflow-hidden"
+              >
+                {/* 문의 헤더 */}
+                <button
+                  onClick={() => setSelectedId(isSelected ? null : inq.id)}
+                  className="w-full text-left px-5 py-4 hover:bg-white/5 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border ${
+                          STATUS_COLORS[inq.status] || STATUS_COLORS.pending
+                        }`}>
+                          {STATUS_LABELS[inq.status] || inq.status}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-xs text-white/40 bg-white/5 px-2.5 py-1 rounded-full">
+                          <Tag className="w-3 h-3" />
+                          {CATEGORY_LABELS[inq.category] || inq.category}
+                        </span>
+                        {inq.satisfaction && (
+                          <span className="text-xs text-[#C9A961]">
+                            {["\uD83D\uDE1E","\uD83D\uDE15","\uD83D\uDE10","\uD83D\uDE0A","\uD83D\uDE04"][inq.satisfaction - 1]} {inq.satisfaction}점
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm font-semibold text-white truncate">{inq.subject}</p>
+                      <p className="text-xs text-white/30 mt-1">
+                        {inq.name} &middot; {inq.email} &middot; {new Date(inq.createdAt!).toLocaleDateString("ko-KR")}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-white/30">
+                      {isSelected ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </div>
+                  </div>
+                </button>
+
+                {/* 펼침 내용 */}
+                {isSelected && (
+                  <div className="px-5 pb-5 border-t border-white/5 pt-4 space-y-4">
+                    {/* 문의 내용 */}
+                    <div>
+                      <p className="text-xs font-semibold text-white/40 uppercase tracking-wide mb-2">문의 내용</p>
+                      <div className="bg-white/5 rounded-xl p-4 text-sm text-white/70 leading-relaxed whitespace-pre-wrap">
+                        {inq.content}
+                      </div>
+                    </div>
+
+                    {/* 기존 답변 */}
+                    {inq.reply && (
+                      <div>
+                        <p className="text-xs font-semibold text-white/40 uppercase tracking-wide mb-2">기존 답변</p>
+                        <div className="bg-[#C9A961]/10 border border-[#C9A961]/20 rounded-xl p-4 text-sm text-white/70 leading-relaxed whitespace-pre-wrap">
+                          {inq.reply}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 답변 입력 (답변 전 상태에서만) */}
+                    {inq.status === "pending" && (
+                      <div>
+                        <p className="text-xs font-semibold text-white/40 uppercase tracking-wide mb-2">답변 작성</p>
+                        <textarea
+                          value={replyTexts[inq.id] ?? ""}
+                          onChange={(e) => setReplyTexts(prev => ({ ...prev, [inq.id]: e.target.value }))}
+                          placeholder="답변 내용을 입력하세요..."
+                          rows={5}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white/80 placeholder-white/20 focus:outline-none focus:border-[#C9A961]/50 resize-none"
+                        />
+                        {replyError && selectedId === inq.id && (
+                          <p className="text-xs text-red-400 mt-1">{replyError}</p>
+                        )}
+                        <div className="flex items-center justify-between mt-3">
+                          <p className="text-xs text-white/20">답변 발송 후 사용자 이메일로 자동 발송됩니다.</p>
+                          <button
+                            onClick={() => {
+                              const text = replyTexts[inq.id]?.trim();
+                              if (!text) return;
+                              replyMutation.mutate({ inquiryId: inq.id, reply: text });
+                            }}
+                            disabled={!(replyTexts[inq.id]?.trim()) || replyMutation.isPending}
+                            className="flex items-center gap-2 bg-[#C9A961] hover:bg-[#b8944f] disabled:opacity-40 disabled:cursor-not-allowed text-[#1F3864] font-bold px-5 py-2.5 rounded-xl text-sm transition-all"
+                          >
+                            {replyMutation.isPending
+                              ? <><Loader2 className="w-4 h-4 animate-spin" /> 발송 중...</>
+                              : <><Send className="w-4 h-4" /> 답변 발송</>
+                            }
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 }
 
