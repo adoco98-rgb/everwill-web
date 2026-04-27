@@ -155,7 +155,7 @@ export const emailAuthRouter = router({
 
   /**
    * 회원가입 후 추가 정보 저장
-   * - 이름, 전화번호, 생년월일, 거주 국가
+   * - 이름, 전화번호, 생년월일, 거주 국가 + 국가별 추가 필드
    */
   updateProfile: publicProcedure
     .input(z.object({
@@ -163,7 +163,20 @@ export const emailAuthRouter = router({
       name: z.string().min(1, "이름을 입력해주세요").max(50),
       phone: z.string().optional(),
       birthDate: z.string().optional(),
-      country: z.string().length(2).default("KR"),
+      country: z.string().min(2).max(3).default("KR"),
+      // 국가별 추가 필드
+      address: z.string().optional(),
+      zipCode: z.string().optional(),
+      stateProvince: z.string().optional(),
+      nationality: z.string().optional(),
+      furigana: z.string().optional(),
+      religion: z.string().optional(),
+      occupation: z.string().optional(),
+      assetScale: z.string().optional(),
+      agreeTerms: z.number().optional(),
+      agreePrivacy: z.number().optional(),
+      agreeMarketing: z.number().optional(),
+      agreeGdpr: z.number().optional(),
     }))
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -175,6 +188,18 @@ export const emailAuthRouter = router({
           phone: input.phone || null,
           birthDate: input.birthDate || null,
           country: input.country,
+          address: input.address || null,
+          zipCode: input.zipCode || null,
+          stateProvince: input.stateProvince || null,
+          nationality: input.nationality || null,
+          furigana: input.furigana || null,
+          religion: input.religion || null,
+          occupation: input.occupation || null,
+          assetScale: input.assetScale || null,
+          agreeTerms: input.agreeTerms ?? 0,
+          agreePrivacy: input.agreePrivacy ?? 0,
+          agreeMarketing: input.agreeMarketing ?? 0,
+          agreeGdpr: input.agreeGdpr ?? 0,
           profileCompleted: 1,
           updatedAt: new Date(),
         })

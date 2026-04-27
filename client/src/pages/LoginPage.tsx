@@ -2,19 +2,21 @@
  * EverWill 이메일 간편 가입/로그인 페이지 (/login)
  * Step 1: 이메일 입력
  * Step 2: OTP 6자리 인증
- * Step 3: 추가 정보 입력 (신규 가입자만) - 이름, 전화번호, 생년월일, 국가
+ * Step 3: 추가 정보 입력 (신규 가입자만) - 이름, 전화번호, 생년월일, 국가 + 국가별 추가 필드
  * Step 4: 완료 → 대시보드
  */
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, ArrowLeft, Mail, CheckCircle2, RefreshCw,
-  Loader2, HelpCircle, ChevronDown, User, Phone, Calendar, Globe, Gift, Check, X
+  Loader2, HelpCircle, ChevronDown, User, Phone, Calendar, Globe, Gift, Check, X,
+  MapPin, Building2, BookOpen, Briefcase, DollarSign
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import WelcomeModal from "@/components/WelcomeModal";
+
 const benefits = [
   "유언장 작성 무료 · 언제든 재개 가능",
   "결제 내역 자동 연결 및 관리",
@@ -30,11 +32,65 @@ const COUNTRIES = [
   { code: "HK", label: "🇭🇰 홍콩" },
   { code: "TW", label: "🇹🇼 대만" },
   { code: "DE", label: "🇩🇪 독일" },
+  { code: "FR", label: "🇫🇷 프랑스" },
   { code: "ES", label: "🇪🇸 스페인" },
   { code: "SA", label: "🇸🇦 사우디아라비아" },
+  { code: "AE", label: "🇦🇪 아랍에미리트" },
   { code: "GB", label: "🇬🇧 영국" },
   { code: "CA", label: "🇨🇦 캐나다" },
   { code: "AU", label: "🇦🇺 호주" },
+  { code: "RU", label: "🇷🇺 러시아" },
+  { code: "IN", label: "🇮🇳 인도" },
+  { code: "BR", label: "🇧🇷 브라질" },
+];
+
+/** 국가별 추가 필드 설정 */
+const COUNTRY_FIELDS: Record<string, {
+  furigana?: boolean;
+  zipCode?: boolean;
+  address?: boolean;
+  stateProvince?: boolean;
+  nationality?: boolean;
+  religion?: boolean;
+  occupation?: boolean;
+  assetScale?: boolean;
+  agreeGdpr?: boolean;
+  stateLabel?: string;
+  addressLabel?: string;
+  namePlaceholder?: string;
+  phonePlaceholder?: string;
+}> = {
+  KR: { zipCode: true, address: true, occupation: true, assetScale: true },
+  JP: { furigana: true, zipCode: true, address: true, occupation: true },
+  CN: { zipCode: true, address: true, occupation: true },
+  HK: { address: true, occupation: true, nationality: true },
+  TW: { zipCode: true, address: true, occupation: true },
+  US: { stateProvince: true, zipCode: true, address: true, occupation: true, assetScale: true, stateLabel: "주(State)" },
+  CA: { stateProvince: true, zipCode: true, address: true, stateLabel: "주/준주(Province)" },
+  AU: { stateProvince: true, zipCode: true, address: true, stateLabel: "주(State)" },
+  GB: { zipCode: true, address: true, agreeGdpr: true },
+  DE: { zipCode: true, address: true, agreeGdpr: true, occupation: true },
+  FR: { zipCode: true, address: true, agreeGdpr: true },
+  ES: { zipCode: true, address: true, agreeGdpr: true },
+  SA: { nationality: true, religion: true, address: true, occupation: true },
+  AE: { nationality: true, religion: true, address: true, occupation: true, assetScale: true },
+  RU: { zipCode: true, address: true, occupation: true },
+  IN: { stateProvince: true, zipCode: true, address: true, occupation: true, stateLabel: "주(State)" },
+  BR: { stateProvince: true, zipCode: true, address: true, occupation: true, stateLabel: "주(Estado)" },
+};
+
+const ASSET_SCALE_OPTIONS = [
+  { value: "", label: "선택 안 함" },
+  { value: "under_100m", label: "1억 미만" },
+  { value: "100m_500m", label: "1억 ~ 5억" },
+  { value: "500m_1b", label: "5억 ~ 10억" },
+  { value: "1b_5b", label: "10억 ~ 50억" },
+  { value: "over_5b", label: "50억 이상" },
+];
+
+const RELIGION_OPTIONS = [
+  { value: "islam", label: "이슬람(Islam)" },
+  { value: "other", label: "기타" },
 ];
 
 type Step = "email" | "otp" | "profile" | "done";
@@ -49,17 +105,41 @@ export default function LoginPage() {
   const [isNewUser, setIsNewUser] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
 
-  // 프로필 폼
+  // 프로필 폼 - 공통
   const [profileName, setProfileName] = useState("");
   const [profilePhone, setProfilePhone] = useState("");
   const [profileBirth, setProfileBirth] = useState("");
   const [profileCountry, setProfileCountry] = useState("KR");
+
+  // 프로필 폼 - 국가별 추가 필드
+  const [furigana, setFurigana] = useState("");
+  const [zipCode, setZipCode] = useState("");
+  const [address, setAddress] = useState("");
+  const [stateProvince, setStateProvince] = useState("");
+  const [nationality, setNationality] = useState("");
+  const [religion, setReligion] = useState("");
+  const [occupation, setOccupation] = useState("");
+  const [assetScale, setAssetScale] = useState("");
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
+  const [agreeMarketing, setAgreeMarketing] = useState(false);
+  const [agreeGdpr, setAgreeGdpr] = useState(false);
+
   // 추천인 코드
   const [referralCode, setReferralCode] = useState("");
   const [referralValidated, setReferralValidated] = useState<null | { valid: boolean; name: string | null }>(null);
   const [referralChecking, setReferralChecking] = useState(false);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // 국가 변경 시 추가 필드 초기화
+  useEffect(() => {
+    setFurigana(""); setZipCode(""); setAddress(""); setStateProvince("");
+    setNationality(""); setReligion(""); setOccupation(""); setAssetScale("");
+    setAgreeGdpr(false);
+  }, [profileCountry]);
+
+  const countryFields = COUNTRY_FIELDS[profileCountry] || {};
 
   const sendOtp = trpc.auth.email.sendOtp.useMutation({
     onSuccess: () => {
@@ -152,12 +232,32 @@ export default function LoginPage() {
       toast.error("이름을 입력해주세요.");
       return;
     }
+    if (!agreeTerms || !agreePrivacy) {
+      toast.error("이용약관 및 개인정보처리방침에 동의해주세요.");
+      return;
+    }
+    if (countryFields.agreeGdpr && !agreeGdpr) {
+      toast.error("GDPR 개인정보 처리에 동의해주세요.");
+      return;
+    }
     updateProfile.mutate({
       email,
       name: profileName.trim(),
       phone: profilePhone.trim() || undefined,
       birthDate: profileBirth || undefined,
       country: profileCountry,
+      address: address.trim() || undefined,
+      zipCode: zipCode.trim() || undefined,
+      stateProvince: stateProvince.trim() || undefined,
+      nationality: nationality.trim() || undefined,
+      furigana: furigana.trim() || undefined,
+      religion: religion || undefined,
+      occupation: occupation.trim() || undefined,
+      assetScale: assetScale || undefined,
+      agreeTerms: agreeTerms ? 1 : 0,
+      agreePrivacy: agreePrivacy ? 1 : 0,
+      agreeMarketing: agreeMarketing ? 1 : 0,
+      agreeGdpr: agreeGdpr ? 1 : 0,
     });
     // 추천인 코드가 유효하면 적립 처리
     if (referralCode.trim() && referralValidated?.valid) {
@@ -171,6 +271,9 @@ export default function LoginPage() {
   useEffect(() => {
     if (step === "otp") setTimeout(() => inputRefs.current[0]?.focus(), 100);
   }, [step]);
+
+  const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-sm transition-all";
+  const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] flex">
@@ -234,11 +337,11 @@ export default function LoginPage() {
                   </div>
                   <form onSubmit={handleEmailSubmit} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">이메일 주소</label>
+                      <label className={labelClass}>이메일 주소</label>
                       <input
                         type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                         placeholder="example@email.com" required autoFocus
-                        className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-sm transition-all"
+                        className={inputClass}
                       />
                     </div>
                     <button
@@ -263,81 +366,75 @@ export default function LoginPage() {
               {step === "otp" && (
                 <motion.div key="otp" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                   <div className="text-center mb-8">
-                    <div className="w-14 h-14 bg-[#C9A961]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <Shield className="w-7 h-7 text-[#C9A961]" />
+                    <div className="w-14 h-14 bg-[#1F3864]/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Shield className="w-7 h-7 text-[#1F3864]" />
                     </div>
                     <h1 className="text-2xl font-bold text-[#1F3864] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>인증 코드 입력</h1>
-                    <p className="text-gray-400 text-sm">
-                      <span className="font-medium text-gray-600">{email}</span>으로<br />6자리 코드를 발송했습니다.
-                    </p>
+                    <p className="text-gray-400 text-sm"><span className="text-[#1F3864] font-medium">{email}</span>로<br />발송된 6자리 코드를 입력해주세요.</p>
                   </div>
                   <div className="flex gap-2 justify-center mb-6">
                     {otp.map((digit, i) => (
                       <input
                         key={i}
                         ref={(el) => { inputRefs.current[i] = el; }}
-                        type="text" inputMode="numeric" maxLength={6} value={digit}
+                        type="text" inputMode="numeric" maxLength={6}
+                        value={digit}
                         onChange={(e) => handleOtpChange(i, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                        disabled={verifyOtp.isPending}
-                        className="w-12 h-14 text-center text-xl font-bold border-2 rounded-xl outline-none transition-all border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 disabled:opacity-50 text-[#1F3864]"
+                        className="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-[#1F3864] transition-all"
                       />
                     ))}
                   </div>
                   {verifyOtp.isPending && (
                     <div className="flex items-center justify-center gap-2 text-gray-400 text-sm mb-4">
-                      <Loader2 className="w-4 h-4 animate-spin" /><span>확인 중...</span>
+                      <Loader2 className="w-4 h-4 animate-spin" /> 확인 중...
                     </div>
                   )}
-                  <div className="text-center space-y-2">
+                  <div className="flex items-center justify-between text-sm">
                     <button
-                      onClick={() => { if (resendCooldown > 0) return; sendOtp.mutate({ email }); }}
+                      type="button" onClick={() => setStep("email")}
+                      className="flex items-center gap-1 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" /> 이메일 변경
+                    </button>
+                    <button
+                      type="button"
                       disabled={resendCooldown > 0 || sendOtp.isPending}
-                      className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#1F3864] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      onClick={() => sendOtp.mutate({ email })}
+                      className="flex items-center gap-1 text-[#1F3864] hover:text-[#162a4e] disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                       {resendCooldown > 0 ? `${resendCooldown}초 후 재발송` : "코드 재발송"}
                     </button>
-                    <br />
-                    <button
-                      onClick={() => { setStep("email"); setOtp(["", "", "", "", "", ""]); }}
-                      className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      다른 이메일로 변경
-                    </button>
                   </div>
-                  <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <div className="mt-4">
                     <button
                       type="button"
-                      onClick={() => setShowHelp(v => !v)}
-                      className="w-full flex items-center justify-between text-sm text-gray-500 hover:text-[#1F3864] transition-colors"
+                      onClick={() => setShowHelp(!showHelp)}
+                      className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
                     >
-                      <span className="flex items-center gap-1.5">
-                        <HelpCircle className="w-4 h-4" />
-                        코드가 오지 않나요?
-                      </span>
-                      <ChevronDown className={`w-4 h-4 transition-transform ${showHelp ? "rotate-180" : ""}`} />
+                      <HelpCircle className="w-3.5 h-3.5" />
+                      코드가 오지 않나요?
+                      <ChevronDown className={`w-3 h-3 transition-transform ${showHelp ? "rotate-180" : ""}`} />
                     </button>
                     <AnimatePresence>
                       {showHelp && (
                         <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
+                          initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
                           className="overflow-hidden"
                         >
-                          <ul className="mt-3 space-y-2 text-xs text-gray-500 leading-relaxed">
+                          <ul className="mt-3 space-y-2 text-xs text-gray-500 bg-gray-50 rounded-xl p-4">
                             <li className="flex items-start gap-2">
                               <span className="text-[#C9A961] font-bold mt-0.5">1.</span>
-                              <span>스팸 또는 프로모션 폴더를 확인해주세요.</span>
+                              <span>스팸 폴더를 확인해주세요.</span>
                             </li>
                             <li className="flex items-start gap-2">
                               <span className="text-[#C9A961] font-bold mt-0.5">2.</span>
-                              <span>이메일 주소 오타가 없는지 확인 후 <button onClick={() => { setStep("email"); setOtp(["", "", "", "", "", ""]); }} className="text-[#1F3864] underline">이메일 다시 입력</button>해주세요.</span>
+                              <span>코드는 10분 후 만료됩니다. 재발송 버튼을 눌러주세요.</span>
                             </li>
                             <li className="flex items-start gap-2">
                               <span className="text-[#C9A961] font-bold mt-0.5">3.</span>
-                              <span>코드는 발송 후 <strong>10분</strong> 이내에 입력해야 합니다.</span>
+                              <span>회사 이메일은 보안 정책으로 차단될 수 있습니다. Gmail 등 개인 이메일을 사용해주세요.</span>
                             </li>
                             <li className="flex items-start gap-2">
                               <span className="text-[#C9A961] font-bold mt-0.5">4.</span>
@@ -359,63 +456,203 @@ export default function LoginPage() {
                       <User className="w-7 h-7 text-green-600" />
                     </div>
                     <h1 className="text-2xl font-bold text-[#1F3864] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>반갑습니다!</h1>
-                    <p className="text-gray-400 text-sm">기본 정보를 입력해주세요.<br /><span className="text-gray-300">(이름만 필수, 나머지는 나중에 입력 가능)</span></p>
+                    <p className="text-gray-400 text-sm">기본 정보를 입력해주세요.<br /><span className="text-gray-300">(이름·약관 동의 필수, 나머지는 선택)</span></p>
                   </div>
-                  <form onSubmit={handleProfileSubmit} className="space-y-4">
-                    {/* 이름 (필수) */}
+                  <form onSubmit={handleProfileSubmit} className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+
+                    {/* ─ 공통 필드 ─ */}
+                    {/* 거주 국가 (먼저 선택해야 국가별 필드가 나타남) */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                        <User className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
-                        이름 <span className="text-red-400">*</span>
-                      </label>
-                      <input
-                        type="text" value={profileName} onChange={(e) => setProfileName(e.target.value)}
-                        placeholder="홍길동" required autoFocus
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-sm transition-all"
-                      />
-                    </div>
-                    {/* 전화번호 (선택) */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                        <Phone className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
-                        전화번호 <span className="text-gray-300 text-xs font-normal">(선택)</span>
-                      </label>
-                      <input
-                        type="tel" value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)}
-                        placeholder="010-0000-0000"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-sm transition-all"
-                      />
-                    </div>
-                    {/* 생년월일 (선택) */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                        <Calendar className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
-                        생년월일 <span className="text-gray-300 text-xs font-normal">(선택)</span>
-                      </label>
-                      <input
-                        type="date" value={profileBirth} onChange={(e) => setProfileBirth(e.target.value)}
-                        max={new Date().toISOString().split("T")[0]}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-sm transition-all"
-                      />
-                    </div>
-                    {/* 거주 국가 (선택) */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      <label className={labelClass}>
                         <Globe className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
-                        거주 국가 <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                        거주 국가 <span className="text-red-400">*</span>
                       </label>
                       <select
                         value={profileCountry} onChange={(e) => setProfileCountry(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-sm transition-all bg-white"
+                        className={inputClass + " bg-white"}
                       >
                         {COUNTRIES.map(c => (
                           <option key={c.code} value={c.code}>{c.label}</option>
                         ))}
                       </select>
                     </div>
-                    {/* 추천인 코드 (선택) */}
+
+                    {/* 이름 (필수) */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      <label className={labelClass}>
+                        <User className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
+                        이름 <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="text" value={profileName} onChange={(e) => setProfileName(e.target.value)}
+                        placeholder={profileCountry === "JP" ? "山田 太郎" : profileCountry === "CN" ? "张三" : profileCountry === "SA" || profileCountry === "AE" ? "محمد أحمد" : "홍길동"}
+                        required autoFocus
+                        className={inputClass}
+                      />
+                    </div>
+
+                    {/* 일본: 후리가나 */}
+                    {countryFields.furigana && (
+                      <div>
+                        <label className={labelClass}>
+                          <BookOpen className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
+                          フリガナ (후리가나) <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                        </label>
+                        <input
+                          type="text" value={furigana} onChange={(e) => setFurigana(e.target.value)}
+                          placeholder="ヤマダ タロウ"
+                          className={inputClass}
+                        />
+                      </div>
+                    )}
+
+                    {/* 전화번호 */}
+                    <div>
+                      <label className={labelClass}>
+                        <Phone className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
+                        전화번호 <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                      </label>
+                      <input
+                        type="tel" value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)}
+                        placeholder={
+                          profileCountry === "KR" ? "010-0000-0000" :
+                          profileCountry === "US" || profileCountry === "CA" ? "+1 (555) 000-0000" :
+                          profileCountry === "JP" ? "090-0000-0000" :
+                          profileCountry === "SA" || profileCountry === "AE" ? "+966 5X XXX XXXX" :
+                          "+XX XXXX XXXX"
+                        }
+                        className={inputClass}
+                      />
+                    </div>
+
+                    {/* 생년월일 */}
+                    <div>
+                      <label className={labelClass}>
+                        <Calendar className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
+                        생년월일 <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                      </label>
+                      <input
+                        type="date" value={profileBirth} onChange={(e) => setProfileBirth(e.target.value)}
+                        max={new Date().toISOString().split("T")[0]}
+                        className={inputClass}
+                      />
+                    </div>
+
+                    {/* 국적 (홍콩·중동) */}
+                    {countryFields.nationality && (
+                      <div>
+                        <label className={labelClass}>
+                          <Globe className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
+                          국적 <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                        </label>
+                        <input
+                          type="text" value={nationality} onChange={(e) => setNationality(e.target.value)}
+                          placeholder="예: 한국 / Korean"
+                          className={inputClass}
+                        />
+                      </div>
+                    )}
+
+                    {/* 종교 (중동) */}
+                    {countryFields.religion && (
+                      <div>
+                        <label className={labelClass}>
+                          <BookOpen className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
+                          종교 <span className="text-gray-300 text-xs font-normal">(상속법 적용 기준 · 선택)</span>
+                        </label>
+                        <select value={religion} onChange={(e) => setReligion(e.target.value)} className={inputClass + " bg-white"}>
+                          <option value="">선택 안 함</option>
+                          {RELIGION_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                        </select>
+                        {religion === "islam" && (
+                          <p className="mt-1.5 text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
+                            이슬람 샤리아 상속법이 자동 적용됩니다. (남녀 상속분 2:1 원칙)
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* 직업 */}
+                    {countryFields.occupation && (
+                      <div>
+                        <label className={labelClass}>
+                          <Briefcase className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
+                          직업 <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                        </label>
+                        <input
+                          type="text" value={occupation} onChange={(e) => setOccupation(e.target.value)}
+                          placeholder="예: 회사원, 자영업, 의사..."
+                          className={inputClass}
+                        />
+                      </div>
+                    )}
+
+                    {/* 자산 규모 */}
+                    {countryFields.assetScale && (
+                      <div>
+                        <label className={labelClass}>
+                          <DollarSign className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
+                          자산 규모 <span className="text-gray-300 text-xs font-normal">(선택 · 상속세 계산 참고용)</span>
+                        </label>
+                        <select value={assetScale} onChange={(e) => setAssetScale(e.target.value)} className={inputClass + " bg-white"}>
+                          {ASSET_SCALE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* 우편번호 */}
+                    {countryFields.zipCode && (
+                      <div>
+                        <label className={labelClass}>
+                          <MapPin className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
+                          우편번호 <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                        </label>
+                        <input
+                          type="text" value={zipCode} onChange={(e) => setZipCode(e.target.value)}
+                          placeholder={profileCountry === "KR" ? "12345" : profileCountry === "US" ? "90210" : profileCountry === "JP" ? "123-4567" : "우편번호"}
+                          className={inputClass}
+                        />
+                      </div>
+                    )}
+
+                    {/* 주/도 (미국·캐나다·호주·인도·브라질) */}
+                    {countryFields.stateProvince && (
+                      <div>
+                        <label className={labelClass}>
+                          <Building2 className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
+                          {countryFields.stateLabel || "주/도"} <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                        </label>
+                        <input
+                          type="text" value={stateProvince} onChange={(e) => setStateProvince(e.target.value)}
+                          placeholder={profileCountry === "US" ? "California" : profileCountry === "CA" ? "Ontario" : profileCountry === "AU" ? "New South Wales" : ""}
+                          className={inputClass}
+                        />
+                      </div>
+                    )}
+
+                    {/* 주소 */}
+                    {countryFields.address && (
+                      <div>
+                        <label className={labelClass}>
+                          <MapPin className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
+                          주소 <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                        </label>
+                        <input
+                          type="text" value={address} onChange={(e) => setAddress(e.target.value)}
+                          placeholder={
+                            profileCountry === "KR" ? "서울시 강남구 테헤란로 123" :
+                            profileCountry === "JP" ? "東京都渋谷区..." :
+                            profileCountry === "US" ? "123 Main St, Los Angeles" :
+                            "주소 입력"
+                          }
+                          className={inputClass}
+                        />
+                      </div>
+                    )}
+
+                    {/* 추천인 코드 */}
+                    <div>
+                      <label className={labelClass}>
                         <Gift className="w-3.5 h-3.5 inline mr-1 text-[#C9A961]" />
                         추천인 코드 <span className="text-gray-300 text-xs font-normal">(선택 · 추천인에게 5,000P 적립)</span>
                       </label>
@@ -439,7 +676,6 @@ export default function LoginPage() {
                             if (referralCode.length !== 6) return;
                             setReferralChecking(true);
                             try {
-                              // 직접 fetch로 검증 (tRPC query는 form 내에서 수동 트리거)
                               const res = await fetch(`/api/trpc/referral.validateCode?input=${encodeURIComponent(JSON.stringify({ json: { code: referralCode } }))}`);
                               const json = await res.json();
                               const result = json?.result?.data?.json;
@@ -456,9 +692,7 @@ export default function LoginPage() {
                         </button>
                       </div>
                       {referralValidated !== null && (
-                        <div className={`mt-2 flex items-center gap-1.5 text-xs font-medium ${
-                          referralValidated.valid ? "text-green-600" : "text-red-500"
-                        }`}>
+                        <div className={`mt-2 flex items-center gap-1.5 text-xs font-medium ${referralValidated.valid ? "text-green-600" : "text-red-500"}`}>
                           {referralValidated.valid
                             ? <><Check className="w-3.5 h-3.5" /> {referralValidated.name} 님의 추천 코드가 확인됐습니다.</>
                             : <><X className="w-3.5 h-3.5" /> 유효하지 않은 추천인 코드입니다.</>
@@ -466,6 +700,62 @@ export default function LoginPage() {
                         </div>
                       )}
                     </div>
+
+                    {/* ─ 약관 동의 ─ */}
+                    <div className="border-t border-gray-100 pt-4 space-y-3">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">약관 동의</p>
+
+                      {/* 이용약관 (필수) */}
+                      <label className="flex items-start gap-3 cursor-pointer group">
+                        <input
+                          type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)}
+                          className="mt-0.5 w-4 h-4 rounded border-gray-300 text-[#1F3864] focus:ring-[#1F3864]/20"
+                        />
+                        <span className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
+                          <span className="text-red-400 font-medium">[필수]</span>{" "}
+                          <a href="/terms" target="_blank" className="text-[#1F3864] underline hover:text-[#162a4e]">이용약관</a>에 동의합니다.
+                        </span>
+                      </label>
+
+                      {/* 개인정보처리방침 (필수) */}
+                      <label className="flex items-start gap-3 cursor-pointer group">
+                        <input
+                          type="checkbox" checked={agreePrivacy} onChange={(e) => setAgreePrivacy(e.target.checked)}
+                          className="mt-0.5 w-4 h-4 rounded border-gray-300 text-[#1F3864] focus:ring-[#1F3864]/20"
+                        />
+                        <span className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
+                          <span className="text-red-400 font-medium">[필수]</span>{" "}
+                          <a href="/privacy" target="_blank" className="text-[#1F3864] underline hover:text-[#162a4e]">개인정보처리방침</a>에 동의합니다.
+                        </span>
+                      </label>
+
+                      {/* GDPR (유럽 국가) */}
+                      {countryFields.agreeGdpr && (
+                        <label className="flex items-start gap-3 cursor-pointer group">
+                          <input
+                            type="checkbox" checked={agreeGdpr} onChange={(e) => setAgreeGdpr(e.target.checked)}
+                            className="mt-0.5 w-4 h-4 rounded border-gray-300 text-[#1F3864] focus:ring-[#1F3864]/20"
+                          />
+                          <span className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
+                            <span className="text-red-400 font-medium">[필수 · EU/GDPR]</span>{" "}
+                            GDPR에 따른 개인정보 처리에 동의합니다. 언제든지 철회 가능합니다.
+                          </span>
+                        </label>
+                      )}
+
+                      {/* 마케팅 동의 (선택) */}
+                      <label className="flex items-start gap-3 cursor-pointer group">
+                        <input
+                          type="checkbox" checked={agreeMarketing} onChange={(e) => setAgreeMarketing(e.target.checked)}
+                          className="mt-0.5 w-4 h-4 rounded border-gray-300 text-[#C9A961] focus:ring-[#C9A961]/20"
+                        />
+                        <span className="text-sm text-gray-500 group-hover:text-gray-700 transition-colors">
+                          <span className="text-gray-400 font-medium">[선택]</span>{" "}
+                          이벤트·혜택 정보 수신에 동의합니다.
+                        </span>
+                      </label>
+                    </div>
+
                     <div className="flex gap-3 pt-2">
                       <button
                         type="button"
@@ -475,7 +765,7 @@ export default function LoginPage() {
                         나중에 입력
                       </button>
                       <button
-                        type="submit" disabled={updateProfile.isPending || !profileName.trim()}
+                        type="submit" disabled={updateProfile.isPending || !profileName.trim() || !agreeTerms || !agreePrivacy}
                         className="flex-2 flex-grow bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-50 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md"
                       >
                         {updateProfile.isPending

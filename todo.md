@@ -132,3 +132,17 @@
 - [x] API: 관리자가 수동으로 우수 답변 핀(고정) 설정/해제
 - [x] 관리자 페이지: 우수 답변 섹션 (점수별 통계 + 우수 답변 카드 목록)
 - [x] 관리자 페이지: 만족도 통계 차트 (평균 점수, 분포)
+
+## 회원가입 국가별 양식 구현
+- [x] DB: users 테이블에 국가별 추가 필드 추가 (furigana, zipCode, address, stateProvince, nationality, religion, occupation, assetScale, agreeTerms, agreePrivacy, agreeMarketing, agreeGdpr)
+- [x] 국가 선택에 따라 필드 동적 변경 (17개 국가 지원)
+- [x] 한국: 우편번호, 주소, 직업, 자산규모
+- [x] 일본: 후리가나(フリガナ), 우편번호, 주소, 직업
+- [x] 중국/홍콩/대만: 주소, 직업, 국적(홍콩)
+- [x] 미국: 주(State), 우편번호, 주소, 직업, 자산규모
+- [x] 독일/스페인/프랑스/영국: 우편번호, 주소, GDPR 동의
+- [x] 아랍(사우디/UAE): 국적, 종교(이슬람 여부 + 샤리아 상속법 안내), 주소, 직업, 자산규모(UAE)
+- [x] 러시아/인도/브라질: 주(State), 우편번호, 주소, 직업
+- [x] 공통: 추천인 코드 입력 필드
+- [x] 공통: 이용약관(필수), 개인정보처리방침(필수), GDPR(유럽 필수), 마케팅(선택) 체크박스
+- [x] API: emailAuthRouter.updateProfile에 국가별 추가 필드 저장 지원

@@ -36,6 +36,30 @@ export const users = mysqlTable("users", {
   referredBy: varchar("referredBy", { length: 16 }),
   /** 포인트 잔액 */
   pointBalance: int("pointBalance").default(0).notNull(),
+  /** 주소 (도로명 또는 외국 주소) */
+  address: text("address"),
+  /** 우편번호 */
+  zipCode: varchar("zipCode", { length: 16 }),
+  /** 주(주립) - 미국/캐나다/호주 등 */
+  stateProvince: varchar("stateProvince", { length: 64 }),
+  /** 국적 (거주국가와 다를 수 있음) */
+  nationality: varchar("nationality", { length: 8 }),
+  /** 후리가나 (일본 전용) */
+  furigana: varchar("furigana", { length: 128 }),
+  /** 종교 (아랍권 샤리아법 적용 여부) */
+  religion: varchar("religion", { length: 32 }),
+  /** 서비스 이용약관 동의 (0=미동의, 1=동의) */
+  agreeTerms: int("agreeTerms").default(0),
+  /** 개인정보처리방침 동의 (0=미동의, 1=동의) */
+  agreePrivacy: int("agreePrivacy").default(0),
+  /** 마케팅 동의 (0=미동의, 1=동의) */
+  agreeMarketing: int("agreeMarketing").default(0),
+  /** GDPR 동의 (유럽 사용자 전용, 0=미동의, 1=동의) */
+  agreeGdpr: int("agreeGdpr").default(0),
+  /** 직업 */
+  occupation: varchar("occupation", { length: 64 }),
+  /** 자산 규모 (선택: small/medium/large/ultra) */
+  assetScale: varchar("assetScale", { length: 16 }),
 });
 
 export type User = typeof users.$inferSelect;
