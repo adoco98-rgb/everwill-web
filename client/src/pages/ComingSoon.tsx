@@ -136,16 +136,30 @@ export default function ComingSoon() {
         </motion.div>
 
         {/* 준비 중 문구 */}
+        {/* 세계 최초 디지털 유언 OS 배지 — 크게 강조 */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="mb-3"
+          initial={{ opacity: 0, scale: 0.7, y: 15 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-6"
         >
-          <span className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white/80 text-sm font-medium px-4 py-1.5 rounded-full backdrop-blur-sm">
-            <span className="w-2 h-2 rounded-full bg-[#C9A961] animate-pulse" />
+          <motion.span
+            animate={{ boxShadow: [
+              "0 0 0px rgba(201,169,97,0)",
+              "0 0 28px rgba(201,169,97,0.7)",
+              "0 0 0px rgba(201,169,97,0)",
+            ] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            className="inline-flex items-center gap-3 bg-[#C9A961]/20 border-2 border-[#C9A961] text-white text-lg md:text-xl font-bold px-7 py-3 rounded-full backdrop-blur-md"
+            style={{ letterSpacing: "0.04em" }}
+          >
+            <motion.span
+              animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
+              transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+              className="w-3 h-3 rounded-full bg-[#C9A961] inline-block"
+            />
             세계 최초 디지털 유언 OS
-          </span>
+          </motion.span>
         </motion.div>
 
         <motion.h1
