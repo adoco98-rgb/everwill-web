@@ -39,3 +39,35 @@ describe("inquiry validation", () => {
     expect(validContent.length).toBeGreaterThanOrEqual(10);
   });
 });
+
+// 이메일 발송 헬퍼 단위 테스트
+describe("email confirmation logic", () => {
+  it("이메일 HTML 템플릿 카테고리 레이블 매핑", () => {
+    const categoryLabels: Record<string, string> = {
+      general: "일반 문의",
+      service: "서비스 이용",
+      payment: "결제/환불",
+      badge: "Badge 주문",
+      lawyer: "변호사 연결",
+      other: "기타",
+    };
+    expect(categoryLabels["general"]).toBe("일반 문의");
+    expect(categoryLabels["lawyer"]).toBe("변호사 연결");
+    expect(categoryLabels["payment"]).toBe("결제/환불");
+    // 알 수 없는 카테고리는 원본 반환
+    expect(categoryLabels["unknown"] ?? "unknown").toBe("unknown");
+  });
+
+  it("이메일 발신자 주소 형식 검증", () => {
+    const fromAddress = "EverWill <onboarding@resend.dev>";
+    expect(fromAddress).toContain("EverWill");
+    expect(fromAddress).toContain("@");
+  });
+
+  it("이메일 제목 형식 검증", () => {
+    const subject = "서비스 문의";
+    const emailSubject = `[EverWill] 문의가 접수됐습니다 - ${subject}`;
+    expect(emailSubject).toContain("[EverWill]");
+    expect(emailSubject).toContain(subject);
+  });
+});

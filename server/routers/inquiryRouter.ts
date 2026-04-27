@@ -4,6 +4,7 @@ import { getDb } from "../db";
 import { inquiries } from "../../drizzle/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { notifyOwner } from "../_core/notification";
+import { sendInquiryConfirmationEmail } from "../_core/email";
 import { TRPCError } from "@trpc/server";
 
 export const inquiryRouter = router({
@@ -36,12 +37,27 @@ export const inquiryRouter = router({
       });
 
       // 관리자에게 알림 발송
-      await notifyOwner({
+      const notified = await notifyOwner({
         title: `[1:1 문의] ${input.name} - ${input.subject}`,
         content: `문의 유형: ${input.category}\n이메일: ${input.email}\n\n${input.content}`,
       });
+      if (!notified) {
+        console.warn("[Inquiry] 관리자 알림 발송 실패 - 문의 ID 저장은 완료됨");
+      }
 
-      return { success: true };
+      // 사용자에게 접수 확인 이메일 발송
+      const emailSent = await sendInquiryConfirmationEmail({
+        toEmail: input.email,
+        toName: input.name,
+        subject: input.subject,
+        category: input.category,
+        content: input.content,
+      });
+      if (!emailSent) {
+        console.warn("[Inquiry] 사용자 확인 이메일 발송 실패 - 문의 접수는 완료됨");
+      }
+
+      return { success: true, emailSent };
     }),
 
   /**
