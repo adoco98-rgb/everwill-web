@@ -13,8 +13,7 @@ import { Home, Lock, Eye, EyeOff, X } from "lucide-react";
 const HERO_IMAGE =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/hero-global-elders-v2-DB4mTEuKjbV7DYjdv5fYBA.webp";
 
-const LOGO_URL =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/everwill-logo-new-R7uSaMGqygLC4HyLmUjt93.webp";
+const LOGO_URL = "/manus-storage/everwill-logo-v2-nobg2_190ee120.png";
 
 const PASSWORD = "2026";
 const SESSION_KEY = "ew_unlocked";
@@ -89,27 +88,24 @@ export default function ComingSoon() {
           transition={{ duration: 0.8 }}
           className="mb-8"
         >
-          {/* 로고 배경 패널 — 배경 이미지와 겹쳐도 글씨가 선명하게 보이도록 */}
-          <div className="inline-block bg-white/90 backdrop-blur-sm rounded-2xl px-8 py-4 shadow-2xl">
-            <img
-              src={LOGO_URL}
-              alt="EverWill"
-              className="h-24 md:h-32 lg:h-40 mx-auto object-contain"
-              onError={(e) => {
-                // 로고 이미지 로드 실패 시 텍스트 폴백
-                const el = e.currentTarget as HTMLImageElement;
-                el.style.display = "none";
-                const fallback = document.getElementById("logo-fallback");
-                if (fallback) fallback.style.display = "block";
-              }}
-            />
-            <div
-              id="logo-fallback"
-              style={{ display: "none" }}
-              className="text-[#1F3864] font-bold text-3xl tracking-widest"
-            >
-              <span className="text-[#C9A961]">Ever</span>Will
-            </div>
+          <img
+            src={LOGO_URL}
+            alt="EverWill"
+            className="h-28 md:h-36 lg:h-44 mx-auto object-contain drop-shadow-2xl"
+            onError={(e) => {
+              // 로고 이미지 로드 실패 시 텍스트 폴백
+              const el = e.currentTarget as HTMLImageElement;
+              el.style.display = "none";
+              const fallback = document.getElementById("logo-fallback");
+              if (fallback) fallback.style.display = "block";
+            }}
+          />
+          <div
+            id="logo-fallback"
+            style={{ display: "none" }}
+            className="text-white font-bold text-4xl tracking-widest drop-shadow-2xl"
+          >
+            <span className="text-[#C9A961]">Ever</span>Will
           </div>
         </motion.div>
 
