@@ -17,6 +17,7 @@ import ReviewsSection from "@/components/ReviewsSection";
 import ReferralSection from "@/components/ReferralSection";
 import PricingSection from "@/components/PricingSection";
 import CertifiedCounterBanner from "@/components/CertifiedCounterBanner";
+import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -51,7 +52,9 @@ export default function Home() {
           <CertifiedCounterBanner />
         </div>
       </section>
-      {/* 12. 가격 정책 (맨 아래 - 구매 결정) */}
+      {/* 12. 1:1 문의 */}
+      <ContactSection />
+      {/* 13. 가격 정송 (맨 아래 - 구매 결정) */}
       <PricingSection />
       <Footer />
     </div>

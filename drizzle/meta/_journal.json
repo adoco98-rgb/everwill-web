@@ -57,6 +57,13 @@
       "when": 1777251413347,
       "tag": "0007_workable_robbie_robertson",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1777275537970,
+      "tag": "0008_nostalgic_omega_sentinel",
+      "breakpoints": true
     }
   ]
 }

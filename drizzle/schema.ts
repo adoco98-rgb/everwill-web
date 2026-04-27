@@ -347,3 +347,35 @@ export const farewellAttachments = mysqlTable("farewellAttachments", {
 
 export type FarewellAttachment = typeof farewellAttachments.$inferSelect;
 export type InsertFarewellAttachment = typeof farewellAttachments.$inferInsert;
+
+/**
+ * 1:1 문의 테이블
+ * 사용자가 접수한 문의 및 관리자 답변
+ */
+export const inquiries = mysqlTable("inquiries", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 문의자 사용자 ID (비로그인 시 null) */
+  userId: int("userId"),
+  /** 문의자 이름 */
+  name: varchar("name", { length: 100 }).notNull(),
+  /** 문의자 이메일 */
+  email: varchar("email", { length: 320 }).notNull(),
+  /** 문의 유형 */
+  category: mysqlEnum("category", ["general", "service", "payment", "badge", "lawyer", "other"]).default("general").notNull(),
+  /** 문의 제목 */
+  subject: varchar("subject", { length: 200 }).notNull(),
+  /** 문의 내용 */
+  content: text("content").notNull(),
+  /** 처리 상태 */
+  status: mysqlEnum("status", ["pending", "answered", "closed"]).default("pending").notNull(),
+  /** 관리자 답변 내용 */
+  reply: text("reply"),
+  /** 답변 일시 */
+  repliedAt: timestamp("repliedAt"),
+  /** 답변한 관리자 ID */
+  repliedBy: int("repliedBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type Inquiry = typeof inquiries.$inferSelect;
+export type InsertInquiry = typeof inquiries.$inferInsert;

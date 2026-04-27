@@ -8,6 +8,7 @@ import { assetRouter } from "./routers/assetRouter";
 import { statsRouter } from "./routers/statsRouter";
 import { emailAuthRouter } from "./routers/emailAuthRouter";
 import { referralRouter } from "./routers/referralRouter";
+import { inquiryRouter } from "./routers/inquiryRouter";
 import { farewellRouter } from "./routers/farewellRouter";
 
 export const appRouter = router({
@@ -36,6 +37,7 @@ export const appRouter = router({
   stats: statsRouter,
   // 추천인 & 포인트 라우터
   referral: referralRouter,
+  inquiry: inquiryRouter,
   // 유서 라우터
   farewell: farewellRouter,
 });
