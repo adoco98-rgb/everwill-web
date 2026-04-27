@@ -39,6 +39,18 @@
 - [x] 홈 버튼 클릭 시 비밀번호(2026) 입력 모달 표시, 정답 시 전체 사이트 진입 (sessionStorage 세션 유지)
 - [x] App.tsx에서 기본 경로(/) → ComingSoon 페이지로 변경, /home → 비밀번호 인증 후 기존 홈
 
+## 유서 쓰기 기능
+- [x] DB: farewell_letters, farewell_recipients, farewell_attachments 테이블 스키마 추가
+- [x] tRPC: 유서 CRUD 프로시저 (create/update/list/get/delete)
+- [x] 유서 작성 페이지 (/letter/write) — 5단계 가이드 질문 위자드
+- [x] 유서 수신자 지정 컴포넌트 (개별 지정 / 전체 공개)
+- [x] 파일 및 사진 업로드 기능 (S3 저장)
+- [x] 유서 대시보드 (/letter) — 작성한 유서 목록 + 상태 표시
+- [x] 열람/프린트 결제 모달 (₩6,900 스트라이프)
+- [x] 우편 발송 신청 모달 (₩19,900 스트라이프)
+- [x] Navbar에 '나의 유서' 메뉴 추가
+- [x] 유서 작성 가격 안내 (작성 ₩9,900 / 수정 ₩4,900)
+
 ## 진행 중
 - [ ] DB 스키마 설계 (users, payments 테이블)
 - [ ] 회원가입/로그인 백엔드 API (이메일+비밀번호, 소셜 로그인)

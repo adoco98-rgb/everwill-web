@@ -245,3 +245,105 @@ export const pointHistory = mysqlTable("pointHistory", {
 
 export type PointHistory = typeof pointHistory.$inferSelect;
 export type InsertPointHistory = typeof pointHistory.$inferInsert;
+
+/**
+ * 유서(유서장) 테이블
+ * 사용자가 작성한 유서 저장
+ */
+export const farewellLetters = mysqlTable("farewellLetters", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 작성자 사용자 ID */
+  userId: int("userId").notNull(),
+  /** 유서 제목 */
+  title: varchar("title", { length: 256 }),
+  /** 1단계: 사랑하는 사람들에게 */
+  step1Content: text("step1Content"),
+  /** 2단계: 내 삶을 지니며 */
+  step2Content: text("step2Content"),
+  /** 3단계: 내가 사랑한 순간들 */
+  step3Content: text("step3Content"),
+  /** 4단계: 바라는 것들 */
+  step4Content: text("step4Content"),
+  /** 5단계: 마지막 인사 */
+  step5Content: text("step5Content"),
+  /** 수신자 모드: all=전체 공개, specific=개별 지정 */
+  recipientMode: mysqlEnum("recipientMode", ["all", "specific"]).default("all").notNull(),
+  /** 유서 상태 */
+  status: mysqlEnum("status", ["draft", "paid", "locked"]).default("draft").notNull(),
+  /** 결제 여부 (9900원 최초 작성료) */
+  isPaid: tinyint("isPaid").default(0).notNull(),
+  /** 수정 횟수 (수정마다 4900원) */
+  editCount: int("editCount").default(0).notNull(),
+  /** 유서 잠김 여부 (결제 전 수정 불가) */
+  isLocked: tinyint("isLocked").default(0).notNull(),
+  /** Stripe 결제 세션 ID */
+  stripeSessionId: varchar("stripeSessionId", { length: 128 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type FarewellLetter = typeof farewellLetters.$inferSelect;
+export type InsertFarewellLetter = typeof farewellLetters.$inferInsert;
+
+/**
+ * 유서 수신자 테이블
+ * 유서별 수신자 정보 저장
+ */
+export const farewellRecipients = mysqlTable("farewellRecipients", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 유서 ID */
+  letterId: int("letterId").notNull(),
+  /** 수신자 이름 */
+  name: varchar("name", { length: 64 }).notNull(),
+  /** 관계 */
+  relationship: varchar("relationship", { length: 32 }),
+  /** 휴대폰 (+국가코드 포함) */
+  phone: varchar("phone", { length: 32 }),
+  /** 이메일 */
+  email: varchar("email", { length: 320 }),
+  /** 주소 (우편 발송용) */
+  address: text("address"),
+  /** 열람 결제 여부 (6900원) */
+  viewPaid: tinyint("viewPaid").default(0).notNull(),
+  /** 열람 Stripe 세션 ID */
+  viewStripeSessionId: varchar("viewStripeSessionId", { length: 128 }),
+  /** 우편 발송 신청 여부 (19900원) */
+  mailPaid: tinyint("mailPaid").default(0).notNull(),
+  /** 우편 Stripe 세션 ID */
+  mailStripeSessionId: varchar("mailStripeSessionId", { length: 128 }),
+  /** 열람 시각 */
+  viewedAt: timestamp("viewedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type FarewellRecipient = typeof farewellRecipients.$inferSelect;
+export type InsertFarewellRecipient = typeof farewellRecipients.$inferInsert;
+
+/**
+ * 유서 첨부파일 테이블
+ * 유서에 쳊부된 사진 및 파일
+ */
+export const farewellAttachments = mysqlTable("farewellAttachments", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 유서 ID */
+  letterId: int("letterId").notNull(),
+  /** 업로더 사용자 ID */
+  userId: int("userId").notNull(),
+  /** 파일 원래 이름 */
+  originalName: varchar("originalName", { length: 256 }).notNull(),
+  /** S3 저장 키 */
+  fileKey: varchar("fileKey", { length: 512 }).notNull(),
+  /** 파일 URL */
+  fileUrl: text("fileUrl").notNull(),
+  /** MIME 타입 */
+  mimeType: varchar("mimeType", { length: 128 }),
+  /** 파일 크기 (bytes) */
+  fileSize: bigint("fileSize", { mode: "number" }),
+  /** 파일 유형: image | document | other */
+  fileType: mysqlEnum("fileType", ["image", "document", "other"]).default("other").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type FarewellAttachment = typeof farewellAttachments.$inferSelect;
+export type InsertFarewellAttachment = typeof farewellAttachments.$inferInsert;

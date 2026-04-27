@@ -8,6 +8,7 @@ import { assetRouter } from "./routers/assetRouter";
 import { statsRouter } from "./routers/statsRouter";
 import { emailAuthRouter } from "./routers/emailAuthRouter";
 import { referralRouter } from "./routers/referralRouter";
+import { farewellRouter } from "./routers/farewellRouter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -35,6 +36,8 @@ export const appRouter = router({
   stats: statsRouter,
   // 추천인 & 포인트 라우터
   referral: referralRouter,
+  // 유서 라우터
+  farewell: farewellRouter,
 });
 
 export type AppRouter = typeof appRouter;
