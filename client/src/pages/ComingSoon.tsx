@@ -81,19 +81,45 @@ export default function ComingSoon() {
 
       {/* 콘텐츠 */}
       <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 text-center">
-        {/* 로고 */}
+        {/* 로고 — 복합 애니메이션: 등장 + 부유 + 글로우 펄스 */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="mb-8"
+          initial={{ opacity: 0, scale: 0.8, y: -30 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-8 relative"
         >
-          <img
+          {/* 골드 글로우 후광 — 로고 뒤에서 맥동 */}
+          <motion.div
+            animate={{
+              opacity: [0.3, 0.7, 0.3],
+              scale: [1, 1.08, 1],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="absolute inset-0 rounded-full blur-2xl"
+            style={{
+              background:
+                "radial-gradient(ellipse at center, rgba(201,169,97,0.35) 0%, transparent 70%)",
+              zIndex: 0,
+            }}
+          />
+
+          {/* 로고 이미지 — 위아래 부유 */}
+          <motion.img
             src={LOGO_URL}
             alt="EverWill"
-            className="h-28 md:h-36 lg:h-44 mx-auto object-contain drop-shadow-2xl"
+            className="relative z-10 h-28 md:h-36 lg:h-44 mx-auto object-contain"
+            style={{ filter: "drop-shadow(0 8px 24px rgba(201,169,97,0.5))" }}
+            animate={{ y: [0, -8, 0] }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
             onError={(e) => {
-              // 로고 이미지 로드 실패 시 텍스트 폴백
               const el = e.currentTarget as HTMLImageElement;
               el.style.display = "none";
               const fallback = document.getElementById("logo-fallback");
