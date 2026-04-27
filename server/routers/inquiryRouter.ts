@@ -2,7 +2,7 @@ import { z } from "zod";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { inquiries } from "../../drizzle/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, gte, isNotNull, sql } from "drizzle-orm";
 import { notifyOwner } from "../_core/notification";
 import { sendInquiryConfirmationEmail, sendInquiryReplyEmail } from "../_core/email";
 import { TRPCError } from "@trpc/server";
@@ -146,6 +146,90 @@ export const inquiryRouter = router({
 
       return { success: true };
     }),
+
+  /**
+   * 관리자: 우수 답변 목록 조회 (만족도 4~5점 + 답변 완료)
+   */
+  adminFeaturedList: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.user.role !== "admin") {
+      throw new TRPCError({ code: "FORBIDDEN" });
+    }
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+    // 만족도 4~5점 + 답변 완료된 문의만 선정 (핀 고정 포함)
+    const list = await db
+      .select()
+      .from(inquiries)
+      .where(gte(inquiries.satisfaction, 4))
+      .orderBy(desc(inquiries.isFeatured), desc(inquiries.satisfaction), desc(inquiries.satisfactionAt));
+    return list;
+  }),
+
+  /**
+   * 관리자: 우수 답변 핀 고정/해제
+   */
+  adminToggleFeatured: protectedProcedure
+    .input(z.object({ inquiryId: z.number(), isFeatured: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      await db
+        .update(inquiries)
+        .set({ isFeatured: input.isFeatured ? 1 : 0 })
+        .where(eq(inquiries.id, input.inquiryId));
+      return { success: true };
+    }),
+
+  /**
+   * 관리자: 만족도 통계 조회
+   */
+  adminSatisfactionStats: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.user.role !== "admin") {
+      throw new TRPCError({ code: "FORBIDDEN" });
+    }
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+
+    // 전체 문의 수
+    const totalResult = await db.select({ count: sql<number>`count(*)` }).from(inquiries);
+    const total = totalResult[0]?.count ?? 0;
+
+    // 답변 완료 수
+    const answeredResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(inquiries)
+      .where(eq(inquiries.status, "answered"));
+    const answered = answeredResult[0]?.count ?? 0;
+
+    // 평가 완료 수
+    const evaluatedResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(inquiries)
+      .where(isNotNull(inquiries.satisfaction));
+    const evaluated = evaluatedResult[0]?.count ?? 0;
+
+    // 평균 점수
+    const avgResult = await db
+      .select({ avg: sql<number>`avg(satisfaction)` })
+      .from(inquiries)
+      .where(isNotNull(inquiries.satisfaction));
+    const avgScore = avgResult[0]?.avg ? parseFloat(String(avgResult[0].avg)).toFixed(1) : null;
+
+    // 점수별 분포 (1~5)
+    const distribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    for (let score = 1; score <= 5; score++) {
+      const result = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(inquiries)
+        .where(eq(inquiries.satisfaction, score));
+      distribution[score] = result[0]?.count ?? 0;
+    }
+
+    return { total, answered, evaluated, avgScore, distribution };
+  }),
 
   /**
    * 만족도 평가 저장 (비로그인 가능, 토큰 기반)

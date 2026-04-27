@@ -9,6 +9,7 @@
  */
 
 import { useState } from "react";
+import { trpc } from "@/lib/trpc";
 import {
   Lock,
   Eye,
@@ -1011,11 +1012,141 @@ export default function InternalPage() {
         </main>
       </div>
 
+      {/* 우수 답변 & 만족도 통계 섹션 */}
+      <FeaturedAnswersSection />
+
       {/* 푸터 */}
       <footer className="py-6 px-6 border-t border-white/5 text-center mt-12">
         <p className="text-white/20 text-xs">본 문서는 SARAM Corp. 내부 기밀입니다. 무단 복사·배포·공유를 금합니다.</p>
         <p className="text-white/10 text-xs mt-1">© 2025 SARAM Corp. · adoco98@gmail.com · 기밀 등급 A</p>
       </footer>
     </div>
+  );
+}
+
+/**
+ * 우수 답변 & 만족도 통계 섹션 (관리자 전용)
+ */
+function FeaturedAnswersSection() {
+  const { data: stats } = trpc.inquiry.adminSatisfactionStats.useQuery();
+  const { data: featuredList, refetch } = trpc.inquiry.adminFeaturedList.useQuery();
+  const toggleFeatured = trpc.inquiry.adminToggleFeatured.useMutation({
+    onSuccess: () => refetch(),
+  });
+
+  const scoreEmoji: Record<number, string> = { 1: "😞", 2: "😕", 3: "😐", 4: "😊", 5: "😄" };
+  const scoreColor: Record<number, string> = {
+    1: "#EF4444", 2: "#F97316", 3: "#EAB308", 4: "#22C55E", 5: "#10B981",
+  };
+
+  return (
+    <section className="max-w-6xl mx-auto px-6 py-12">
+      <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+        <span className="text-[#C9A961]">★</span> 문의 만족도 & 우수 답변
+      </h2>
+      <p className="text-white/40 text-sm mb-8">만족도 4~5점 답변 자동 선정 · 핀 고정으로 우수 답변 관리</p>
+
+      {/* 통계 카드 */}
+      {stats && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          {[
+            { label: "전체 문의", value: stats.total, color: "#3B82F6" },
+            { label: "답변 완료", value: stats.answered, color: "#22C55E" },
+            { label: "만족도 평가", value: stats.evaluated, color: "#C9A961" },
+            { label: "평균 점수", value: stats.avgScore ? `${stats.avgScore}점` : "-", color: "#A855F7" },
+          ].map((item, i) => (
+            <div key={i} className="bg-[#1a2035] rounded-2xl border border-white/5 p-5 text-center">
+              <div className="text-3xl font-bold mb-1" style={{ color: item.color }}>{item.value}</div>
+              <div className="text-xs text-white/40">{item.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 점수 분포 바 */}
+      {stats && (
+        <div className="bg-[#1a2035] rounded-2xl border border-white/5 p-6 mb-10">
+          <h3 className="text-sm font-bold text-white/60 mb-4 uppercase tracking-wider">만족도 분포</h3>
+          <div className="space-y-3">
+            {[5, 4, 3, 2, 1].map((score) => {
+              const count = stats.distribution[score] ?? 0;
+              const total = stats.evaluated || 1;
+              const pct = Math.round((count / total) * 100);
+              return (
+                <div key={score} className="flex items-center gap-3">
+                  <span className="text-lg w-6">{scoreEmoji[score]}</span>
+                  <div className="flex-1 bg-white/5 rounded-full h-3 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ width: `${pct}%`, backgroundColor: scoreColor[score] }}
+                    />
+                  </div>
+                  <span className="text-xs text-white/40 w-16 text-right">{count}건 ({pct}%)</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 우수 답변 목록 */}
+      <div className="bg-[#1a2035] rounded-2xl border border-white/5 overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
+          <h3 className="text-base font-bold text-white">우수 답변 목록 (만족도 4~5점)</h3>
+          <span className="text-xs text-white/30">{featuredList?.length ?? 0}건</span>
+        </div>
+        {!featuredList || featuredList.length === 0 ? (
+          <div className="px-6 py-12 text-center text-white/30 text-sm">
+            아직 만족도 4점 이상 평가된 답변이 없습니다.
+          </div>
+        ) : (
+          <div className="divide-y divide-white/5">
+            {featuredList.map((item) => (
+              <div key={item.id} className="px-6 py-5">
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xl">{scoreEmoji[item.satisfaction ?? 0]}</span>
+                      <span className="text-sm font-bold" style={{ color: scoreColor[item.satisfaction ?? 0] }}>
+                        {item.satisfaction}점
+                      </span>
+                      {item.isFeatured === 1 && (
+                        <span className="text-xs bg-[#C9A961]/20 text-[#C9A961] px-2 py-0.5 rounded-full border border-[#C9A961]/30">
+                          ★ 핀 고정
+                        </span>
+                      )}
+                      <span className="text-xs text-white/30 ml-auto">
+                        {item.category} · {item.name}
+                      </span>
+                    </div>
+                    <div className="text-sm font-semibold text-white mb-2">{item.subject}</div>
+                    <div className="text-xs text-white/50 mb-2 line-clamp-2">{item.content}</div>
+                    {item.reply && (
+                      <div className="bg-white/5 rounded-xl p-3 border-l-2 border-[#C9A961]/50">
+                        <div className="text-xs text-[#C9A961] mb-1 font-semibold">관리자 답변</div>
+                        <div className="text-xs text-white/70 line-clamp-3">{item.reply}</div>
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => toggleFeatured.mutate({ inquiryId: item.id, isFeatured: item.isFeatured !== 1 })}
+                    className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      item.isFeatured === 1
+                        ? "bg-[#C9A961]/20 text-[#C9A961] border border-[#C9A961]/30 hover:bg-[#C9A961]/30"
+                        : "bg-white/5 text-white/40 border border-white/10 hover:bg-white/10"
+                    }`}
+                  >
+                    {item.isFeatured === 1 ? "★ 핀 해제" : "☆ 핀 고정"}
+                  </button>
+                </div>
+                <div className="text-xs text-white/20">
+                  평가일: {item.satisfactionAt ? new Date(item.satisfactionAt).toLocaleDateString("ko-KR") : "-"}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

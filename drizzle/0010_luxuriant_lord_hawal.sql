@@ -1,0 +1,1 @@
+ALTER TABLE `inquiries` ADD `isFeatured` int DEFAULT 0 NOT NULL;

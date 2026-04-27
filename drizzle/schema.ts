@@ -380,6 +380,8 @@ export const inquiries = mysqlTable("inquiries", {
   satisfactionToken: varchar("satisfactionToken", { length: 64 }),
   /** 만족도 평가 일시 */
   satisfactionAt: timestamp("satisfactionAt"),
+  /** 우수 답변 핀 고정 여부 (관리자 수동 설정) */
+  isFeatured: int("isFeatured").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
