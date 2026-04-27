@@ -6,7 +6,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
-import { MapPin, ArrowRight, Globe } from "lucide-react";
+import { MapPin, ArrowRight, Globe, Languages, CreditCard, Scale, Users, Building2, Landmark, ShieldCheck, Zap, Globe2, Clock, Star, BookOpen, Banknote, Phone, Wifi } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Language } from "@/i18n";
 
@@ -149,6 +149,79 @@ const countryDataMap: Record<Language, CountryData> = {
   },
 };
 
+// 하이라이트 아이콘 매핑 (키워드 기반)
+type HighlightItem = { text: string; icon: React.ElementType };
+
+// 각 국가별 하이라이트에 아이콘 매핑
+const highlightIconsMap: Record<Language, HighlightItem[]> = {
+  ko: [
+    { text: "한국어 완벽 지원", icon: Languages },
+    { text: "토스페이먼츠 결제", icon: CreditCard },
+    { text: "현지 법률 적용", icon: Scale },
+    { text: "재외한인 700만 명 타깃", icon: Users },
+  ],
+  en: [
+    { text: "Full English support", icon: Languages },
+    { text: "Stripe · Paddle payment", icon: CreditCard },
+    { text: "California · New York first", icon: Building2 },
+    { text: "Korean-American community target", icon: Users },
+  ],
+  ja: [
+    { text: "日本語 완벽 지원", icon: Languages },
+    { text: "PayPay · LINE Pay 결제", icon: CreditCard },
+    { text: "현지 법률 적용", icon: Scale },
+    { text: "2025.10 공정증서 디지털화", icon: Zap },
+  ],
+  zh: [
+    { text: "中文 간체·번체 지원", icon: Languages },
+    { text: "Alipay · WeChat Pay 결제", icon: CreditCard },
+    { text: "홍콩·대만 우선 진출", icon: Globe2 },
+    { text: "본토는 규제 검토 후 진출", icon: ShieldCheck },
+  ],
+  de: [
+    { text: "Vollständige Deutschsprachige Unterstützung", icon: Languages },
+    { text: "SEPA · Stripe Zahlung", icon: CreditCard },
+    { text: "EU-DSGVO konform", icon: ShieldCheck },
+    { text: "Deutsches Erbrecht", icon: Scale },
+  ],
+  es: [
+    { text: "Soporte completo en español", icon: Languages },
+    { text: "Pago con Stripe · PayPal", icon: CreditCard },
+    { text: "España y Latinoamérica", icon: Globe2 },
+    { text: "Derecho sucesorio local", icon: Scale },
+  ],
+  ar: [
+    { text: "دعم كامل للغة العربية (RTL)", icon: Languages },
+    { text: "تطبيق قانون الشريعة الإسلامية تلقائياً", icon: BookOpen },
+    { text: "نسبة الميراث 2:1 (ذكر:أنثى)", icon: Scale },
+    { text: "استهداف أصحاب الثروات في الشرق الأوسط", icon: Star },
+  ],
+  fr: [
+    { text: "Support complet en français", icon: Languages },
+    { text: "Paiement CB · Stripe", icon: CreditCard },
+    { text: "France et Belgique", icon: Globe2 },
+    { text: "Droit successoral français", icon: Scale },
+  ],
+  ru: [
+    { text: "Полная поддержка русского языка", icon: Languages },
+    { text: "Оплата через СБП · Stripe", icon: CreditCard },
+    { text: "Россия и СНГ", icon: Globe2 },
+    { text: "Российское наследственное право", icon: Scale },
+  ],
+  hi: [
+    { text: "हिन्दी में पूर्ण सहायता", icon: Languages },
+    { text: "UPI · Razorpay भुगतान", icon: CreditCard },
+    { text: "भारतीय उत्तराधिकार अधिनियम", icon: Scale },
+    { text: "NRI समुदाय लक्ष्य", icon: Users },
+  ],
+  pt: [
+    { text: "Suporte completo em português", icon: Languages },
+    { text: "Pagamento via PIX · Stripe", icon: CreditCard },
+    { text: "Brasil e Portugal", icon: Globe2 },
+    { text: "Direito sucessório brasileiro", icon: Scale },
+  ],
+};
+
 // 국가명 (선택된 언어로 표시)
 const countryNames: Record<Language, string> = {
   ko: "한국",
@@ -288,14 +361,19 @@ export default function GlobalSection() {
                 </div>
               </div>
 
-              {/* 하이라이트 목록 */}
+              {/* 하이라이트 목록 — 아이콘 포함 */}
               <ul className="space-y-2.5 mb-6">
-                {currentData.highlights.map((h, i) => (
-                  <li key={i} className="flex items-center gap-3 text-white/75 text-sm">
-                    <MapPin className="w-3.5 h-3.5 text-[#C9A961] flex-shrink-0" />
-                    {h}
-                  </li>
-                ))}
+                {highlightIconsMap[language].map((item, i) => {
+                  const Icon = item.icon;
+                  return (
+                    <li key={i} className="flex items-center gap-3 text-white/75 text-sm">
+                      <div className="w-7 h-7 rounded-lg bg-[#C9A961]/15 border border-[#C9A961]/25 flex items-center justify-center flex-shrink-0">
+                        <Icon className="w-3.5 h-3.5 text-[#C9A961]" />
+                      </div>
+                      {item.text}
+                    </li>
+                  );
+                })}
               </ul>
 
               {/* 결제 + 법률 */}
