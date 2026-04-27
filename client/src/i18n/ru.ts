@@ -305,6 +305,9 @@ export const ru = {
     faqLegalDateLabel: "Последнее изменение",
     faqVideoLegalDate: "21.04.2025",
     faqHandLegalDate: "21.04.2025",
+    faqLegalSourceLabel: "Официальный источник",
+    faqVideoLegalSource: "Официальный портал правовой информации (pravo.gov.ru)",
+    faqHandLegalSource: "Официальный портал правовой информации (pravo.gov.ru)",
   },
   cta: {
     title: "Начните сегодня",

@@ -305,6 +305,9 @@ export const pt = {
     faqLegalDateLabel: "Última alteração",
     faqVideoLegalDate: "22.12.2022",
     faqHandLegalDate: "22.12.2022",
+    faqLegalSourceLabel: "Fonte oficial",
+    faqVideoLegalSource: "Planalto (Presidência da República)",
+    faqHandLegalSource: "Planalto (Presidência da República)",
   },
   cta: {
     title: "Comece hoje",

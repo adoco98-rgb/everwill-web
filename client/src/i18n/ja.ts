@@ -305,6 +305,9 @@ export const ja = {
     faqLegalDateLabel: "最終改正",
     faqVideoLegalDate: "2023年6月14日",
     faqHandLegalDate: "2023年6月14日",
+    faqLegalSourceLabel: "公式出典",
+    faqVideoLegalSource: "e-Gov法令検索（デジタル庁）",
+    faqHandLegalSource: "e-Gov法令検索（デジタル庁）",
   },
   cta: {
     title: "今すぐ始めましょう",

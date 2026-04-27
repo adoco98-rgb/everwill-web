@@ -305,6 +305,9 @@ export const zh = {
     faqLegalDateLabel: "最后修订",
     faqVideoLegalDate: "2021年1月1日施行",
     faqHandLegalDate: "2021年1月1日施行",
+    faqLegalSourceLabel: "官方来源",
+    faqVideoLegalSource: "中国政府网（国务院）",
+    faqHandLegalSource: "中国政府网（国务院）",
   },
   cta: {
     title: "立即开始",

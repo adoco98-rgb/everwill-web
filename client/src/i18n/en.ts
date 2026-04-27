@@ -305,6 +305,9 @@ export const en = {
     faqLegalDateLabel: "Last amended",
     faqVideoLegalDate: "2019 (UEW Act)",
     faqHandLegalDate: "2021 (CA Probate §6111)",
+    faqLegalSourceLabel: "Official Source",
+    faqVideoLegalSource: "Uniform Law Commission (ULC)",
+    faqHandLegalSource: "California Legislative Information",
   },
   cta: {
     title: "Start Today",

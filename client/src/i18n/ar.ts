@@ -305,6 +305,9 @@ export const ar = {
     faqLegalDateLabel: "آخر تعديل",
     faqVideoLegalDate: "30/12/2021",
     faqHandLegalDate: "30/12/2021",
+    faqLegalSourceLabel: "المصدر الرسمي",
+    faqVideoLegalSource: "وزارة العدل السعودية",
+    faqHandLegalSource: "وزارة العدل السعودية",
   },
   cta: {
     title: "ابدأ اليوم",

@@ -305,6 +305,9 @@ export const hi = {
     faqLegalDateLabel: "अंतिम संशोधन",
     faqVideoLegalDate: "2025",
     faqHandLegalDate: "2025",
+    faqLegalSourceLabel: "आधिकारिक स्रोत",
+    faqVideoLegalSource: "India Code (विधि और न्याय मंत्रालय)",
+    faqHandLegalSource: "India Code (विधि और न्याय मंत्रालय)",
   },
   cta: {
     title: "आज शुरू करें",

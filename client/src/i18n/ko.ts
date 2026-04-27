@@ -322,6 +322,9 @@ export const ko = {
     faqLegalDateLabel: "최종 개정",
     faqVideoLegalDate: "2024.09.20",
     faqHandLegalDate: "2024.09.20",
+    faqLegalSourceLabel: "공식 출처",
+    faqVideoLegalSource: "법제처 국가법령정보센터",
+    faqHandLegalSource: "법제처 국가법령정보센터",
   },
 
   // CTA Section

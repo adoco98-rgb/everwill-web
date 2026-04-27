@@ -305,6 +305,9 @@ export const de = {
     faqLegalDateLabel: "Letzte Änderung",
     faqVideoLegalDate: "10.08.2021",
     faqHandLegalDate: "10.08.2021",
+    faqLegalSourceLabel: "Offizielle Quelle",
+    faqVideoLegalSource: "Gesetze im Internet (BMJ)",
+    faqHandLegalSource: "Gesetze im Internet (BMJ)",
   },
   cta: {
     title: "Heute starten",

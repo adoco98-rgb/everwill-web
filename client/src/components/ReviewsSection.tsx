@@ -313,6 +313,13 @@ export default function ReviewsSection() {
                                     <span className="font-bold">{t.reviews.faqVideoLegalDate}</span>
                                   </span>
                                 </div>
+                                {/* 공식 출체 기관명 배지 */}
+                                <div className="flex items-center gap-1.5 mt-1.5">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-600 border border-indigo-200">
+                                    <svg className="w-2.5 h-2.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 21l9-18 9 18M6.5 15h11"/></svg>
+                                    {t.reviews.faqLegalSourceLabel}: {t.reviews.faqVideoLegalSource}
+                                  </span>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -377,6 +384,13 @@ export default function ReviewsSection() {
                                   <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-600 border border-amber-200 whitespace-nowrap">
                                     <span className="opacity-70">{t.reviews.faqLegalDateLabel}:</span>
                                     <span className="font-bold">{t.reviews.faqHandLegalDate}</span>
+                                  </span>
+                                </div>
+                                {/* 공식 출체 기관명 배지 */}
+                                <div className="flex items-center gap-1.5 mt-1.5">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-600 border border-indigo-200">
+                                    <svg className="w-2.5 h-2.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 21l9-18 9 18M6.5 15h11"/></svg>
+                                    {t.reviews.faqLegalSourceLabel}: {t.reviews.faqHandLegalSource}
                                   </span>
                                 </div>
                               </div>

@@ -305,6 +305,9 @@ export const es = {
     faqLegalDateLabel: "Última modificación",
     faqVideoLegalDate: "26.07.2015",
     faqHandLegalDate: "26.07.2015",
+    faqLegalSourceLabel: "Fuente oficial",
+    faqVideoLegalSource: "Boletín Oficial del Estado (BOE)",
+    faqHandLegalSource: "Boletín Oficial del Estado (BOE)",
   },
   cta: {
     title: "Empieza Hoy",
