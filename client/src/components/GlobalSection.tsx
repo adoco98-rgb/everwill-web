@@ -12,19 +12,19 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 const GLOBAL_MAP_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/global-map-bg-azf9Vc6ZPzzfcAYoyT8HFS.webp";
 
-// 11개 지원 언어 전체 목록
+// 11개 지원 언어 전체 목록 (flagcdn.com 고화질 PNG)
 const languages = [
-  { lang: "한국어", nativeName: "Korean", flag: "🇰🇷", code: "KO", note: "" },
-  { lang: "English", nativeName: "English", flag: "🇺🇸", code: "EN", note: "" },
-  { lang: "日本語", nativeName: "Japanese", flag: "🇯🇵", code: "JA", note: "" },
-  { lang: "中文", nativeName: "Chinese", flag: "🇨🇳", code: "ZH", note: "" },
-  { lang: "Deutsch", nativeName: "German", flag: "🇩🇪", code: "DE", note: "" },
-  { lang: "Español", nativeName: "Spanish", flag: "🇪🇸", code: "ES", note: "" },
-  { lang: "العربية", nativeName: "Arabic", flag: "🇸🇦", code: "AR", note: "RTL" },
-  { lang: "Français", nativeName: "French", flag: "🇫🇷", code: "FR", note: "" },
-  { lang: "Русский", nativeName: "Russian", flag: "🇷🇺", code: "RU", note: "" },
-  { lang: "हिन्दी", nativeName: "Hindi", flag: "🇮🇳", code: "HI", note: "" },
-  { lang: "Português", nativeName: "Portuguese", flag: "🇧🇷", code: "PT", note: "" },
+  { lang: "한국어", nativeName: "Korean", flagImg: "https://flagcdn.com/w80/kr.png", code: "KO", note: "" },
+  { lang: "English", nativeName: "English", flagImg: "https://flagcdn.com/w80/us.png", code: "EN", note: "" },
+  { lang: "日本語", nativeName: "Japanese", flagImg: "https://flagcdn.com/w80/jp.png", code: "JA", note: "" },
+  { lang: "中文", nativeName: "Chinese", flagImg: "https://flagcdn.com/w80/cn.png", code: "ZH", note: "" },
+  { lang: "Deutsch", nativeName: "German", flagImg: "https://flagcdn.com/w80/de.png", code: "DE", note: "" },
+  { lang: "Español", nativeName: "Spanish", flagImg: "https://flagcdn.com/w80/es.png", code: "ES", note: "" },
+  { lang: "العربية", nativeName: "Arabic", flagImg: "https://flagcdn.com/w80/sa.png", code: "AR", note: "RTL" },
+  { lang: "Français", nativeName: "French", flagImg: "https://flagcdn.com/w80/fr.png", code: "FR", note: "" },
+  { lang: "Русский", nativeName: "Russian", flagImg: "https://flagcdn.com/w80/ru.png", code: "RU", note: "" },
+  { lang: "हिन्दी", nativeName: "Hindi", flagImg: "https://flagcdn.com/w80/in.png", code: "HI", note: "" },
+  { lang: "Português", nativeName: "Portuguese", flagImg: "https://flagcdn.com/w80/br.png", code: "PT", note: "" },
 ];
 
 export default function GlobalSection() {
@@ -168,8 +168,15 @@ export default function GlobalSection() {
                 transition={{ duration: 0.4, delay: 0.5 + i * 0.05 }}
                 className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-2xl px-4 py-3 hover:bg-white/15 hover:border-[#C9A961]/40 transition-all group"
               >
-                {/* 국기 */}
-                <span className="text-2xl">{l.flag}</span>
+                {/* 국기 이미지 — flagcdn.com PNG */}
+                <img
+                  src={l.flagImg}
+                  alt={l.nativeName}
+                  loading="lazy"
+                  decoding="async"
+                  className="rounded-sm flex-shrink-0 shadow-sm"
+                  style={{ width: 36, height: 24, objectFit: 'cover', display: 'block' }}
+                />
 
                 {/* 언어 정보 */}
                 <div className="text-left">
