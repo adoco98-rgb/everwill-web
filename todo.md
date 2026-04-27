@@ -35,6 +35,10 @@
 - [x] GlobalSection 제목 '7개 언어 지원' → '11개 언어 지원'으로 수정 (11개 언어 번역 파일 포함)
 - [x] GlobalSection 언어 카드 국기 이모지 → flagcdn.com 실제 국기 이미지(PNG)로 교체
 
+- [x] 준비 중 첫 화면(ComingSoon) 컴포넌트 제작 — 노인 그룹 이미지 + EverWill 로고 + 홈 버튼만 표시
+- [x] 홈 버튼 클릭 시 비밀번호(2026) 입력 모달 표시, 정답 시 전체 사이트 진입 (sessionStorage 세션 유지)
+- [x] App.tsx에서 기본 경로(/) → ComingSoon 페이지로 변경, /home → 비밀번호 인증 후 기존 홈
+
 ## 진행 중
 - [ ] DB 스키마 설계 (users, payments 테이블)
 - [ ] 회원가입/로그인 백엔드 API (이메일+비밀번호, 소셜 로그인)
