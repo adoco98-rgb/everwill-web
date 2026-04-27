@@ -14,7 +14,7 @@ const HERO_IMAGE =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/hero-global-elders-v2-DB4mTEuKjbV7DYjdv5fYBA.webp";
 
 const LOGO_URL =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/everwill-logo-Dkz6YZqJSVYHXqVRkHkVfP.webp";
+  "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/everwill-logo-new-R7uSaMGqygLC4HyLmUjt93.webp";
 
 const PASSWORD = "2026";
 const SESSION_KEY = "ew_unlocked";
