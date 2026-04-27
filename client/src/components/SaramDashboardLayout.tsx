@@ -66,7 +66,7 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
           </div>
           <div className="p-6 space-y-3">
             <button
-              onClick={() => { window.location.href = getLoginUrl(); }}
+              onClick={() => { window.location.href = "/login"; }}
               className="w-full bg-[#C9A961] hover:bg-[#b8944f] text-white py-4 rounded-xl font-bold text-sm transition-all shadow-md hover:shadow-lg"
             >
               로그인 / 회원가입

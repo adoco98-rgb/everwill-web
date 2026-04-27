@@ -159,7 +159,7 @@ export default function Navbar() {
               </button>
             ) : (
               <button
-                onClick={() => { window.location.href = getLoginUrl(); }}
+                onClick={() => navigate("/login")}
                 className="text-white/80 hover:text-white text-sm font-medium transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
               >
                 {t.nav.login}
@@ -264,7 +264,7 @@ export default function Navbar() {
                   </button>
                 ) : (
                   <button
-                    onClick={() => { window.location.href = getLoginUrl(); }}
+                    onClick={() => { setMobileOpen(false); navigate("/login"); }}
                     className="w-full text-white/80 py-2.5 text-sm font-medium border border-white/20 rounded-lg"
                   >
                     {t.nav.login}

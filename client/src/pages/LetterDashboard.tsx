@@ -45,7 +45,7 @@ export default function LetterDashboard() {
         <div className="text-center space-y-4">
           <Lock className="w-12 h-12 text-[#C9A961] mx-auto" />
           <p className="text-white text-lg">로그인 후 이용 가능합니다</p>
-          <Button onClick={() => window.location.href = getLoginUrl()}
+          <Button onClick={() => window.location.href = "/login"}
             className="bg-[#C9A961] hover:bg-[#b8944d] text-[#1F3864]">
             로그인하기
           </Button>

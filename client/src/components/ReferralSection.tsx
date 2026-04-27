@@ -273,7 +273,7 @@ export default function ReferralSection() {
                 {isKo ? "로그인하면 나만의 추천 코드를 받을 수 있습니다." : "Login to get your personal referral code."}
               </p>
               <Button
-                onClick={() => window.location.href = getLoginUrl()}
+                onClick={() => window.location.href = "/login"}
                 className="bg-[#C9A961] hover:bg-[#b8944f] text-[#1F3864] font-bold px-6 py-2.5 rounded-xl"
               >
                 {isKo ? "로그인하고 추천 코드 받기" : "Login & Get Referral Code"}

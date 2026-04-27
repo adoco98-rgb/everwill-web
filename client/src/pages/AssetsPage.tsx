@@ -117,7 +117,7 @@ export default function AssetsPage() {
           <AlertCircle className="w-12 h-12 text-[#C9A961] mx-auto mb-4" />
           <h2 className="text-xl font-bold text-[#1F3864] mb-2">로그인이 필요합니다</h2>
           <p className="text-gray-500 mb-6">재산 등록은 회원 전용 서비스입니다.</p>
-          <a href={getLoginUrl()} className="btn-gold px-6 py-3 rounded-full font-bold">
+          <a href="/login" className="btn-gold px-6 py-3 rounded-full font-bold">
             로그인 / 회원가입
           </a>
         </div>
