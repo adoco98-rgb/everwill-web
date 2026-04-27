@@ -2,10 +2,11 @@ import { z } from "zod";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { inquiries } from "../../drizzle/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { notifyOwner } from "../_core/notification";
-import { sendInquiryConfirmationEmail } from "../_core/email";
+import { sendInquiryConfirmationEmail, sendInquiryReplyEmail } from "../_core/email";
 import { TRPCError } from "@trpc/server";
+import { createHash, randomBytes } from "crypto";
 
 export const inquiryRouter = router({
   /**
@@ -106,6 +107,22 @@ export const inquiryRouter = router({
       }
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+
+      // 만족도 평가용 일회성 토큰 생성
+      const rawToken = randomBytes(32).toString("hex");
+      const satisfactionToken = createHash("sha256").update(rawToken).digest("hex");
+
+      // 문의 조회 (이메일 전송용)
+      const [inquiry] = await db
+        .select()
+        .from(inquiries)
+        .where(eq(inquiries.id, input.inquiryId))
+        .limit(1);
+
+      if (!inquiry) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "문의를 찾을 수 없습니다" });
+      }
+
       await db
         .update(inquiries)
         .set({
@@ -113,6 +130,62 @@ export const inquiryRouter = router({
           status: "answered",
           repliedAt: new Date(),
           repliedBy: ctx.user.id,
+          satisfactionToken,
+        })
+        .where(eq(inquiries.id, input.inquiryId));
+
+      // 답변 이메일 + 만족도 조사 링크 발송
+      await sendInquiryReplyEmail({
+        toEmail: inquiry.email,
+        toName: inquiry.name,
+        subject: inquiry.subject,
+        reply: input.reply,
+        satisfactionToken: rawToken, // 해시 전 원본 토큰
+        inquiryId: input.inquiryId,
+      });
+
+      return { success: true };
+    }),
+
+  /**
+   * 만족도 평가 저장 (비로그인 가능, 토큰 기반)
+   */
+  submitSatisfaction: publicProcedure
+    .input(
+      z.object({
+        inquiryId: z.number(),
+        token: z.string().min(1), // 원본 토큰 (해시 전)
+        score: z.number().int().min(1).max(5),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+
+      // 토큰 해시 후 DB와 비교
+      const hashedToken = createHash("sha256").update(input.token).digest("hex");
+
+      const [inquiry] = await db
+        .select()
+        .from(inquiries)
+        .where(eq(inquiries.id, input.inquiryId))
+        .limit(1);
+
+      if (!inquiry) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "문의를 찾을 수 없습니다" });
+      }
+      if (inquiry.satisfactionToken !== hashedToken) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "유효하지 않은 토큰입니다" });
+      }
+      if (inquiry.satisfaction !== null) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "이미 평가하셨습니다" });
+      }
+
+      await db
+        .update(inquiries)
+        .set({
+          satisfaction: input.score,
+          satisfactionAt: new Date(),
         })
         .where(eq(inquiries.id, input.inquiryId));
 

@@ -64,6 +64,13 @@
       "when": 1777275537970,
       "tag": "0008_nostalgic_omega_sentinel",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1777277525010,
+      "tag": "0009_tiresome_lionheart",
+      "breakpoints": true
     }
   ]
 }

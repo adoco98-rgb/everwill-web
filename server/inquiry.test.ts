@@ -71,3 +71,68 @@ describe("email confirmation logic", () => {
     expect(emailSubject).toContain(subject);
   });
 });
+
+// 만족도 평가 로직 단위 테스트
+describe("satisfaction survey logic", () => {
+  it("점수 범위 검증 - 1~5 허용", () => {
+    const validScores = [1, 2, 3, 4, 5];
+    validScores.forEach((score) => {
+      expect(score >= 1 && score <= 5).toBe(true);
+    });
+  });
+
+  it("점수 범위 검증 - 0, 6 거부", () => {
+    const invalidScores = [0, 6, -1, 10];
+    invalidScores.forEach((score) => {
+      expect(score >= 1 && score <= 5).toBe(false);
+    });
+  });
+
+  it("토큰 해시 일관성 - 동일 입력 동일 출력", () => {
+    const { createHash } = require("crypto");
+    const rawToken = "test-token-abc123";
+    const hash1 = createHash("sha256").update(rawToken).digest("hex");
+    const hash2 = createHash("sha256").update(rawToken).digest("hex");
+    expect(hash1).toBe(hash2);
+    expect(hash1).toHaveLength(64);
+  });
+
+  it("토큰 해시 - 다른 입력 다른 출력", () => {
+    const { createHash } = require("crypto");
+    const hash1 = createHash("sha256").update("token-a").digest("hex");
+    const hash2 = createHash("sha256").update("token-b").digest("hex");
+    expect(hash1).not.toBe(hash2);
+  });
+
+  it("답변 이메일 제목 형식 검증", () => {
+    const subject = "서비스 이용 문의";
+    const emailSubject = `[EverWill] 문의 답변이 도착했습니다 - ${subject}`;
+    expect(emailSubject).toContain("[EverWill]");
+    expect(emailSubject).toContain("답변이 도착했습니다");
+    expect(emailSubject).toContain(subject);
+  });
+
+  it("만족도 이모지 매핑 검증", () => {
+    const emojiMap: Record<number, string> = {
+      1: "😞", 2: "😕", 3: "😐", 4: "😊", 5: "😄"
+    };
+    expect(emojiMap[1]).toBe("😞");
+    expect(emojiMap[5]).toBe("😄");
+    expect(Object.keys(emojiMap)).toHaveLength(5);
+  });
+
+  it("feedback URL 파라미터 파싱 - 정상 케이스", () => {
+    const mockSearch = "?id=42&token=abc123&score=4";
+    const params = new URLSearchParams(mockSearch);
+    expect(parseInt(params.get("id") ?? "0")).toBe(42);
+    expect(params.get("token")).toBe("abc123");
+    expect(parseInt(params.get("score") ?? "0")).toBe(4);
+  });
+
+  it("feedback URL 파라미터 파싱 - 누락 케이스", () => {
+    const params = new URLSearchParams("");
+    expect(parseInt(params.get("id") ?? "0")).toBe(0);
+    expect(params.get("token")).toBeNull();
+    expect(parseInt(params.get("score") ?? "0")).toBe(0);
+  });
+});

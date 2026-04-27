@@ -119,3 +119,9 @@
 
 ## 문의 접수 확인 이메일
 - [x] 문의 접수 시 사용자에게 접수 확인 이메일 자동 발송 (Resend API)
+
+## 문의 답변 만족도 조사
+- [x] DB: inquiries 테이블에 satisfaction(1~5), satisfactionAt 컨럼 추가
+- [x] API: 만족도 평가 저장 엔드포인트 (토큰 기반, 비로그인 가능)
+- [x] 답변 이메일: 이모지 1~5 클릭 링크 추가 (만족도 조사 스타일)
+- [x] 평가 완료 페이지: /feedback?id=xxx&token=xxx&score=N 처리 페이지

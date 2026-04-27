@@ -374,6 +374,12 @@ export const inquiries = mysqlTable("inquiries", {
   repliedAt: timestamp("repliedAt"),
   /** 답변한 관리자 ID */
   repliedBy: int("repliedBy"),
+  /** 만족도 평가 점수 (1~5, null=미평가) */
+  satisfaction: int("satisfaction"),
+  /** 만족도 평가용 일회성 토큰 (SHA-256 해시) */
+  satisfactionToken: varchar("satisfactionToken", { length: 64 }),
+  /** 만족도 평가 일시 */
+  satisfactionAt: timestamp("satisfactionAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

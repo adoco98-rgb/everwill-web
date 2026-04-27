@@ -26,6 +26,7 @@ import InvestorPage from "./pages/InvestorPage";
 import InternalPage from "./pages/InternalPage";
 import LetterDashboard from "./pages/LetterDashboard";
 import LetterWrite from "./pages/LetterWrite";
+import Feedback from "./pages/Feedback";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -57,6 +58,8 @@ function Router() {
       {/* 유서 쓰기 */}
       <Route path={"/letter"} component={LetterDashboard} />
       <Route path={"/letter/write"} component={LetterWrite} />
+      {/* 만족도 평가 페이지 (이메일 링크 클릭 시) */}
+      <Route path={"/feedback"} component={Feedback} />
       {/* 내부 기밀 사업기획서 - 비공개 URL */}
       <Route path={"/799805"} component={InternalPage} />
       <Route path={"/404"} component={NotFound} />
