@@ -89,24 +89,27 @@ export default function ComingSoon() {
           transition={{ duration: 0.8 }}
           className="mb-8"
         >
-          <img
-            src={LOGO_URL}
-            alt="EverWill"
-            className="h-14 md:h-16 mx-auto drop-shadow-xl"
-            onError={(e) => {
-              // 로고 이미지 로드 실패 시 텍스트 폴백
-              const el = e.currentTarget as HTMLImageElement;
-              el.style.display = "none";
-              const fallback = document.getElementById("logo-fallback");
-              if (fallback) fallback.style.display = "block";
-            }}
-          />
-          <div
-            id="logo-fallback"
-            style={{ display: "none" }}
-            className="text-white font-bold text-3xl tracking-widest"
-          >
-            <span className="text-[#C9A961]">Ever</span>Will
+          {/* 로고 배경 패널 — 배경 이미지와 겹쳐도 글씨가 선명하게 보이도록 */}
+          <div className="inline-block bg-white/90 backdrop-blur-sm rounded-2xl px-8 py-4 shadow-2xl">
+            <img
+              src={LOGO_URL}
+              alt="EverWill"
+              className="h-24 md:h-32 lg:h-40 mx-auto object-contain"
+              onError={(e) => {
+                // 로고 이미지 로드 실패 시 텍스트 폴백
+                const el = e.currentTarget as HTMLImageElement;
+                el.style.display = "none";
+                const fallback = document.getElementById("logo-fallback");
+                if (fallback) fallback.style.display = "block";
+              }}
+            />
+            <div
+              id="logo-fallback"
+              style={{ display: "none" }}
+              className="text-[#1F3864] font-bold text-3xl tracking-widest"
+            >
+              <span className="text-[#C9A961]">Ever</span>Will
+            </div>
           </div>
         </motion.div>
 
