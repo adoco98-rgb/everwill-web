@@ -187,7 +187,7 @@ export const hi = {
     chinaHighlights: ["सरलीकृत और पारंपरिक", "Alipay · WeChat Pay", "HK और ताइवान पहले"],
     usaHighlights: ["पूर्ण अंग्रेजी समर्थन", "Stripe · Paddle", "CA और NY पहले"],
     payment: "भुगतान",
-    langSupport: "7 भाषाएं समर्थित",
+    langSupport: "11 भाषाएं समर्थित",
     arabicNote: "अरबी RTL + शरिया विरासत कानून स्वचालित रूप से लागू",
   },
   lawyers: {

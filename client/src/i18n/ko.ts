@@ -200,7 +200,7 @@ export const ko = {
     chinaHighlights: ["中文 간체·번체", "Alipay · WeChat Pay", "홍콩·대만 우선"],
     usaHighlights: ["English 완벽 지원", "Stripe · Paddle", "CA·NY 우선"],
     payment: "결제",
-    langSupport: "7개 언어 지원",
+    langSupport: "11개 언어 지원",
     arabicNote: "아랍어 RTL + 샤리아 상속법 자동 적용",
   },
 

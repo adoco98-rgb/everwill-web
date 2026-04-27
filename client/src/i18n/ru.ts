@@ -187,7 +187,7 @@ export const ru = {
     chinaHighlights: ["Упрощённый и традиционный", "Alipay · WeChat Pay", "ГК и Тайвань первыми"],
     usaHighlights: ["Полная поддержка английского", "Stripe · Paddle", "CA и NY первыми"],
     payment: "Оплата",
-    langSupport: "Поддержка 7 языков",
+    langSupport: "Поддержка 11 языков",
     arabicNote: "Арабский RTL + исламское наследственное право применяется автоматически",
   },
   lawyers: {

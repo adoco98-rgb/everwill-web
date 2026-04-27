@@ -187,7 +187,7 @@ export const zh = {
     chinaHighlights: ["简繁体中文支持", "支付宝 · 微信支付", "港台优先"],
     usaHighlights: ["英语完整支持", "Stripe · Paddle", "加州·纽约优先"],
     payment: "支付",
-    langSupport: "支持7种语言",
+    langSupport: "支持11种语言",
     arabicNote: "阿拉伯语RTL + 伊斯兰继承法自动适用",
   },
   lawyers: {

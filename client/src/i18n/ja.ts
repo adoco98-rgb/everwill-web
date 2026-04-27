@@ -187,7 +187,7 @@ export const ja = {
     chinaHighlights: ["簡体・繁体対応", "Alipay・WeChat Pay", "香港・台湾優先"],
     usaHighlights: ["英語完全対応", "Stripe・Paddle", "CA・NY優先"],
     payment: "決済",
-    langSupport: "7言語対応",
+    langSupport: "11言語対応",
     arabicNote: "アラビア語RTL + シャリア相続法自動適用",
   },
   lawyers: {

@@ -187,7 +187,7 @@ export const es = {
     chinaHighlights: ["Chino simplificado y tradicional", "Alipay · WeChat Pay", "HK y Taiwán primero"],
     usaHighlights: ["Soporte completo en inglés", "Stripe · Paddle", "CA y NY primero"],
     payment: "Pago",
-    langSupport: "7 idiomas compatibles",
+    langSupport: "11 idiomas compatibles",
     arabicNote: "Árabe RTL + Ley de herencia Sharia aplicada automáticamente",
   },
   lawyers: {

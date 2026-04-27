@@ -225,11 +225,7 @@ export default function Navbar() {
                     }`}
                     style={{ width: 32, height: 22, objectFit: "cover", display: "block" }}
                   />
-                <span className={`text-[10px] font-medium relative z-10 transition-colors ${
-                  language === lang.code ? "text-[#C9A961]" : "text-white/50"
-                }`}>
-                  {lang.code.toUpperCase()}
-                </span>
+                {/* 국기만 표시 — 코드 레이블 제거 */}
               </motion.button>
             ))}
           </div>
