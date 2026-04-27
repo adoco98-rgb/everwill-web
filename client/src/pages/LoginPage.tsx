@@ -16,6 +16,7 @@ import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import WelcomeModal from "@/components/WelcomeModal";
+import { useSignupTracking } from "@/hooks/useSignupTracking";
 
 const benefits = [
   "유언장 작성 무료 · 언제든 재개 가능",
@@ -131,6 +132,7 @@ export default function LoginPage() {
   const [referralChecking, setReferralChecking] = useState(false);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const { trackEnter, trackLeave, trackComplete, trackUnload } = useSignupTracking();
 
   // 국가 변경 시 추가 필드 초기화
   useEffect(() => {
@@ -143,7 +145,10 @@ export default function LoginPage() {
 
   const sendOtp = trpc.auth.email.sendOtp.useMutation({
     onSuccess: () => {
+      // step1 이탈 + step2 진입 추적
+      trackLeave("step1", email);
       setStep("otp");
+      trackEnter("step2", email);
       startCooldown();
       toast.success("인증 코드를 발송했습니다. 이메일을 확인해주세요.");
     },
@@ -156,8 +161,12 @@ export default function LoginPage() {
     onSuccess: (data) => {
       if (data.isNewUser) {
         setIsNewUser(true);
+        // step2 이탈 + step3 진입
+        trackLeave("step2", email);
         setStep("profile");
+        trackEnter("step3", email);
       } else {
+        // 재로그인 시는 추적 안 함
         setStep("done");
         setTimeout(() => navigate("/dashboard"), 1200);
       }
@@ -173,6 +182,8 @@ export default function LoginPage() {
 
   const updateProfile = trpc.auth.email.updateProfile.useMutation({
     onSuccess: () => {
+      // 가입 완료 추적
+      trackComplete(email, profileCountry);
       setStep("done");
       setShowWelcome(true);
     },
@@ -271,6 +282,15 @@ export default function LoginPage() {
   useEffect(() => {
     if (step === "otp") setTimeout(() => inputRefs.current[0]?.focus(), 100);
   }, [step]);
+
+  // 페이지 진입 시 step1 진입 추적
+  useEffect(() => {
+    trackEnter("step1");
+    // beforeunload 시 trackUnload 사용 (ref 기반으로 최신 상태 반영)
+    window.addEventListener("beforeunload", trackUnload);
+    return () => window.removeEventListener("beforeunload", trackUnload);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-sm transition-all";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
@@ -759,7 +779,7 @@ export default function LoginPage() {
                     <div className="flex gap-3 pt-2">
                       <button
                         type="button"
-                        onClick={() => { setStep("done"); setShowWelcome(true); }}
+                        onClick={() => { trackComplete(email, profileCountry); setStep("done"); setShowWelcome(true); }}
                         className="flex-1 border border-gray-200 text-gray-400 hover:text-gray-600 hover:border-gray-300 py-3.5 rounded-xl text-sm font-medium transition-all"
                       >
                         나중에 입력

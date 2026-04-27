@@ -85,6 +85,13 @@
       "when": 1777282260839,
       "tag": "0011_mighty_lila_cheney",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1777283629063,
+      "tag": "0012_first_talos",
+      "breakpoints": true
     }
   ]
 }

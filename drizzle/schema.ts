@@ -411,3 +411,35 @@ export const inquiries = mysqlTable("inquiries", {
 });
 export type Inquiry = typeof inquiries.$inferSelect;
 export type InsertInquiry = typeof inquiries.$inferInsert;
+
+/**
+ * 회원가입 이탈 추적 이벤트 테이블
+ * 회원가입 퍼널 각 단계의 진입/이탈 이벤트를 기록
+ */
+export const signupEvents = mysqlTable("signup_events", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 세션 식별자 (브라우저 세션별 UUID, 비로그인 추적용) */
+  sessionId: varchar("sessionId", { length: 64 }).notNull(),
+  /** 이벤트 유형: enter(단계 진입) | leave(단계 이탈) | complete(완료) */
+  event: mysqlEnum("event", ["enter", "leave", "complete"]).notNull(),
+  /**
+   * 회원가입 단계:
+   * step1=이메일 입력, step2=OTP 인증, step3=프로필 입력(이름/전화번호/생년월일),
+   * step4=국가별 추가정보, step5=약관동의, complete=가입완료
+   */
+  step: mysqlEnum("step", ["step1", "step2", "step3", "step4", "step5", "complete"]).notNull(),
+  /** 이메일 (입력된 경우, 개인정보 보호를 위해 마스킹 저장) */
+  emailMasked: varchar("emailMasked", { length: 320 }),
+  /** 선택한 국가 코드 */
+  country: varchar("country", { length: 8 }),
+  /** 기기 유형: mobile | tablet | desktop */
+  device: mysqlEnum("device", ["mobile", "tablet", "desktop"]).default("desktop"),
+  /** 브라우저 언어 */
+  lang: varchar("lang", { length: 16 }),
+  /** 체류 시간 (해당 단계에서 머문 시간, 초 단위) */
+  durationSec: int("durationSec"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SignupEvent = typeof signupEvents.$inferSelect;
+export type InsertSignupEvent = typeof signupEvents.$inferInsert;

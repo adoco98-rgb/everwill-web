@@ -487,6 +487,7 @@ export default function InternalPage() {
     { id: "risk", label: "리스크 분석", icon: AlertTriangle },
     { id: "partners", label: "파트너십", icon: Handshake },
     { id: "inquiries", label: "문의 관리", icon: MessageSquare },
+    { id: "signup-funnel", label: "가입 퍼널", icon: TrendingUp },
   ];
 
   return (
@@ -1020,11 +1021,14 @@ export default function InternalPage() {
           {/* ── 문의 관리 섹션 ── */}
           {activeSection === "inquiries" && <AdminInquiriesSection />}
 
+          {/* ── 가입 퍼널 섹션 ── */}
+          {activeSection === "signup-funnel" && <SignupFunnelSection />}
+
         </main>
       </div>
 
       {/* 우수 답변 & 만족도 통계 섹션 */}
-      {activeSection !== "inquiries" && <FeaturedAnswersSection />}
+      {activeSection !== "inquiries" && activeSection !== "signup-funnel" && <FeaturedAnswersSection />}
 
       {/* 푸터 */}
       <footer className="py-6 px-6 border-t border-white/5 text-center mt-12">
@@ -1377,6 +1381,306 @@ function FeaturedAnswersSection() {
               </div>
             ))}
           </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+
+/**
+ * 회원가입 이탈 추적 대시보드 섹션 (관리자 전용)
+ * - 퍼널 차트: 단계별 진입자 수 + 이탈률 시각화
+ * - 단계별 통계 카드
+ * - 이탈 사용자 목록
+ */
+function SignupFunnelSection() {
+  const [period, setPeriod] = useState<"today" | "7d" | "30d" | "all">("7d");
+  const [dropoffStep, setDropoffStep] = useState<"all" | "step1" | "step2" | "step3" | "step4" | "step5">("all");
+
+  const { data: stats, isLoading: statsLoading, isError: statsError, refetch: refetchStats } =
+    trpc.signupTracking.adminStats.useQuery({ period });
+
+  const { data: dropoffs, isLoading: dropoffsLoading, isError: dropoffsError, refetch: refetchDropoffs } =
+    trpc.signupTracking.adminDropoffList.useQuery({ period, step: dropoffStep, limit: 50, offset: 0 });
+
+  const PERIOD_LABELS = { today: "오늘", "7d": "7일", "30d": "30일", all: "전체" };
+  const STEP_LABELS: Record<string, string> = {
+    step1: "이메일 입력", step2: "OTP 인증", step3: "프로필 입력",
+    step4: "추가 정보", step5: "약관 동의", complete: "가입 완료",
+  };
+  const DEVICE_ICONS: Record<string, string> = { mobile: "📱", tablet: "📟", desktop: "💻" };
+
+  // 퍼널 최대값 (막대 너비 기준)
+  const maxEntered = stats?.funnel?.[0]?.entered ?? 1;
+
+  return (
+    <section className="w-full space-y-8">
+      {/* 헤더 */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+            <TrendingUp className="w-6 h-6 text-[#C9A961]" />
+            회원가입 이탈 추적
+          </h2>
+          <p className="text-white/40 text-sm mt-1">단계별 진입·이탈 현황 및 전환율 분석</p>
+        </div>
+        {/* 기간 필터 */}
+        <div className="flex gap-2 flex-wrap">
+          {(["today", "7d", "30d", "all"] as const).map(p => (
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              className={`px-4 py-2 rounded-xl text-xs font-medium transition-all ${
+                period === p
+                  ? "bg-[#C9A961] text-[#1F3864] font-bold"
+                  : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
+              }`}
+            >
+              {PERIOD_LABELS[p]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 요약 카드 */}
+      {statsLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 text-[#C9A961] animate-spin" />
+        </div>
+      ) : statsError ? (
+        <div className="flex flex-col items-center py-12 gap-3 bg-[#1a2035] rounded-2xl border border-white/5">
+          <p className="text-red-400/70 text-sm">통계를 불러오는 중 오류가 발생했습니다.</p>
+          <button onClick={() => refetchStats()} className="bg-white/10 hover:bg-white/20 text-white/70 px-4 py-2 rounded-xl text-xs">다시 시도</button>
+        </div>
+      ) : stats ? (
+        <>
+          {/* 핵심 지표 카드 3개 */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-[#1a2035] rounded-2xl border border-white/5 p-5">
+              <p className="text-white/40 text-xs mb-1">총 가입 시도</p>
+              <p className="text-3xl font-bold text-white">{stats.totalEntered.toLocaleString()}</p>
+              <p className="text-white/30 text-xs mt-1">이메일 입력 단계 진입</p>
+            </div>
+            <div className="bg-[#1a2035] rounded-2xl border border-white/5 p-5">
+              <p className="text-white/40 text-xs mb-1">가입 완료</p>
+              <p className="text-3xl font-bold text-green-400">{stats.totalCompleted.toLocaleString()}</p>
+              <p className="text-white/30 text-xs mt-1">최종 완료 세션</p>
+            </div>
+            <div className="bg-[#1a2035] rounded-2xl border border-white/5 p-5">
+              <p className="text-white/40 text-xs mb-1">전체 전환율</p>
+              <p className={`text-3xl font-bold ${stats.overallConversionRate >= 50 ? "text-green-400" : stats.overallConversionRate >= 25 ? "text-amber-400" : "text-red-400"}`}>
+                {stats.overallConversionRate}%
+              </p>
+              <p className="text-white/30 text-xs mt-1">시도 대비 완료</p>
+            </div>
+          </div>
+
+          {/* 단계별 카드 */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {stats.funnel.map((row, idx) => (
+              <div key={row.step} className="bg-[#1a2035] rounded-2xl border border-white/5 p-4">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                    row.step === "complete" ? "bg-green-500/20 text-green-400" : "bg-[#C9A961]/20 text-[#C9A961]"
+                  }`}>{row.step === "complete" ? "✓" : idx + 1}</span>
+                  <p className="text-[11px] text-white/50 truncate">{row.label}</p>
+                </div>
+                <p className="text-xl font-bold text-white">{row.entered.toLocaleString()}</p>
+                <p className="text-[10px] text-white/30 mt-0.5">진입</p>
+                {row.step !== "complete" && (
+                  <div className="mt-2 pt-2 border-t border-white/5">
+                    <p className={`text-sm font-bold ${
+                      row.dropoffRate >= 50 ? "text-red-400" : row.dropoffRate >= 25 ? "text-amber-400" : "text-green-400"
+                    }`}>-{row.dropoffRate}%</p>
+                    <p className="text-[10px] text-white/20">이탈률 ({row.left}명)</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* 퍼널 차트 */}
+          <div className="bg-[#1a2035] rounded-2xl border border-white/5 p-6">
+            <h3 className="text-base font-bold text-white mb-5">단계별 전환 퍼널</h3>
+            <div className="space-y-3">
+              {stats.funnel.map((row, idx) => {
+                const barWidth = maxEntered > 0 ? Math.round((row.entered / maxEntered) * 100) : 0;
+                const isComplete = row.step === "complete";
+                return (
+                  <div key={row.step} className="flex items-center gap-3">
+                    {/* 단계 번호 */}
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                      isComplete ? "bg-green-500/20 text-green-400" : "bg-[#C9A961]/20 text-[#C9A961]"
+                    }`}>
+                      {isComplete ? "✓" : idx + 1}
+                    </div>
+                    {/* 단계명 */}
+                    <div className="w-24 shrink-0">
+                      <p className="text-xs text-white/60 truncate">{row.label}</p>
+                    </div>
+                    {/* 막대 */}
+                    <div className="flex-1 bg-white/5 rounded-full h-6 overflow-hidden relative">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          isComplete ? "bg-green-500/60" : "bg-[#C9A961]/60"
+                        }`}
+                        style={{ width: `${barWidth}%` }}
+                      />
+                      <span className="absolute inset-0 flex items-center px-3 text-xs font-semibold text-white/80">
+                        {row.entered.toLocaleString()}명
+                      </span>
+                    </div>
+                    {/* 이탈률 */}
+                    {!isComplete && (
+                      <div className="w-20 text-right shrink-0">
+                        <span className={`text-xs font-bold ${
+                          row.dropoffRate >= 50 ? "text-red-400" : row.dropoffRate >= 25 ? "text-amber-400" : "text-green-400"
+                        }`}>
+                          -{row.dropoffRate}%
+                        </span>
+                        <p className="text-white/20 text-[10px]">이탈률</p>
+                      </div>
+                    )}
+                    {isComplete && <div className="w-20" />}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 국가별 + 기기별 분포 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* 국가별 */}
+            <div className="bg-[#1a2035] rounded-2xl border border-white/5 p-5">
+              <h3 className="text-sm font-bold text-white mb-4">국가별 가입 시도</h3>
+              {stats.countryDist.length === 0 ? (
+                <p className="text-white/20 text-xs text-center py-6">데이터 없음</p>
+              ) : (
+                <div className="space-y-2">
+                  {stats.countryDist.map(c => {
+                    const maxCnt = stats.countryDist[0]?.cnt ?? 1;
+                    const pct = Math.round((c.cnt / maxCnt) * 100);
+                    return (
+                      <div key={c.country} className="flex items-center gap-2">
+                        <span className="text-xs text-white/50 w-8 shrink-0">{c.country || "??"}</span>
+                        <div className="flex-1 bg-white/5 rounded-full h-4 overflow-hidden">
+                          <div className="h-full bg-[#C9A961]/50 rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="text-xs text-white/50 w-8 text-right">{c.cnt}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            {/* 기기별 */}
+            <div className="bg-[#1a2035] rounded-2xl border border-white/5 p-5">
+              <h3 className="text-sm font-bold text-white mb-4">기기별 가입 시도</h3>
+              {stats.deviceDist.length === 0 ? (
+                <p className="text-white/20 text-xs text-center py-6">데이터 없음</p>
+              ) : (
+                <div className="space-y-3">
+                  {stats.deviceDist.map(d => {
+                    const total = stats.deviceDist.reduce((s, x) => s + x.cnt, 0);
+                    const pct = total > 0 ? Math.round((d.cnt / total) * 100) : 0;
+                    return (
+                      <div key={d.device} className="flex items-center gap-3">
+                        <span className="text-xl">{DEVICE_ICONS[d.device] ?? "💻"}</span>
+                        <div className="flex-1">
+                          <div className="flex justify-between mb-1">
+                            <span className="text-xs text-white/60 capitalize">{d.device}</span>
+                            <span className="text-xs text-white/60">{d.cnt}명 ({pct}%)</span>
+                          </div>
+                          <div className="bg-white/5 rounded-full h-2 overflow-hidden">
+                            <div className="h-full bg-blue-400/50 rounded-full" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      ) : null}
+
+      {/* 이탈 사용자 목록 */}
+      <div className="bg-[#1a2035] rounded-2xl border border-white/5 p-6">
+        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+          <h3 className="text-base font-bold text-white">이탈 사용자 목록</h3>
+          {/* 단계 필터 */}
+          <div className="flex gap-2 flex-wrap">
+            {(["all", "step1", "step2", "step3", "step4", "step5"] as const).map(s => (
+              <button
+                key={s}
+                onClick={() => setDropoffStep(s)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                  dropoffStep === s
+                    ? "bg-[#C9A961] text-[#1F3864] font-bold"
+                    : "bg-white/5 text-white/40 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                {s === "all" ? "전체" : STEP_LABELS[s]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {dropoffsLoading ? (
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="w-6 h-6 text-[#C9A961] animate-spin" />
+          </div>
+        ) : dropoffsError ? (
+          <div className="flex flex-col items-center py-10 gap-3">
+            <p className="text-red-400/70 text-sm">이탈 목록을 불러오는 중 오류가 발생했습니다.</p>
+            <button onClick={() => refetchDropoffs()} className="bg-white/10 hover:bg-white/20 text-white/70 px-4 py-2 rounded-xl text-xs">다시 시도</button>
+          </div>
+        ) : !dropoffs || dropoffs.list.length === 0 ? (
+          <div className="text-center py-10">
+            <p className="text-white/20 text-sm">이탈 기록이 없습니다.</p>
+          </div>
+        ) : (
+          <>
+            <p className="text-white/30 text-xs mb-3">총 {dropoffs.total.toLocaleString()}건</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-white/5">
+                    <th className="text-left text-white/30 font-medium pb-2 pr-4">이탈 단계</th>
+                    <th className="text-left text-white/30 font-medium pb-2 pr-4">이메일(마스킹)</th>
+                    <th className="text-left text-white/30 font-medium pb-2 pr-4">국가</th>
+                    <th className="text-left text-white/30 font-medium pb-2 pr-4">기기</th>
+                    <th className="text-left text-white/30 font-medium pb-2 pr-4">체류 시간</th>
+                    <th className="text-left text-white/30 font-medium pb-2">이탈 시각</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dropoffs.list.map(row => (
+                    <tr key={row.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                      <td className="py-2.5 pr-4">
+                        <span className="bg-amber-400/10 text-amber-400 border border-amber-400/20 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                          {row.stepLabel}
+                        </span>
+                      </td>
+                      <td className="py-2.5 pr-4 text-white/50">{row.emailMasked ?? "-"}</td>
+                      <td className="py-2.5 pr-4 text-white/50">{row.country ?? "-"}</td>
+                      <td className="py-2.5 pr-4 text-white/50">
+                        {DEVICE_ICONS[row.device ?? "desktop"]} {row.device ?? "-"}
+                      </td>
+                      <td className="py-2.5 pr-4 text-white/50">
+                        {row.durationSec != null ? `${row.durationSec}초` : "-"}
+                      </td>
+                      <td className="py-2.5 text-white/30">
+                        {new Date(row.createdAt!).toLocaleString("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </section>

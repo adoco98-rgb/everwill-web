@@ -146,3 +146,22 @@
 - [x] 공통: 추천인 코드 입력 필드
 - [x] 공통: 이용약관(필수), 개인정보처리방침(필수), GDPR(유럽 필수), 마케팅(선택) 체크박스
 - [x] API: emailAuthRouter.updateProfile에 국가별 추가 필드 저장 지원
+
+## 회원가입 이탈 추적 시스템
+- [x] DB: signup_events 테이블 (sessionId, step, event, emailMasked, country, device, lang, durationSec, createdAt)
+- [x] DB: pnpm db:push 실행 완료
+- [x] API: signupTracking.recordEvent (public, UA 기반 기기 자동 감지, 이메일 자동 마스킹)
+- [x] API: signupTracking.adminStats (admin, 단계별 진입/이탈/전환율 + 국가별/기기별 분포)
+- [x] API: signupTracking.adminDropoffList (admin, 이탈 사용자 목록 + 페이지네이션)
+- [x] 프론트엔드: useSignupTracking 훅 (sessionStorage UUID, 단계 체류시간 측정, 이벤트 전송)
+- [x] LoginPage: step1 진입, OTP 전송 시 step1이탈+step2진입, OTP인증 시 step2이탈+step3진입, 프로필 완료 시 complete 이벤트 수집
+- [x] 관리자 대시보드: /799805 내부 페이지에 '가입 퍼널' 섹션 추가 (사이드내비 메뉴 포함)
+- [x] 퍼널 차트: 단계별 진입자 수 + 이탈률 시각화 (가로 막대 + 이탈률 표시)
+- [x] 단계별 통계 카드: 진입수, 완료수, 전체 전환율 요약 3개 카드
+- [x] 이탈 사용자 목록: 이탈 단계, 이메일(마스킹), 국가, 기기, 체류시간, 이탈 시각 테이블
+- [x] 기간 필터: 오늘/7일/30일/전체 (상단 + 이탈목록 동기 필터)
+
+## 회원가입 이탈 추적 보완
+- [x] LoginPage: step1~step3 + complete 이벤트 수집 (현재 UI가 3단계이므로 step4/5는 해당 없음), ''나중에 입력'' 버튼에도 complete 추적 추가
+- [x] useSignupTracking: beforeunload 핸들러를 trackUnload(ref 기반)로 교체, 최신 step/email/country 자동 반영
+- [x] 가입 퍼널 대시보드: 단계별 카드 UI 추가 (단계명, 진입수, 이탈수, 이탈률 per-step 그리드)
