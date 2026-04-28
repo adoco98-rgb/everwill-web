@@ -11,6 +11,7 @@ import { referralRouter } from "./routers/referralRouter";
 import { inquiryRouter } from "./routers/inquiryRouter";
 import { farewellRouter } from "./routers/farewellRouter";
 import { signupTrackingRouter } from "./routers/signupTrackingRouter";
+import { phoneAuthRouter } from "./routers/phoneAuthRouter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -26,6 +27,8 @@ export const appRouter = router({
     }),
     // 이메일 OTP 인증
     email: emailAuthRouter,
+    // 휴대폰 OTP 인증 (Twilio Verify)
+    phone: phoneAuthRouter,
   }),
 
   // AI 유언장 라우터

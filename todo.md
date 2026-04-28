@@ -165,3 +165,24 @@
 - [x] LoginPage: step1~step3 + complete 이벤트 수집 (현재 UI가 3단계이므로 step4/5는 해당 없음), ''나중에 입력'' 버튼에도 complete 추적 추가
 - [x] useSignupTracking: beforeunload 핸들러를 trackUnload(ref 기반)로 교체, 최신 step/email/country 자동 반영
 - [x] 가입 퍼널 대시보드: 단계별 카드 UI 추가 (단계명, 진입수, 이탈수, 이탈률 per-step 그리드)
+
+## 로그인 개선: 이메일 발송 수정 + 휴대폰 OTP 추가
+- [ ] 이메일 OTP 발송 오류 원인 진단 및 수정 (Resend API 키/도메인 확인)
+- [ ] DB: phone_otps 테이블 (phone, code, expiresAt, used, createdAt)
+- [ ] SMS 발송 인프라 (Twilio 또는 알리고 API 연동)
+- [ ] API: phoneAuth.sendOtp (휴대폰 번호 입력 → SMS 발송)
+- [ ] API: phoneAuth.verifyOtp (코드 검증 → 세션 발급)
+- [ ] LoginPage UI: 이메일/휴대폰 탭 전환 UI
+- [ ] LoginPage UI: 국가코드 선택 드롭다운 + 휴대폰 번호 입력
+- [ ] LoginPage UI: 휴대폰 OTP 6자리 입력 화면
+
+## Twilio Verify SMS OTP (신규)
+- [x] env.ts에 TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_VERIFY_SERVICE_SID 추가
+- [x] server/_core/sms.ts 헬퍼 생성 (Twilio Verify sendVerification/checkVerification)
+- [x] Twilio API 연결 vitest 테스트
+- [x] server/routers/phoneAuthRouter.ts 생성 (sendOtp/verifyOtp/updateProfile)
+- [x] server/routers.ts에 phoneAuthRouter 등록
+- [x] LoginPage.tsx 이메일/휴대폰 탭 전환 UI
+- [x] 국가코드 드롭다운 + 휴대폰 번호 입력
+- [x] 휴대폰 OTP 3단계 플로우 (번호입력→OTP입력→프로필입력)
+- [x] 체크포인트 저장

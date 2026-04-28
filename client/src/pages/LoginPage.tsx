@@ -1,16 +1,25 @@
 /**
- * EverWill 이메일 간편 가입/로그인 페이지 (/login)
- * Step 1: 이메일 입력
- * Step 2: OTP 6자리 인증
- * Step 3: 추가 정보 입력 (신규 가입자만) - 이름, 전화번호, 생년월일, 국가 + 국가별 추가 필드
- * Step 4: 완료 → 대시보드
+ * EverWill 로그인/회원가입 페이지 (/login)
+ * 이메일 OTP 또는 휴대폰 OTP 선택 가능
+ *
+ * 이메일 플로우:
+ *   Step 1: 이메일 입력
+ *   Step 2: OTP 6자리 인증
+ *   Step 3: 추가 정보 입력 (신규 가입자만)
+ *   Step 4: 완료 → 대시보드
+ *
+ * 휴대폰 플로우:
+ *   Step 1: 국가코드 + 휴대폰 번호 입력
+ *   Step 2: SMS OTP 6자리 인증
+ *   Step 3: 추가 정보 입력 (신규 가입자만)
+ *   Step 4: 완료 → 대시보드
  */
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, ArrowLeft, Mail, CheckCircle2, RefreshCw,
   Loader2, HelpCircle, ChevronDown, User, Phone, Calendar, Globe, Gift, Check, X,
-  MapPin, Building2, BookOpen, Briefcase, DollarSign
+  MapPin, Building2, BookOpen, Briefcase, DollarSign, Smartphone
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect } from "react";
@@ -43,6 +52,26 @@ const COUNTRIES = [
   { code: "RU", label: "🇷🇺 러시아" },
   { code: "IN", label: "🇮🇳 인도" },
   { code: "BR", label: "🇧🇷 브라질" },
+];
+
+/** 국가코드 목록 (휴대폰 OTP용) */
+const PHONE_COUNTRY_CODES = [
+  { code: "+82", flag: "🇰🇷", name: "한국" },
+  { code: "+1", flag: "🇺🇸", name: "미국/캐나다" },
+  { code: "+81", flag: "🇯🇵", name: "일본" },
+  { code: "+86", flag: "🇨🇳", name: "중국" },
+  { code: "+852", flag: "🇭🇰", name: "홍콩" },
+  { code: "+886", flag: "🇹🇼", name: "대만" },
+  { code: "+44", flag: "🇬🇧", name: "영국" },
+  { code: "+49", flag: "🇩🇪", name: "독일" },
+  { code: "+33", flag: "🇫🇷", name: "프랑스" },
+  { code: "+34", flag: "🇪🇸", name: "스페인" },
+  { code: "+966", flag: "🇸🇦", name: "사우디" },
+  { code: "+971", flag: "🇦🇪", name: "UAE" },
+  { code: "+61", flag: "🇦🇺", name: "호주" },
+  { code: "+7", flag: "🇷🇺", name: "러시아" },
+  { code: "+91", flag: "🇮🇳", name: "인도" },
+  { code: "+55", flag: "🇧🇷", name: "브라질" },
 ];
 
 /** 국가별 추가 필드 설정 */
@@ -94,17 +123,30 @@ const RELIGION_OPTIONS = [
   { value: "other", label: "기타" },
 ];
 
-type Step = "email" | "otp" | "profile" | "done";
+type LoginMethod = "email" | "phone";
+type Step = "input" | "otp" | "profile" | "done";
 
 export default function LoginPage() {
   const [, navigate] = useLocation();
-  const [step, setStep] = useState<Step>("email");
-  const [email, setEmail] = useState("");
+
+  // 로그인 방법 선택 (이메일 / 휴대폰)
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>("email");
+
+  // 공통 스텝
+  const [step, setStep] = useState<Step>("input");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+
+  // 이메일 플로우
+  const [email, setEmail] = useState("");
+
+  // 휴대폰 플로우
+  const [phoneCountryCode, setPhoneCountryCode] = useState("+82");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [e164Phone, setE164Phone] = useState(""); // 서버에서 반환된 E.164 형식
 
   // 프로필 폼 - 공통
   const [profileName, setProfileName] = useState("");
@@ -141,11 +183,19 @@ export default function LoginPage() {
     setAgreeGdpr(false);
   }, [profileCountry]);
 
+  // 로그인 방법 변경 시 스텝 초기화
+  useEffect(() => {
+    setStep("input");
+    setOtp(["", "", "", "", "", ""]);
+    setResendCooldown(0);
+    setShowHelp(false);
+  }, [loginMethod]);
+
   const countryFields = COUNTRY_FIELDS[profileCountry] || {};
 
-  const sendOtp = trpc.auth.email.sendOtp.useMutation({
+  // ── 이메일 OTP 뮤테이션 ──
+  const sendEmailOtp = trpc.auth.email.sendOtp.useMutation({
     onSuccess: () => {
-      // step1 이탈 + step2 진입 추적
       trackLeave("step1", email);
       setStep("otp");
       trackEnter("step2", email);
@@ -157,16 +207,14 @@ export default function LoginPage() {
     },
   });
 
-  const verifyOtp = trpc.auth.email.verifyOtp.useMutation({
+  const verifyEmailOtp = trpc.auth.email.verifyOtp.useMutation({
     onSuccess: (data) => {
       if (data.isNewUser) {
         setIsNewUser(true);
-        // step2 이탈 + step3 진입
         trackLeave("step2", email);
         setStep("profile");
         trackEnter("step3", email);
       } else {
-        // 재로그인 시는 추적 안 함
         setStep("done");
         setTimeout(() => navigate("/dashboard"), 1200);
       }
@@ -178,11 +226,8 @@ export default function LoginPage() {
     },
   });
 
-  const applyReferral = trpc.referral.applyReferral.useMutation();
-
-  const updateProfile = trpc.auth.email.updateProfile.useMutation({
+  const updateEmailProfile = trpc.auth.email.updateProfile.useMutation({
     onSuccess: () => {
-      // 가입 완료 추적
       trackComplete(email, profileCountry);
       setStep("done");
       setShowWelcome(true);
@@ -191,6 +236,48 @@ export default function LoginPage() {
       toast.error(err.message || "프로필 저장에 실패했습니다.");
     },
   });
+
+  // ── 휴대폰 OTP 뮤테이션 ──
+  const sendPhoneOtp = trpc.auth.phone.sendOtp.useMutation({
+    onSuccess: (data) => {
+      setE164Phone(data.phone);
+      setStep("otp");
+      startCooldown();
+      toast.success("SMS 인증 코드를 발송했습니다.");
+    },
+    onError: (err) => {
+      toast.error(err.message || "SMS 발송에 실패했습니다.");
+    },
+  });
+
+  const verifyPhoneOtp = trpc.auth.phone.verifyOtp.useMutation({
+    onSuccess: (data) => {
+      if (data.isNewUser) {
+        setIsNewUser(true);
+        setStep("profile");
+      } else {
+        setStep("done");
+        setTimeout(() => navigate("/dashboard"), 1200);
+      }
+    },
+    onError: (err) => {
+      toast.error(err.message || "인증 코드가 올바르지 않습니다.");
+      setOtp(["", "", "", "", "", ""]);
+      inputRefs.current[0]?.focus();
+    },
+  });
+
+  const updatePhoneProfile = trpc.auth.phone.updateProfile.useMutation({
+    onSuccess: () => {
+      setStep("done");
+      setShowWelcome(true);
+    },
+    onError: (err) => {
+      toast.error(err.message || "프로필 저장에 실패했습니다.");
+    },
+  });
+
+  const applyReferral = trpc.referral.applyReferral.useMutation();
 
   function startCooldown() {
     setResendCooldown(60);
@@ -202,12 +289,21 @@ export default function LoginPage() {
     }, 1000);
   }
 
+  // ── 이메일 제출 ──
   function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim()) return;
-    sendOtp.mutate({ email: email.trim().toLowerCase() });
+    sendEmailOtp.mutate({ email: email.trim().toLowerCase() });
   }
 
+  // ── 휴대폰 제출 ──
+  function handlePhoneSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!phoneNumber.trim()) return;
+    sendPhoneOtp.mutate({ phone: phoneNumber.trim(), countryCode: phoneCountryCode });
+  }
+
+  // ── OTP 입력 처리 ──
   function handleOtpChange(index: number, value: string) {
     if (value.length > 1) {
       const digits = value.replace(/\D/g, "").slice(0, 6).split("");
@@ -217,7 +313,7 @@ export default function LoginPage() {
       const nextIndex = Math.min(index + digits.length, 5);
       inputRefs.current[nextIndex]?.focus();
       if (newOtp.every(d => d !== "")) {
-        verifyOtp.mutate({ email, code: newOtp.join("") });
+        submitOtp(newOtp.join(""));
       }
       return;
     }
@@ -227,7 +323,7 @@ export default function LoginPage() {
     setOtp(newOtp);
     if (digit && index < 5) inputRefs.current[index + 1]?.focus();
     if (newOtp.every(d => d !== "")) {
-      verifyOtp.mutate({ email, code: newOtp.join("") });
+      submitOtp(newOtp.join(""));
     }
   }
 
@@ -237,6 +333,23 @@ export default function LoginPage() {
     }
   }
 
+  function submitOtp(code: string) {
+    if (loginMethod === "email") {
+      verifyEmailOtp.mutate({ email, code });
+    } else {
+      verifyPhoneOtp.mutate({ phone: phoneNumber.trim(), countryCode: phoneCountryCode, code });
+    }
+  }
+
+  function handleResend() {
+    if (loginMethod === "email") {
+      sendEmailOtp.mutate({ email });
+    } else {
+      sendPhoneOtp.mutate({ phone: phoneNumber.trim(), countryCode: phoneCountryCode });
+    }
+  }
+
+  // ── 프로필 제출 ──
   function handleProfileSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!profileName.trim()) {
@@ -251,10 +364,9 @@ export default function LoginPage() {
       toast.error("GDPR 개인정보 처리에 동의해주세요.");
       return;
     }
-    updateProfile.mutate({
-      email,
+
+    const profileData = {
       name: profileName.trim(),
-      phone: profilePhone.trim() || undefined,
       birthDate: profileBirth || undefined,
       country: profileCountry,
       address: address.trim() || undefined,
@@ -269,13 +381,27 @@ export default function LoginPage() {
       agreePrivacy: agreePrivacy ? 1 : 0,
       agreeMarketing: agreeMarketing ? 1 : 0,
       agreeGdpr: agreeGdpr ? 1 : 0,
-    });
-    // 추천인 코드가 유효하면 적립 처리
-    if (referralCode.trim() && referralValidated?.valid) {
-      applyReferral.mutate(
-        { newUserEmail: email, referralCode: referralCode.trim().toUpperCase() },
-        { onSuccess: () => toast.success("추천인 코드가 적용됐습니다!") }
-      );
+    };
+
+    if (loginMethod === "email") {
+      updateEmailProfile.mutate({
+        ...profileData,
+        email,
+        phone: profilePhone.trim() || undefined,
+      });
+      // 추천인 코드 처리
+      if (referralCode.trim() && referralValidated?.valid) {
+        applyReferral.mutate(
+          { newUserEmail: email, referralCode: referralCode.trim().toUpperCase() },
+          { onSuccess: () => toast.success("추천인 코드가 적용됐습니다!") }
+        );
+      }
+    } else {
+      updatePhoneProfile.mutate({
+        ...profileData,
+        phone: e164Phone,
+        email: profilePhone.trim() || undefined, // 전화번호 가입자는 이메일을 선택 입력
+      });
     }
   }
 
@@ -283,10 +409,8 @@ export default function LoginPage() {
     if (step === "otp") setTimeout(() => inputRefs.current[0]?.focus(), 100);
   }, [step]);
 
-  // 페이지 진입 시 step1 진입 추적
   useEffect(() => {
     trackEnter("step1");
-    // beforeunload 시 trackUnload 사용 (ref 기반으로 최신 상태 반영)
     window.addEventListener("beforeunload", trackUnload);
     return () => window.removeEventListener("beforeunload", trackUnload);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -294,6 +418,10 @@ export default function LoginPage() {
 
   const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-sm transition-all";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
+
+  const isPendingSend = loginMethod === "email" ? sendEmailOtp.isPending : sendPhoneOtp.isPending;
+  const isPendingVerify = loginMethod === "email" ? verifyEmailOtp.isPending : verifyPhoneOtp.isPending;
+  const isPendingProfile = loginMethod === "email" ? updateEmailProfile.isPending : updatePhoneProfile.isPending;
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] flex">
@@ -313,7 +441,7 @@ export default function LoginPage() {
             <h2 className="text-4xl font-bold text-white leading-tight mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
               나의 마지막 서명,<br /><span className="text-[#C9A961]">지금 시작하세요</span>
             </h2>
-            <p className="text-white/60 text-lg leading-relaxed">이메일 하나로 가입 완료.<br />유언장 작성은 무료입니다.</p>
+            <p className="text-white/60 text-lg leading-relaxed">이메일 또는 휴대폰 하나로 가입 완료.<br />유언장 작성은 무료입니다.</p>
           </div>
           <div className="space-y-4">
             {benefits.map((b, i) => (
@@ -343,16 +471,47 @@ export default function LoginPage() {
           </div>
 
           <div className="bg-white rounded-3xl shadow-xl p-8">
+
+            {/* ── 로그인 방법 탭 (input 스텝에서만 표시) ── */}
+            {step === "input" && (
+              <div className="flex rounded-2xl bg-gray-100 p-1 mb-6">
+                <button
+                  type="button"
+                  onClick={() => setLoginMethod("email")}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    loginMethod === "email"
+                      ? "bg-white text-[#1F3864] shadow-sm"
+                      : "text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  <Mail className="w-4 h-4" />
+                  이메일
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLoginMethod("phone")}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    loginMethod === "phone"
+                      ? "bg-white text-[#1F3864] shadow-sm"
+                      : "text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  <Smartphone className="w-4 h-4" />
+                  휴대폰
+                </button>
+              </div>
+            )}
+
             <AnimatePresence mode="wait">
 
               {/* ── Step 1: 이메일 입력 ── */}
-              {step === "email" && (
-                <motion.div key="email" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              {step === "input" && loginMethod === "email" && (
+                <motion.div key="email-input" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                   <div className="text-center mb-8">
                     <div className="w-14 h-14 bg-[#1F3864]/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
                       <Mail className="w-7 h-7 text-[#1F3864]" />
                     </div>
-                    <h1 className="text-2xl font-bold text-[#1F3864] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>시작하기</h1>
+                    <h1 className="text-2xl font-bold text-[#1F3864] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>이메일로 시작하기</h1>
                     <p className="text-gray-400 text-sm">이메일 주소를 입력하면 인증 코드를 보내드립니다.<br />계정이 없으면 자동으로 회원가입됩니다.</p>
                   </div>
                   <form onSubmit={handleEmailSubmit} className="space-y-4">
@@ -365,10 +524,10 @@ export default function LoginPage() {
                       />
                     </div>
                     <button
-                      type="submit" disabled={sendOtp.isPending || !email.trim()}
+                      type="submit" disabled={isPendingSend || !email.trim()}
                       className="w-full bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg"
                     >
-                      {sendOtp.isPending
+                      {isPendingSend
                         ? <><Loader2 className="w-4 h-4 animate-spin" /> 발송 중...</>
                         : <><Mail className="w-4 h-4" /> 인증 코드 받기</>
                       }
@@ -382,7 +541,66 @@ export default function LoginPage() {
                 </motion.div>
               )}
 
-              {/* ── Step 2: OTP 입력 ── */}
+              {/* ── Step 1: 휴대폰 번호 입력 ── */}
+              {step === "input" && loginMethod === "phone" && (
+                <motion.div key="phone-input" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                  <div className="text-center mb-8">
+                    <div className="w-14 h-14 bg-[#1F3864]/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Smartphone className="w-7 h-7 text-[#1F3864]" />
+                    </div>
+                    <h1 className="text-2xl font-bold text-[#1F3864] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>휴대폰으로 시작하기</h1>
+                    <p className="text-gray-400 text-sm">휴대폰 번호를 입력하면 SMS로 인증 코드를 보내드립니다.</p>
+                  </div>
+                  <form onSubmit={handlePhoneSubmit} className="space-y-4">
+                    <div>
+                      <label className={labelClass}>휴대폰 번호</label>
+                      <div className="flex gap-2">
+                        {/* 국가코드 선택 */}
+                        <select
+                          value={phoneCountryCode}
+                          onChange={(e) => setPhoneCountryCode(e.target.value)}
+                          className="px-3 py-3 rounded-xl border border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-sm transition-all bg-white w-32 shrink-0"
+                        >
+                          {PHONE_COUNTRY_CODES.map(c => (
+                            <option key={c.code} value={c.code}>
+                              {c.flag} {c.code}
+                            </option>
+                          ))}
+                        </select>
+                        {/* 번호 입력 */}
+                        <input
+                          type="tel"
+                          value={phoneNumber}
+                          onChange={(e) => setPhoneNumber(e.target.value.replace(/[^\d\-\s]/g, ""))}
+                          placeholder={phoneCountryCode === "+82" ? "010-0000-0000" : phoneCountryCode === "+1" ? "555-000-0000" : "번호 입력"}
+                          required
+                          autoFocus
+                          className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-sm transition-all"
+                        />
+                      </div>
+                      <p className="mt-1.5 text-xs text-gray-400">
+                        {phoneCountryCode === "+82" ? "예: 010-1234-5678 (앞의 0 포함)" : "국가코드 없이 번호만 입력"}
+                      </p>
+                    </div>
+                    <button
+                      type="submit" disabled={isPendingSend || !phoneNumber.trim()}
+                      className="w-full bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg"
+                    >
+                      {isPendingSend
+                        ? <><Loader2 className="w-4 h-4 animate-spin" /> 발송 중...</>
+                        : <><Smartphone className="w-4 h-4" /> SMS 인증 코드 받기</>
+                      }
+                    </button>
+                  </form>
+                  <p className="text-center text-xs text-gray-400 mt-6 leading-relaxed">
+                    계속 진행하면{" "}
+                    <a href="#" className="text-[#1F3864] underline">이용약관</a>{" "}및{" "}
+                    <a href="#" className="text-[#1F3864] underline">개인정보처리방침</a>에 동의합니다.
+                  </p>
+                </motion.div>
+              )}
+
+              {/* ── Step 2: OTP 입력 (이메일/휴대폰 공통) ── */}
               {step === "otp" && (
                 <motion.div key="otp" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                   <div className="text-center mb-8">
@@ -390,7 +608,12 @@ export default function LoginPage() {
                       <Shield className="w-7 h-7 text-[#1F3864]" />
                     </div>
                     <h1 className="text-2xl font-bold text-[#1F3864] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>인증 코드 입력</h1>
-                    <p className="text-gray-400 text-sm"><span className="text-[#1F3864] font-medium">{email}</span>로<br />발송된 6자리 코드를 입력해주세요.</p>
+                    <p className="text-gray-400 text-sm">
+                      {loginMethod === "email"
+                        ? <><span className="text-[#1F3864] font-medium">{email}</span>로<br />발송된 6자리 코드를 입력해주세요.</>
+                        : <><span className="text-[#1F3864] font-medium">{phoneCountryCode} {phoneNumber}</span>으로<br />발송된 SMS 6자리 코드를 입력해주세요.</>
+                      }
+                    </p>
                   </div>
                   <div className="flex gap-2 justify-center mb-6">
                     {otp.map((digit, i) => (
@@ -405,22 +628,23 @@ export default function LoginPage() {
                       />
                     ))}
                   </div>
-                  {verifyOtp.isPending && (
+                  {isPendingVerify && (
                     <div className="flex items-center justify-center gap-2 text-gray-400 text-sm mb-4">
                       <Loader2 className="w-4 h-4 animate-spin" /> 확인 중...
                     </div>
                   )}
                   <div className="flex items-center justify-between text-sm">
                     <button
-                      type="button" onClick={() => setStep("email")}
+                      type="button" onClick={() => setStep("input")}
                       className="flex items-center gap-1 text-gray-400 hover:text-gray-600 transition-colors"
                     >
-                      <ArrowLeft className="w-3.5 h-3.5" /> 이메일 변경
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      {loginMethod === "email" ? "이메일 변경" : "번호 변경"}
                     </button>
                     <button
                       type="button"
-                      disabled={resendCooldown > 0 || sendOtp.isPending}
-                      onClick={() => sendOtp.mutate({ email })}
+                      disabled={resendCooldown > 0 || isPendingSend}
+                      onClick={handleResend}
                       className="flex items-center gap-1 text-[#1F3864] hover:text-[#162a4e] disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
@@ -444,22 +668,21 @@ export default function LoginPage() {
                           className="overflow-hidden"
                         >
                           <ul className="mt-3 space-y-2 text-xs text-gray-500 bg-gray-50 rounded-xl p-4">
-                            <li className="flex items-start gap-2">
-                              <span className="text-[#C9A961] font-bold mt-0.5">1.</span>
-                              <span>스팸 폴더를 확인해주세요.</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <span className="text-[#C9A961] font-bold mt-0.5">2.</span>
-                              <span>코드는 10분 후 만료됩니다. 재발송 버튼을 눌러주세요.</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <span className="text-[#C9A961] font-bold mt-0.5">3.</span>
-                              <span>회사 이메일은 보안 정책으로 차단될 수 있습니다. Gmail 등 개인 이메일을 사용해주세요.</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <span className="text-[#C9A961] font-bold mt-0.5">4.</span>
-                              <span>그래도 문제가 있으면 <a href="mailto:support@everwill.co.kr" className="text-[#1F3864] underline">support@everwill.co.kr</a>로 문의해주세요.</span>
-                            </li>
+                            {loginMethod === "email" ? (
+                              <>
+                                <li className="flex items-start gap-2"><span className="text-[#C9A961] font-bold mt-0.5">1.</span><span>스팸 폴더를 확인해주세요.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-[#C9A961] font-bold mt-0.5">2.</span><span>코드는 10분 후 만료됩니다. 재발송 버튼을 눌러주세요.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-[#C9A961] font-bold mt-0.5">3.</span><span>회사 이메일은 보안 정책으로 차단될 수 있습니다. Gmail 등 개인 이메일을 사용해주세요.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-[#C9A961] font-bold mt-0.5">4.</span><span>그래도 문제가 있으면 <a href="mailto:support@everwill.co.kr" className="text-[#1F3864] underline">support@everwill.co.kr</a>로 문의해주세요.</span></li>
+                              </>
+                            ) : (
+                              <>
+                                <li className="flex items-start gap-2"><span className="text-[#C9A961] font-bold mt-0.5">1.</span><span>국가코드가 올바른지 확인해주세요.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-[#C9A961] font-bold mt-0.5">2.</span><span>SMS는 최대 1-2분 소요될 수 있습니다.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-[#C9A961] font-bold mt-0.5">3.</span><span>코드는 10분 후 만료됩니다. 재발송 버튼을 눌러주세요.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-[#C9A961] font-bold mt-0.5">4.</span><span>그래도 문제가 있으면 <a href="mailto:support@everwill.co.kr" className="text-[#1F3864] underline">support@everwill.co.kr</a>로 문의해주세요.</span></li>
+                              </>
+                            )}
                           </ul>
                         </motion.div>
                       )}
@@ -480,8 +703,7 @@ export default function LoginPage() {
                   </div>
                   <form onSubmit={handleProfileSubmit} className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
 
-                    {/* ─ 공통 필드 ─ */}
-                    {/* 거주 국가 (먼저 선택해야 국가별 필드가 나타남) */}
+                    {/* 거주 국가 */}
                     <div>
                       <label className={labelClass}>
                         <Globe className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
@@ -526,24 +748,37 @@ export default function LoginPage() {
                       </div>
                     )}
 
-                    {/* 전화번호 */}
-                    <div>
-                      <label className={labelClass}>
-                        <Phone className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
-                        전화번호 <span className="text-gray-300 text-xs font-normal">(선택)</span>
-                      </label>
-                      <input
-                        type="tel" value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)}
-                        placeholder={
-                          profileCountry === "KR" ? "010-0000-0000" :
-                          profileCountry === "US" || profileCountry === "CA" ? "+1 (555) 000-0000" :
-                          profileCountry === "JP" ? "090-0000-0000" :
-                          profileCountry === "SA" || profileCountry === "AE" ? "+966 5X XXX XXXX" :
-                          "+XX XXXX XXXX"
-                        }
-                        className={inputClass}
-                      />
-                    </div>
+                    {/* 전화번호 (이메일 가입자) 또는 이메일 (전화번호 가입자) */}
+                    {loginMethod === "email" ? (
+                      <div>
+                        <label className={labelClass}>
+                          <Phone className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
+                          전화번호 <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                        </label>
+                        <input
+                          type="tel" value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)}
+                          placeholder={
+                            profileCountry === "KR" ? "010-0000-0000" :
+                            profileCountry === "US" || profileCountry === "CA" ? "+1 (555) 000-0000" :
+                            profileCountry === "JP" ? "090-0000-0000" :
+                            "+XX XXXX XXXX"
+                          }
+                          className={inputClass}
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <label className={labelClass}>
+                          <Mail className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
+                          이메일 <span className="text-gray-300 text-xs font-normal">(선택 · 알림 수신용)</span>
+                        </label>
+                        <input
+                          type="email" value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)}
+                          placeholder="example@email.com"
+                          className={inputClass}
+                        />
+                      </div>
+                    )}
 
                     {/* 생년월일 */}
                     <div>
@@ -635,7 +870,7 @@ export default function LoginPage() {
                       </div>
                     )}
 
-                    {/* 주/도 (미국·캐나다·호주·인도·브라질) */}
+                    {/* 주/도 */}
                     {countryFields.stateProvince && (
                       <div>
                         <label className={labelClass}>
@@ -670,62 +905,63 @@ export default function LoginPage() {
                       </div>
                     )}
 
-                    {/* 추천인 코드 */}
-                    <div>
-                      <label className={labelClass}>
-                        <Gift className="w-3.5 h-3.5 inline mr-1 text-[#C9A961]" />
-                        추천인 코드 <span className="text-gray-300 text-xs font-normal">(선택 · 추천인에게 5,000P 적립)</span>
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={referralCode}
-                          onChange={(e) => {
-                            const v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
-                            setReferralCode(v);
-                            setReferralValidated(null);
-                          }}
-                          placeholder="예: AB3K7X"
-                          maxLength={6}
-                          className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-[#C9A961] focus:ring-2 focus:ring-[#C9A961]/10 outline-none text-gray-800 text-sm transition-all font-mono tracking-widest uppercase"
-                        />
-                        <button
-                          type="button"
-                          disabled={referralCode.length !== 6 || referralChecking}
-                          onClick={async () => {
-                            if (referralCode.length !== 6) return;
-                            setReferralChecking(true);
-                            try {
-                              const res = await fetch(`/api/trpc/referral.validateCode?input=${encodeURIComponent(JSON.stringify({ json: { code: referralCode } }))}`);
-                              const json = await res.json();
-                              const result = json?.result?.data?.json;
-                              setReferralValidated(result || { valid: false, name: null });
-                            } catch {
-                              setReferralValidated({ valid: false, name: null });
-                            } finally {
-                              setReferralChecking(false);
-                            }
-                          }}
-                          className="px-4 py-3 rounded-xl bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium transition-all whitespace-nowrap"
-                        >
-                          {referralChecking ? <Loader2 className="w-4 h-4 animate-spin" /> : "확인"}
-                        </button>
-                      </div>
-                      {referralValidated !== null && (
-                        <div className={`mt-2 flex items-center gap-1.5 text-xs font-medium ${referralValidated.valid ? "text-green-600" : "text-red-500"}`}>
-                          {referralValidated.valid
-                            ? <><Check className="w-3.5 h-3.5" /> {referralValidated.name} 님의 추천 코드가 확인됐습니다.</>
-                            : <><X className="w-3.5 h-3.5" /> 유효하지 않은 추천인 코드입니다.</>
-                          }
+                    {/* 추천인 코드 (이메일 가입자만) */}
+                    {loginMethod === "email" && (
+                      <div>
+                        <label className={labelClass}>
+                          <Gift className="w-3.5 h-3.5 inline mr-1 text-[#C9A961]" />
+                          추천인 코드 <span className="text-gray-300 text-xs font-normal">(선택 · 추천인에게 5,000P 적립)</span>
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={referralCode}
+                            onChange={(e) => {
+                              const v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+                              setReferralCode(v);
+                              setReferralValidated(null);
+                            }}
+                            placeholder="예: AB3K7X"
+                            maxLength={6}
+                            className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-[#C9A961] focus:ring-2 focus:ring-[#C9A961]/10 outline-none text-gray-800 text-sm transition-all font-mono tracking-widest uppercase"
+                          />
+                          <button
+                            type="button"
+                            disabled={referralCode.length !== 6 || referralChecking}
+                            onClick={async () => {
+                              if (referralCode.length !== 6) return;
+                              setReferralChecking(true);
+                              try {
+                                const res = await fetch(`/api/trpc/referral.validateCode?input=${encodeURIComponent(JSON.stringify({ json: { code: referralCode } }))}`);
+                                const json = await res.json();
+                                const result = json?.result?.data?.json;
+                                setReferralValidated(result || { valid: false, name: null });
+                              } catch {
+                                setReferralValidated({ valid: false, name: null });
+                              } finally {
+                                setReferralChecking(false);
+                              }
+                            }}
+                            className="px-4 py-3 rounded-xl bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium transition-all whitespace-nowrap"
+                          >
+                            {referralChecking ? <Loader2 className="w-4 h-4 animate-spin" /> : "확인"}
+                          </button>
                         </div>
-                      )}
-                    </div>
+                        {referralValidated !== null && (
+                          <div className={`mt-2 flex items-center gap-1.5 text-xs font-medium ${referralValidated.valid ? "text-green-600" : "text-red-500"}`}>
+                            {referralValidated.valid
+                              ? <><Check className="w-3.5 h-3.5" /> {referralValidated.name} 님의 추천 코드가 확인됐습니다.</>
+                              : <><X className="w-3.5 h-3.5" /> 유효하지 않은 추천인 코드입니다.</>
+                            }
+                          </div>
+                        )}
+                      </div>
+                    )}
 
-                    {/* ─ 약관 동의 ─ */}
+                    {/* 약관 동의 */}
                     <div className="border-t border-gray-100 pt-4 space-y-3">
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">약관 동의</p>
 
-                      {/* 이용약관 (필수) */}
                       <label className="flex items-start gap-3 cursor-pointer group">
                         <input
                           type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)}
@@ -737,7 +973,6 @@ export default function LoginPage() {
                         </span>
                       </label>
 
-                      {/* 개인정보처리방침 (필수) */}
                       <label className="flex items-start gap-3 cursor-pointer group">
                         <input
                           type="checkbox" checked={agreePrivacy} onChange={(e) => setAgreePrivacy(e.target.checked)}
@@ -749,7 +984,6 @@ export default function LoginPage() {
                         </span>
                       </label>
 
-                      {/* GDPR (유럽 국가) */}
                       {countryFields.agreeGdpr && (
                         <label className="flex items-start gap-3 cursor-pointer group">
                           <input
@@ -763,7 +997,6 @@ export default function LoginPage() {
                         </label>
                       )}
 
-                      {/* 마케팅 동의 (선택) */}
                       <label className="flex items-start gap-3 cursor-pointer group">
                         <input
                           type="checkbox" checked={agreeMarketing} onChange={(e) => setAgreeMarketing(e.target.checked)}
@@ -779,16 +1012,16 @@ export default function LoginPage() {
                     <div className="flex gap-3 pt-2">
                       <button
                         type="button"
-                        onClick={() => { trackComplete(email, profileCountry); setStep("done"); setShowWelcome(true); }}
+                        onClick={() => { setStep("done"); setShowWelcome(true); }}
                         className="flex-1 border border-gray-200 text-gray-400 hover:text-gray-600 hover:border-gray-300 py-3.5 rounded-xl text-sm font-medium transition-all"
                       >
                         나중에 입력
                       </button>
                       <button
-                        type="submit" disabled={updateProfile.isPending || !profileName.trim() || !agreeTerms || !agreePrivacy}
+                        type="submit" disabled={isPendingProfile || !profileName.trim() || !agreeTerms || !agreePrivacy}
                         className="flex-2 flex-grow bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-50 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md"
                       >
-                        {updateProfile.isPending
+                        {isPendingProfile
                           ? <><Loader2 className="w-4 h-4 animate-spin" /> 저장 중...</>
                           : "저장하고 시작하기 →"
                         }
