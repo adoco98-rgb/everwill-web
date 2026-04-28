@@ -45,7 +45,7 @@ const countryToLanguage: Record<string, Language> = {
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const [, navigate] = useLocation();
   const { language, setLanguage, t } = useLanguage();
 
@@ -150,13 +150,21 @@ export default function Navbar() {
           {/* 우측 액션 */}
           <div className="hidden lg:flex items-center gap-3">
             {isAuthenticated ? (
-              <button
-                onClick={() => navigate("/dashboard")}
-                className="flex items-center gap-1.5 text-white/80 hover:text-white text-sm font-medium transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
-              >
-                <User className="w-4 h-4" />
-                <span>{displayName}</span>
-              </button>
+              <>
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="flex items-center gap-1.5 text-white/80 hover:text-white text-sm font-medium transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
+                >
+                  <User className="w-4 h-4" />
+                  <span>{displayName}</span>
+                </button>
+                <button
+                  onClick={logout}
+                  className="text-white/60 hover:text-white text-xs font-medium transition-colors px-2 py-1.5 rounded-lg hover:bg-white/10"
+                >
+                  {t.nav.logout}
+                </button>
+              </>
             ) : (
               <button
                 onClick={() => navigate("/login")}
@@ -255,13 +263,21 @@ export default function Navbar() {
 
               <div className="pt-3 flex flex-col gap-2">
                 {isAuthenticated ? (
-                  <button
-                    onClick={() => { setMobileOpen(false); navigate("/dashboard"); }}
-                    className="w-full text-white/80 py-2.5 text-sm font-medium border border-white/20 rounded-lg flex items-center justify-center gap-2"
-                  >
-                    <User className="w-4 h-4" />
-                    {displayName}
-                  </button>
+                  <>
+                    <button
+                      onClick={() => { setMobileOpen(false); navigate("/dashboard"); }}
+                      className="w-full text-white/80 py-2.5 text-sm font-medium border border-white/20 rounded-lg flex items-center justify-center gap-2"
+                    >
+                      <User className="w-4 h-4" />
+                      {displayName}
+                    </button>
+                    <button
+                      onClick={() => { setMobileOpen(false); logout(); }}
+                      className="w-full text-white/60 py-2.5 text-sm font-medium border border-white/10 rounded-lg"
+                    >
+                      {t.nav.logout}
+                    </button>
+                  </>
                 ) : (
                   <button
                     onClick={() => { setMobileOpen(false); navigate("/login"); }}

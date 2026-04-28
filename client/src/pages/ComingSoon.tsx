@@ -8,7 +8,9 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LogIn } from "lucide-react";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 
 const HERO_IMAGE =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/hero-global-elders-v2-DB4mTEuKjbV7DYjdv5fYBA.webp";
@@ -17,6 +19,39 @@ const LOGO_URL = "/manus-storage/everwill-logo-white-text2_1d48b8ab.png";
 
 const PASSWORD = "2026";
 const SESSION_KEY = "ew_unlocked";
+
+// 로그인 상태에 따라 다른 버튼 표시
+function LoginButton({ navigate }: { navigate: (path: string) => void }) {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) return null;
+
+  if (isAuthenticated) {
+    return (
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.97 }}
+        onClick={() => navigate("/dashboard")}
+        className="flex items-center gap-2.5 bg-white/15 hover:bg-white/25 border border-white/40 text-white font-bold text-base px-8 py-4 rounded-full transition-all duration-300 backdrop-blur-sm"
+      >
+        <LogIn size={18} />
+        내 대시보드
+      </motion.button>
+    );
+  }
+
+  return (
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.97 }}
+      onClick={() => navigate("/login")}
+      className="flex items-center gap-2.5 bg-white/15 hover:bg-white/25 border border-white/40 text-white font-bold text-base px-8 py-4 rounded-full transition-all duration-300 backdrop-blur-sm"
+    >
+      <LogIn size={18} />
+      로그인
+    </motion.button>
+  );
+}
 
 export default function ComingSoon() {
   const [, navigate] = useLocation();
@@ -142,19 +177,27 @@ export default function ComingSoon() {
           나의 마지막 서명
         </motion.p>
 
-        {/* 바로가기 버튼 */}
-        <motion.button
+        {/* 버튼 그룹 */}
+        <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.65 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => navigate("/home")}
-          className="flex items-center gap-2.5 bg-[#C9A961] hover:bg-[#b8944e] text-[#0d1b2e] font-bold text-base px-8 py-4 rounded-full transition-all duration-300 shadow-lg shadow-[#C9A961]/30"
+          className="flex flex-col sm:flex-row items-center gap-3"
         >
-          바로가기
-          <ArrowRight size={18} />
-        </motion.button>
+          {/* 바로가기 버튼 */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => navigate("/home")}
+            className="flex items-center gap-2.5 bg-[#C9A961] hover:bg-[#b8944e] text-[#0d1b2e] font-bold text-base px-8 py-4 rounded-full transition-all duration-300 shadow-lg shadow-[#C9A961]/30"
+          >
+            바로가기
+            <ArrowRight size={18} />
+          </motion.button>
+
+          {/* 로그인 버튼 — 이미 로그인된 경우 대시보드로 */}
+          <LoginButton navigate={navigate} />
+        </motion.div>
       </div>
 
 
