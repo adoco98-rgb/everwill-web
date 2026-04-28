@@ -84,7 +84,7 @@ const STEPS = [
     subtitle: "이 편지를 읽을 사람에게 마음 속 가장 깊은 곳에 있는 말을 전해 주세요.",
     guide: "예) '사랑한다는 말을 자주 못 해서 미안해. 하지만 매일 네 생각을 했어', '우리 함께한 시간이 내 인생에서 가장 빛나는 날들이었어', '잘 살아줘서 고마워. 행복하게 살아줘'처럼 솔직하게 적어 주세요.",
     questions: [
-      "💌 이 유서를 읽는 사람에게 가장 하고 싶은 말은 무엇인가요? (사랑, 감사, 미안함, 응원... 무엇이든)",
+      "💌 이 편지를 읽는 사람에게 가장 하고 싶은 말은 무엇인가요? (사랑, 감사, 미안함, 응원... 무엇이든)",
       "🕊️ 마음속에 오래 담아두었던 말 — 용서하고 싶거나, 용서를 구하고 싶은 것이 있나요?",
       "🌈 마지막 인사를 전해 주세요. 당신의 진심이 그대로 전달될 거예요.",
     ],
@@ -139,7 +139,7 @@ export default function LetterWrite() {
       <div className="min-h-screen bg-[#0a0f1e] flex items-center justify-center">
         <div className="text-center space-y-4">
           <Lock className="w-12 h-12 text-[#C9A961] mx-auto" />
-          <p className="text-white text-lg">유서 작성은 로그인 후 이용 가능합니다</p>
+          <p className="text-white text-lg">편지 작성은 로그인 후 이용 가능합니다</p>
           <Button onClick={() => window.location.href = "/login"}
             className="bg-[#C9A961] hover:bg-[#b8944d] text-[#1F3864]">
             로그인하기
@@ -197,7 +197,7 @@ export default function LetterWrite() {
 
       if (!letterId) {
         const result = await createMutation.mutateAsync({
-          title: title || `${user?.name ?? "나"}의 유서`,
+          title: title || `${user?.name ?? "나"}의 편지`,
           step1Content: contents[1],
           step2Content: contents[2],
           step3Content: contents[3],
@@ -210,7 +210,7 @@ export default function LetterWrite() {
       } else {
         await updateMutation.mutateAsync({
           id: letterId,
-          title: title || `${user?.name ?? "나"}의 유서`,
+          title: title || `${user?.name ?? "나"}의 편지`,
           step1Content: contents[1],
           step2Content: contents[2],
           step3Content: contents[3],
@@ -250,7 +250,7 @@ export default function LetterWrite() {
     try {
       if (!savedId) {
         const result = await createMutation.mutateAsync({
-          title: title || `${user?.name ?? "나"}의 유서`,
+          title: title || `${user?.name ?? "나"}의 편지`,
           step1Content: contents[1],
           step2Content: contents[2],
           step3Content: contents[3],
@@ -262,7 +262,7 @@ export default function LetterWrite() {
       } else {
         await updateMutation.mutateAsync({
           id: savedId,
-          title: title || `${user?.name ?? "나"}의 유서`,
+          title: title || `${user?.name ?? "나"}의 편지`,
           step1Content: contents[1],
           step2Content: contents[2],
           step3Content: contents[3],
@@ -287,10 +287,10 @@ export default function LetterWrite() {
       <div className="sticky top-0 z-10 bg-[#0a0f1e]/95 backdrop-blur border-b border-white/10 px-4 py-3">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <button onClick={() => navigate("/letter")} className="flex items-center gap-1 text-white/60 hover:text-white transition-colors text-sm">
-            <ChevronLeft className="w-4 h-4" /> 나의 유서
+            <ChevronLeft className="w-4 h-4" /> 나의 편지
           </button>
           <div className="text-center">
-            <p className="text-xs text-white/50">유서 작성</p>
+            <p className="text-xs text-white/50">편지 작성</p>
             <p className="text-sm font-medium text-[#C9A961]">
               {step <= 5 ? `${step}/5단계` : step === 6 ? "수신자 설정" : step === 7 ? "파일 첨부" : "저장 및 결제"}
             </p>
@@ -340,11 +340,11 @@ export default function LetterWrite() {
               {/* 제목 (1단계에서만) */}
               {step === 1 && (
                 <div>
-                  <label className="text-sm text-white/60 mb-1 block">유서 제목 (선택)</label>
+                  <label className="text-sm text-white/60 mb-1 block">편지 제목 (선택)</label>
                   <Input
                     value={title}
                     onChange={e => setTitle(e.target.value)}
-                    placeholder={`${user?.name ?? "나"}의 유서`}
+                    placeholder={`${user?.name ?? "나"}의 편지`}
                     className="bg-white/5 border-white/20 text-white placeholder:text-white/30"
                   />
                 </div>
@@ -377,7 +377,7 @@ export default function LetterWrite() {
               </div>
               <div>
                 <h2 className="text-lg font-bold text-white">수신자 설정</h2>
-                <p className="text-sm text-white/60">유서를 전달받을 사람을 지정하세요</p>
+                <p className="text-sm text-white/60">편지를 전달받을 사람을 지정하세요</p>
               </div>
             </div>
 
@@ -504,8 +504,8 @@ export default function LetterWrite() {
               <div className="w-16 h-16 bg-[#C9A961]/20 rounded-full flex items-center justify-center mx-auto">
                 <Heart className="w-8 h-8 text-[#C9A961]" />
               </div>
-              <h2 className="text-xl font-bold text-white">유서 작성 완료</h2>
-              <p className="text-white/60 text-sm">작성하신 유서를 안전하게 보관하겠습니다</p>
+              <h2 className="text-xl font-bold text-white">편지 작성 완료</h2>
+              <p className="text-white/60 text-sm">작성하신 편지를 안전하게 보관하겠습니다</p>
             </div>
 
             {/* 요약 */}
@@ -535,7 +535,7 @@ export default function LetterWrite() {
               <h3 className="text-[#C9A961] font-bold text-sm">결제 안내</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-white/70">유서 작성 및 보관</span>
+                  <span className="text-white/70">편지 작성 및 보관</span>
                   <span className="text-white font-bold">₩9,900</span>
                 </div>
                 <div className="flex justify-between text-white/40 text-xs">
@@ -561,10 +561,10 @@ export default function LetterWrite() {
             <Button onClick={handleSaveAndPay} disabled={saving}
               className="w-full bg-[#C9A961] hover:bg-[#b8944d] text-[#1F3864] font-bold py-4 text-base">
               {saving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-              ₩9,900 결제하고 유서 보관하기
+              ₩9,900 결제하고 편지 보관하기
             </Button>
             <p className="text-center text-xs text-white/30">
-              결제 후 유서는 암호화되어 안전하게 보관됩니다
+              결제 후 편지는 암호화되어 안전하게 보관됩니다
             </p>
           </div>
         )}

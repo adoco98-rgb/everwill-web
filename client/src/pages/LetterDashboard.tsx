@@ -94,11 +94,11 @@ export default function LetterDashboard() {
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Heart className="w-5 h-5 text-[#C9A961]" />
-            <h1 className="text-lg font-bold text-white">나의 유서</h1>
+            <h1 className="text-lg font-bold text-white">나의 편지</h1>
           </div>
           <Button onClick={() => navigate("/letter/write")}
             className="bg-[#C9A961] hover:bg-[#b8944d] text-[#1F3864] font-bold text-sm">
-            <Plus className="w-4 h-4 mr-1" /> 새 유서 작성
+            <Plus className="w-4 h-4 mr-1" /> 새 편지 작성
           </Button>
         </div>
       </div>
@@ -107,9 +107,9 @@ export default function LetterDashboard() {
 
         {/* 안내 배너 */}
         <div className="bg-[#1F3864]/50 border border-[#C9A961]/20 rounded-xl p-4 space-y-1">
-          <p className="text-[#C9A961] font-bold text-sm">유서란 무엇인가요?</p>
+          <p className="text-[#C9A961] font-bold text-sm">나의 편지란 무엇인가요?</p>
           <p className="text-white/60 text-xs leading-relaxed">
-            유서는 자산 배분과 무관하게 <strong className="text-white">누구나</strong> 작성할 수 있는 감성적 작별 메시지입니다.
+            나의 편지는 자산 배분과 무관하게 <strong className="text-white">누구나</strong> 작성할 수 있는 감성적 작별 메시지입니다.
             사랑하는 가족에게 마지막 인사, 삶의 지혜, 특별한 부탁을 남길 수 있습니다.
             사망 후 지정한 수신자에게 자동으로 알림이 전달됩니다.
           </p>
@@ -134,7 +134,7 @@ export default function LetterDashboard() {
         {/* 수정 안내 */}
         <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white/50">
           <Clock className="w-3 h-3 flex-shrink-0" />
-          <span>유서 수정 시 ₩4,900이 부과됩니다 (내용 변경 횟수 무제한)</span>
+          <span>편지 수정 시 ₩4,900이 부과됩니다 (내용 변경 횟수 무제한)</span>
         </div>
 
         {/* 유서 목록 */}
@@ -145,10 +145,10 @@ export default function LetterDashboard() {
         ) : !letters || letters.length === 0 ? (
           <div className="text-center py-16 space-y-4">
             <Heart className="w-12 h-12 text-white/20 mx-auto" />
-            <p className="text-white/40">아직 작성한 유서가 없습니다</p>
+            <p className="text-white/40">아직 작성한 편지가 없습니다</p>
             <Button onClick={() => navigate("/letter/write")}
               className="bg-[#C9A961] hover:bg-[#b8944d] text-[#1F3864] font-bold">
-              첫 유서 작성하기
+              첫 편지 작성하기
             </Button>
           </div>
         ) : (
@@ -226,7 +226,7 @@ export default function LetterDashboard() {
               <Printer className="w-5 h-5 text-blue-400" /> 열람 및 프린트
             </DialogTitle>
             <DialogDescription className="text-white/50">
-              수신자가 유서를 열람하고 프린트할 수 있습니다
+              수신자가 편지를 열람하고 프린트할 수 있습니다
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -241,7 +241,7 @@ export default function LetterDashboard() {
               </div>
             </div>
             <ul className="space-y-1 text-xs text-white/60">
-              <li className="flex items-center gap-2"><CheckCircle className="w-3 h-3 text-emerald-400" /> 유서 전문 열람</li>
+              <li className="flex items-center gap-2"><CheckCircle className="w-3 h-3 text-emerald-400" /> 편지 전문 열람</li>
               <li className="flex items-center gap-2"><CheckCircle className="w-3 h-3 text-emerald-400" /> PDF 다운로드 및 프린트</li>
               <li className="flex items-center gap-2"><CheckCircle className="w-3 h-3 text-emerald-400" /> 첨부 파일·사진 열람</li>
             </ul>
@@ -262,7 +262,7 @@ export default function LetterDashboard() {
               <Package className="w-5 h-5 text-purple-400" /> 우편 발송
             </DialogTitle>
             <DialogDescription className="text-white/50">
-              유서를 인쇄하여 수신자에게 우편으로 발송합니다
+              편지를 인쇄하여 수신자에게 우편으로 발송합니다
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">

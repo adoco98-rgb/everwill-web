@@ -210,3 +210,6 @@
 - [ ] [P3] sendOtp(이메일/휴대폰) 동일 이메일/번호 재발송 1분 쿨다운 서버 적용
 - [ ] [P4] 관리자 전용 프로시저(inquiryRouter 등)에서 inline role 체크 → adminProcedure로 통일
 - [ ] [P4] 세션 쿠키 SameSite=lax로 변경 (현재 none → CSRF 위험)
+
+## 텍스트/UX 개선
+- [x] "나의 유서" → "나의 편지"로 전체 변경 (LetterDashboard, LetterWrite, Navbar 메뉴 등)
