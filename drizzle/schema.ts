@@ -220,6 +220,8 @@ export const emailOtps = mysqlTable("emailOtps", {
   code: varchar("code", { length: 8 }).notNull(),
   expiresAt: timestamp("expiresAt").notNull(),
   used: int("used").default(0).notNull(),
+  /** OTP 인증 실패 횟수 (5회 초과 시 잠금) */
+  failCount: int("failCount").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type EmailOtp = typeof emailOtps.$inferSelect;

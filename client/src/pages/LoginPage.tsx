@@ -1,10 +1,11 @@
 /**
  * EverWill 로그인/회원가입 페이지 (/login)
+ * 시니어 친화적 UI: 큰 글자, 큰 버튼, 명확한 단계 안내
  * 이메일 OTP 또는 휴대폰 OTP 선택 가능
  *
  * 이메일 플로우:
  *   Step 1: 이메일 입력
- *   Step 2: OTP 6자리 인증
+ *   Step 2: OTP 6자리 인증 (10분 카운트다운, 재발송, 5회 잠금)
  *   Step 3: 추가 정보 입력 (신규 가입자만)
  *   Step 4: 완료 → 대시보드
  *
@@ -19,7 +20,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, ArrowLeft, Mail, CheckCircle2, RefreshCw,
   Loader2, HelpCircle, ChevronDown, User, Phone, Calendar, Globe, Gift, Check, X,
-  MapPin, Building2, BookOpen, Briefcase, DollarSign, Smartphone
+  MapPin, Building2, BookOpen, Briefcase, DollarSign, Smartphone, Lock, AlertTriangle
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState, useRef, useEffect } from "react";
@@ -123,6 +124,13 @@ const RELIGION_OPTIONS = [
   { value: "other", label: "기타" },
 ];
 
+/** OTP 만료 시간 (초) */
+const OTP_EXPIRE_SECONDS = 10 * 60; // 10분
+/** OTP 최대 시도 횟수 */
+const OTP_MAX_ATTEMPTS = 5;
+/** 재발송 쿨다운 (초) */
+const RESEND_COOLDOWN = 60;
+
 type LoginMethod = "email" | "phone";
 type Step = "input" | "otp" | "profile" | "done";
 
@@ -139,6 +147,13 @@ export default function LoginPage() {
   const [showHelp, setShowHelp] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+
+  // OTP 보안: 시도 횟수 및 잠금
+  const [otpAttempts, setOtpAttempts] = useState(0);
+  const [isLocked, setIsLocked] = useState(false);
+
+  // OTP 만료 카운트다운 (초)
+  const [otpExpireSeconds, setOtpExpireSeconds] = useState(0);
 
   // 이메일 플로우
   const [email, setEmail] = useState("");
@@ -189,9 +204,34 @@ export default function LoginPage() {
     setOtp(["", "", "", "", "", ""]);
     setResendCooldown(0);
     setShowHelp(false);
+    setOtpAttempts(0);
+    setIsLocked(false);
+    setOtpExpireSeconds(0);
   }, [loginMethod]);
 
   const countryFields = COUNTRY_FIELDS[profileCountry] || {};
+
+  // ── OTP 만료 카운트다운 타이머 ──
+  useEffect(() => {
+    if (step !== "otp" || otpExpireSeconds <= 0) return;
+    const timer = setInterval(() => {
+      setOtpExpireSeconds((v) => {
+        if (v <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return v - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [step, otpExpireSeconds]);
+
+  // 카운트다운 포맷 (mm:ss)
+  function formatExpire(seconds: number) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  }
 
   // ── 이메일 OTP 뮤테이션 ──
   const sendEmailOtp = trpc.auth.email.sendOtp.useMutation({
@@ -200,10 +240,13 @@ export default function LoginPage() {
       setStep("otp");
       trackEnter("step2", email);
       startCooldown();
+      startOtpExpire();
+      setOtpAttempts(0);
+      setIsLocked(false);
       toast.success("인증 코드를 발송했습니다. 이메일을 확인해주세요.");
     },
     onError: (err) => {
-      toast.error(err.message || "이메일 발송에 실패했습니다.");
+      toast.error(err.message || "이메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요.");
     },
   });
 
@@ -220,7 +263,14 @@ export default function LoginPage() {
       }
     },
     onError: (err) => {
-      toast.error(err.message || "인증 코드가 올바르지 않습니다.");
+      const newAttempts = otpAttempts + 1;
+      setOtpAttempts(newAttempts);
+      if (newAttempts >= OTP_MAX_ATTEMPTS) {
+        setIsLocked(true);
+        toast.error("인증 코드를 5회 잘못 입력했습니다. 새 코드를 요청해주세요.");
+      } else {
+        toast.error(`인증 코드가 올바르지 않습니다. (${newAttempts}/${OTP_MAX_ATTEMPTS}회)`);
+      }
       setOtp(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
     },
@@ -233,7 +283,7 @@ export default function LoginPage() {
       setShowWelcome(true);
     },
     onError: (err) => {
-      toast.error(err.message || "프로필 저장에 실패했습니다.");
+      toast.error(err.message || "정보 저장에 실패했습니다. 다시 시도해주세요.");
     },
   });
 
@@ -243,10 +293,13 @@ export default function LoginPage() {
       setE164Phone(data.phone);
       setStep("otp");
       startCooldown();
-      toast.success("SMS 인증 코드를 발송했습니다.");
+      startOtpExpire();
+      setOtpAttempts(0);
+      setIsLocked(false);
+      toast.success("SMS 인증 코드를 발송했습니다. 문자를 확인해주세요.");
     },
     onError: (err) => {
-      toast.error(err.message || "SMS 발송에 실패했습니다.");
+      toast.error(err.message || "SMS 발송에 실패했습니다. 잠시 후 다시 시도해주세요.");
     },
   });
 
@@ -261,7 +314,14 @@ export default function LoginPage() {
       }
     },
     onError: (err) => {
-      toast.error(err.message || "인증 코드가 올바르지 않습니다.");
+      const newAttempts = otpAttempts + 1;
+      setOtpAttempts(newAttempts);
+      if (newAttempts >= OTP_MAX_ATTEMPTS) {
+        setIsLocked(true);
+        toast.error("인증 코드를 5회 잘못 입력했습니다. 새 코드를 요청해주세요.");
+      } else {
+        toast.error(`인증 코드가 올바르지 않습니다. (${newAttempts}/${OTP_MAX_ATTEMPTS}회)`);
+      }
       setOtp(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
     },
@@ -273,20 +333,24 @@ export default function LoginPage() {
       setShowWelcome(true);
     },
     onError: (err) => {
-      toast.error(err.message || "프로필 저장에 실패했습니다.");
+      toast.error(err.message || "정보 저장에 실패했습니다. 다시 시도해주세요.");
     },
   });
 
   const applyReferral = trpc.referral.applyReferral.useMutation();
 
   function startCooldown() {
-    setResendCooldown(60);
+    setResendCooldown(RESEND_COOLDOWN);
     const interval = setInterval(() => {
       setResendCooldown((v) => {
         if (v <= 1) { clearInterval(interval); return 0; }
         return v - 1;
       });
     }, 1000);
+  }
+
+  function startOtpExpire() {
+    setOtpExpireSeconds(OTP_EXPIRE_SECONDS);
   }
 
   // ── 이메일 제출 ──
@@ -305,6 +369,7 @@ export default function LoginPage() {
 
   // ── OTP 입력 처리 ──
   function handleOtpChange(index: number, value: string) {
+    if (isLocked) return;
     if (value.length > 1) {
       const digits = value.replace(/\D/g, "").slice(0, 6).split("");
       const newOtp = [...otp];
@@ -334,6 +399,7 @@ export default function LoginPage() {
   }
 
   function submitOtp(code: string) {
+    if (isLocked) return;
     if (loginMethod === "email") {
       verifyEmailOtp.mutate({ email, code });
     } else {
@@ -342,6 +408,9 @@ export default function LoginPage() {
   }
 
   function handleResend() {
+    setOtp(["", "", "", "", "", ""]);
+    setOtpAttempts(0);
+    setIsLocked(false);
     if (loginMethod === "email") {
       sendEmailOtp.mutate({ email });
     } else {
@@ -389,7 +458,6 @@ export default function LoginPage() {
         email,
         phone: profilePhone.trim() || undefined,
       });
-      // 추천인 코드 처리
       if (referralCode.trim() && referralValidated?.valid) {
         applyReferral.mutate(
           { newUserEmail: email, referralCode: referralCode.trim().toUpperCase() },
@@ -400,7 +468,7 @@ export default function LoginPage() {
       updatePhoneProfile.mutate({
         ...profileData,
         phone: e164Phone,
-        email: profilePhone.trim() || undefined, // 전화번호 가입자는 이메일을 선택 입력
+        email: profilePhone.trim() || undefined,
       });
     }
   }
@@ -416,12 +484,17 @@ export default function LoginPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-sm transition-all";
-  const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
+  // 시니어 친화적 스타일 (큰 글자, 넉넉한 패딩)
+  const inputClass = "w-full px-5 py-4 rounded-2xl border-2 border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-lg transition-all";
+  const labelClass = "block text-base font-semibold text-gray-700 mb-2";
 
   const isPendingSend = loginMethod === "email" ? sendEmailOtp.isPending : sendPhoneOtp.isPending;
   const isPendingVerify = loginMethod === "email" ? verifyEmailOtp.isPending : verifyPhoneOtp.isPending;
   const isPendingProfile = loginMethod === "email" ? updateEmailProfile.isPending : updatePhoneProfile.isPending;
+
+  // 단계 표시 (1/2/3)
+  const stepNumber = step === "input" ? 1 : step === "otp" ? 2 : step === "profile" ? 3 : 3;
+  const stepTotal = 3;
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] flex">
@@ -429,11 +502,11 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#1F3864] via-[#243d72] to-[#1a3058] flex-col justify-between p-12">
         <Link href="/">
           <div className="flex items-center gap-2 text-white cursor-pointer">
-            <div className="w-9 h-9 bg-[#C9A961] rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-xs">EW</span>
+            <div className="w-10 h-10 bg-[#C9A961] rounded-xl flex items-center justify-center">
+              <span className="text-white font-bold text-sm">EW</span>
             </div>
-            <span className="font-bold text-xl" style={{ fontFamily: "'Playfair Display', serif" }}>EverWill</span>
-            <span className="text-white/40 text-sm ml-1">유언 OS</span>
+            <span className="font-bold text-2xl" style={{ fontFamily: "'Playfair Display', serif" }}>EverWill</span>
+            <span className="text-white/40 text-base ml-1">유언 OS</span>
           </div>
         </Link>
         <div className="space-y-8">
@@ -441,62 +514,82 @@ export default function LoginPage() {
             <h2 className="text-4xl font-bold text-white leading-tight mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
               나의 마지막 서명,<br /><span className="text-[#C9A961]">지금 시작하세요</span>
             </h2>
-            <p className="text-white/60 text-lg leading-relaxed">이메일 또는 휴대폰 하나로 가입 완료.<br />유언장 작성은 무료입니다.</p>
+            <p className="text-white/60 text-xl leading-relaxed">이메일 또는 휴대폰 하나로 가입 완료.<br />유언장 작성은 무료입니다.</p>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-5">
             {benefits.map((b, i) => (
               <div key={i} className="flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-[#C9A961] shrink-0" />
-                <span className="text-white/80 text-sm">{b}</span>
+                <CheckCircle2 className="w-6 h-6 text-[#C9A961] shrink-0" />
+                <span className="text-white/80 text-lg">{b}</span>
               </div>
             ))}
           </div>
         </div>
-        <p className="text-white/30 text-xs">© 2025 EverWill · 주식회사 사람</p>
+        <p className="text-white/30 text-sm">© 2025 EverWill · 주식회사 사람</p>
       </div>
 
       {/* 오른쪽 폼 패널 */}
       <div className="flex-1 flex items-center justify-center p-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg">
           {/* 모바일 로고 */}
           <div className="lg:hidden text-center mb-8">
             <Link href="/">
               <div className="inline-flex items-center gap-2 cursor-pointer">
-                <div className="w-9 h-9 bg-[#1F3864] rounded-xl flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">EW</span>
+                <div className="w-10 h-10 bg-[#1F3864] rounded-xl flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">EW</span>
                 </div>
-                <span className="font-bold text-xl text-[#1F3864]" style={{ fontFamily: "'Playfair Display', serif" }}>EverWill</span>
+                <span className="font-bold text-2xl text-[#1F3864]" style={{ fontFamily: "'Playfair Display', serif" }}>EverWill</span>
               </div>
             </Link>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-xl p-8">
+          {/* 단계 진행 표시 (input/otp/profile 단계에서만) */}
+          {step !== "done" && (
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-base font-semibold text-[#1F3864]">
+                  {step === "input" && "1단계: 연락처 입력"}
+                  {step === "otp" && "2단계: 인증 코드 확인"}
+                  {step === "profile" && "3단계: 기본 정보 입력"}
+                </span>
+                <span className="text-sm text-gray-400">{stepNumber} / {stepTotal}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-[#C9A961] h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${(stepNumber / stepTotal) * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="bg-white rounded-3xl shadow-xl p-8 md:p-10">
 
             {/* ── 로그인 방법 탭 (input 스텝에서만 표시) ── */}
             {step === "input" && (
-              <div className="flex rounded-2xl bg-gray-100 p-1 mb-6">
+              <div className="flex rounded-2xl bg-gray-100 p-1.5 mb-8 gap-1">
                 <button
                   type="button"
                   onClick={() => setLoginMethod("email")}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl text-base font-semibold transition-all ${
                     loginMethod === "email"
                       ? "bg-white text-[#1F3864] shadow-sm"
                       : "text-gray-400 hover:text-gray-600"
                   }`}
                 >
-                  <Mail className="w-4 h-4" />
+                  <Mail className="w-5 h-5" />
                   이메일
                 </button>
                 <button
                   type="button"
                   onClick={() => setLoginMethod("phone")}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl text-base font-semibold transition-all ${
                     loginMethod === "phone"
                       ? "bg-white text-[#1F3864] shadow-sm"
                       : "text-gray-400 hover:text-gray-600"
                   }`}
                 >
-                  <Smartphone className="w-4 h-4" />
+                  <Smartphone className="w-5 h-5" />
                   휴대폰
                 </button>
               </div>
@@ -508,15 +601,19 @@ export default function LoginPage() {
               {step === "input" && loginMethod === "email" && (
                 <motion.div key="email-input" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                   <div className="text-center mb-8">
-                    <div className="w-14 h-14 bg-[#1F3864]/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <Mail className="w-7 h-7 text-[#1F3864]" />
+                    <div className="w-16 h-16 bg-[#1F3864]/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Mail className="w-8 h-8 text-[#1F3864]" />
                     </div>
-                    <h1 className="text-2xl font-bold text-[#1F3864] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>이메일로 시작하기</h1>
-                    <p className="text-gray-400 text-sm">이메일 주소를 입력하면 인증 코드를 보내드립니다.<br />계정이 없으면 자동으로 회원가입됩니다.</p>
+                    <h1 className="text-3xl font-bold text-[#1F3864] mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>이메일로 시작하기</h1>
+                    <p className="text-gray-500 text-lg leading-relaxed">이메일 주소를 입력하시면<br />인증 코드를 보내드립니다.</p>
+                    <p className="text-gray-400 text-base mt-1">처음 오셨다면 자동으로 회원가입됩니다.</p>
                   </div>
-                  <form onSubmit={handleEmailSubmit} className="space-y-4">
+                  <form onSubmit={handleEmailSubmit} className="space-y-5">
                     <div>
-                      <label className={labelClass}>이메일 주소</label>
+                      <label className={labelClass}>
+                        <Mail className="w-4 h-4 inline mr-1.5 text-gray-400" />
+                        이메일 주소
+                      </label>
                       <input
                         type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                         placeholder="example@email.com" required autoFocus
@@ -525,18 +622,18 @@ export default function LoginPage() {
                     </div>
                     <button
                       type="submit" disabled={isPendingSend || !email.trim()}
-                      className="w-full bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg"
+                      className="w-full bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-50 disabled:cursor-not-allowed text-white py-5 rounded-2xl font-bold text-xl flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg"
                     >
                       {isPendingSend
-                        ? <><Loader2 className="w-4 h-4 animate-spin" /> 발송 중...</>
-                        : <><Mail className="w-4 h-4" /> 인증 코드 받기</>
+                        ? <><Loader2 className="w-5 h-5 animate-spin" /> 발송 중...</>
+                        : <><Mail className="w-5 h-5" /> 인증 코드 받기</>
                       }
                     </button>
                   </form>
-                  <p className="text-center text-xs text-gray-400 mt-6 leading-relaxed">
+                  <p className="text-center text-sm text-gray-400 mt-6 leading-relaxed">
                     계속 진행하면{" "}
-                    <a href="#" className="text-[#1F3864] underline">이용약관</a>{" "}및{" "}
-                    <a href="#" className="text-[#1F3864] underline">개인정보처리방침</a>에 동의합니다.
+                    <a href="/terms" className="text-[#1F3864] underline">이용약관</a>{" "}및{" "}
+                    <a href="/privacy" className="text-[#1F3864] underline">개인정보처리방침</a>에 동의합니다.
                   </p>
                 </motion.div>
               )}
@@ -545,21 +642,24 @@ export default function LoginPage() {
               {step === "input" && loginMethod === "phone" && (
                 <motion.div key="phone-input" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                   <div className="text-center mb-8">
-                    <div className="w-14 h-14 bg-[#1F3864]/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <Smartphone className="w-7 h-7 text-[#1F3864]" />
+                    <div className="w-16 h-16 bg-[#1F3864]/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Smartphone className="w-8 h-8 text-[#1F3864]" />
                     </div>
-                    <h1 className="text-2xl font-bold text-[#1F3864] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>휴대폰으로 시작하기</h1>
-                    <p className="text-gray-400 text-sm">휴대폰 번호를 입력하면 SMS로 인증 코드를 보내드립니다.</p>
+                    <h1 className="text-3xl font-bold text-[#1F3864] mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>휴대폰으로 시작하기</h1>
+                    <p className="text-gray-500 text-lg leading-relaxed">휴대폰 번호를 입력하시면<br />문자(SMS)로 인증 코드를 보내드립니다.</p>
                   </div>
-                  <form onSubmit={handlePhoneSubmit} className="space-y-4">
+                  <form onSubmit={handlePhoneSubmit} className="space-y-5">
                     <div>
-                      <label className={labelClass}>휴대폰 번호</label>
-                      <div className="flex gap-2">
+                      <label className={labelClass}>
+                        <Phone className="w-4 h-4 inline mr-1.5 text-gray-400" />
+                        휴대폰 번호
+                      </label>
+                      <div className="flex gap-3">
                         {/* 국가코드 선택 */}
                         <select
                           value={phoneCountryCode}
                           onChange={(e) => setPhoneCountryCode(e.target.value)}
-                          className="px-3 py-3 rounded-xl border border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-sm transition-all bg-white w-32 shrink-0"
+                          className="px-4 py-4 rounded-2xl border-2 border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-lg transition-all bg-white w-36 shrink-0"
                         >
                           {PHONE_COUNTRY_CODES.map(c => (
                             <option key={c.code} value={c.code}>
@@ -575,27 +675,27 @@ export default function LoginPage() {
                           placeholder={phoneCountryCode === "+82" ? "010-0000-0000" : phoneCountryCode === "+1" ? "555-000-0000" : "번호 입력"}
                           required
                           autoFocus
-                          className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-sm transition-all"
+                          className="flex-1 px-5 py-4 rounded-2xl border-2 border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-lg transition-all"
                         />
                       </div>
-                      <p className="mt-1.5 text-xs text-gray-400">
+                      <p className="mt-2 text-sm text-gray-400">
                         {phoneCountryCode === "+82" ? "예: 010-1234-5678 (앞의 0 포함)" : "국가코드 없이 번호만 입력"}
                       </p>
                     </div>
                     <button
                       type="submit" disabled={isPendingSend || !phoneNumber.trim()}
-                      className="w-full bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg"
+                      className="w-full bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-50 disabled:cursor-not-allowed text-white py-5 rounded-2xl font-bold text-xl flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg"
                     >
                       {isPendingSend
-                        ? <><Loader2 className="w-4 h-4 animate-spin" /> 발송 중...</>
-                        : <><Smartphone className="w-4 h-4" /> SMS 인증 코드 받기</>
+                        ? <><Loader2 className="w-5 h-5 animate-spin" /> 발송 중...</>
+                        : <><Smartphone className="w-5 h-5" /> SMS 인증 코드 받기</>
                       }
                     </button>
                   </form>
-                  <p className="text-center text-xs text-gray-400 mt-6 leading-relaxed">
+                  <p className="text-center text-sm text-gray-400 mt-6 leading-relaxed">
                     계속 진행하면{" "}
-                    <a href="#" className="text-[#1F3864] underline">이용약관</a>{" "}및{" "}
-                    <a href="#" className="text-[#1F3864] underline">개인정보처리방침</a>에 동의합니다.
+                    <a href="/terms" className="text-[#1F3864] underline">이용약관</a>{" "}및{" "}
+                    <a href="/privacy" className="text-[#1F3864] underline">개인정보처리방침</a>에 동의합니다.
                   </p>
                 </motion.div>
               )}
@@ -604,18 +704,44 @@ export default function LoginPage() {
               {step === "otp" && (
                 <motion.div key="otp" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                   <div className="text-center mb-8">
-                    <div className="w-14 h-14 bg-[#1F3864]/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <Shield className="w-7 h-7 text-[#1F3864]" />
+                    <div className="w-16 h-16 bg-[#1F3864]/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Shield className="w-8 h-8 text-[#1F3864]" />
                     </div>
-                    <h1 className="text-2xl font-bold text-[#1F3864] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>인증 코드 입력</h1>
-                    <p className="text-gray-400 text-sm">
+                    <h1 className="text-3xl font-bold text-[#1F3864] mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>인증 코드 입력</h1>
+                    <p className="text-gray-500 text-lg leading-relaxed">
                       {loginMethod === "email"
-                        ? <><span className="text-[#1F3864] font-medium">{email}</span>로<br />발송된 6자리 코드를 입력해주세요.</>
-                        : <><span className="text-[#1F3864] font-medium">{phoneCountryCode} {phoneNumber}</span>으로<br />발송된 SMS 6자리 코드를 입력해주세요.</>
+                        ? <><span className="text-[#1F3864] font-semibold">{email}</span>으로<br />발송된 6자리 코드를 입력해주세요.</>
+                        : <><span className="text-[#1F3864] font-semibold">{phoneCountryCode} {phoneNumber}</span>으로<br />발송된 SMS 6자리 코드를 입력해주세요.</>
                       }
                     </p>
                   </div>
-                  <div className="flex gap-2 justify-center mb-6">
+
+                  {/* OTP 만료 타이머 */}
+                  {otpExpireSeconds > 0 && !isLocked && (
+                    <div className={`flex items-center justify-center gap-2 mb-5 text-base font-semibold rounded-xl px-4 py-3 ${
+                      otpExpireSeconds <= 60 ? "bg-red-50 text-red-600" : "bg-blue-50 text-[#1F3864]"
+                    }`}>
+                      <Shield className="w-4 h-4" />
+                      코드 만료까지: <span className="font-bold text-lg">{formatExpire(otpExpireSeconds)}</span>
+                    </div>
+                  )}
+                  {otpExpireSeconds === 0 && !isLocked && step === "otp" && (
+                    <div className="flex items-center justify-center gap-2 mb-5 text-base font-semibold bg-orange-50 text-orange-600 rounded-xl px-4 py-3">
+                      <AlertTriangle className="w-4 h-4" />
+                      코드가 만료됐습니다. 아래에서 재발송해주세요.
+                    </div>
+                  )}
+
+                  {/* 잠금 상태 */}
+                  {isLocked && (
+                    <div className="flex items-center justify-center gap-2 mb-5 text-base font-semibold bg-red-50 text-red-600 rounded-xl px-4 py-3">
+                      <Lock className="w-4 h-4" />
+                      5회 실패로 잠겼습니다. 아래에서 새 코드를 요청해주세요.
+                    </div>
+                  )}
+
+                  {/* OTP 입력 칸 */}
+                  <div className="flex gap-3 justify-center mb-6">
                     {otp.map((digit, i) => (
                       <input
                         key={i}
@@ -624,42 +750,59 @@ export default function LoginPage() {
                         value={digit}
                         onChange={(e) => handleOtpChange(i, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                        className="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-[#1F3864] transition-all"
+                        disabled={isLocked || otpExpireSeconds === 0}
+                        className={`w-14 h-16 text-center text-3xl font-bold rounded-2xl border-2 outline-none transition-all ${
+                          isLocked || otpExpireSeconds === 0
+                            ? "border-gray-200 bg-gray-50 text-gray-300 cursor-not-allowed"
+                            : "border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 text-[#1F3864]"
+                        }`}
                       />
                     ))}
                   </div>
+
+                  {/* 시도 횟수 표시 */}
+                  {otpAttempts > 0 && !isLocked && (
+                    <p className="text-center text-sm text-orange-500 mb-4 font-medium">
+                      잘못된 코드 입력: {otpAttempts}/{OTP_MAX_ATTEMPTS}회
+                    </p>
+                  )}
+
                   {isPendingVerify && (
-                    <div className="flex items-center justify-center gap-2 text-gray-400 text-sm mb-4">
-                      <Loader2 className="w-4 h-4 animate-spin" /> 확인 중...
+                    <div className="flex items-center justify-center gap-2 text-gray-400 text-base mb-4">
+                      <Loader2 className="w-5 h-5 animate-spin" /> 확인 중...
                     </div>
                   )}
-                  <div className="flex items-center justify-between text-sm">
+
+                  {/* 하단 버튼 */}
+                  <div className="flex items-center justify-between mt-2">
                     <button
                       type="button" onClick={() => setStep("input")}
-                      className="flex items-center gap-1 text-gray-400 hover:text-gray-600 transition-colors"
+                      className="flex items-center gap-1.5 text-gray-400 hover:text-gray-600 transition-colors text-base py-2 px-3 rounded-xl hover:bg-gray-50"
                     >
-                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <ArrowLeft className="w-4 h-4" />
                       {loginMethod === "email" ? "이메일 변경" : "번호 변경"}
                     </button>
                     <button
                       type="button"
                       disabled={resendCooldown > 0 || isPendingSend}
                       onClick={handleResend}
-                      className="flex items-center gap-1 text-[#1F3864] hover:text-[#162a4e] disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
+                      className="flex items-center gap-1.5 text-[#1F3864] hover:text-[#162a4e] disabled:text-gray-300 disabled:cursor-not-allowed transition-colors text-base font-semibold py-2 px-3 rounded-xl hover:bg-[#1F3864]/5"
                     >
-                      <RefreshCw className="w-3.5 h-3.5" />
+                      <RefreshCw className="w-4 h-4" />
                       {resendCooldown > 0 ? `${resendCooldown}초 후 재발송` : "코드 재발송"}
                     </button>
                   </div>
-                  <div className="mt-4">
+
+                  {/* 도움말 */}
+                  <div className="mt-5">
                     <button
                       type="button"
                       onClick={() => setShowHelp(!showHelp)}
-                      className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                      className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors"
                     >
-                      <HelpCircle className="w-3.5 h-3.5" />
+                      <HelpCircle className="w-4 h-4" />
                       코드가 오지 않나요?
-                      <ChevronDown className={`w-3 h-3 transition-transform ${showHelp ? "rotate-180" : ""}`} />
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showHelp ? "rotate-180" : ""}`} />
                     </button>
                     <AnimatePresence>
                       {showHelp && (
@@ -667,7 +810,7 @@ export default function LoginPage() {
                           initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
                           className="overflow-hidden"
                         >
-                          <ul className="mt-3 space-y-2 text-xs text-gray-500 bg-gray-50 rounded-xl p-4">
+                          <ul className="mt-3 space-y-3 text-sm text-gray-500 bg-gray-50 rounded-2xl p-5">
                             {loginMethod === "email" ? (
                               <>
                                 <li className="flex items-start gap-2"><span className="text-[#C9A961] font-bold mt-0.5">1.</span><span>스팸 폴더를 확인해주세요.</span></li>
@@ -678,7 +821,7 @@ export default function LoginPage() {
                             ) : (
                               <>
                                 <li className="flex items-start gap-2"><span className="text-[#C9A961] font-bold mt-0.5">1.</span><span>국가코드가 올바른지 확인해주세요.</span></li>
-                                <li className="flex items-start gap-2"><span className="text-[#C9A961] font-bold mt-0.5">2.</span><span>SMS는 최대 1-2분 소요될 수 있습니다.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-[#C9A961] font-bold mt-0.5">2.</span><span>문자(SMS)는 최대 1~2분 소요될 수 있습니다.</span></li>
                                 <li className="flex items-start gap-2"><span className="text-[#C9A961] font-bold mt-0.5">3.</span><span>코드는 10분 후 만료됩니다. 재발송 버튼을 눌러주세요.</span></li>
                                 <li className="flex items-start gap-2"><span className="text-[#C9A961] font-bold mt-0.5">4.</span><span>그래도 문제가 있으면 <a href="mailto:support@everwill.co.kr" className="text-[#1F3864] underline">support@everwill.co.kr</a>로 문의해주세요.</span></li>
                               </>
@@ -694,83 +837,84 @@ export default function LoginPage() {
               {/* ── Step 3: 추가 정보 입력 (신규 가입자) ── */}
               {step === "profile" && (
                 <motion.div key="profile" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                  <div className="text-center mb-6">
-                    <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <User className="w-7 h-7 text-green-600" />
+                  <div className="text-center mb-8">
+                    <div className="w-16 h-16 bg-[#1F3864]/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <User className="w-8 h-8 text-[#1F3864]" />
                     </div>
-                    <h1 className="text-2xl font-bold text-[#1F3864] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>반갑습니다!</h1>
-                    <p className="text-gray-400 text-sm">기본 정보를 입력해주세요.<br /><span className="text-gray-300">(이름·약관 동의 필수, 나머지는 선택)</span></p>
+                    <h1 className="text-3xl font-bold text-[#1F3864] mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>기본 정보 입력</h1>
+                    <p className="text-gray-500 text-lg">유언장 작성에 필요한 기본 정보입니다.</p>
                   </div>
-                  <form onSubmit={handleProfileSubmit} className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+                  <form onSubmit={handleProfileSubmit} className="space-y-5">
 
-                    {/* 거주 국가 */}
+                    {/* 이름 */}
                     <div>
                       <label className={labelClass}>
-                        <Globe className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
-                        거주 국가 <span className="text-red-400">*</span>
-                      </label>
-                      <select
-                        value={profileCountry} onChange={(e) => setProfileCountry(e.target.value)}
-                        className={inputClass + " bg-white"}
-                      >
-                        {COUNTRIES.map(c => (
-                          <option key={c.code} value={c.code}>{c.label}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* 이름 (필수) */}
-                    <div>
-                      <label className={labelClass}>
-                        <User className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
-                        이름 <span className="text-red-400">*</span>
+                        <User className="w-4 h-4 inline mr-1.5 text-gray-400" />
+                        이름 <span className="text-red-400 text-sm font-normal">(필수)</span>
                       </label>
                       <input
                         type="text" value={profileName} onChange={(e) => setProfileName(e.target.value)}
-                        placeholder={profileCountry === "JP" ? "山田 太郎" : profileCountry === "CN" ? "张三" : profileCountry === "SA" || profileCountry === "AE" ? "محمد أحمد" : "홍길동"}
-                        required autoFocus
+                        placeholder="홍길동" required autoFocus
                         className={inputClass}
                       />
                     </div>
 
-                    {/* 일본: 후리가나 */}
+                    {/* 후리가나 (일본) */}
                     {countryFields.furigana && (
                       <div>
-                        <label className={labelClass}>
-                          <BookOpen className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
-                          フリガナ (후리가나) <span className="text-gray-300 text-xs font-normal">(선택)</span>
-                        </label>
+                        <label className={labelClass}>후리가나 (フリガナ)</label>
                         <input
                           type="text" value={furigana} onChange={(e) => setFurigana(e.target.value)}
-                          placeholder="ヤマダ タロウ"
+                          placeholder="ホンギルドン"
                           className={inputClass}
                         />
                       </div>
                     )}
 
-                    {/* 전화번호 (이메일 가입자) 또는 이메일 (전화번호 가입자) */}
-                    {loginMethod === "email" ? (
+                    {/* 생년월일 */}
+                    <div>
+                      <label className={labelClass}>
+                        <Calendar className="w-4 h-4 inline mr-1.5 text-gray-400" />
+                        생년월일 <span className="text-gray-400 text-sm font-normal">(선택)</span>
+                      </label>
+                      <input
+                        type="date" value={profileBirth} onChange={(e) => setProfileBirth(e.target.value)}
+                        className={inputClass}
+                      />
+                    </div>
+
+                    {/* 거주 국가 */}
+                    <div>
+                      <label className={labelClass}>
+                        <Globe className="w-4 h-4 inline mr-1.5 text-gray-400" />
+                        거주 국가 <span className="text-gray-400 text-sm font-normal">(선택)</span>
+                      </label>
+                      <select value={profileCountry} onChange={(e) => setProfileCountry(e.target.value)} className={inputClass + " bg-white"}>
+                        {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
+                      </select>
+                    </div>
+
+                    {/* 이메일 가입자: 휴대폰 번호 선택 입력 */}
+                    {loginMethod === "email" && (
                       <div>
                         <label className={labelClass}>
-                          <Phone className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
-                          전화번호 <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                          <Phone className="w-4 h-4 inline mr-1.5 text-gray-400" />
+                          휴대폰 번호 <span className="text-gray-400 text-sm font-normal">(선택)</span>
                         </label>
                         <input
                           type="tel" value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)}
-                          placeholder={
-                            profileCountry === "KR" ? "010-0000-0000" :
-                            profileCountry === "US" || profileCountry === "CA" ? "+1 (555) 000-0000" :
-                            profileCountry === "JP" ? "090-0000-0000" :
-                            "+XX XXXX XXXX"
-                          }
+                          placeholder="010-0000-0000"
                           className={inputClass}
                         />
                       </div>
-                    ) : (
+                    )}
+
+                    {/* 휴대폰 가입자: 이메일 선택 입력 */}
+                    {loginMethod === "phone" && (
                       <div>
                         <label className={labelClass}>
-                          <Mail className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
-                          이메일 <span className="text-gray-300 text-xs font-normal">(선택 · 알림 수신용)</span>
+                          <Mail className="w-4 h-4 inline mr-1.5 text-gray-400" />
+                          이메일 주소 <span className="text-gray-400 text-sm font-normal">(선택)</span>
                         </label>
                         <input
                           type="email" value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)}
@@ -780,25 +924,11 @@ export default function LoginPage() {
                       </div>
                     )}
 
-                    {/* 생년월일 */}
-                    <div>
-                      <label className={labelClass}>
-                        <Calendar className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
-                        생년월일 <span className="text-gray-300 text-xs font-normal">(선택)</span>
-                      </label>
-                      <input
-                        type="date" value={profileBirth} onChange={(e) => setProfileBirth(e.target.value)}
-                        max={new Date().toISOString().split("T")[0]}
-                        className={inputClass}
-                      />
-                    </div>
-
-                    {/* 국적 (홍콩·중동) */}
+                    {/* 국적 (중동) */}
                     {countryFields.nationality && (
                       <div>
                         <label className={labelClass}>
-                          <Globe className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
-                          국적 <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                          국적 <span className="text-gray-400 text-sm font-normal">(선택)</span>
                         </label>
                         <input
                           type="text" value={nationality} onChange={(e) => setNationality(e.target.value)}
@@ -812,15 +942,15 @@ export default function LoginPage() {
                     {countryFields.religion && (
                       <div>
                         <label className={labelClass}>
-                          <BookOpen className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
-                          종교 <span className="text-gray-300 text-xs font-normal">(상속법 적용 기준 · 선택)</span>
+                          <BookOpen className="w-4 h-4 inline mr-1.5 text-gray-400" />
+                          종교 <span className="text-gray-400 text-sm font-normal">(상속법 적용 기준 · 선택)</span>
                         </label>
                         <select value={religion} onChange={(e) => setReligion(e.target.value)} className={inputClass + " bg-white"}>
                           <option value="">선택 안 함</option>
                           {RELIGION_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                         </select>
                         {religion === "islam" && (
-                          <p className="mt-1.5 text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
+                          <p className="mt-2 text-sm text-amber-600 bg-amber-50 rounded-xl px-4 py-3">
                             이슬람 샤리아 상속법이 자동 적용됩니다. (남녀 상속분 2:1 원칙)
                           </p>
                         )}
@@ -831,8 +961,8 @@ export default function LoginPage() {
                     {countryFields.occupation && (
                       <div>
                         <label className={labelClass}>
-                          <Briefcase className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
-                          직업 <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                          <Briefcase className="w-4 h-4 inline mr-1.5 text-gray-400" />
+                          직업 <span className="text-gray-400 text-sm font-normal">(선택)</span>
                         </label>
                         <input
                           type="text" value={occupation} onChange={(e) => setOccupation(e.target.value)}
@@ -846,8 +976,8 @@ export default function LoginPage() {
                     {countryFields.assetScale && (
                       <div>
                         <label className={labelClass}>
-                          <DollarSign className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
-                          자산 규모 <span className="text-gray-300 text-xs font-normal">(선택 · 상속세 계산 참고용)</span>
+                          <DollarSign className="w-4 h-4 inline mr-1.5 text-gray-400" />
+                          자산 규모 <span className="text-gray-400 text-sm font-normal">(선택 · 상속세 계산 참고용)</span>
                         </label>
                         <select value={assetScale} onChange={(e) => setAssetScale(e.target.value)} className={inputClass + " bg-white"}>
                           {ASSET_SCALE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -859,8 +989,8 @@ export default function LoginPage() {
                     {countryFields.zipCode && (
                       <div>
                         <label className={labelClass}>
-                          <MapPin className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
-                          우편번호 <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                          <MapPin className="w-4 h-4 inline mr-1.5 text-gray-400" />
+                          우편번호 <span className="text-gray-400 text-sm font-normal">(선택)</span>
                         </label>
                         <input
                           type="text" value={zipCode} onChange={(e) => setZipCode(e.target.value)}
@@ -874,8 +1004,8 @@ export default function LoginPage() {
                     {countryFields.stateProvince && (
                       <div>
                         <label className={labelClass}>
-                          <Building2 className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
-                          {countryFields.stateLabel || "주/도"} <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                          <Building2 className="w-4 h-4 inline mr-1.5 text-gray-400" />
+                          {countryFields.stateLabel || "주/도"} <span className="text-gray-400 text-sm font-normal">(선택)</span>
                         </label>
                         <input
                           type="text" value={stateProvince} onChange={(e) => setStateProvince(e.target.value)}
@@ -889,8 +1019,8 @@ export default function LoginPage() {
                     {countryFields.address && (
                       <div>
                         <label className={labelClass}>
-                          <MapPin className="w-3.5 h-3.5 inline mr-1 text-gray-400" />
-                          주소 <span className="text-gray-300 text-xs font-normal">(선택)</span>
+                          <MapPin className="w-4 h-4 inline mr-1.5 text-gray-400" />
+                          주소 <span className="text-gray-400 text-sm font-normal">(선택)</span>
                         </label>
                         <input
                           type="text" value={address} onChange={(e) => setAddress(e.target.value)}
@@ -909,8 +1039,8 @@ export default function LoginPage() {
                     {loginMethod === "email" && (
                       <div>
                         <label className={labelClass}>
-                          <Gift className="w-3.5 h-3.5 inline mr-1 text-[#C9A961]" />
-                          추천인 코드 <span className="text-gray-300 text-xs font-normal">(선택 · 추천인에게 5,000P 적립)</span>
+                          <Gift className="w-4 h-4 inline mr-1.5 text-[#C9A961]" />
+                          추천인 코드 <span className="text-gray-400 text-sm font-normal">(선택 · 추천인에게 5,000P 적립)</span>
                         </label>
                         <div className="flex gap-2">
                           <input
@@ -923,7 +1053,7 @@ export default function LoginPage() {
                             }}
                             placeholder="예: AB3K7X"
                             maxLength={6}
-                            className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-[#C9A961] focus:ring-2 focus:ring-[#C9A961]/10 outline-none text-gray-800 text-sm transition-all font-mono tracking-widest uppercase"
+                            className="flex-1 px-5 py-4 rounded-2xl border-2 border-gray-200 focus:border-[#C9A961] focus:ring-2 focus:ring-[#C9A961]/10 outline-none text-gray-800 text-lg transition-all font-mono tracking-widest uppercase"
                           />
                           <button
                             type="button"
@@ -942,16 +1072,16 @@ export default function LoginPage() {
                                 setReferralChecking(false);
                               }
                             }}
-                            className="px-4 py-3 rounded-xl bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium transition-all whitespace-nowrap"
+                            className="px-5 py-4 rounded-2xl bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-40 disabled:cursor-not-allowed text-white text-base font-semibold transition-all whitespace-nowrap"
                           >
                             {referralChecking ? <Loader2 className="w-4 h-4 animate-spin" /> : "확인"}
                           </button>
                         </div>
                         {referralValidated !== null && (
-                          <div className={`mt-2 flex items-center gap-1.5 text-xs font-medium ${referralValidated.valid ? "text-green-600" : "text-red-500"}`}>
+                          <div className={`mt-2 flex items-center gap-1.5 text-sm font-medium ${referralValidated.valid ? "text-green-600" : "text-red-500"}`}>
                             {referralValidated.valid
-                              ? <><Check className="w-3.5 h-3.5" /> {referralValidated.name} 님의 추천 코드가 확인됐습니다.</>
-                              : <><X className="w-3.5 h-3.5" /> 유효하지 않은 추천인 코드입니다.</>
+                              ? <><Check className="w-4 h-4" /> {referralValidated.name} 님의 추천 코드가 확인됐습니다.</>
+                              : <><X className="w-4 h-4" /> 유효하지 않은 추천인 코드입니다.</>
                             }
                           </div>
                         )}
@@ -959,50 +1089,50 @@ export default function LoginPage() {
                     )}
 
                     {/* 약관 동의 */}
-                    <div className="border-t border-gray-100 pt-4 space-y-3">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">약관 동의</p>
+                    <div className="border-t border-gray-100 pt-5 space-y-4">
+                      <p className="text-base font-bold text-gray-600">약관 동의</p>
 
-                      <label className="flex items-start gap-3 cursor-pointer group">
+                      <label className="flex items-start gap-4 cursor-pointer group">
                         <input
                           type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)}
-                          className="mt-0.5 w-4 h-4 rounded border-gray-300 text-[#1F3864] focus:ring-[#1F3864]/20"
+                          className="mt-1 w-5 h-5 rounded border-gray-300 text-[#1F3864] focus:ring-[#1F3864]/20"
                         />
-                        <span className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
-                          <span className="text-red-400 font-medium">[필수]</span>{" "}
+                        <span className="text-base text-gray-600 group-hover:text-gray-800 transition-colors leading-relaxed">
+                          <span className="text-red-400 font-semibold">[필수]</span>{" "}
                           <a href="/terms" target="_blank" className="text-[#1F3864] underline hover:text-[#162a4e]">이용약관</a>에 동의합니다.
                         </span>
                       </label>
 
-                      <label className="flex items-start gap-3 cursor-pointer group">
+                      <label className="flex items-start gap-4 cursor-pointer group">
                         <input
                           type="checkbox" checked={agreePrivacy} onChange={(e) => setAgreePrivacy(e.target.checked)}
-                          className="mt-0.5 w-4 h-4 rounded border-gray-300 text-[#1F3864] focus:ring-[#1F3864]/20"
+                          className="mt-1 w-5 h-5 rounded border-gray-300 text-[#1F3864] focus:ring-[#1F3864]/20"
                         />
-                        <span className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
-                          <span className="text-red-400 font-medium">[필수]</span>{" "}
+                        <span className="text-base text-gray-600 group-hover:text-gray-800 transition-colors leading-relaxed">
+                          <span className="text-red-400 font-semibold">[필수]</span>{" "}
                           <a href="/privacy" target="_blank" className="text-[#1F3864] underline hover:text-[#162a4e]">개인정보처리방침</a>에 동의합니다.
                         </span>
                       </label>
 
                       {countryFields.agreeGdpr && (
-                        <label className="flex items-start gap-3 cursor-pointer group">
+                        <label className="flex items-start gap-4 cursor-pointer group">
                           <input
                             type="checkbox" checked={agreeGdpr} onChange={(e) => setAgreeGdpr(e.target.checked)}
-                            className="mt-0.5 w-4 h-4 rounded border-gray-300 text-[#1F3864] focus:ring-[#1F3864]/20"
+                            className="mt-1 w-5 h-5 rounded border-gray-300 text-[#1F3864] focus:ring-[#1F3864]/20"
                           />
-                          <span className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
-                            <span className="text-red-400 font-medium">[필수 · EU/GDPR]</span>{" "}
+                          <span className="text-base text-gray-600 group-hover:text-gray-800 transition-colors leading-relaxed">
+                            <span className="text-red-400 font-semibold">[필수 · EU/GDPR]</span>{" "}
                             GDPR에 따른 개인정보 처리에 동의합니다. 언제든지 철회 가능합니다.
                           </span>
                         </label>
                       )}
 
-                      <label className="flex items-start gap-3 cursor-pointer group">
+                      <label className="flex items-start gap-4 cursor-pointer group">
                         <input
                           type="checkbox" checked={agreeMarketing} onChange={(e) => setAgreeMarketing(e.target.checked)}
-                          className="mt-0.5 w-4 h-4 rounded border-gray-300 text-[#C9A961] focus:ring-[#C9A961]/20"
+                          className="mt-1 w-5 h-5 rounded border-gray-300 text-[#C9A961] focus:ring-[#C9A961]/20"
                         />
-                        <span className="text-sm text-gray-500 group-hover:text-gray-700 transition-colors">
+                        <span className="text-base text-gray-500 group-hover:text-gray-700 transition-colors leading-relaxed">
                           <span className="text-gray-400 font-medium">[선택]</span>{" "}
                           이벤트·혜택 정보 수신에 동의합니다.
                         </span>
@@ -1013,16 +1143,16 @@ export default function LoginPage() {
                       <button
                         type="button"
                         onClick={() => { setStep("done"); setShowWelcome(true); }}
-                        className="flex-1 border border-gray-200 text-gray-400 hover:text-gray-600 hover:border-gray-300 py-3.5 rounded-xl text-sm font-medium transition-all"
+                        className="flex-1 border-2 border-gray-200 text-gray-400 hover:text-gray-600 hover:border-gray-300 py-4 rounded-2xl text-base font-semibold transition-all"
                       >
                         나중에 입력
                       </button>
                       <button
                         type="submit" disabled={isPendingProfile || !profileName.trim() || !agreeTerms || !agreePrivacy}
-                        className="flex-2 flex-grow bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-50 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md"
+                        className="flex-[2] bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-md"
                       >
                         {isPendingProfile
-                          ? <><Loader2 className="w-4 h-4 animate-spin" /> 저장 중...</>
+                          ? <><Loader2 className="w-5 h-5 animate-spin" /> 저장 중...</>
                           : "저장하고 시작하기 →"
                         }
                       </button>
@@ -1033,18 +1163,18 @@ export default function LoginPage() {
 
               {/* ── Step 4: 완료 ── */}
               {step === "done" && !showWelcome && (
-                <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-8">
+                <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-10">
                   <motion.div
                     initial={{ scale: 0 }} animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                    className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"
+                    className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5"
                   >
-                    <CheckCircle2 className="w-8 h-8 text-green-600" />
+                    <CheckCircle2 className="w-10 h-10 text-green-600" />
                   </motion.div>
-                  <h2 className="text-2xl font-bold text-[#1F3864] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+                  <h2 className="text-3xl font-bold text-[#1F3864] mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>
                     {isNewUser ? "가입 완료!" : "로그인 완료!"}
                   </h2>
-                  <p className="text-gray-400 text-sm">대시보드로 이동합니다...</p>
+                  <p className="text-gray-400 text-lg">대시보드로 이동합니다...</p>
                 </motion.div>
               )}
 
@@ -1053,8 +1183,8 @@ export default function LoginPage() {
 
           <div className="text-center mt-6">
             <Link href="/">
-              <div className="inline-flex items-center gap-1.5 text-gray-400 hover:text-[#1F3864] text-sm transition-colors cursor-pointer">
-                <ArrowLeft className="w-3.5 h-3.5" />홈으로 돌아가기
+              <div className="inline-flex items-center gap-1.5 text-gray-400 hover:text-[#1F3864] text-base transition-colors cursor-pointer py-2 px-4 rounded-xl hover:bg-gray-100">
+                <ArrowLeft className="w-4 h-4" />홈으로 돌아가기
               </div>
             </Link>
           </div>

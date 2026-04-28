@@ -1,0 +1,1 @@
+ALTER TABLE `emailOtps` ADD `failCount` int DEFAULT 0 NOT NULL;

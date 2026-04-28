@@ -3,7 +3,7 @@
  * 이메일 입력 → 6자리 코드 발송 → 코드 검증 → 세션 생성
  */
 import { TRPCError } from "@trpc/server";
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 import { Resend } from "resend";
 import { z } from "zod";
 import { emailOtps, users } from "../../drizzle/schema";
@@ -91,6 +91,7 @@ export const emailAuthRouter = router({
   /**
    * OTP 코드 검증 및 세션 생성
    * - 코드 일치 + 미만료 → 사용자 upsert → JWT 세션 쿠키 설정
+   * - 5회 실패 시 해당 OTP 잠금
    */
   verifyOtp: publicProcedure
     .input(z.object({
@@ -103,19 +104,51 @@ export const emailAuthRouter = router({
 
       const now = new Date();
 
-      // 유효한 OTP 조회
-      const otpRows = await db.select().from(emailOtps).where(
+      // 해당 이메일의 최신 미사용 OTP 조회 (만료 여부 포함)
+      const latestOtpRows = await db.select().from(emailOtps).where(
         and(
           eq(emailOtps.email, input.email),
-          eq(emailOtps.code, input.code),
           eq(emailOtps.used, 0),
           gt(emailOtps.expiresAt, now),
         )
       ).limit(1);
 
-      if (otpRows.length === 0) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "인증 코드가 올바르지 않거나 만료되었습니다." });
+      if (latestOtpRows.length === 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "인증 코드가 만료되었습니다. 새 코드를 요청해주세요." });
       }
+
+      const latestOtp = latestOtpRows[0];
+
+      // 5회 실패 잠금 확인
+      if (latestOtp.failCount >= 5) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "인증 시도 횟수를 초과했습니다. 새 인증 코드를 요청해주세요.",
+        });
+      }
+
+      // 코드 일치 확인
+      if (latestOtp.code !== input.code) {
+        // 실패 횟수 증가
+        await db.update(emailOtps)
+          .set({ failCount: sql`${emailOtps.failCount} + 1` })
+          .where(eq(emailOtps.id, latestOtp.id));
+
+        const remaining = 5 - (latestOtp.failCount + 1);
+        if (remaining <= 0) {
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: "인증 시도 횟수를 초과했습니다. 새 인증 코드를 요청해주세요.",
+          });
+        }
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `인증 코드가 올바르지 않습니다. (남은 시도: ${remaining}회)`,
+        });
+      }
+
+      // 코드 일치 확인 (유효한 OTP)
+      const otpRows = [latestOtp];
 
       // OTP 사용 처리
       await db.update(emailOtps).set({ used: 1 }).where(eq(emailOtps.id, otpRows[0].id));
