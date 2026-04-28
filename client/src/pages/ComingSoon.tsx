@@ -5,10 +5,10 @@
  * - 홈 버튼 클릭 → 비밀번호 모달 → 정답(2026) 입력 시 /home 진입
  * - 비밀번호는 sessionStorage에 저장 (탭 닫으면 초기화)
  */
-import { useState, useRef, useEffect } from "react";
+import { useEffect } from "react";
 import { useLocation } from "wouter";
-import { motion, AnimatePresence } from "framer-motion";
-import { Home, Lock, Eye, EyeOff, X } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 
 const HERO_IMAGE =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/hero-global-elders-v2-DB4mTEuKjbV7DYjdv5fYBA.webp";
@@ -20,51 +20,11 @@ const SESSION_KEY = "ew_unlocked";
 
 export default function ComingSoon() {
   const [, navigate] = useLocation();
-  const [showModal, setShowModal] = useState(false);
-  const [input, setInput] = useState("");
-  const [showPw, setShowPw] = useState(false);
-  const [error, setError] = useState(false);
-  const [shake, setShake] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  // 이미 인증된 경우 바로 홈으로
+  // 항상 바로 홈으로 이동 가능 (비밀번호 잠금 해제)
   useEffect(() => {
-    if (sessionStorage.getItem(SESSION_KEY) === "1") {
-      navigate("/home");
-    }
-  }, [navigate]);
-
-  const openModal = () => {
-    setShowModal(true);
-    setInput("");
-    setError(false);
-    setTimeout(() => inputRef.current?.focus(), 100);
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-    setInput("");
-    setError(false);
-  };
-
-  const handleSubmit = () => {
-    if (input === PASSWORD) {
-      sessionStorage.setItem(SESSION_KEY, "1");
-      setShowModal(false);
-      navigate("/home");
-    } else {
-      setError(true);
-      setShake(true);
-      setTimeout(() => setShake(false), 500);
-      setInput("");
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") handleSubmit();
-    if (e.key === "Escape") closeModal();
-  };
+    sessionStorage.setItem(SESSION_KEY, "1");
+  }, []);
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-[#0d1b2e]">
@@ -182,118 +142,22 @@ export default function ComingSoon() {
           나의 마지막 서명
         </motion.p>
 
-        {/* 홈 버튼 */}
+        {/* 바로가기 버튼 */}
         <motion.button
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.65 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.97 }}
-          onClick={openModal}
-          className="flex items-center gap-2.5 bg-white/15 hover:bg-white/25 border border-white/30 hover:border-[#C9A961]/60 text-white font-semibold text-base px-7 py-3.5 rounded-full backdrop-blur-sm transition-all duration-300 shadow-lg"
+          onClick={() => navigate("/home")}
+          className="flex items-center gap-2.5 bg-[#C9A961] hover:bg-[#b8944e] text-[#0d1b2e] font-bold text-base px-8 py-4 rounded-full transition-all duration-300 shadow-lg shadow-[#C9A961]/30"
         >
-          <Home size={18} className="text-[#C9A961]" />
-          홈
+          바로가기
+          <ArrowRight size={18} />
         </motion.button>
       </div>
 
-      {/* 비밀번호 모달 */}
-      <AnimatePresence>
-        {showModal && (
-          <>
-            {/* 배경 블러 */}
-            <motion.div
-              key="backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={closeModal}
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
-            />
 
-            {/* 모달 카드 */}
-            <motion.div
-              key="modal"
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className={`fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm mx-4 bg-[#0d1b2e]/95 border border-white/20 rounded-2xl p-8 shadow-2xl backdrop-blur-xl ${shake ? "animate-[wiggle_0.4s_ease-in-out]" : ""}`}
-            >
-              {/* 닫기 버튼 */}
-              <button
-                onClick={closeModal}
-                className="absolute top-4 right-4 text-white/40 hover:text-white/80 transition-colors"
-              >
-                <X size={18} />
-              </button>
-
-              {/* 아이콘 */}
-              <div className="flex justify-center mb-5">
-                <div className="w-14 h-14 rounded-full bg-[#C9A961]/15 border border-[#C9A961]/30 flex items-center justify-center">
-                  <Lock size={24} className="text-[#C9A961]" />
-                </div>
-              </div>
-
-              <h2 className="text-white text-xl font-bold text-center mb-1">
-                관리자 전용
-              </h2>
-              <p className="text-white/50 text-sm text-center mb-6">
-                비밀번호를 입력하세요
-              </p>
-
-              {/* 입력 필드 */}
-              <div className="relative mb-4">
-                <input
-                  ref={inputRef}
-                  type={showPw ? "text" : "password"}
-                  value={input}
-                  onChange={(e) => {
-                    setInput(e.target.value);
-                    setError(false);
-                  }}
-                  onKeyDown={handleKeyDown}
-                  placeholder="비밀번호"
-                  className={`w-full bg-white/10 border ${error ? "border-red-400/60" : "border-white/20"} text-white placeholder-white/30 rounded-xl px-4 py-3 pr-12 text-base outline-none focus:border-[#C9A961]/60 transition-colors`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPw((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
-                >
-                  {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-
-              {/* 에러 메시지 */}
-              {error && (
-                <p className="text-red-400 text-sm text-center mb-3">
-                  비밀번호가 올바르지 않습니다
-                </p>
-              )}
-
-              {/* 확인 버튼 */}
-              <button
-                onClick={handleSubmit}
-                className="w-full bg-[#C9A961] hover:bg-[#b8944e] text-[#0d1b2e] font-bold py-3 rounded-xl transition-colors text-base"
-              >
-                확인
-              </button>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* shake 애니메이션 */}
-      <style>{`
-        @keyframes wiggle {
-          0%, 100% { transform: translate(-50%, -50%) translateX(0); }
-          20% { transform: translate(-50%, -50%) translateX(-8px); }
-          40% { transform: translate(-50%, -50%) translateX(8px); }
-          60% { transform: translate(-50%, -50%) translateX(-6px); }
-          80% { transform: translate(-50%, -50%) translateX(6px); }
-        }
-      `}</style>
     </div>
   );
 }

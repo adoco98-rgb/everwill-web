@@ -167,14 +167,14 @@
 - [x] 가입 퍼널 대시보드: 단계별 카드 UI 추가 (단계명, 진입수, 이탈수, 이탈률 per-step 그리드)
 
 ## 로그인 개선: 이메일 발송 수정 + 휴대폰 OTP 추가
-- [ ] 이메일 OTP 발송 오류 원인 진단 및 수정 (Resend API 키/도메인 확인)
-- [ ] DB: phone_otps 테이블 (phone, code, expiresAt, used, createdAt)
-- [ ] SMS 발송 인프라 (Twilio 또는 알리고 API 연동)
-- [ ] API: phoneAuth.sendOtp (휴대폰 번호 입력 → SMS 발송)
-- [ ] API: phoneAuth.verifyOtp (코드 검증 → 세션 발급)
-- [ ] LoginPage UI: 이메일/휴대폰 탭 전환 UI
-- [ ] LoginPage UI: 국가코드 선택 드롭다운 + 휴대폰 번호 입력
-- [ ] LoginPage UI: 휴대폰 OTP 6자리 입력 화면
+- [x] 이메일 OTP 발송 오류 원인 진단 및 수정 (Resend API 키/도메인 확인)
+- [x] DB: phone_otps 테이블 (Twilio Verify 사용으로 DB 불필요)
+- [x] SMS 발송 인프라 (Twilio Verify API 연동)
+- [x] API: phoneAuth.sendOtp (휴대폰 번호 입력 → SMS 발송)
+- [x] API: phoneAuth.verifyOtp (코드 검증 → 세션 발급)
+- [x] LoginPage UI: 이메일/휴대폰 탭 전환 UI
+- [x] LoginPage UI: 국가코드 선택 드롭다운 + 휴대폰 번호 입력
+- [x] LoginPage UI: 휴대폰 OTP 6자리 입력 화면
 
 ## Twilio Verify SMS OTP (신규)
 - [x] env.ts에 TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_VERIFY_SERVICE_SID 추가
@@ -188,10 +188,15 @@
 - [x] 체크포인트 저장
 
 ## 시니어 친화적 UI 개선 + 보안 강화
-- [ ] LoginPage 글자 크기 확대 (최소 18px), 버튼 크기 확대 (h-14 이상)
-- [ ] 단계 안내 명확화 (1단계/2단계/3단계 진행 표시 + 각 단계 설명)
-- [ ] 한국어 완전화 (영어 오류 메시지 제거, 모든 안내문 한국어)
-- [ ] OTP 만료 카운트다운 타이머 (9:59 → 0:00)
-- [ ] 재발송 버튼 (60초 쿨다운)
-- [ ] OTP 5회 실패 시 잠금 (서버 + UI)
-- [ ] 체크포인트 저장
+- [x] LoginPage 글자 크기 확대 (최소 18px), 버튼 크기 확대 (h-14 이상)
+- [x] 단계 안내 명확화 (1단계/2단계/3단계 진행 표시 + 각 단계 설명)
+- [x] 한국어 완전화 (영어 오류 메시지 제거, 모든 안내문 한국어)
+- [x] OTP 만료 카운트다운 타이머 (9:59 → 0:00)
+- [x] 재발송 버튼 (60초 쿨다운)
+- [x] OTP 5회 실패 시 잠금 (서버 + UI)
+- [x] 체크포인트 저장
+
+## ComingSoon 페이지 개선
+- [x] 홈 버튼 → 바로가기 버튼으로 변경 (골드 배경, ArrowRight 아이콘)
+- [x] 비밀번호 잠금 해제 (sessionStorage에 자동으로 "1" 저장)
+- [x] 비밀번호 모달 완전 제거
