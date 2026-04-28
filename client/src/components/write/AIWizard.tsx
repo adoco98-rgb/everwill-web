@@ -32,7 +32,22 @@ export default function AIWizard({ onBack }: Props) {
   const [autoLoaded, setAutoLoaded] = useState(false);
   // 페이월 모달 상태
   const [showPaywall, setShowPaywall] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const [profileLoaded, setProfileLoaded] = useState(false);
+
+  // 회원가입 정보 자동 채움 (최초 1회)
+  useEffect(() => {
+    if (!user || profileLoaded) return;
+    const profileUpdate: Partial<WillData> = {};
+    if (user.name) profileUpdate.testatorName = user.name;
+    if (user.phone) profileUpdate.testatorPhone = user.phone;
+    if (user.address) profileUpdate.testatorAddress = user.address;
+    if (Object.keys(profileUpdate).length > 0) {
+      setWill((prev) => ({ ...prev, ...profileUpdate }));
+      toast.success("회원 정보를 자동으로 불러왔습니다", { duration: 3000 });
+    }
+    setProfileLoaded(true);
+  }, [user, profileLoaded]);
 
   // 등록된 재산 + 상속자 자동 불러오기
   const { data: willData } = trpc.asset.getWillData.useQuery(

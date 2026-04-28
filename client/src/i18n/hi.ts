@@ -10,6 +10,7 @@ export const hi = {
     lawyers: "वन-स्टॉप सेवा",
     taxCalc: "उत्तराधिकार सेवा",
     manager: "मेरा खाता",
+    letter: "My Letter",
     startFree: "मुफ्त शुरू करें",
     login: "लॉग इन",
     logout: "लॉग आउट",

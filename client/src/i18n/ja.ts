@@ -10,6 +10,7 @@ export const ja = {
     lawyers: "ワンストップサービス",
     taxCalc: "相続サービス",
     manager: "マイページ",
+    letter: "My Letter",
     startFree: "無料で始める",
     login: "ログイン",
     logout: "ログアウト",

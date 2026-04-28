@@ -10,6 +10,7 @@ export const ru = {
     lawyers: "Комплексный Сервис",
     taxCalc: "Наследственный Сервис",
     manager: "Мой аккаунт",
+    letter: "My Letter",
     startFree: "Начать бесплатно",
     login: "Войти",
     logout: "Выйти",

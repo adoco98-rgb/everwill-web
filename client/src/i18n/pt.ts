@@ -10,6 +10,7 @@ export const pt = {
     lawyers: "Serviço Completo",
     taxCalc: "Serviço de Herança",
     manager: "Minha conta",
+    letter: "My Letter",
     startFree: "Começar grátis",
     login: "Entrar",
     logout: "Sair",

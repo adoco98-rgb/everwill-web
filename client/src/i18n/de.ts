@@ -10,6 +10,7 @@ export const de = {
     lawyers: "One-Stop-Service",
     taxCalc: "Erbschaftsservice",
     manager: "Mein Konto",
+    letter: "My Letter",
     startFree: "Kostenlos starten",
     login: "Anmelden",
     logout: "Abmelden",

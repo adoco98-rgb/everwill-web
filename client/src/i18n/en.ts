@@ -10,6 +10,7 @@ export const en = {
     lawyers: "One-Stop Service",
     taxCalc: "Inheritance Service",
     manager: "My Account",
+    letter: "My Letter",
     startFree: "Get Started Free",
     login: "Log In",
     logout: "Log Out",

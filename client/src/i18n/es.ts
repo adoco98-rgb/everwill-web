@@ -10,6 +10,7 @@ export const es = {
     lawyers: "Servicio Integral",
     taxCalc: "Servicio de Herencia",
     manager: "Mi Cuenta",
+    letter: "My Letter",
     startFree: "Empezar Gratis",
     login: "Iniciar Sesión",
     logout: "Cerrar Sesión",

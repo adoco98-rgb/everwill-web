@@ -10,6 +10,7 @@ export const ar = {
     lawyers: "خدمة شاملة",
     taxCalc: "خدمة الإرث",
     manager: "حسابي",
+    letter: "My Letter",
     startFree: "ابدأ مجاناً",
     login: "تسجيل الدخول",
     logout: "تسجيل الخروج",

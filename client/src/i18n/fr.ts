@@ -10,6 +10,7 @@ export const fr = {
     lawyers: "Service Complet",
     taxCalc: "Service de Succession",
     manager: "Mon compte",
+    letter: "My Letter",
     startFree: "Commencer gratuitement",
     login: "Connexion",
     logout: "Déconnexion",

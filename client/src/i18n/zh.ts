@@ -10,6 +10,7 @@ export const zh = {
     lawyers: "一站式服务",
     taxCalc: "遗产服务",
     manager: "我的账户",
+    letter: "My Letter",
     startFree: "免费开始",
     login: "登录",
     logout: "退出",

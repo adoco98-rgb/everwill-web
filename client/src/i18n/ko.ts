@@ -11,6 +11,7 @@ export const ko = {
     lawyers: "원스톱 서비스",
     taxCalc: "상속 서비스",
     manager: "EverWill 매니저",
+    letter: "나의 편지",
     startFree: "무료로 시작하기",
     login: "로그인",
     logout: "로그아웃",

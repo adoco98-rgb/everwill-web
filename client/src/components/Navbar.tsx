@@ -104,7 +104,7 @@ export default function Navbar() {
     { label: t.nav.global, href: "#global" },
     { label: t.nav.lawyers, href: "#lawyers" },
     { label: t.nav.taxCalc, href: "/tax", isPage: true },
-    { label: (t.nav as any).letter ?? "나의 편지", href: "/letter", isPage: true },
+    { label: t.nav.letter ?? "나의 편지", href: "/letter", isPage: true },
   ];
 
   return (
