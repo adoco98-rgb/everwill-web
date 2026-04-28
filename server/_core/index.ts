@@ -9,6 +9,12 @@ import { registerStripeRoutes } from "../stripe/stripeRoutes";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import {
+  otpSendLimiter,
+  otpVerifyLimiter,
+  inquiryCreateLimiter,
+  signupTrackingLimiter,
+} from "./rateLimiter";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -37,6 +43,19 @@ async function startServer() {
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+  // Rate Limiting 엔드포인트별 적용
+  // OTP 발송 제한 (15분 5회)
+  app.use("/api/trpc/auth.email.sendOtp", otpSendLimiter);
+  app.use("/api/trpc/auth.phone.sendOtp", otpSendLimiter);
+  // OTP 검증 제한 (15분 10회)
+  app.use("/api/trpc/auth.email.verifyOtp", otpVerifyLimiter);
+  app.use("/api/trpc/auth.phone.verifyOtp", otpVerifyLimiter);
+  // 문의 접수 제한 (1시간 10회)
+  app.use("/api/trpc/inquiry.create", inquiryCreateLimiter);
+  // 회원가입 추적 제한 (1시간 200회)
+  app.use("/api/trpc/signupTracking.recordEvent", signupTrackingLimiter);
+
   registerStorageProxy(app);
   registerOAuthRoutes(app);
   registerStripeRoutes(app);

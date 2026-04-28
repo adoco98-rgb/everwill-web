@@ -18,15 +18,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 export function registerStripeRoutes(app: Express) {
-  /* ─── 1. Checkout Session 생성 ─── */
+  /* ─── 1. Checkout Session 생성 (로그인 필수) ─── */
   app.post("/api/stripe/checkout", async (req: Request, res: Response) => {
     try {
-      const { items, customerEmail, customerName, userId, metadata } = req.body as {
+      const { items, customerName } = req.body as {
         items: { key: ProductKey; quantity?: number }[];
-        customerEmail?: string;
         customerName?: string;
-        userId?: string;
-        metadata?: Record<string, string>;
       };
 
       if (!items || items.length === 0) {
@@ -34,17 +31,17 @@ export function registerStripeRoutes(app: Express) {
         return;
       }
 
-      // 로그인된 사용자 정보 가져오기
-      let authenticatedUserId: string | undefined = userId;
-      let authenticatedEmail: string | undefined = customerEmail;
+      // 로그인 필수: 서버에서만 사용자 정보 주입 (클라이언트 제공 userId/email 신뢰 안 함)
+      let authenticatedUserId: string | undefined;
+      let authenticatedEmail: string | undefined;
       try {
         const user = await sdk.authenticateRequest(req);
         if (user) {
           authenticatedUserId = user.id.toString();
-          authenticatedEmail = user.email || customerEmail;
+          authenticatedEmail = user.email || undefined;
         }
       } catch {
-        // 비로그인 결제도 허용
+        // 비로그인 시 익명 결제 허용
       }
 
       const origin = req.headers.origin || "http://localhost:3000";
@@ -79,7 +76,6 @@ export function registerStripeRoutes(app: Express) {
           customer_email: authenticatedEmail || "",
           customer_name: customerName || "",
           items: items.map((i) => i.key).join(","),
-          ...metadata,
         },
         success_url: `${origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/payment/cancel`,
@@ -170,12 +166,37 @@ export function registerStripeRoutes(app: Express) {
     }
   );
 
-  /* ─── 3. 세션 상태 조회 ─── */
+  /* ─── 3. 세션 상태 조회 (로그인 필수 + 세션 소유자만 조회 가능) ─── */
   app.get("/api/stripe/session/:id", async (req: Request, res: Response) => {
     try {
+      // 인증 확인: 로그인한 사용자만 조회 가능
+      let authenticatedUser: Awaited<ReturnType<typeof sdk.authenticateRequest>> | null = null;
+      try {
+        authenticatedUser = await sdk.authenticateRequest(req);
+      } catch {
+        res.status(401).json({ error: "로그인이 필요합니다." });
+        return;
+      }
+      if (!authenticatedUser) {
+        res.status(401).json({ error: "로그인이 필요합니다." });
+        return;
+      }
+
       const session = await stripe.checkout.sessions.retrieve(req.params.id, {
         expand: ["line_items"],
       });
+
+      // 세션 소유자 확인: metadata.user_id 또는 customer_email이 일치해야 함
+      const isOwner =
+        session.metadata?.user_id === authenticatedUser.id.toString() ||
+        (session.customer_email && session.customer_email === authenticatedUser.email) ||
+        authenticatedUser.role === "admin";
+
+      if (!isOwner) {
+        res.status(403).json({ error: "이 결제 세션에 접근할 권한이 없습니다." });
+        return;
+      }
+
       res.json({
         status: session.status,
         paymentStatus: session.payment_status,

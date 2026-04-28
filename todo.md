@@ -200,3 +200,13 @@
 - [x] 홈 버튼 → 바로가기 버튼으로 변경 (골드 배경, ArrowRight 아이콘)
 - [x] 비밀번호 잠금 해제 (sessionStorage에 자동으로 "1" 저장)
 - [x] 비밀번호 모달 완전 제거
+
+## 보안 강화 (Security Hardening)
+- [x] [P1] InternalPage(/799805) 클라이언트 하드코딩 비밀번호 → 서버사이드 admin role 인증으로 교체
+- [x] [P1] /799805 라우트에 useAuth() + user.role === 'admin' 체크 적용
+- [x] [P2] GET /api/stripe/session/:id 엔드포인트에 로그인 인증 추가 (세션 소유자만 조회 가능)
+- [x] [P2] applyReferral publicProcedure → protectedProcedure로 변경 (타인 이메일 조작 방지)
+- [x] [P3] Rate Limiting 미들웨어 추가 (express-rate-limit): OTP 발송 5회/15분, 문의 접수 10회/시간, 회원가입 추적 200회/시간
+- [ ] [P3] sendOtp(이메일/휴대폰) 동일 이메일/번호 재발송 1분 쿨다운 서버 적용
+- [ ] [P4] 관리자 전용 프로시저(inquiryRouter 등)에서 inline role 체크 → adminProcedure로 통일
+- [ ] [P4] 세션 쿠키 SameSite=lax로 변경 (현재 none → CSRF 위험)

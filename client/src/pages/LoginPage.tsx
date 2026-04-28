@@ -460,8 +460,8 @@ export default function LoginPage() {
       });
       if (referralCode.trim() && referralValidated?.valid) {
         applyReferral.mutate(
-          { newUserEmail: email, referralCode: referralCode.trim().toUpperCase() },
-          { onSuccess: () => toast.success("추천인 코드가 적용됐습니다!") }
+          { referralCode: referralCode.trim().toUpperCase() },
+          { onSuccess: () => toast.success("추청인 코드가 적용됐습니다!") }
         );
       }
     } else {

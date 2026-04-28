@@ -1,6 +1,6 @@
 /**
  * 내부 기밀 사업기획서 페이지 (/799805)
- * - 비밀번호 보호 게이트
+ * - 서버사이드 admin role 인증 게이트 (클라이언트 비밀번호 제거)
  * - 세부 투자처/단가/파트너사 정보
  * - 마케팅 전략 세부 (채널별 예산, KPI)
  * - 재무 상세 모델 (월별 현금흐름, BEP)
@@ -9,11 +9,10 @@
  */
 
 import { useState } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import {
   Lock,
-  Eye,
-  EyeOff,
   Shield,
   AlertTriangle,
   TrendingUp,
@@ -55,8 +54,7 @@ import {
   Area,
 } from "recharts";
 
-// ── 비밀번호 (환경에서 관리하거나 서버 검증으로 교체 권장) ──
-const ACCESS_CODE = "0712";
+// ── 비밀번호 게이트 제거됨 — 서버사이드 admin role로 대체 ──
 
 // ── 월별 현금흐름 데이터 (단위: 만원) ──
 const CASHFLOW_DATA = [
@@ -399,76 +397,52 @@ function Accordion({ title, children, color }: { title: string; children: React.
 
 // ── 메인 컴포넌트 ──
 export default function InternalPage() {
-  const [inputCode, setInputCode] = useState("");
-  const [showCode, setShowCode] = useState(false);
-  const [unlocked, setUnlocked] = useState(false);
-  const [error, setError] = useState(false);
+  const { user, loading } = useAuth();
   const [activeSection, setActiveSection] = useState("overview");
 
-  const handleUnlock = () => {
-    if (inputCode === ACCESS_CODE) {
-      setUnlocked(true);
-      setError(false);
-    } else {
-      setError(true);
-      setInputCode("");
-    }
-  };
+  // ── 로딩 중 ──
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0f1e] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-10 h-10 text-[#C9A961] animate-spin" />
+          <p className="text-white/40 text-sm">인증 확인 중...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // ── 잠금 화면 ──
-  if (!unlocked) {
+  // ── 비로그인 또는 admin 아닌 경우 접근 거부 ──
+  if (!user || user.role !== "admin") {
     return (
       <div className="min-h-screen bg-[#0a0f1e] flex items-center justify-center px-4">
-        <div className="w-full max-w-md">
-          {/* 로고 */}
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#1F3864] border border-[#C9A961]/30 mb-4">
-              <Lock className="w-8 h-8 text-[#C9A961]" />
-            </div>
-            <h1 className="text-2xl font-extrabold text-white mb-2">내부 기밀 문서</h1>
-            <p className="text-white/40 text-sm">SARAM Corp. · EverWill 내부 사업기획서</p>
-            <div className="mt-3 inline-flex items-center gap-2 bg-red-500/10 border border-red-500/30 rounded-full px-4 py-1.5">
-              <AlertTriangle className="w-4 h-4 text-red-400" />
-              <span className="text-red-400 text-xs font-medium">외부 공개 금지 · CONFIDENTIAL</span>
-            </div>
+        <div className="w-full max-w-md text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-900/30 border border-red-500/30 mb-6">
+            <Shield className="w-8 h-8 text-red-400" />
           </div>
-
-          {/* 입력 폼 */}
-          <div className="bg-[#1a2035] rounded-3xl p-8 border border-white/10">
-            <label className="block text-white/60 text-sm mb-3">접근 코드 입력</label>
-            <div className="relative mb-4">
-              <input
-                type={showCode ? "text" : "password"}
-                value={inputCode}
-                onChange={(e) => { setInputCode(e.target.value); setError(false); }}
-                onKeyDown={(e) => e.key === "Enter" && handleUnlock()}
-                placeholder="접근 코드를 입력하세요"
-                className={`w-full bg-[#0d1525] border rounded-xl px-4 py-3.5 text-white placeholder-white/20 outline-none transition-colors pr-12 text-lg tracking-widest ${
-                  error ? "border-red-500" : "border-white/10 focus:border-[#C9A961]/50"
-                }`}
-              />
-              <button
-                onClick={() => setShowCode(!showCode)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60"
+          <h1 className="text-2xl font-extrabold text-white mb-2">접근 권한 없음</h1>
+          <p className="text-white/40 text-sm mb-2">이 페이지는 관리자 전용입니다.</p>
+          <div className="mt-3 inline-flex items-center gap-2 bg-red-500/10 border border-red-500/30 rounded-full px-4 py-1.5 mb-8">
+            <AlertTriangle className="w-4 h-4 text-red-400" />
+            <span className="text-red-400 text-xs font-medium">외부 공개 금지 · CONFIDENTIAL</span>
+          </div>
+          <div className="flex flex-col gap-3">
+            {!user && (
+              <a
+                href="/login"
+                className="w-full bg-[#C9A961] hover:bg-[#d4b870] text-[#1F3864] font-bold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2"
               >
-                {showCode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-            {error && (
-              <p className="text-red-400 text-sm mb-4 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4" />
-                접근 코드가 올바르지 않습니다.
-              </p>
+                <Lock className="w-5 h-5" />
+                관리자 로그인
+              </a>
             )}
-            <button
-              onClick={handleUnlock}
-              className="w-full bg-[#C9A961] hover:bg-[#d4b870] text-[#1F3864] font-bold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2"
+            <a
+              href="/home"
+              className="w-full bg-white/10 hover:bg-white/15 text-white font-medium py-3 rounded-xl transition-colors"
             >
-              <Shield className="w-5 h-5" />
-              문서 열기
-            </button>
+              홈으로 돌아가기
+            </a>
           </div>
-
           <p className="text-center text-white/20 text-xs mt-6">
             © 2025 SARAM Corp. · 무단 접근 시 법적 조치
           </p>

@@ -50,26 +50,23 @@ export const referralRouter = router({
     }),
 
   /**
-   * 회원가입 시 추천인 코드 등록 및 포인트 적립
-   * - 신규 가입자의 referredBy 설정
-   * - 추천인에게 5,000포인트 적립
-   * - 피추천인에게도 가입 보너스 0포인트 (추후 설정 가능)
+   * 회원가입 시 추청인 코드 등록 및 포인트 적립
+   * - 로그인한 본인만 자신의 추청인 코드 등록 가능 (타인 이메일 조작 방지)
+   * - 추청인에게 5,000포인트 적립
    */
-  applyReferral: publicProcedure
+  applyReferral: protectedProcedure
     .input(z.object({
-      newUserEmail: z.string().email(),
       referralCode: z.string().min(1),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
 
       const code = input.referralCode.toUpperCase().trim();
-      const newUserOpenId = `email:${input.newUserEmail}`;
 
-      // 신규 가입자 조회
+      // 로그인한 본인을 신규 가입자로 사용
       const newUserRows = await db.select().from(users)
-        .where(eq(users.openId, newUserOpenId)).limit(1);
+        .where(eq(users.id, ctx.user.id)).limit(1);
       if (newUserRows.length === 0) {
         throw new TRPCError({ code: "NOT_FOUND", message: "사용자를 찾을 수 없습니다." });
       }
@@ -110,7 +107,7 @@ export const referralRouter = router({
         type: "referral_reward",
         amount: REFERRAL_REWARD_POINTS,
         balanceAfter: newBalance,
-        description: `${newUser.name || input.newUserEmail} 님 추천 보상`,
+        description: `${newUser.name || newUser.email || newUser.phone || "회원"} 님 추청 보상`,
         relatedUserId: newUser.id,
         createdAt: new Date(),
       });
