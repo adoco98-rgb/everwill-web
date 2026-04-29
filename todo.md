@@ -296,3 +296,21 @@
 - [x] 대시보드 멤버십 카드 페이지 (/dashboard/membership) - QR 표시, 다운로드, 인쇄
 - [x] 사이드바 메뉴에 "멤버십 카드" 항목 추가
 - [x] App.tsx에 /profile/:qrCode 라우트 등록
+
+## 2단계 자산 인증 시스템
+- [x] DB: asset_verifications 테이블 (userId, status, idPhotoKey, selfieKey, consentAt, signatureKey, reviewedAt, reviewNote)
+- [x] DB: asset_documents 테이블 (verificationId, type, label, fileKey, fileUrl, uploadedAt)
+- [x] DB 마이그레이션 실행 (pnpm db:push)
+- [x] tRPC: assetVerify.getStatus (내 인증 상태 조회)
+- [x] tRPC: assetVerify.uploadIdPhoto / uploadSelfie / uploadDocument (S3 업로드 + DB 저장)
+- [x] tRPC: assetVerify.deleteDocument (서류 삭제)
+- [x] tRPC: assetVerify.submitVerification (동의 + 서명 후 검토 요청)
+- [x] 자산 인증 페이지 (/dashboard/asset-verify) - 4단계 마법사
+  - 1단계: 신분증 + 얼굴 사진 업로드
+  - 2단계: 자산 서류 업로드 (6가지 유형: 부동산등기부등본/통장잔액/자산내역서/보험증권/주식잔고/기타)
+  - 3단계: 본인 확인 동의 체크박스 (5개 조항)
+  - 4단계: 캔버스 전자 서명 + 제출 요약
+- [x] 대시보드 사이드바에 "자산 인증" 메뉴 추가
+- [x] App.tsx에 /dashboard/asset-verify 라우트 등록
+- [ ] 인증 완료 후 대시보드 홈에 인증 배지 표시
+- [ ] 관리자 페이지에 자산 인증 서류 검토 섹션 추가

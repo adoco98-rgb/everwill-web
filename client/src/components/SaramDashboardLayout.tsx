@@ -18,6 +18,7 @@ import {
   Home,
   MessageSquare,
   QrCode,
+  ShieldCheck,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -29,6 +30,7 @@ const menuItems = [
   { icon: Award, label: "Badge 관리", path: "/dashboard/badge" },
   { icon: Shield, label: "인증 현황", path: "/dashboard/certification" },
   { icon: QrCode, label: "멤버십 카드", path: "/dashboard/membership" },
+  { icon: ShieldCheck, label: "자산 인증", path: "/dashboard/asset-verify" },
   { icon: MessageSquare, label: "1:1 문의", path: "/dashboard/inquiries" },
   { icon: User, label: "프로필 설정", path: "/dashboard/profile" },
 ];

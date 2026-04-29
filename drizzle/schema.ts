@@ -247,6 +247,84 @@ export const siteStats = mysqlTable("siteStats", {
 export type SiteStat = typeof siteStats.$inferSelect;
 
 /**
+ * 자산 인증 테이블
+ * 2단계 자산 인증: 신분증·얼굴사진·자산서류 업로드 + 본인확인 동의 + 전자서명
+ */
+export const assetVerifications = mysqlTable("assetVerifications", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 신청자 사용자 ID */
+  userId: int("userId").notNull().unique(),
+  /** 인증 상태 */
+  status: mysqlEnum("status", [
+    "pending",    // 서류 업로드 중
+    "submitted",  // 검토 요청 완료
+    "reviewing",  // 관리자 검토 중
+    "approved",   // 인증 승인
+    "rejected",   // 반려 (재신청 필요)
+  ]).default("pending").notNull(),
+  /** 신분증 사진 S3 키 */
+  idPhotoKey: varchar("idPhotoKey", { length: 512 }),
+  /** 신분증 사진 URL */
+  idPhotoUrl: text("idPhotoUrl"),
+  /** 얼굴(셀피) 사진 S3 키 */
+  selfieKey: varchar("selfieKey", { length: 512 }),
+  /** 얼굴(셀피) 사진 URL */
+  selfieUrl: text("selfieUrl"),
+  /** 본인 확인 동의 시각 */
+  consentAt: timestamp("consentAt"),
+  /** 전자 서명 이미지 S3 키 */
+  signatureKey: varchar("signatureKey", { length: 512 }),
+  /** 전자 서명 이미지 URL */
+  signatureUrl: text("signatureUrl"),
+  /** 검토 완료 시각 */
+  reviewedAt: timestamp("reviewedAt"),
+  /** 검토 메모 (관리자용) */
+  reviewNote: text("reviewNote"),
+  /** 검토한 관리자 ID */
+  reviewedBy: int("reviewedBy"),
+  /** 검토 요청 시각 */
+  submittedAt: timestamp("submittedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AssetVerification = typeof assetVerifications.$inferSelect;
+export type InsertAssetVerification = typeof assetVerifications.$inferInsert;
+
+/**
+ * 자산 인증 서류 테이블
+ * 부동산 등기부등본, 통장 잔액 사본 등 자산별 서류
+ */
+export const assetDocuments = mysqlTable("assetDocuments", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 자산 인증 ID */
+  verificationId: int("verificationId").notNull(),
+  /** 서류 유형 */
+  type: mysqlEnum("type", [
+    "real_estate_registry",  // 부동산 등기부등본
+    "bank_statement",        // 통장 잔액 사본
+    "asset_list",            // 자산내역서
+    "insurance_policy",      // 보험증권
+    "stock_statement",       // 주식 잔고 증명
+    "other",                 // 기타
+  ]).notNull(),
+  /** 서류 라벨 (사용자 입력 설명) */
+  label: varchar("label", { length: 256 }),
+  /** S3 파일 키 */
+  fileKey: varchar("fileKey", { length: 512 }).notNull(),
+  /** 파일 URL */
+  fileUrl: text("fileUrl").notNull(),
+  /** 파일 원본 이름 */
+  fileName: varchar("fileName", { length: 256 }),
+  /** 파일 MIME 타입 */
+  mimeType: varchar("mimeType", { length: 128 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AssetDocument = typeof assetDocuments.$inferSelect;
+export type InsertAssetDocument = typeof assetDocuments.$inferInsert;
+
+/**
  * 포인트 내역 테이블
  * 추천인 적립, 사용, 만료 등 포인트 변동 이력
  */

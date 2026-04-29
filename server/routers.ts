@@ -13,6 +13,7 @@ import { farewellRouter } from "./routers/farewellRouter";
 import { signupTrackingRouter } from "./routers/signupTrackingRouter";
 import { phoneAuthRouter } from "./routers/phoneAuthRouter";
 import { qrRouter } from "./routers/qrRouter";
+import { assetVerifyRouter } from "./routers/assetVerifyRouter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -49,6 +50,8 @@ export const appRouter = router({
   signupTracking: signupTrackingRouter,
   // QR 코드 라우터
   qr: qrRouter,
+  // 자산 인증 라우터
+  assetVerify: assetVerifyRouter,
 });
 
 export type AppRouter = typeof appRouter;
