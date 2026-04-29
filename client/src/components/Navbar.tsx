@@ -3,9 +3,9 @@
  * 11개 언어 국기 버튼 바 (네비게이션 바 하단에 항상 표시)
  * IP 기반 자동 언어 감지
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, User, ChevronDown, LayoutDashboard, Settings, LogOut } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { useLocation } from "wouter";
@@ -45,7 +45,20 @@ const countryToLanguage: Record<string, Language> = {
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated, logout } = useAuth();
+
+  // 외부 클릭 시 드롭다운 닫기
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   const [, navigate] = useLocation();
   const { language, setLanguage, t } = useLanguage();
 
@@ -150,21 +163,64 @@ export default function Navbar() {
           {/* 우측 액션 */}
           <div className="hidden lg:flex items-center gap-3">
             {isAuthenticated ? (
-              <>
+              <div className="relative" ref={userMenuRef}>
+                {/* 아이디 버튼 */}
                 <button
-                  onClick={() => navigate("/dashboard")}
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-1.5 text-white/80 hover:text-white text-sm font-medium transition-colors px-3 py-1.5 rounded-lg hover:bg-white/10"
                 >
                   <User className="w-4 h-4" />
                   <span>{displayName}</span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
-                <button
-                  onClick={logout}
-                  className="text-white/60 hover:text-white text-xs font-medium transition-colors px-2 py-1.5 rounded-lg hover:bg-white/10"
-                >
-                  {t.nav.logout}
-                </button>
-              </>
+
+                {/* 드롭다운 메뉴 */}
+                <AnimatePresence>
+                  {userMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50"
+                    >
+                      {/* 사용자 정보 헤더 */}
+                      <div className="px-4 py-3 bg-[#1F3864]/5 border-b border-gray-100">
+                        <p className="text-xs text-gray-500">로그인 중</p>
+                        <p className="text-sm font-semibold text-[#1F3864] truncate">{user?.name || user?.email || displayName}</p>
+                      </div>
+
+                      {/* 메뉴 항목 */}
+                      <div className="py-1">
+                        <button
+                          onClick={() => { setUserMenuOpen(false); navigate("/dashboard/profile"); }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#1F3864]/5 hover:text-[#1F3864] transition-colors"
+                        >
+                          <Settings className="w-4 h-4 text-gray-400" />
+                          내 정보 보기 / 수정
+                        </button>
+                        <button
+                          onClick={() => { setUserMenuOpen(false); navigate("/dashboard"); }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#1F3864]/5 hover:text-[#1F3864] transition-colors"
+                        >
+                          <LayoutDashboard className="w-4 h-4 text-gray-400" />
+                          내 대시보드
+                        </button>
+                      </div>
+
+                      <div className="border-t border-gray-100 py-1">
+                        <button
+                          onClick={() => { setUserMenuOpen(false); logout(); }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          로그아웃
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             ) : (
               <button
                 onClick={() => navigate("/login")}
@@ -264,17 +320,30 @@ export default function Navbar() {
               <div className="pt-3 flex flex-col gap-2">
                 {isAuthenticated ? (
                   <>
+                    {/* 모바일 사용자 정보 */}
+                    <div className="bg-white/10 rounded-lg px-3 py-2 mb-1">
+                      <p className="text-white/50 text-xs">로그인 중</p>
+                      <p className="text-white text-sm font-semibold truncate">{user?.name || user?.email || displayName}</p>
+                    </div>
+                    <button
+                      onClick={() => { setMobileOpen(false); navigate("/dashboard/profile"); }}
+                      className="w-full text-white/80 py-2.5 text-sm font-medium border border-white/20 rounded-lg flex items-center justify-center gap-2"
+                    >
+                      <Settings className="w-4 h-4" />
+                      내 정보 보기 / 수정
+                    </button>
                     <button
                       onClick={() => { setMobileOpen(false); navigate("/dashboard"); }}
                       className="w-full text-white/80 py-2.5 text-sm font-medium border border-white/20 rounded-lg flex items-center justify-center gap-2"
                     >
-                      <User className="w-4 h-4" />
-                      {displayName}
+                      <LayoutDashboard className="w-4 h-4" />
+                      내 대시보드
                     </button>
                     <button
                       onClick={() => { setMobileOpen(false); logout(); }}
-                      className="w-full text-white/60 py-2.5 text-sm font-medium border border-white/10 rounded-lg"
+                      className="w-full text-red-300 py-2.5 text-sm font-medium border border-red-400/30 rounded-lg flex items-center justify-center gap-2"
                     >
+                      <LogOut className="w-4 h-4" />
                       {t.nav.logout}
                     </button>
                   </>

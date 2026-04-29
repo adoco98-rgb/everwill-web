@@ -9,9 +9,10 @@ import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Mail, Calendar, Shield, LogOut, Gift, Copy, Check,
-  TrendingUp, Clock, ChevronRight, Coins, Share2, X as XIcon
+  TrendingUp, Clock, ChevronRight, Coins, Share2, X as XIcon,
+  Pencil, Save, Phone, MapPin, Briefcase
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 /** 포인트 유형 한국어 라벨 */
@@ -134,10 +135,113 @@ function SocialIcon({ type, size = 20 }: { type: ShareChannel["icon"]; size?: nu
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
+  const utils = trpc.useUtils();
   const [codeCopied, setCodeCopied] = useState(false);
   const [showSharePanel, setShowSharePanel] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [loadingChannel, setLoadingChannel] = useState<string | null>(null);
+
+  // 프로필 수정 상태
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    phone: "",
+    address: "",
+    birthDate: "",
+    occupation: "",
+  });
+
+  // user 데이터가 로드되면 폼 초기화
+  useEffect(() => {
+    if (user) {
+      setEditForm({
+        name: (user as any).name || "",
+        phone: (user as any).phone || "",
+        address: (user as any).address || "",
+        birthDate: (user as any).birthDate || "",
+        occupation: (user as any).occupation || "",
+      });
+    }
+  }, [user]);
+
+  // 이메일 가입자 프로필 업데이트
+  const updateEmailProfileMutation = trpc.auth.email.updateProfile.useMutation({
+    onSuccess: () => {
+      toast.success("정보가 저장되었습니다.");
+      setIsEditing(false);
+      utils.auth.me.invalidate();
+    },
+    onError: (err: { message?: string }) => {
+      toast.error(err.message || "저장에 실패했습니다.");
+    },
+  });
+
+  // 휴대폰 가입자 프로필 업데이트
+  const updatePhoneProfileMutation = trpc.auth.phone.updateProfile.useMutation({
+    onSuccess: () => {
+      toast.success("정보가 저장되었습니다.");
+      setIsEditing(false);
+      utils.auth.me.invalidate();
+    },
+    onError: (err: { message?: string }) => {
+      toast.error(err.message || "저장에 실패했습니다.");
+    },
+  });
+
+  const isSaving = updateEmailProfileMutation.isPending || updatePhoneProfileMutation.isPending;
+
+  function handleCancelEdit() {
+    // 취소 시 폼을 현재 user 정보로 재초기화
+    if (user) {
+      setEditForm({
+        name: (user as any).name || "",
+        phone: (user as any).phone || "",
+        address: (user as any).address || "",
+        birthDate: (user as any).birthDate || "",
+        occupation: (user as any).occupation || "",
+      });
+    }
+    setIsEditing(false);
+  }
+
+  function handleSaveProfile() {
+    const loginMethod = (user as any)?.loginMethod;
+    const country = (user as any)?.country || "KR";
+
+    // 휴대폰 가입자
+    if (loginMethod === "phone" || (!user?.email && editForm.phone)) {
+      const phone = (user as any)?.phone || editForm.phone;
+      if (!phone) {
+        toast.error("휴대폰 번호를 확인할 수 없습니다.");
+        return;
+      }
+      updatePhoneProfileMutation.mutate({
+        phone,
+        name: editForm.name,
+        email: user?.email || undefined,
+        address: editForm.address || undefined,
+        birthDate: editForm.birthDate || undefined,
+        occupation: editForm.occupation || undefined,
+        country,
+      });
+      return;
+    }
+
+    // 이메일 가입자
+    if (!user?.email) {
+      toast.error("이메일 정보를 확인할 수 없습니다. 다시 로그인해 주세요.");
+      return;
+    }
+    updateEmailProfileMutation.mutate({
+      email: user.email,
+      name: editForm.name,
+      phone: editForm.phone || undefined,
+      address: editForm.address || undefined,
+      birthDate: editForm.birthDate || undefined,
+      occupation: editForm.occupation || undefined,
+      country,
+    });
+  }
 
   // 나의 추천인 코드 + 포인트 잔액 조회
   const { data: referralData, isLoading: referralLoading } = trpc.referral.getMyCode.useQuery();
@@ -230,32 +334,152 @@ export default function ProfilePage() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-2xl border border-gray-100 p-6"
       >
-        <div className="flex items-center gap-5 mb-6">
-          <div className="w-16 h-16 bg-[#1F3864] rounded-2xl flex items-center justify-center shrink-0">
-            <span className="text-white font-bold text-xl">{initials}</span>
+        {/* 헤더 */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-5">
+            <div className="w-16 h-16 bg-[#1F3864] rounded-2xl flex items-center justify-center shrink-0">
+              <span className="text-white font-bold text-xl">{initials}</span>
+            </div>
+            <div>
+              <h2 className="font-bold text-[#1F3864] text-lg">{user?.name || "사용자"}</h2>
+              <p className="text-gray-400 text-sm">{user?.email || "-"}</p>
+              <span className="inline-block mt-1 bg-[#C9A961]/10 text-[#C9A961] text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                {user?.role === "admin" ? "관리자" : "일반 회원"}
+              </span>
+            </div>
           </div>
-          <div>
-            <h2 className="font-bold text-[#1F3864] text-lg">{user?.name || "사용자"}</h2>
-            <p className="text-gray-400 text-sm">{user?.email || "-"}</p>
-            <span className="inline-block mt-1 bg-[#C9A961]/10 text-[#C9A961] text-xs font-semibold px-2.5 py-0.5 rounded-full">
-              {user?.role === "admin" ? "관리자" : "일반 회원"}
-            </span>
-          </div>
+          {/* 수정 / 저장 버튼 */}
+          {!isEditing ? (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="flex items-center gap-1.5 text-sm text-[#1F3864] border border-[#1F3864]/20 hover:bg-[#1F3864]/5 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              수정
+            </button>
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={handleCancelEdit}
+                className="text-sm text-gray-400 border border-gray-200 hover:bg-gray-50 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleSaveProfile}
+                disabled={isSaving}
+                className="flex items-center gap-1.5 text-sm text-white bg-[#1F3864] hover:bg-[#162d52] px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              >
+                <Save className="w-3.5 h-3.5" />
+                {isSaving ? "저장 중..." : "저장"}
+              </button>
+            </div>
+          )}
         </div>
 
-        <div className="space-y-3 border-t border-gray-50 pt-5">
-          {[
-            { icon: User, label: "이름", value: user?.name || "-" },
-            { icon: Mail, label: "이메일", value: user?.email || "-" },
-            { icon: Shield, label: "로그인 방식", value: user?.loginMethod || "OAuth" },
-            { icon: Calendar, label: "가입일", value: joinDate },
-          ].map((item) => (
-            <div key={item.label} className="flex items-center gap-3">
-              <item.icon className="w-4 h-4 text-gray-300 shrink-0" />
-              <span className="text-gray-400 text-sm w-24 shrink-0">{item.label}</span>
-              <span className="text-[#1F3864] text-sm font-medium">{item.value}</span>
-            </div>
-          ))}
+        <div className="space-y-4 border-t border-gray-50 pt-5">
+          {/* 이름 */}
+          <div className="flex items-center gap-3">
+            <User className="w-4 h-4 text-gray-300 shrink-0" />
+            <span className="text-gray-400 text-sm w-24 shrink-0">이름</span>
+            {isEditing ? (
+              <input
+                type="text"
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-[#1F3864] focus:outline-none focus:border-[#1F3864]"
+                placeholder="이름을 입력하세요"
+              />
+            ) : (
+              <span className="text-[#1F3864] text-sm font-medium">{(user as any)?.name || "-"}</span>
+            )}
+          </div>
+
+          {/* 이메일 (읽기 전용) */}
+          <div className="flex items-center gap-3">
+            <Mail className="w-4 h-4 text-gray-300 shrink-0" />
+            <span className="text-gray-400 text-sm w-24 shrink-0">이메일</span>
+            <span className="text-[#1F3864] text-sm font-medium">{user?.email || "-"}</span>
+          </div>
+
+          {/* 전화번호 */}
+          <div className="flex items-center gap-3">
+            <Phone className="w-4 h-4 text-gray-300 shrink-0" />
+            <span className="text-gray-400 text-sm w-24 shrink-0">전화번호</span>
+            {isEditing ? (
+              <input
+                type="tel"
+                value={editForm.phone}
+                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-[#1F3864] focus:outline-none focus:border-[#1F3864]"
+                placeholder="010-0000-0000"
+              />
+            ) : (
+              <span className="text-[#1F3864] text-sm font-medium">{(user as any)?.phone || "-"}</span>
+            )}
+          </div>
+
+          {/* 생년월일 */}
+          <div className="flex items-center gap-3">
+            <Calendar className="w-4 h-4 text-gray-300 shrink-0" />
+            <span className="text-gray-400 text-sm w-24 shrink-0">생년월일</span>
+            {isEditing ? (
+              <input
+                type="date"
+                value={editForm.birthDate}
+                onChange={(e) => setEditForm({ ...editForm, birthDate: e.target.value })}
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-[#1F3864] focus:outline-none focus:border-[#1F3864]"
+              />
+            ) : (
+              <span className="text-[#1F3864] text-sm font-medium">{(user as any)?.birthDate || "-"}</span>
+            )}
+          </div>
+
+          {/* 주소 */}
+          <div className="flex items-center gap-3">
+            <MapPin className="w-4 h-4 text-gray-300 shrink-0" />
+            <span className="text-gray-400 text-sm w-24 shrink-0">주소</span>
+            {isEditing ? (
+              <input
+                type="text"
+                value={editForm.address}
+                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-[#1F3864] focus:outline-none focus:border-[#1F3864]"
+                placeholder="주소를 입력하세요"
+              />
+            ) : (
+              <span className="text-[#1F3864] text-sm font-medium truncate max-w-[200px]">{(user as any)?.address || "-"}</span>
+            )}
+          </div>
+
+          {/* 직업 */}
+          <div className="flex items-center gap-3">
+            <Briefcase className="w-4 h-4 text-gray-300 shrink-0" />
+            <span className="text-gray-400 text-sm w-24 shrink-0">직업</span>
+            {isEditing ? (
+              <input
+                type="text"
+                value={editForm.occupation}
+                onChange={(e) => setEditForm({ ...editForm, occupation: e.target.value })}
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-[#1F3864] focus:outline-none focus:border-[#1F3864]"
+                placeholder="직업을 입력하세요"
+              />
+            ) : (
+              <span className="text-[#1F3864] text-sm font-medium">{(user as any)?.occupation || "-"}</span>
+            )}
+          </div>
+
+          {/* 로그인 방식 / 가입일 (읽기 전용) */}
+          <div className="flex items-center gap-3">
+            <Shield className="w-4 h-4 text-gray-300 shrink-0" />
+            <span className="text-gray-400 text-sm w-24 shrink-0">로그인 방식</span>
+            <span className="text-[#1F3864] text-sm font-medium">{(user as any)?.loginMethod || "OAuth"}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Calendar className="w-4 h-4 text-gray-300 shrink-0" />
+            <span className="text-gray-400 text-sm w-24 shrink-0">가입일</span>
+            <span className="text-[#1F3864] text-sm font-medium">{joinDate}</span>
+          </div>
         </div>
       </motion.div>
 
