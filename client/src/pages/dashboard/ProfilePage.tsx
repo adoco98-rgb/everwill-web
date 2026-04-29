@@ -147,6 +147,7 @@ export default function ProfilePage() {
     name: "",
     phone: "",
     address: "",
+    addressDetail: "",
     birthDate: "",
     occupation: "",
   });
@@ -158,11 +159,39 @@ export default function ProfilePage() {
         name: (user as any).name || "",
         phone: (user as any).phone || "",
         address: (user as any).address || "",
+        addressDetail: "",
         birthDate: (user as any).birthDate || "",
         occupation: (user as any).occupation || "",
       });
     }
   }, [user]);
+
+  // 카카오 주소 검색 API 열기
+  function openKakaoPostcode() {
+    if (typeof window === 'undefined') return;
+    const daum = (window as any).daum;
+    if (!daum?.Postcode) {
+      // 스크립트가 아직 로드되지 않은 경우 동적 로드
+      const script = document.createElement('script');
+      script.src = 'https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
+      script.onload = () => {
+        new (window as any).daum.Postcode({
+          oncomplete: (data: any) => {
+            const addr = data.roadAddress || data.jibunAddress;
+            setEditForm(f => ({ ...f, address: addr, addressDetail: '' }));
+          }
+        }).open();
+      };
+      document.head.appendChild(script);
+      return;
+    }
+    new daum.Postcode({
+      oncomplete: (data: any) => {
+        const addr = data.roadAddress || data.jibunAddress;
+        setEditForm(f => ({ ...f, address: addr, addressDetail: '' }));
+      }
+    }).open();
+  }
 
   // 이메일 가입자 프로필 업데이트
   const updateEmailProfileMutation = trpc.auth.email.updateProfile.useMutation({
@@ -197,6 +226,7 @@ export default function ProfilePage() {
         name: (user as any).name || "",
         phone: (user as any).phone || "",
         address: (user as any).address || "",
+        addressDetail: "",
         birthDate: (user as any).birthDate || "",
         occupation: (user as any).occupation || "",
       });
@@ -207,6 +237,10 @@ export default function ProfilePage() {
   function handleSaveProfile() {
     const loginMethod = (user as any)?.loginMethod;
     const country = (user as any)?.country || "KR";
+    // 주소 + 상세주소 합치기
+    const fullAddress = editForm.addressDetail
+      ? `${editForm.address} ${editForm.addressDetail}`.trim()
+      : editForm.address;
 
     // 휴대폰 가입자
     if (loginMethod === "phone" || (!user?.email && editForm.phone)) {
@@ -219,7 +253,7 @@ export default function ProfilePage() {
         phone,
         name: editForm.name,
         email: user?.email || undefined,
-        address: editForm.address || undefined,
+        address: fullAddress || undefined,
         birthDate: editForm.birthDate || undefined,
         occupation: editForm.occupation || undefined,
         country,
@@ -236,7 +270,7 @@ export default function ProfilePage() {
       email: user.email,
       name: editForm.name,
       phone: editForm.phone || undefined,
-      address: editForm.address || undefined,
+      address: fullAddress || undefined,
       birthDate: editForm.birthDate || undefined,
       occupation: editForm.occupation || undefined,
       country,
@@ -415,7 +449,18 @@ export default function ProfilePage() {
                 placeholder="010-0000-0000"
               />
             ) : (
-              <span className="text-[#1F3864] text-sm font-medium">{(user as any)?.phone || "-"}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[#1F3864] text-sm font-medium">{(user as any)?.phone || "-"}</span>
+                {/* 인증 완료 배지: 전화번호가 등록된 경우 표시 */}
+                {(user as any)?.phone && (
+                  <span className="inline-flex items-center gap-1 bg-green-50 text-green-600 text-xs font-semibold px-2 py-0.5 rounded-full border border-green-200">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                    인증완료
+                  </span>
+                )}
+              </div>
             )}
           </div>
 
@@ -436,19 +481,39 @@ export default function ProfilePage() {
           </div>
 
           {/* 주소 */}
-          <div className="flex items-center gap-3">
-            <MapPin className="w-4 h-4 text-gray-300 shrink-0" />
-            <span className="text-gray-400 text-sm w-24 shrink-0">주소</span>
+          <div className="flex items-start gap-3">
+            <MapPin className="w-4 h-4 text-gray-300 shrink-0 mt-2" />
+            <span className="text-gray-400 text-sm w-24 shrink-0 mt-2">주소</span>
             {isEditing ? (
-              <input
-                type="text"
-                value={editForm.address}
-                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-[#1F3864] focus:outline-none focus:border-[#1F3864]"
-                placeholder="주소를 입력하세요"
-              />
+              <div className="flex-1 space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={editForm.address}
+                    readOnly
+                    className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-[#1F3864] bg-gray-50 cursor-pointer"
+                    placeholder="주소 검색을 클릭하세요"
+                    onClick={openKakaoPostcode}
+                  />
+                  <button
+                    type="button"
+                    onClick={openKakaoPostcode}
+                    className="shrink-0 px-3 py-1.5 bg-[#1F3864] text-white text-xs rounded-lg hover:bg-[#162a4e] transition-colors whitespace-nowrap"
+                  >
+                    주소 검색
+                  </button>
+                </div>
+                {/* 상세 주소 입력 (동/호수 등) */}
+                <input
+                  type="text"
+                  value={editForm.addressDetail || ""}
+                  onChange={(e) => setEditForm({ ...editForm, addressDetail: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-[#1F3864] focus:outline-none focus:border-[#1F3864]"
+                  placeholder="상세 주소 (동, 호수 등)"
+                />
+              </div>
             ) : (
-              <span className="text-[#1F3864] text-sm font-medium truncate max-w-[200px]">{(user as any)?.address || "-"}</span>
+              <span className="text-[#1F3864] text-sm font-medium">{(user as any)?.address || "-"}</span>
             )}
           </div>
 
