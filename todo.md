@@ -319,3 +319,16 @@
 - [ ] 드롭다운 메뉴 항목: 내 정보 보기, 내 대시보드, 로그아웃
 - [x] ProfilePage 완성: 이름·전화번호·주소·생년월일·직업 수정 및 DB 저장 기능 (trpc.auth.email.updateProfile 사용)
 - [x] tRPC: auth.email.updateProfile 프로시저 활용 (이름, 전화번호, 주소, 생년월일, 직업 업데이트)
+
+## 이메일+비밀번호+SMS 2차 인증 로그인 시스템 개편
+
+- [x] DB: users 테이블에 passwordHash 필드 추가 (bcrypt)
+- [x] DB: pnpm db:push 실행
+- [x] API: emailAuth.register - 이메일+비밀번호+전화번호로 신규 가입 (bcrypt 해시 저장)
+- [x] API: emailAuth.loginStep1 - 이메일+비밀번호 검증 → 등록된 전화번호로 SMS OTP 발송
+- [x] API: emailAuth.loginStep2 - SMS OTP 검증 → 세션 발급
+- [x] API: emailAuth.setPassword - 기존 OTP 가입자가 비밀번호 설정 가능
+- [x] LoginPage.tsx: 이메일+비밀번호 입력 화면 (로그인 1단계)
+- [x] LoginPage.tsx: SMS OTP 입력 화면 (2단계, 등록 전화번호로 자동 발송)
+- [x] LoginPage.tsx: 회원가입 탭 - 이메일+비밀번호+전화번호 입력
+- [x] 기존 OTP 전용 가입자: 인증코드 방식으로 로그인 링크 제공 (이메일 탭 내 전환 버튼)

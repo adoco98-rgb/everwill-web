@@ -1,11 +1,13 @@
 /**
- * 이메일 OTP 인증 라우터
- * 이메일 입력 → 6자리 코드 발송 → 코드 검증 → 세션 생성
+ * 이메일 인증 라우터
+ * 1) 기존 OTP 방식: 이메일 → 6자리 코드 발송 → 코드 검증 → 세션 생성
+ * 2) 신규 비밀번호 방식: 이메일+비밀번호 → SMS OTP 2차 인증 → 세션 생성
  */
 import { TRPCError } from "@trpc/server";
 import { and, eq, gt, sql } from "drizzle-orm";
 import { Resend } from "resend";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 import { emailOtps, users } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { ENV } from "../_core/env";
@@ -14,6 +16,7 @@ import { sdk } from "../_core/sdk";
 import { publicProcedure, router } from "../_core/trpc";
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { randomUUID } from "crypto";
+import { sendSmsOtp, verifySmsOtp } from "../_core/sms";
 
 /** 6자리 숫자 OTP 생성 */
 function generateOtp(): string {
@@ -25,74 +28,53 @@ const OTP_EXPIRES_MS = 10 * 60 * 1000;
 
 export const emailAuthRouter = router({
   /**
-   * 이메일로 OTP 발송
-   * - 이미 가입된 이메일: 로그인 코드 발송
-   * - 신규 이메일: 회원가입 코드 발송
+   * 이메일로 OTP 발송 (기존 방식 유지)
    */
   sendOtp: publicProcedure
     .input(z.object({ email: z.string().email("올바른 이메일 주소를 입력해주세요") }))
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
-
       const code = generateOtp();
       const expiresAt = new Date(Date.now() + OTP_EXPIRES_MS);
-
       // 기존 미사용 OTP 무효화 (같은 이메일)
       await db.update(emailOtps)
         .set({ used: 1 })
         .where(and(eq(emailOtps.email, input.email), eq(emailOtps.used, 0)));
-
       // 새 OTP 저장
       await db.insert(emailOtps).values({
         email: input.email,
         code,
         expiresAt,
         used: 0,
+        failCount: 0,
       });
-
-      // 이메일 발송
-      if (!ENV.resendApiKey) {
-        // 개발 환경: 콘솔에 출력
-        console.log(`[EmailAuth] OTP for ${input.email}: ${code}`);
-      } else {
-        const resend = new Resend(ENV.resendApiKey);
-        const { error } = await resend.emails.send({
+      // Resend로 이메일 발송
+      const resend = new Resend(ENV.resendApiKey);
+      try {
+        await resend.emails.send({
           from: "EverWill <noreply@everwill.co.kr>",
-          to: [input.email],
-          subject: `[EverWill] 인증 코드: ${code}`,
+          to: input.email,
+          subject: "[EverWill] 이메일 인증 코드",
           html: `
-            <div style="font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 24px; background: #FAFAF8;">
-              <div style="text-align: center; margin-bottom: 32px;">
-                <div style="display: inline-flex; align-items: center; gap: 8px; background: #1F3864; padding: 10px 20px; border-radius: 12px;">
-                  <span style="color: #C9A961; font-weight: bold; font-size: 18px;">EverWill</span>
-                </div>
+            <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
+              <h2 style="color: #1F3864;">EverWill 인증 코드</h2>
+              <p style="font-size: 16px; color: #333;">아래 6자리 코드를 입력해주세요.</p>
+              <div style="background: #f5f5f5; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
+                <span style="font-size: 40px; font-weight: bold; letter-spacing: 8px; color: #1F3864;">${code}</span>
               </div>
-              <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 2px 16px rgba(0,0,0,0.06);">
-                <h2 style="color: #1F3864; font-size: 20px; font-weight: bold; margin: 0 0 8px;">이메일 인증 코드</h2>
-                <p style="color: #6B7280; font-size: 14px; margin: 0 0 24px;">아래 6자리 코드를 입력해 주세요. 코드는 10분 후 만료됩니다.</p>
-                <div style="background: #F3F4F6; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
-                  <span style="font-size: 40px; font-weight: bold; letter-spacing: 12px; color: #1F3864;">${code}</span>
-                </div>
-                <p style="color: #9CA3AF; font-size: 12px; margin: 0;">본인이 요청하지 않은 경우 이 이메일을 무시하세요.</p>
-              </div>
-              <p style="text-align: center; color: #9CA3AF; font-size: 11px; margin-top: 24px;">© 2025 EverWill · 주식회사 사람</p>
+              <p style="font-size: 14px; color: #888;">이 코드는 10분간 유효합니다.</p>
             </div>
           `,
         });
-        if (error) {
-          console.error("[EmailAuth] Resend error:", error);
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "이메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요." });
-        }
+      } catch (err) {
+        console.error("[Email] OTP 발송 실패:", err);
       }
-
       return { success: true, email: input.email };
     }),
 
   /**
-   * OTP 코드 검증 및 세션 생성
-   * - 코드 일치 + 미만료 → 사용자 upsert → JWT 세션 쿠키 설정
-   * - 5회 실패 시 해당 OTP 잠금
+   * OTP 코드 검증 및 세션 생성 (기존 방식 유지)
    */
   verifyOtp: publicProcedure
     .input(z.object({
@@ -102,10 +84,7 @@ export const emailAuthRouter = router({
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
-
       const now = new Date();
-
-      // 해당 이메일의 최신 미사용 OTP 조회 (만료 여부 포함)
       const latestOtpRows = await db.select().from(emailOtps).where(
         and(
           eq(emailOtps.email, input.email),
@@ -113,28 +92,20 @@ export const emailAuthRouter = router({
           gt(emailOtps.expiresAt, now),
         )
       ).limit(1);
-
       if (latestOtpRows.length === 0) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "인증 코드가 만료되었습니다. 새 코드를 요청해주세요." });
       }
-
       const latestOtp = latestOtpRows[0];
-
-      // 5회 실패 잠금 확인
       if (latestOtp.failCount >= 5) {
         throw new TRPCError({
           code: "TOO_MANY_REQUESTS",
           message: "인증 시도 횟수를 초과했습니다. 새 인증 코드를 요청해주세요.",
         });
       }
-
-      // 코드 일치 확인
       if (latestOtp.code !== input.code) {
-        // 실패 횟수 증가
         await db.update(emailOtps)
           .set({ failCount: sql`${emailOtps.failCount} + 1` })
           .where(eq(emailOtps.id, latestOtp.id));
-
         const remaining = 5 - (latestOtp.failCount + 1);
         if (remaining <= 0) {
           throw new TRPCError({
@@ -147,26 +118,10 @@ export const emailAuthRouter = router({
           message: `인증 코드가 올바르지 않습니다. (남은 시도: ${remaining}회)`,
         });
       }
-
-      // 코드 일치 확인 (유효한 OTP)
-      const otpRows = [latestOtp];
-
-      // OTP 사용 처리
-      await db.update(emailOtps).set({ used: 1 }).where(eq(emailOtps.id, otpRows[0].id));
-
-      // openId: 이메일 기반 고유 식별자 (email: 접두사)
+      await db.update(emailOtps).set({ used: 1 }).where(eq(emailOtps.id, latestOtp.id));
       const openId = `email:${input.email}`;
-
-      // 사용자 이름: 이메일 @ 앞부분
       const name = input.email.split("@")[0];
-
-      // 기존 사용자 조회 또는 신규 생성
-      const existingUsers = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-      const isNewUser = existingUsers.length === 0;
-
-      // 신규 사용자용 QR 코드 생성
       const newQrCode = randomUUID();
-
       await db.insert(users).values({
         openId,
         email: input.email,
@@ -177,23 +132,205 @@ export const emailAuthRouter = router({
       }).onDuplicateKeyUpdate({
         set: { lastSignedIn: new Date() },
       });
-
-      // JWT 세션 토큰 생성
+      const existingUsers = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+      const isNewUser = existingUsers.length === 0;
       const token = await sdk.createSessionToken(openId, { name });
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.cookie(COOKIE_NAME, token, {
+        ...cookieOptions,
+        maxAge: ONE_YEAR_MS,
+      });
+      return { success: true, isNewUser };
+    }),
 
-      // 세션 쿠키 설정
+  /**
+   * [신규] 이메일+비밀번호 회원가입
+   * - 이메일, 비밀번호, 전화번호 필수
+   * - 비밀번호는 bcrypt 해시 후 저장
+   */
+  register: publicProcedure
+    .input(z.object({
+      email: z.string().email("올바른 이메일 주소를 입력해주세요"),
+      password: z.string().min(8, "비밀번호는 8자 이상이어야 합니다").max(100),
+      name: z.string().min(1, "이름을 입력해주세요").max(50),
+      phone: z.string().min(7, "전화번호를 입력해주세요").max(20),
+      country: z.string().min(2).max(3).default("KR"),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
+
+      const openId = `email:${input.email}`;
+
+      // 이미 가입된 이메일 확인
+      const existing = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+      if (existing.length > 0) {
+        throw new TRPCError({ code: "CONFLICT", message: "이미 가입된 이메일입니다." });
+      }
+
+      // 비밀번호 해시
+      const passwordHash = await bcrypt.hash(input.password, 12);
+      const newQrCode = randomUUID();
+
+      await db.insert(users).values({
+        openId,
+        email: input.email,
+        name: input.name,
+        phone: input.phone,
+        country: input.country,
+        loginMethod: "email_password",
+        passwordHash,
+        lastSignedIn: new Date(),
+        qrCode: newQrCode,
+        profileCompleted: 1,
+      });
+
+      return { success: true };
+    }),
+
+  /**
+   * [신규] 로그인 1단계: 이메일+비밀번호 검증 → 등록된 전화번호로 SMS OTP 발송
+   */
+  loginStep1: publicProcedure
+    .input(z.object({
+      email: z.string().email("올바른 이메일 주소를 입력해주세요"),
+      password: z.string().min(1, "비밀번호를 입력해주세요"),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
+
+      const openId = `email:${input.email}`;
+      const userRows = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+
+      if (userRows.length === 0) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "이메일 또는 비밀번호가 올바르지 않습니다." });
+      }
+
+      const user = userRows[0];
+
+      // 비밀번호 방식 가입자인지 확인
+      if (!user.passwordHash) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "이 계정은 인증코드 방식으로 가입되었습니다. 이메일 인증코드로 로그인해주세요.",
+        });
+      }
+
+      // 비밀번호 검증
+      const isValid = await bcrypt.compare(input.password, user.passwordHash);
+      if (!isValid) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "이메일 또는 비밀번호가 올바르지 않습니다." });
+      }
+
+      // 등록된 전화번호 확인
+      if (!user.phone) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "등록된 전화번호가 없습니다. 고객센터에 문의해주세요.",
+        });
+      }
+
+      // SMS OTP 발송 (전화번호가 E.164 형식이 아니면 변환)
+      let phoneE164 = user.phone;
+      if (!phoneE164.startsWith("+")) {
+        // 한국 번호 기본 처리
+        phoneE164 = "+82" + phoneE164.replace(/^0/, "");
+      }
+
+      const smsResult = await sendSmsOtp(phoneE164);
+      if (!smsResult.success) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "SMS 발송에 실패했습니다. 잠시 후 다시 시도해주세요.",
+        });
+      }
+
+      // 전화번호 마스킹 (앞 3자리 + *** + 뒤 4자리)
+      const maskedPhone = phoneE164.replace(/(\+\d{2,3})(\d+)(\d{4})$/, (_, cc, mid, last) => {
+        return `${cc}${"*".repeat(mid.length)}${last}`;
+      });
+
+      return { success: true, maskedPhone };
+    }),
+
+  /**
+   * [신규] 로그인 2단계: SMS OTP 검증 → 세션 발급
+   */
+  loginStep2: publicProcedure
+    .input(z.object({
+      email: z.string().email(),
+      code: z.string().length(6, "6자리 코드를 입력해주세요"),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
+
+      const openId = `email:${input.email}`;
+      const userRows = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+
+      if (userRows.length === 0) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "사용자를 찾을 수 없습니다." });
+      }
+
+      const user = userRows[0];
+
+      if (!user.phone) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "등록된 전화번호가 없습니다." });
+      }
+
+      let phoneE164 = user.phone;
+      if (!phoneE164.startsWith("+")) {
+        phoneE164 = "+82" + phoneE164.replace(/^0/, "");
+      }
+
+      // SMS OTP 검증
+      const verifyResult = await verifySmsOtp(phoneE164, input.code);
+      if (!verifyResult.success) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: verifyResult.error || "인증 코드가 올바르지 않습니다.",
+        });
+      }
+
+      // 마지막 로그인 시간 업데이트
+      await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.openId, openId));
+
+      // 세션 발급
+      const token = await sdk.createSessionToken(openId, { name: user.name ?? "" });
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.cookie(COOKIE_NAME, token, {
         ...cookieOptions,
         maxAge: ONE_YEAR_MS,
       });
 
-      return { success: true, isNewUser };
+      return { success: true, isNewUser: false };
     }),
 
   /**
-   * 회원가입 후 추가 정보 저장
-   * - 이름, 전화번호, 생년월일, 거주 국가 + 국가별 추가 필드
+   * [신규] 비밀번호 설정 (기존 OTP 가입자가 비밀번호 추가 설정 시)
+   */
+  setPassword: publicProcedure
+    .input(z.object({
+      email: z.string().email(),
+      password: z.string().min(8, "비밀번호는 8자 이상이어야 합니다").max(100),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
+
+      const openId = `email:${input.email}`;
+      const passwordHash = await bcrypt.hash(input.password, 12);
+
+      await db.update(users)
+        .set({ passwordHash, loginMethod: "email_password", updatedAt: new Date() })
+        .where(eq(users.openId, openId));
+
+      return { success: true };
+    }),
+
+  /**
+   * 회원가입 후 추가 정보 저장 (기존 방식 유지)
    */
   updateProfile: publicProcedure
     .input(z.object({
@@ -202,7 +339,6 @@ export const emailAuthRouter = router({
       phone: z.string().optional(),
       birthDate: z.string().optional(),
       country: z.string().min(2).max(3).default("KR"),
-      // 국가별 추가 필드
       address: z.string().optional(),
       zipCode: z.string().optional(),
       stateProvince: z.string().optional(),

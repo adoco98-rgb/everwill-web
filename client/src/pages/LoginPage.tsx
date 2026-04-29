@@ -132,7 +132,8 @@ const OTP_MAX_ATTEMPTS = 5;
 const RESEND_COOLDOWN = 60;
 
 type LoginMethod = "email" | "phone";
-type Step = "input" | "otp" | "profile" | "done";
+type EmailSubMode = "password" | "otp"; // 이메일 탭 내 서브 모드
+type Step = "input" | "otp" | "sms_otp" | "profile" | "done"; // sms_otp: 비밀번호 로그인 후 SMS 2차 인증
 
 export default function LoginPage() {
   const [, navigate] = useLocation();
@@ -157,6 +158,17 @@ export default function LoginPage() {
 
   // 이메일 플로우
   const [email, setEmail] = useState("");
+  // 이메일 서브 모드: 비밀번호 방식 vs OTP 방식
+  const [emailSubMode, setEmailSubMode] = useState<EmailSubMode>("password");
+  // 비밀번호 방식 상태
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isRegisterMode, setIsRegisterMode] = useState(false); // 로그인 vs 회원가입
+  const [registerName, setRegisterName] = useState("");
+  const [registerPhone, setRegisterPhone] = useState("");
+  const [registerPhoneCode, setRegisterPhoneCode] = useState("+82");
+  const [maskedPhone, setMaskedPhone] = useState(""); // SMS 발송 후 마스킹된 번호
 
   // 휴대폰 플로우
   const [phoneCountryCode, setPhoneCountryCode] = useState("+82");
@@ -337,6 +349,55 @@ export default function LoginPage() {
     },
   });
 
+  // 이메일+비밀번호 회원가입
+  const registerMutation = trpc.auth.email.register.useMutation({
+    onSuccess: () => {
+      toast.success("회원가입이 완료되었습니다. 로그인해주세요.");
+      setIsRegisterMode(false);
+      setPassword("");
+      setConfirmPassword("");
+    },
+    onError: (err) => {
+      toast.error(err.message || "회원가입에 실패했습니다.");
+    },
+  });
+
+  // 로그인 1단계: 이메일+비밀번호 검증 → SMS OTP 발송
+  const loginStep1Mutation = trpc.auth.email.loginStep1.useMutation({
+    onSuccess: (data) => {
+      setMaskedPhone(data.maskedPhone);
+      setStep("sms_otp");
+      setOtp(["", "", "", "", "", ""]);
+      setOtpAttempts(0);
+      setIsLocked(false);
+      toast.success(`등록된 휴대폰(${data.maskedPhone})으로 SMS를 발송했습니다.`);
+    },
+    onError: (err) => {
+      toast.error(err.message || "로그인에 실패했습니다.");
+    },
+  });
+
+  // 로그인 2단계: SMS OTP 검증 → 세션 발급
+  const loginStep2Mutation = trpc.auth.email.loginStep2.useMutation({
+    onSuccess: () => {
+      setStep("done");
+      toast.success("로그인에 성공했습니다!");
+      setTimeout(() => navigate("/dashboard"), 1000);
+    },
+    onError: (err) => {
+      const newAttempts = otpAttempts + 1;
+      setOtpAttempts(newAttempts);
+      if (newAttempts >= OTP_MAX_ATTEMPTS) {
+        setIsLocked(true);
+        toast.error("인증 코드를 5회 잘못 입력했습니다. 다시 로그인해주세요.");
+      } else {
+        toast.error(err.message || `인증 코드가 올바르지 않습니다. (${newAttempts}/${OTP_MAX_ATTEMPTS}회)`);
+      }
+      setOtp(["", "", "", "", "", ""]);
+      inputRefs.current[0]?.focus();
+    },
+  });
+
   const applyReferral = trpc.referral.applyReferral.useMutation();
 
   function startCooldown() {
@@ -400,11 +461,46 @@ export default function LoginPage() {
 
   function submitOtp(code: string) {
     if (isLocked) return;
-    if (loginMethod === "email") {
+    if (step === "sms_otp") {
+      // 비밀번호 로그인 2단계 SMS OTP 검증
+      loginStep2Mutation.mutate({ email, code });
+    } else if (loginMethod === "email") {
       verifyEmailOtp.mutate({ email, code });
     } else {
       verifyPhoneOtp.mutate({ phone: phoneNumber.trim(), countryCode: phoneCountryCode, code });
     }
+  }
+
+  // 이메일+비밀번호 로그인 제출
+  function handlePasswordLogin(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim() || !password.trim()) return;
+    loginStep1Mutation.mutate({ email: email.trim().toLowerCase(), password });
+  }
+
+  // 이메일+비밀번호 회원가입 제출
+  function handleRegister(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim() || !password.trim() || !registerName.trim() || !registerPhone.trim()) {
+      toast.error("모든 항목을 입력해주세요.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast.error("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+    if (password.length < 8) {
+      toast.error("비밀번호는 8자 이상이어야 합니다.");
+      return;
+    }
+    const fullPhone = registerPhone.startsWith("+") ? registerPhone : `${registerPhoneCode}${registerPhone.replace(/^0/, "")}`;
+    registerMutation.mutate({
+      email: email.trim().toLowerCase(),
+      password,
+      name: registerName.trim(),
+      phone: fullPhone,
+      country: "KR",
+    });
   }
 
   function handleResend() {
@@ -597,44 +693,195 @@ export default function LoginPage() {
 
             <AnimatePresence mode="wait">
 
-              {/* ── Step 1: 이메일 입력 ── */}
-              {step === "input" && loginMethod === "email" && (
+              {/* ── Step 1: 이메일 입력 (비밀번호 방식 기본) ── */}
+              {step === "input" && loginMethod === "email" && emailSubMode === "password" && (
                 <motion.div key="email-input" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                  <div className="text-center mb-8">
+                  <div className="text-center mb-6">
                     <div className="w-16 h-16 bg-[#1F3864]/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
                       <Mail className="w-8 h-8 text-[#1F3864]" />
                     </div>
-                    <h1 className="text-3xl font-bold text-[#1F3864] mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>이메일로 시작하기</h1>
-                    <p className="text-gray-500 text-lg leading-relaxed">이메일 주소를 입력하시면<br />인증 코드를 보내드립니다.</p>
-                    <p className="text-gray-400 text-base mt-1">처음 오셨다면 자동으로 회원가입됩니다.</p>
+                    <h1 className="text-3xl font-bold text-[#1F3864] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>이메일로 시작하기</h1>
                   </div>
-                  <form onSubmit={handleEmailSubmit} className="space-y-5">
-                    <div>
-                      <label className={labelClass}>
-                        <Mail className="w-4 h-4 inline mr-1.5 text-gray-400" />
-                        이메일 주소
-                      </label>
-                      <input
-                        type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                        placeholder="example@email.com" required autoFocus
-                        className={inputClass}
-                      />
-                    </div>
-                    <button
-                      type="submit" disabled={isPendingSend || !email.trim()}
-                      className="w-full bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-50 disabled:cursor-not-allowed text-white py-5 rounded-2xl font-bold text-xl flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg"
-                    >
-                      {isPendingSend
-                        ? <><Loader2 className="w-5 h-5 animate-spin" /> 발송 중...</>
-                        : <><Mail className="w-5 h-5" /> 인증 코드 받기</>
-                      }
+
+                  {/* 로그인 / 회원가입 서브탭 */}
+                  <div className="flex rounded-xl bg-gray-100 p-1 mb-6 gap-1">
+                    <button type="button" onClick={() => setIsRegisterMode(false)}
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                        !isRegisterMode ? "bg-white text-[#1F3864] shadow-sm" : "text-gray-400 hover:text-gray-600"
+                      }`}>
+                      로그인
                     </button>
-                  </form>
-                  <p className="text-center text-sm text-gray-400 mt-6 leading-relaxed">
+                    <button type="button" onClick={() => setIsRegisterMode(true)}
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                        isRegisterMode ? "bg-white text-[#1F3864] shadow-sm" : "text-gray-400 hover:text-gray-600"
+                      }`}>
+                      회원가입
+                    </button>
+                  </div>
+
+                  {/* 로그인 폼 */}
+                  {!isRegisterMode && (
+                    <form onSubmit={handlePasswordLogin} className="space-y-4">
+                      <div>
+                        <label className={labelClass}><Mail className="w-4 h-4 inline mr-1.5 text-gray-400" />이메일</label>
+                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                          placeholder="example@email.com" required autoFocus className={inputClass} />
+                      </div>
+                      <div>
+                        <label className={labelClass}><Lock className="w-4 h-4 inline mr-1.5 text-gray-400" />비밀번호</label>
+                        <div className="relative">
+                          <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)}
+                            placeholder="비밀번호 입력" required className={inputClass + " pr-12"} />
+                          <button type="button" onClick={() => setShowPassword(v => !v)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            {showPassword ? <X className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+                          </button>
+                        </div>
+                      </div>
+                      <button type="submit" disabled={loginStep1Mutation.isPending || !email.trim() || !password.trim()}
+                        className="w-full bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-50 disabled:cursor-not-allowed text-white py-5 rounded-2xl font-bold text-xl flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg">
+                        {loginStep1Mutation.isPending
+                          ? <><Loader2 className="w-5 h-5 animate-spin" /> 확인 중...</>
+                          : <><Lock className="w-5 h-5" /> 로그인</>
+                        }
+                      </button>
+                      <p className="text-center text-sm text-gray-400">
+                        인증코드 방식으로 로그인하려면{" "}
+                        <button type="button" onClick={() => setEmailSubMode("otp")} className="text-[#1F3864] underline">여기를 클릭</button>
+                      </p>
+                    </form>
+                  )}
+
+                  {/* 회원가입 폼 */}
+                  {isRegisterMode && (
+                    <form onSubmit={handleRegister} className="space-y-4">
+                      <div>
+                        <label className={labelClass}><User className="w-4 h-4 inline mr-1.5 text-gray-400" />이름</label>
+                        <input type="text" value={registerName} onChange={(e) => setRegisterName(e.target.value)}
+                          placeholder="홍길동" required className={inputClass} />
+                      </div>
+                      <div>
+                        <label className={labelClass}><Mail className="w-4 h-4 inline mr-1.5 text-gray-400" />이메일</label>
+                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                          placeholder="example@email.com" required className={inputClass} />
+                      </div>
+                      <div>
+                        <label className={labelClass}><Phone className="w-4 h-4 inline mr-1.5 text-gray-400" />휴대폰 번호 <span className="text-red-500">*</span></label>
+                        <div className="flex gap-2">
+                          <select value={registerPhoneCode} onChange={(e) => setRegisterPhoneCode(e.target.value)}
+                            className="px-3 py-4 rounded-2xl border-2 border-gray-200 focus:border-[#1F3864] outline-none text-gray-800 text-base bg-white w-28 shrink-0">
+                            {PHONE_COUNTRY_CODES.map(c => <option key={c.code} value={c.code}>{c.flag} {c.code}</option>)}
+                          </select>
+                          <input type="tel" value={registerPhone} onChange={(e) => setRegisterPhone(e.target.value.replace(/[^\d\-\s]/g, ""))}
+                            placeholder="010-0000-0000" required className="flex-1 px-5 py-4 rounded-2xl border-2 border-gray-200 focus:border-[#1F3864] outline-none text-gray-800 text-lg" />
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">로그인 시 이 번호로 인증번호가 발송됩니다.</p>
+                      </div>
+                      <div>
+                        <label className={labelClass}><Lock className="w-4 h-4 inline mr-1.5 text-gray-400" />비밀번호 (8자 이상)</label>
+                        <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)}
+                          placeholder="비밀번호 입력" required minLength={8} className={inputClass} />
+                      </div>
+                      <div>
+                        <label className={labelClass}><Lock className="w-4 h-4 inline mr-1.5 text-gray-400" />비밀번호 확인</label>
+                        <input type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="비밀번호 재입력" required className={inputClass} />
+                        {confirmPassword && password !== confirmPassword && (
+                          <p className="text-red-500 text-sm mt-1">비밀번호가 일치하지 않습니다.</p>
+                        )}
+                      </div>
+                      <button type="button" onClick={() => setShowPassword(v => !v)}
+                        className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1">
+                        {showPassword ? <X className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                        비밀번호 {showPassword ? "숨기기" : "표시"}
+                      </button>
+                      <button type="submit" disabled={registerMutation.isPending}
+                        className="w-full bg-[#C9A961] hover:bg-[#b8944f] disabled:opacity-50 text-white py-5 rounded-2xl font-bold text-xl flex items-center justify-center gap-2 transition-all shadow-md">
+                        {registerMutation.isPending
+                          ? <><Loader2 className="w-5 h-5 animate-spin" /> 가입 중...</>
+                          : <><Check className="w-5 h-5" /> 회원가입 완료</>
+                        }
+                      </button>
+                    </form>
+                  )}
+
+                  <p className="text-center text-xs text-gray-400 mt-4">
                     계속 진행하면{" "}
                     <a href="/terms" className="text-[#1F3864] underline">이용약관</a>{" "}및{" "}
                     <a href="/privacy" className="text-[#1F3864] underline">개인정보처리방침</a>에 동의합니다.
                   </p>
+                </motion.div>
+              )}
+
+              {/* ── Step 1: 이메일 OTP 방식 (인증코드 전환 시) ── */}
+              {step === "input" && loginMethod === "email" && emailSubMode === "otp" && (
+                <motion.div key="email-otp-input" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                  <div className="text-center mb-8">
+                    <div className="w-16 h-16 bg-[#1F3864]/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Mail className="w-8 h-8 text-[#1F3864]" />
+                    </div>
+                    <h1 className="text-3xl font-bold text-[#1F3864] mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>인증코드로 로그인</h1>
+                    <p className="text-gray-500 text-lg leading-relaxed">이메일 주소를 입력하시면<br />인증 코드를 보내드립니다.</p>
+                  </div>
+                  <form onSubmit={handleEmailSubmit} className="space-y-5">
+                    <div>
+                      <label className={labelClass}><Mail className="w-4 h-4 inline mr-1.5 text-gray-400" />이메일 주소</label>
+                      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                        placeholder="example@email.com" required autoFocus className={inputClass} />
+                    </div>
+                    <button type="submit" disabled={isPendingSend || !email.trim()}
+                      className="w-full bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-50 text-white py-5 rounded-2xl font-bold text-xl flex items-center justify-center gap-2 transition-all shadow-md">
+                      {isPendingSend ? <><Loader2 className="w-5 h-5 animate-spin" /> 발송 중...</> : <><Mail className="w-5 h-5" /> 인증 코드 받기</>}
+                    </button>
+                  </form>
+                  <p className="text-center text-sm text-gray-400 mt-4">
+                    <button type="button" onClick={() => setEmailSubMode("password")} className="text-[#1F3864] underline">비밀번호로 로그인</button>
+                  </p>
+                </motion.div>
+              )}
+
+              {/* ── Step: SMS OTP (비밀번호 로그인 2단계) ── */}
+              {step === "sms_otp" && (
+                <motion.div key="sms-otp" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                  <div className="text-center mb-8">
+                    <div className="w-16 h-16 bg-[#1F3864]/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Smartphone className="w-8 h-8 text-[#1F3864]" />
+                    </div>
+                    <h1 className="text-3xl font-bold text-[#1F3864] mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>SMS 인증</h1>
+                    <p className="text-gray-500 text-lg leading-relaxed">
+                      등록된 휴대폰 <span className="font-semibold text-[#1F3864]">{maskedPhone}</span>으로<br />
+                      6자리 인증번호를 발송했습니다.
+                    </p>
+                  </div>
+                  <div className="flex gap-2 justify-center mb-6">
+                    {otp.map((digit, i) => (
+                      <input key={i} ref={(el) => { inputRefs.current[i] = el; }}
+                        type="text" inputMode="numeric" maxLength={1} value={digit}
+                        onChange={(e) => handleOtpChange(i, e.target.value)}
+                        onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                        disabled={isLocked || loginStep2Mutation.isPending}
+                        className={`w-12 h-16 text-center text-2xl font-bold rounded-2xl border-2 outline-none transition-all ${
+                          digit ? "border-[#1F3864] bg-[#1F3864]/5" : "border-gray-200"
+                        } ${isLocked ? "opacity-50 cursor-not-allowed" : "focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10"}`}
+                      />
+                    ))}
+                  </div>
+                  {isLocked && (
+                    <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-2xl p-4 mb-4">
+                      <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
+                      <p className="text-red-600 text-sm">인증 시도 횟수를 초과했습니다. 처음부터 다시 시도해주세요.</p>
+                    </div>
+                  )}
+                  {loginStep2Mutation.isPending && (
+                    <div className="flex items-center justify-center gap-2 text-gray-500 mb-4">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>인증 확인 중...</span>
+                    </div>
+                  )}
+                  <button type="button" onClick={() => { setStep("input"); setOtp(["", "", "", "", "", ""]); setIsLocked(false); }}
+                    className="w-full text-gray-500 hover:text-[#1F3864] py-3 rounded-2xl border border-gray-200 hover:border-[#1F3864] text-base font-medium transition-all">
+                    <ArrowLeft className="w-4 h-4 inline mr-1.5" />처음으로 돌아가기
+                  </button>
                 </motion.div>
               )}
 

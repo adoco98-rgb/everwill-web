@@ -64,6 +64,8 @@ export const users = mysqlTable("users", {
   qrCode: varchar("qrCode", { length: 64 }).unique(),
   /** QR 코드 공개 여부 (0=비공개, 1=공개) */
   qrPublic: int("qrPublic").default(1),
+  /** bcrypt 해시된 비밀번호 (이메일+비밀번호 로그인 방식 사용 시) */
+  passwordHash: varchar("passwordHash", { length: 256 }),
 });
 
 export type User = typeof users.$inferSelect;
