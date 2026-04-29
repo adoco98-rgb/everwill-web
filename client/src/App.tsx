@@ -28,6 +28,8 @@ import InternalPage from "./pages/InternalPage";
 import LetterDashboard from "./pages/LetterDashboard";
 import LetterWrite from "./pages/LetterWrite";
 import Feedback from "./pages/Feedback";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -40,6 +42,9 @@ function Router() {
       <Route path={"/payment/success"} component={PaymentSuccess} />
       <Route path={"/payment/cancel"} component={PaymentCancel} />
       <Route path={"/login"} component={LoginPage} />
+      {/* 약관 페이지 */}
+      <Route path={"/terms"} component={TermsPage} />
+      <Route path={"/privacy"} component={PrivacyPage} />
       <Route path={"/will/scan"} component={ScanVerifyPage} />
       <Route path={"/will/chat"} component={WillChatPage} />
       <Route path={"/dashboard"} component={() => <SaramDashboardLayout><DashboardHome /></SaramDashboardLayout>} />

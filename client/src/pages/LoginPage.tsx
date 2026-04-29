@@ -1090,7 +1090,23 @@ export default function LoginPage() {
 
                     {/* 약관 동의 */}
                     <div className="border-t border-gray-100 pt-5 space-y-4">
-                      <p className="text-base font-bold text-gray-600">약관 동의</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-base font-bold text-gray-600">약관 동의</p>
+                        <label className="flex items-center gap-2 cursor-pointer group bg-[#1F3864]/5 hover:bg-[#1F3864]/10 px-3 py-1.5 rounded-lg transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={agreeTerms && agreePrivacy && agreeMarketing && (!countryFields.agreeGdpr || agreeGdpr)}
+                            onChange={(e) => {
+                              setAgreeTerms(e.target.checked);
+                              setAgreePrivacy(e.target.checked);
+                              setAgreeMarketing(e.target.checked);
+                              if (countryFields.agreeGdpr) setAgreeGdpr(e.target.checked);
+                            }}
+                            className="w-5 h-5 rounded border-gray-300 text-[#1F3864] focus:ring-[#1F3864]/20"
+                          />
+                          <span className="text-sm font-bold text-[#1F3864] group-hover:text-[#162a4e] transition-colors">전체 동의</span>
+                        </label>
+                      </div>
 
                       <label className="flex items-start gap-4 cursor-pointer group">
                         <input
