@@ -202,7 +202,7 @@ export default function AIWizard({ onBack }: Props) {
                   <div className="bg-[#1F3864]/5 rounded-xl p-3 border border-[#C9A961]/30">
                     <p className="text-xs text-[#C9A961] font-medium mb-2">🔐 인증 후 활성화</p>
                     <ul className="space-y-1">
-                      {["전자 서명 + 본인인증", "법적 효력 부여", "블록체인 기록", "상속자 자동 알림"].map((item) => (
+                      {["전자 서명 + 본인인증", "법적 효력 부여", "분산 암호화 보안 기록", "상속자 자동 알림"].map((item) => (
                         <li key={item} className="flex items-center gap-1.5 text-xs text-[#1F3864]">
                           <Lock className="w-3 h-3 text-[#C9A961] flex-shrink-0" />
                           {item}

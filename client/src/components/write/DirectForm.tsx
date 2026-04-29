@@ -328,7 +328,7 @@ function SectionContent({ id, will, update }: { id: number; will: WillData; upda
           <li>• <strong>자필 서명:</strong> 유언자 본인이 직접 서명합니다.</li>
           <li>• <strong>날인:</strong> 인감도장 또는 무인(지장)을 날인합니다.</li>
           <li>• <strong>전자서명:</strong> EverWill 플랫폼의 전자서명으로 대체 가능합니다.</li>
-          <li>• <strong>블록체인 기록:</strong> 서명 완료 시 Polygon 네트워크에 해시가 기록됩니다.</li>
+          <li>• <strong>분산 암호화 보안 기록:</strong> 서명 완료 시 Polygon 네트워크에 해시가 기록됩니다.</li>
         </ul>
       </div>
       <p className="text-xs text-gray-400 mt-3">

@@ -120,13 +120,13 @@ const INVESTMENT_DETAIL = [
         timeline: "M2 ~ M4",
       },
       {
-        name: "블록체인 해시 기록",
+        name: "분산 암호화 기록",
         amount: "₩4천만",
         partners: ["Polygon Network", "KISA (한국인터넷진흥원)"],
         breakdown: [
           { item: "Polygon 네트워크 가스비 (12개월)", cost: "₩1,000만", note: "유언 인증 건당 ~500원 예상" },
           { item: "RFC 3161 타임스탬프 기관 계약", cost: "₩1,500만", note: "KISA 연계 공인 타임스탬프" },
-          { item: "스마트컨트랙트 개발 외주", cost: "₩1,500만", note: "블록체인 개발자 1명 × 1.5개월" },
+          { item: "스마트컨트랙트 개발 외주", cost: "₩1,500만", note: "보안 인증 개발자 1명 × 1.5개월" },
         ],
         timeline: "M3 ~ M6",
       },
@@ -328,7 +328,7 @@ const RISK_DATA = [
     level: "높음",
     risks: [
       { risk: "AI 법률 자문 위반 (변호사법)", impact: "서비스 중단", mitigation: "면책 조항 강화 + '정보 제공'으로 한정, 변호사 검토 필수화" },
-      { risk: "전자서명 효력 분쟁", impact: "유언 무효화", mitigation: "공인 전자서명 기관 제휴 + 블록체인 해시 이중 보완" },
+      { risk: "전자서명 효력 분쟁", impact: "유언 무효화", mitigation: "공인 전자서명 기관 제휴 + 분산 암호화 해시 이중 보완" },
       { risk: "개인정보 유출", impact: "ISMS 취소 + 과징금", mitigation: "E2E 암호화 + 정기 보안 점검 + ISMS 인증 취득" },
     ],
   },
@@ -593,7 +593,7 @@ export default function InternalPage() {
               <h3 className="text-xl font-bold text-white mb-6">투자금 사용 계획 (총 ₩10억 기준)</h3>
               <div className="space-y-5">
                 {[
-                  { label: "제품 개발", pct: 40, amount: "₩4억", desc: "AI 유언 엔진, eKYC, 블록체인", color: "#C9A961" },
+                  { label: "제품 개발", pct: 40, amount: "₩4억", desc: "AI 유언 엔진, eKYC, 분산 암호화 보안", color: "#C9A961" },
                   { label: "마케팅·영업", pct: 30, amount: "₩3억", desc: "한국·일본 런칭, 재외한인 타깃", color: "#10B981" },
                   { label: "법무·컴플라이언스", pct: 15, amount: "₩1.5억", desc: "각국 법률 검토, 변호사 파트너십", color: "#8B5CF6" },
                   { label: "운영·인프라", pct: 15, amount: "₩1.5억", desc: "서버, 보안, CS 시스템", color: "#3B82F6" },
@@ -657,7 +657,7 @@ export default function InternalPage() {
                   { category: "제품 개발", amount: "₩4억", color: "#C9A961", months: [1, 9] as [number, number],
                     milestones: [
                       { month: 2, label: "AI MVP" }, { month: 4, label: "eKYC" },
-                      { month: 6, label: "블록체인" }, { month: 9, label: "Badge" }
+                      { month: 6, label: "분산 암호화 보안" }, { month: 9, label: "Badge" }
                     ]
                   },
                   { category: "마케팅·영업", amount: "₩3억", color: "#10B981", months: [3, 12] as [number, number],
@@ -934,7 +934,7 @@ export default function InternalPage() {
                   partners: [
                     { name: "NICE평가정보", role: "한국 eKYC", priority: "필수", status: "협의 예정" },
                     { name: "Veriff", role: "글로벌 eKYC", priority: "필수", status: "협의 예정" },
-                    { name: "Polygon Foundation", role: "블록체인 해시", priority: "높음", status: "기술 검토 중" },
+                    { name: "Polygon Foundation", role: "분산 암호화 해시", priority: "높음", status: "기술 검토 중" },
                   ],
                 },
                 {

@@ -30,9 +30,9 @@ interface CartItem {
 }
 
 const PRODUCTS: { key: ProductKey; name: string; desc: string; amount: number; category: string; recommended?: boolean }[] = [
-  { key: "certification", name: "전자 인증", desc: "유언장 전자 인증 · 블록체인 해시 기록 · 인증서 발급", amount: 49000, category: "인증", recommended: true },
+  { key: "certification", name: "전자 인증", desc: "유언장 전자 인증 · 분산 암호화 기록 · 인증서 발급", amount: 49000, category: "인증", recommended: true },
   { key: "video_will", name: "영상 유언장", desc: "법적 녹음 유언 + 가족 감성 메시지 · 평생 보관", amount: 29000, category: "부가서비스" },
-  { key: "handwritten_scan", name: "자필 유언장 스캔", desc: "자필 원본 업로드 · AI 형식 검증 · 블록체인 기록", amount: 19000, category: "부가서비스" },
+  { key: "handwritten_scan", name: "자필 유언장 스캔", desc: "자필 원본 업로드 · AI 형식 검증 · 분산 암호화 보안 기록", amount: 19000, category: "부가서비스" },
   { key: "storage_1y", name: "보관 1년", desc: "디지털 유언장 1년 보관 (2년차~)", amount: 9900, category: "보관" },
   { key: "storage_3y", name: "보관 3년", desc: "15% 할인 적용", amount: 25245, category: "보관" },
   { key: "storage_5y", name: "보관 5년", desc: "15% 할인 적용 · 추천", amount: 42075, category: "보관", recommended: true },

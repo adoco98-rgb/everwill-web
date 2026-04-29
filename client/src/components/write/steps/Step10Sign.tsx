@@ -2,7 +2,7 @@
  * EverWill 서명 단계 (Step 10)
  * 1단계: 캔버스 손글씨 서명 (마우스/터치)
  * 2단계: 본인인증 4종 (PASS / 카카오 / 네이버 / 공동인증서)
- * 인증 완료 → 블록체인 해시 → 결제(₩49,000)
+ * 인증 완료 → 분산 암호화 해시 → 결제(₩49,000)
  */
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -197,7 +197,7 @@ export default function Step10Sign({ will }: StepProps) {
   const [selectedMethod, setSelectedMethod] = useState<AuthMethod>(null);
   const [authState, setAuthState] = useState<AuthState>("idle");
   const [timestamp, setTimestamp] = useState("");
-  const [blockchainHash, setBlockchainHash] = useState("");
+  const [secureHash, setSecureHash] = useState("");
 
   const totalPrice = 49000 + (will.hasVideoWill ? 29000 : 0) + (will.hasHandwrittenScan ? 19000 : 0);
 
@@ -230,7 +230,7 @@ export default function Step10Sign({ will }: StepProps) {
       const ts = now.toISOString();
       const hash = "0x" + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
       setTimestamp(ts);
-      setBlockchainHash(hash);
+      setSecureHash(hash);
       setAuthState("success");
       toast.success("본인인증 완료! 서명 타임스탬프가 기록됐습니다.");
     }, 2500);
@@ -250,7 +250,7 @@ export default function Step10Sign({ will }: StepProps) {
         <Lock className="w-5 h-5 text-[#1F3864]" />
         <div>
           <p className="font-semibold text-[#1F3864] text-sm">전자서명 및 본인인증</p>
-          <p className="text-gray-400 text-xs">서명 후 인증 완료 시 블록체인에 타임스탬프가 기록됩니다.</p>
+          <p className="text-gray-400 text-xs">서명 후 인증 완료 시 분산 암호화 보안에 타임스탬프가 기록됩니다.</p>
         </div>
       </div>
 
@@ -313,7 +313,7 @@ export default function Step10Sign({ will }: StepProps) {
               <p className="font-semibold text-gray-700 mb-1">서명 전 확인사항</p>
               <ul className="space-y-1">
                 <li>• 본인이 자유로운 의사로 작성한 유언장임을 확인합니다.</li>
-                <li>• 인증 완료 시 RFC 3161 타임스탬프 및 Polygon 블록체인에 기록됩니다.</li>
+                <li>• 인증 완료 시 RFC 3161 타임스탬프 및 Polygon 분산 암호화 보안에 기록됩니다.</li>
                 <li>• 서명 후 수정 시 재인증(₩15,000)이 필요합니다.</li>
                 <li>• 법적 효력은 전자 인증 결제(₩49,000) 완료 후 발생합니다.</li>
               </ul>
@@ -430,7 +430,7 @@ export default function Step10Sign({ will }: StepProps) {
                 <CheckCircle2 className="w-7 h-7 text-green-600" />
               </div>
               <h3 className="font-bold text-green-800 text-lg mb-1">서명 및 본인인증 완료!</h3>
-              <p className="text-green-600 text-sm">서명 타임스탬프가 블록체인에 기록됐습니다.</p>
+              <p className="text-green-600 text-sm">서명 타임스탬프가 분산 암호화 보안에 기록됐습니다.</p>
             </div>
 
             {signatureDataUrl && (
@@ -452,8 +452,8 @@ export default function Step10Sign({ will }: StepProps) {
               </div>
               <div className="flex items-start gap-2 text-sm">
                 <Hash className="w-4 h-4 text-[#C9A961] mt-0.5 flex-shrink-0" />
-                <span className="text-gray-500 flex-shrink-0">블록체인 해시:</span>
-                <span className="font-mono text-xs text-[#1F3864] break-all ml-auto">{blockchainHash.slice(0, 20)}...</span>
+                <span className="text-gray-500 flex-shrink-0">분산 암호화 해시:</span>
+                <span className="font-mono text-xs text-[#1F3864] break-all ml-auto">{secureHash.slice(0, 20)}...</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Shield className="w-4 h-4 text-[#C9A961]" />

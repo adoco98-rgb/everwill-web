@@ -384,12 +384,12 @@ const problems = [
 
 const innovations = [
   { num: "01", title_ko: "물리적 Badge 시스템", title_en: "Physical Badge System", wf: true, desc_ko: "MedicAlert + AirTag + 유언 인증 결합. 5종 라인업. 착용 자체가 마케팅." },
-  { num: "02", title_ko: "4중 사망 감지 시스템", title_en: "4-Layer Death Detection", wf: true, desc_ko: "가족 신고 + 정부 DB + Dead Man's Switch + 응급 발견자. 2채널 교차 검증." },
+  { num: "02", title_ko: "다층 안심 확인 서비스", title_en: "Multi-Layer Safety Confirmation", wf: true, desc_ko: "가족 신고 + 정부 DB + 정기 안심 확인 서비스 + 응급 발견자. 2채널 교차 검증." },
   { num: "03", title_ko: "변호사 마켓플레이스", title_en: "Lawyer Marketplace", wf: true, desc_ko: "평소엔 0%, 사망 후 100%. 플랫폼 수수료 15-25%." },
   { num: "04", title_ko: "상속자 직접 등록", title_en: "Beneficiary Direct Registration", wf: true, desc_ko: "사망 시 전 세계 상속자 자동 알림. 현지 언어·시간대 맞춤." },
   { num: "05", title_ko: "체크박스 17분 완성", title_en: "17-Min Checkbox Wizard", wf: false, desc_ko: "AI가 체크박스 → 법률 문장 자동 변환. 유류분 실시간 검증." },
   { num: "06", title_ko: "영상 유언 + 미래 전달", title_en: "Video Will + Future Delivery", wf: true, desc_ko: "손녀 성인식, 아들 결혼식 날 자동 전송. 평생 보관." },
-  { num: "07", title_ko: "자필 유언 스캔 인증", title_en: "Handwritten Will Scan", wf: false, desc_ko: "AI 형식 검증 + 위조 탐지 + 블록체인 무결성 기록." },
+  { num: "07", title_ko: "자필 유언 스캔 인증", title_en: "Handwritten Will Scan", wf: false, desc_ko: "AI 형식 검증 + 위조 탐지 + 분산 암호화 무결성 기록." },
   { num: "08", title_ko: "재인증 체계 (LTV 28배)", title_en: "Re-certification System", wf: true, desc_ko: "결혺·출산·이사·자산 변동마다 재인증. 최초 ₩49,000 → 재인증 ₩17,000." },
   { num: "09", title_ko: "글로벌 멀티관할권", title_en: "Multi-Jurisdiction", wf: true, desc_ko: "한국+미국+일본 자산 동시 관리. 각국 법률 자동 적용." },
   { num: "10", title_ko: "7개 언어 + 아랍어 RTL", title_en: "7 Languages + Arabic RTL", wf: false, desc_ko: "한·영·일·중·독·스·아랍어. 샤리아 상속법 자동 적용." },
@@ -423,7 +423,7 @@ const hiringData = [
   { role: "CTO", desc: "풀스택 + AI/ML. 유언 AI 엔진 개발 총괄" },
   { role: "일본 법무", desc: "일본 변호사 자격. 공정증서 디지털화 대응" },
   { role: "중동 BD", desc: "아랍어 원어민. 샤리아법 전문. GCC 파트너십" },
-  { role: "eKYC 엔지니어", desc: "NICE평가정보·Veriff 연동. 블록체인 해시" },
+  { role: "eKYC 엔지니어", desc: "NICE평가정보·Veriff 연동. 분산 암호화 해시" },
   { role: "마케팅 매니저", desc: "재외한인 커뮤니티 타깃. SNS·콘텐츠" },
   { role: "Badge 제조 PM", desc: "스테인레스·티타늄 제조 파트너 관리" },
 ];
@@ -697,7 +697,7 @@ export default function PitchPage() {
                 {[
                   ["AI Will Drafting", "✅ Free", "✅ $199/yr", "✅ £90", "✅ $149"],
                   ["Physical Badge", "✅ World First", "❌", "❌", "❌"],
-                  ["4-Layer Death Detection", "✅ World First", "❌", "❌", "❌"],
+                  ["Multi-Layer Safety Confirmation", "✅ World First", "❌", "❌", "❌"],
                   ["Lawyer Marketplace", "✅ Post-death", "✅ Pre-death", "✅ Pre-death", "❌"],
                   ["Multi-Jurisdiction", "✅ World First", "❌ US only", "❌ UK only", "❌ US only"],
                   ["Video Will + Future Delivery", "✅ World First", "❌", "❌", "✅ Basic"],
@@ -705,7 +705,7 @@ export default function PitchPage() {
                   ["Re-certification System", "✅ ₩15,000", "❌ Full repurchase", "❌", "❌"],
                   ["Arabic RTL + Sharia Law", "✅ World First", "❌", "❌", "❌"],
                   ["7 Languages", "✅ 7 langs", "❌ EN only", "❌ EN only", "❌ EN only"],
-                  ["Blockchain Hash", "✅ Polygon", "❌", "❌", "❌"],
+                  ["Distributed Encrypted Hash", "✅ Polygon", "❌", "❌", "❌"],
                   ["Customer LTV", "$550 (target)", "$199", "$150", "$120"],
                   ["Asia Market", "✅ Primary", "❌", "❌", "❌"],
                 ].map(([feat, s, tw, fw, gt], i) => (
@@ -900,7 +900,7 @@ export default function PitchPage() {
           <h3 className="font-semibold text-gray-700 mb-4">{t.s7use}</h3>
           <div className="space-y-3">
             {[
-              { label: "기술개발 (AI 엔진, eKYC, 블록체인, Badge NFC)", pct: 40, color: "#1F3864" },
+              { label: "기술개발 (AI 엔진, eKYC, 분산 암호화 보안, Badge NFC)", pct: 40, color: "#1F3864" },
               { label: "마케팅 (재외한인 캠페인, 일본 진출, 콘텐츠)", pct: 25, color: "#2a4a7f" },
               { label: "법무 (각국 법률 검토, 변호사 네트워크)", pct: 15, color: "#C9A961" },
               { label: "글로벌 확장 (일본·중동 법인, 현지화)", pct: 12, color: "#a88840" },

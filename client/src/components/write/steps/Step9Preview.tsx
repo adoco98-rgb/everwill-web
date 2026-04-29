@@ -261,7 +261,7 @@ export default function Step9Preview({ will }: StepProps) {
           <div className="text-right space-y-2">
             <p>{dateStr}</p>
             <p>유언자: {will.testatorName || "_______________"} (서명/날인)</p>
-            <p className="text-gray-400 text-xs">전자서명 및 블록체인 인증 후 법적 효력 발생</p>
+            <p className="text-gray-400 text-xs">전자서명 및 분산 암호화 보안 인증 후 법적 효력 발생</p>
           </div>
         </div>
       </div>

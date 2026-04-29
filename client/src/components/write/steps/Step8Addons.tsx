@@ -68,7 +68,7 @@ export default function Step8Addons({ will, update }: StepProps) {
         </div>
         <ul className="mt-4 space-y-1.5 ml-16">
           {(isKo
-            ? ["AI 낭독 스크립트 자동 생성", "녹화 중 실시간 가이드", "블록체인 해시 기록", '"손녀 성인 되는 날" 등 공개 타이밍 설정', "평생 보관"]
+            ? ["AI 낭독 스크립트 자동 생성", "녹화 중 실시간 가이드", "분산 암호화 기록", '"손녀 성인 되는 날" 등 공개 타이밍 설정', "평생 보관"]
             : [s.s8Detail1, s.s8Detail2, s.s8Detail3, s.s8Detail5, s.s8Detail6]
           ).map((f) => (
             <li key={f} className="flex items-center gap-2 text-sm text-gray-500">
@@ -124,7 +124,7 @@ export default function Step8Addons({ will, update }: StepProps) {
         </div>
         <ul className="mt-4 space-y-1.5 ml-16">
           {(isKo
-            ? ["자필 여부·날짜·서명·날인 자동 체크", "위조 탐지 알고리즘", "블록체인 무결성 기록", "원본 위치 추적"]
+            ? ["자필 여부·날짜·서명·날인 자동 체크", "위조 탐지 알고리즘", "분산 암호화 무결성 기록", "원본 위치 추적"]
             : [s.s9Detail3, s.s9Detail4, s.s9Detail5, s.s9Detail6]
           ).map((f) => (
             <li key={f} className="flex items-center gap-2 text-sm text-gray-500">

@@ -58,7 +58,7 @@ export default function ComparisonSection() {
           traditional: "5가지 방식 (자필·공정증서·비밀·녹음·구수)",
           traditionalSub: "민법 제1060~1111조 · 자필·녹음·비밀·구수는 가정법원 검인 필요",
           everwill: "전자 인증 유언장",
-          everwillSub: "eKYC + 블록체인 타임스탬프 + RFC 3161 · 검인 절차 간소화",
+          everwillSub: "eKYC + 보안 인증 타임스탬프 + RFC 3161 · 검인 절차 간소화",
           highlight: false,
         },
         {
@@ -76,7 +76,7 @@ export default function ComparisonSection() {
           traditional: "가족이 직접 진행",
           traditionalSub: "가정법원 검인(공정증서 제외) → 변호사 선임 → 상속 절차 → 수개월",
           everwill: "자동 집행",
-          everwillSub: "4중 사망 감지 → 상속자 자동 알림 → 변호사 자동 매칭",
+          everwillSub: "다층 안심 확인 → 상속자 자동 알림 → 변호사 자동 매칭",
           highlight: false,
         },
       ],
@@ -124,7 +124,7 @@ export default function ComparisonSection() {
           traditional: "Attested / Holographic / Notarized Will",
           traditionalSub: "State-specific UPC · Electronic wills now legal in 10+ states (NV, AZ, FL…)",
           everwill: "E-Certified Will",
-          everwillSub: "eKYC + blockchain timestamp + RFC 3161 · Probate-ready documentation",
+          everwillSub: "eKYC + secure certified timestamp + RFC 3161 · Probate-ready documentation",
           highlight: false,
         },
         {
@@ -322,7 +322,7 @@ export default function ComparisonSection() {
           traditional: "Eigenhändiges oder notarielles Testament",
           traditionalSub: "§2247 BGB (eigenhändig, kein Zeuge nötig) · §2232 BGB (notariell)",
           everwill: "Elektronisch zertifiziertes Testament",
-          everwillSub: "eKYC + Blockchain-Zeitstempel + RFC 3161 · Zentrales Testamentsregister",
+          everwillSub: "eKYC + Distributed Encryption Security-Zeitstempel + RFC 3161 · Zentrales Testamentsregister",
           highlight: false,
         },
         {
@@ -388,7 +388,7 @@ export default function ComparisonSection() {
           traditional: "Testamento abierto / ológrafo / cerrado",
           traditionalSub: "Art. 694 CC (notarial) · Art. 688 CC (ológrafo, sin testigos) · Registro Central",
           everwill: "Testamento Electrónico",
-          everwillSub: "eKYC + sello de tiempo blockchain + RFC 3161",
+          everwillSub: "eKYC + sello de tiempo distributed encryption security + RFC 3161",
           highlight: false,
         },
         {
@@ -520,7 +520,7 @@ export default function ComparisonSection() {
           traditional: "Testament olographe / authentique / mystique",
           traditionalSub: "Art. 970 CC (olographe, sans témoin) · Art. 971 CC (authentique, notaire+2 témoins)",
           everwill: "Testament électronique certifié",
-          everwillSub: "eKYC + horodatage blockchain + RFC 3161 · FCDDV (fichier central)",
+          everwillSub: "eKYC + horodatage distributed encryption security + RFC 3161 · FCDDV (fichier central)",
           highlight: false,
         },
         {
@@ -718,7 +718,7 @@ export default function ComparisonSection() {
           traditional: "Testamento público / particular / cerrado",
           traditionalSub: "Art. 1.864 CC (público: notário+2 test.) · Art. 1.876 CC (particular: 3 testemunhas)",
           everwill: "Testamento eletrônico certificado",
-          everwillSub: "eKYC + carimbo de tempo blockchain + RFC 3161",
+          everwillSub: "eKYC + carimbo de tempo distributed encryption security + RFC 3161",
           highlight: false,
         },
         {
