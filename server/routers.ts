@@ -14,6 +14,7 @@ import { signupTrackingRouter } from "./routers/signupTrackingRouter";
 import { phoneAuthRouter } from "./routers/phoneAuthRouter";
 import { qrRouter } from "./routers/qrRouter";
 import { assetVerifyRouter } from "./routers/assetVerifyRouter";
+import { adminRouter } from "./routers/adminRouter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -52,6 +53,8 @@ export const appRouter = router({
   qr: qrRouter,
   // 자산 인증 라우터
   assetVerify: assetVerifyRouter,
+  // 관리자 전용 라우터
+  admin: adminRouter,
 });
 
 export type AppRouter = typeof appRouter;
