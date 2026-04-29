@@ -60,6 +60,10 @@ export const users = mysqlTable("users", {
   occupation: varchar("occupation", { length: 64 }),
   /** 자산 규모 (선택: small/medium/large/ultra) */
   assetScale: varchar("assetScale", { length: 16 }),
+  /** 개인 QR 코드 (UUID, 회원가입 시 자동 생성) */
+  qrCode: varchar("qrCode", { length: 64 }).unique(),
+  /** QR 코드 공개 여부 (0=비공개, 1=공개) */
+  qrPublic: int("qrPublic").default(1),
 });
 
 export type User = typeof users.$inferSelect;

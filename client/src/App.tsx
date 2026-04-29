@@ -30,6 +30,8 @@ import LetterWrite from "./pages/LetterWrite";
 import Feedback from "./pages/Feedback";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
+import PublicProfilePage from "./pages/PublicProfilePage";
+import MembershipCardPage from "./pages/dashboard/MembershipCardPage";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -45,11 +47,14 @@ function Router() {
       {/* 약관 페이지 */}
       <Route path={"/terms"} component={TermsPage} />
       <Route path={"/privacy"} component={PrivacyPage} />
+      {/* QR 코드 공개 프로필 페이지 */}
+      <Route path={"/profile/:qrCode"} component={PublicProfilePage} />
       <Route path={"/will/scan"} component={ScanVerifyPage} />
       <Route path={"/will/chat"} component={WillChatPage} />
       <Route path={"/dashboard"} component={() => <SaramDashboardLayout><DashboardHome /></SaramDashboardLayout>} />
       <Route path={"/dashboard/payments"} component={() => <SaramDashboardLayout><PaymentsPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/profile"} component={() => <SaramDashboardLayout><ProfilePage /></SaramDashboardLayout>} />
+      <Route path={"/dashboard/membership"} component={() => <SaramDashboardLayout><MembershipCardPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/inquiries"} component={() => <SaramDashboardLayout><InquiriesPage /></SaramDashboardLayout>} />
       {/* 상속세 계산기 */}
       <Route path={"/tax"} component={TaxCalculatorPage} />

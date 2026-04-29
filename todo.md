@@ -285,3 +285,14 @@
 - [x] 회원가입 단계에 약관 동의 체크박스 이미 구현됨 (이용약관·개인정보·마케팅·GDPR)
 - [x] 동의 전 가입 버튼 비활성화 (agreeTerms && agreePrivacy 조건)
 - [x] App.tsx에 /terms, /privacy 라우트 등록
+
+## QR코드 멤버십 카드 시스템
+- [x] DB users 테이블에 qrCode 필드 추가 및 마이그레이션
+- [x] 회원가입 시 emailAuthRouter/phoneAuthRouter에서 qrCode 자동 생성
+- [x] tRPC: qr.getMyQr (내 QR 코드 및 공개 URL 반환)
+- [x] tRPC: qr.getPublicProfile (qrCode로 공개 정보 조회)
+- [x] tRPC: qr.updateQrPublic (QR 공개 여부 토글)
+- [x] 공개 프로필 페이지 생성 (/profile/:qrCode) - 이름 마스킹, EverWill 가입 확인 배지
+- [x] 대시보드 멤버십 카드 페이지 (/dashboard/membership) - QR 표시, 다운로드, 인쇄
+- [x] 사이드바 메뉴에 "멤버십 카드" 항목 추가
+- [x] App.tsx에 /profile/:qrCode 라우트 등록

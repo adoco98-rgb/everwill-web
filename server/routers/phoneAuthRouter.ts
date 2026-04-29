@@ -12,6 +12,7 @@ import { sdk } from "../_core/sdk";
 import { publicProcedure, router } from "../_core/trpc";
 import { sendSmsOtp, verifySmsOtp, toE164 } from "../_core/sms";
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { randomUUID } from "crypto";
 
 export const phoneAuthRouter = router({
   /**
@@ -70,12 +71,16 @@ export const phoneAuthRouter = router({
       const existingUsers = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
       const isNewUser = existingUsers.length === 0;
 
+      // 신규 사용자용 QR 코드 생성
+      const newQrCode = randomUUID();
+
       await db.insert(users).values({
         openId,
         phone: e164Phone,
         name: e164Phone, // 임시 이름 (프로필 입력 단계에서 업데이트)
         loginMethod: "phone",
         lastSignedIn: new Date(),
+        qrCode: newQrCode,
       }).onDuplicateKeyUpdate({
         set: { lastSignedIn: new Date() },
       });

@@ -13,6 +13,7 @@ import { getSessionCookieOptions } from "../_core/cookies";
 import { sdk } from "../_core/sdk";
 import { publicProcedure, router } from "../_core/trpc";
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { randomUUID } from "crypto";
 
 /** 6자리 숫자 OTP 생성 */
 function generateOtp(): string {
@@ -163,12 +164,16 @@ export const emailAuthRouter = router({
       const existingUsers = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
       const isNewUser = existingUsers.length === 0;
 
+      // 신규 사용자용 QR 코드 생성
+      const newQrCode = randomUUID();
+
       await db.insert(users).values({
         openId,
         email: input.email,
         name,
         loginMethod: "email",
         lastSignedIn: new Date(),
+        qrCode: newQrCode,
       }).onDuplicateKeyUpdate({
         set: { lastSignedIn: new Date() },
       });
