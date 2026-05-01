@@ -207,8 +207,18 @@ export const heirs = mysqlTable("heirs", {
   country: varchar("country", { length: 8 }).default("KR"),
   /** 주소 */
   address: text("address"),
-  /** 상속 지분 (%) */
+  /** 상속 순위 (1=제1상속자, 2=제2상속자...) */
+  priority: int("priority").default(1).notNull(),
+  /** 분배 방식: percent=비율, amount=금액 */
+  shareType: mysqlEnum("shareType", ["percent", "amount"]).default("percent"),
+  /** 상속 지분 (%) - shareType=percent 일 때 */
   sharePercent: int("sharePercent").default(0),
+  /** 상속 금액 (원) - shareType=amount 일 때 */
+  shareAmount: bigint("shareAmount", { mode: "number" }).default(0),
+  /** 제1상속자에게 EverWill 가입 사실 SMS 알림 동의 (0=미동의, 1=동의) */
+  smsConsent: int("smsConsent").default(0),
+  /** SMS 알림 발송 여부 (0=미발송, 1=발송완료) */
+  smsSent: int("smsSent").default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

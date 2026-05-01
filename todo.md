@@ -353,3 +353,22 @@
 - [x] 자료 관리 탭: 유언장 목록 (작성자, 상태, 날짜)
 - [x] 문의 관리 탭: 1:1 문의 목록, 답변 상태, 답변 기능
 - [ ] 관리자 계정에게는 대시보드의 자산등록 배너/CTA 숨김
+
+## 상속자 등록 시스템
+- [x] DB: heirs 테이블 생성 (userId, priority, name, phone, address, relationship, shareType(percent/amount), shareValue, smsConsent, createdAt)
+- [x] DB: heirs 테이블에 priority, shareType, shareAmount, smsConsent 필드 추가 (pnpm db:push 완료)
+- [x] API: heirs.getMyHeirs - 내 상속자 목록 조회
+- [x] API: heirs.addHeir - 상속자 추가 (이름, 전화, 주소, 관계, 분배방식, 분배값)
+- [x] API: heirs.updateHeir - 상속자 정보 수정
+- [x] API: heirs.deleteHeir - 상속자 삭제
+- [x] API: heirs.updateSmsConsent - 쉀1상속자 SMS 알림 동의 여부 변경
+- [x] API: heirs.sendWillNotification - 유언 완료 시 쉀1상속자에게 SMS 발송
+- [x] UI: /dashboard/heirs 상속자 등록 페이지 생성
+- [x] UI: 상속자 카드 목록 (쉀1상속자, 쉀2상속자... 순서 표시)
+- [x] UI: 상속자 추가 폼 (이름, 전화번호, 주소, 관계, 분배비율/금액 선택)
+- [x] UI: 분배방식 토글 (퍼센트 % / 금액 ₩)
+- [x] UI: 쉀1상속자 SMS 동의 체크박스 (EverWill 가입 사실 문자 알림)
+- [x] UI: 사이드바에 "상속자 등록" 메뉴 추가
+- [x] SMS: Twilio 일반 알림 함수 추가 (sendSmsMessage)
+- [ ] SMS: 쉀1상속자에게 EverWill 가입 사실 알림 문자 발송 (동의 시, Twilio 실제 키 연동 후 활성화)
+- [ ] SMS: 유언 완료 후 쉀1상속자에게 유언 사실 알림 문자 발송 (유언 인증 시스템 연동 후 활성화)

@@ -20,6 +20,7 @@ import {
   QrCode,
   ShieldCheck,
   Settings2,
+  Users,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -34,6 +35,7 @@ const menuItems = [
   { icon: ShieldCheck, label: "자산 인증", path: "/dashboard/asset-verify" },
   { icon: MessageSquare, label: "1:1 문의", path: "/dashboard/inquiries" },
   { icon: User, label: "프로필 설정", path: "/dashboard/profile" },
+  { icon: Users, label: "상속자 등록", path: "/dashboard/heirs" },
 ];
 
 export default function SaramDashboardLayout({ children }: { children: React.ReactNode }) {
