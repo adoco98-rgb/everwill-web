@@ -539,3 +539,32 @@ export const signupEvents = mysqlTable("signup_events", {
 
 export type SignupEvent = typeof signupEvents.$inferSelect;
 export type InsertSignupEvent = typeof signupEvents.$inferInsert;
+
+// ─── 글로벌 뉴스 게시판 ───────────────────────────────────────────────────────
+export const newsPosts = mysqlTable("newsPosts", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 뉴스 제목 */
+  title: text("title").notNull(),
+  /** 뉴스 원문 URL */
+  url: varchar("url", { length: 2048 }).notNull(),
+  /** 신문사명 (예: 조선일보, Bloomberg) */
+  outlet: varchar("outlet", { length: 128 }).notNull(),
+  /** 국가명 (예: 한국, 미국) */
+  country: varchar("country", { length: 64 }).notNull(),
+  /** 국기 이모지 (예: 🇰🇷) */
+  flag: varchar("flag", { length: 8 }).notNull(),
+  /** 짧은 요약 (선택) */
+  summary: text("summary"),
+  /** 카테고리 태그 (예: 상속, 유언, 부동산) */
+  tag: varchar("tag", { length: 64 }),
+  /** 공개 여부 (1=공개, 0=비공개) */
+  isActive: tinyint("isActive").default(1).notNull(),
+  /** 등록한 관리자 ID */
+  createdBy: int("createdBy"),
+  /** 뉴스 발행일 */
+  publishedAt: varchar("publishedAt", { length: 32 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type NewsPost = typeof newsPosts.$inferSelect;
+export type InsertNewsPost = typeof newsPosts.$inferInsert;

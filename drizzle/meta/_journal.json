@@ -127,6 +127,13 @@
       "when": 1777671424453,
       "tag": "0017_ancient_forge",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1777851870498,
+      "tag": "0018_lovely_revanche",
+      "breakpoints": true
     }
   ]
 }

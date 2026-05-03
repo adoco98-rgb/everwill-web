@@ -379,7 +379,17 @@
 - [x] 5개 언론사: 조선일보(한국), 朝日新聞(일본), Bloomberg(미국), Le Monde(프랑스), Al Jazeera(중동) — 11개 언어 번역 포함
 
 ## 글로벌 뉴스 카드 게시판 (언론소개 섹션 교체)
-- [ ] TrustSection.tsx 언론소개 섹션을 글로벌 뉴스 카드 게시판으로 교체
-- [ ] 뉴스 카드: 국기 + 신문사명 + 뉴스 제목 + 날짜 + 짧은 요약
-- [ ] 카드 6개 그리드 또는 가로 스크롤 형태
-- [ ] 언어 선택 시 뉴스 제목/요약 자동 번역
+- [x] TrustSection.tsx 언론소개 섹션을 글로벌 뉴스 카드 게시판으로 교체
+- [x] 뉴스 카드: 국기 + 신문사명 + 뉴스 제목 + 날짜 + 짧은 요약
+- [x] 카드 6개 그리드 또는 가로 스크롤 형태
+
+## 글로벌 뉴스 관리 시스템 (관리자 등록 → 홈페이지 표시)
+- [x] DB: news_posts 테이블 생성 (id, title, url, outlet, country, flag, publishedAt, isActive, createdBy)
+- [x] API: news.getPublic - 공개 뉴스 목록 조회 (홈페이지용)
+- [x] API: news.getAll - 전체 뉴스 목록 (관리자용)
+- [x] API: news.create - 뉴스 등록 (관리자 전용)
+- [x] API: news.update - 뉴스 수정 (관리자 전용)
+- [x] API: news.delete - 뉴스 삭제 (관리자 전용)
+- [x] API: news.toggleActive - 공개/비공개 전환 (관리자 전용)
+- [x] AdminPage.tsx: 뉴스 관리 탭 추가 (URL+제목+신문사+국가+날짜 입력 폼, 목록, 수정/삭제)
+- [x] TrustSection.tsx: 하드코딩된 뉴스 데이터 → DB에서 실시간 조회로 교체

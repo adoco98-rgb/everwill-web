@@ -13,10 +13,11 @@ import { toast } from "sonner";
 import {
   Users, CreditCard, FileText, MessageSquare,
   BarChart3, Search, ChevronLeft, ChevronRight,
-  TrendingUp, Shield, Clock, CheckCircle
+  TrendingUp, Shield, Clock, CheckCircle,
+  Newspaper, Plus, Trash2, Eye, EyeOff, ExternalLink, Pencil
 } from "lucide-react";
 
-type Tab = "stats" | "users" | "payments" | "wills" | "inquiries";
+type Tab = "stats" | "users" | "payments" | "wills" | "inquiries" | "news";
 
 function formatKRW(amount: number) {
   if (amount >= 100_000_000) return `${(amount / 100_000_000).toFixed(1)}억원`;
@@ -494,6 +495,168 @@ function InquiriesTab() {
   );
 }
 
+/** 뉴스 관리 탭 */
+function NewsTab() {
+  const utils = trpc.useUtils();
+  const { data: newsList, isLoading } = trpc.news.getAll.useQuery();
+  const createMutation = trpc.news.create.useMutation({
+    onSuccess: () => { toast.success("뉴스가 등록되었습니다"); utils.news.getAll.invalidate(); setShowForm(false); resetForm(); },
+    onError: (e) => toast.error(e.message),
+  });
+  const deleteMutation = trpc.news.delete.useMutation({
+    onSuccess: () => { toast.success("삭제되었습니다"); utils.news.getAll.invalidate(); },
+    onError: (e) => toast.error(e.message),
+  });
+  const toggleMutation = trpc.news.toggleActive.useMutation({
+    onSuccess: () => utils.news.getAll.invalidate(),
+    onError: (e) => toast.error(e.message),
+  });
+
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ title: "", url: "", outlet: "", country: "", flag: "", summary: "", tag: "", publishedAt: "" });
+  const resetForm = () => setForm({ title: "", url: "", outlet: "", country: "", flag: "", summary: "", tag: "", publishedAt: "" });
+
+  const handleSubmit = () => {
+    if (!form.title || !form.url || !form.outlet || !form.country || !form.flag) {
+      toast.error("제목, URL, 신문사, 국가, 국기는 필수입니다");
+      return;
+    }
+    createMutation.mutate({ ...form, isActive: 1 });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold text-[#1F3864]">글로벌 뉴스 관리</h2>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="flex items-center gap-2 bg-[#1F3864] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#2a4a7f] transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          뉴스 등록
+        </button>
+      </div>
+
+      {/* 등록 폼 */}
+      {showForm && (
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+          <h3 className="font-bold text-[#1F3864] text-base">새 뉴스 등록</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">뉴스 제목 *</label>
+              <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="예: 디지털 유언 시대 열린다" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">뉴스 URL *</label>
+              <input value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} placeholder="https://..." className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">신문사명 *</label>
+              <input value={form.outlet} onChange={e => setForm(f => ({ ...f, outlet: e.target.value }))} placeholder="예: 조선일보" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">국가명 *</label>
+              <input value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))} placeholder="예: 한국" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">국기 이모지 *</label>
+              <input value={form.flag} onChange={e => setForm(f => ({ ...f, flag: e.target.value }))} placeholder="예: 🇰🇷" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">발행일</label>
+              <input value={form.publishedAt} onChange={e => setForm(f => ({ ...f, publishedAt: e.target.value }))} placeholder="예: 2026.05.01" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">카테고리 태그</label>
+              <input value={form.tag} onChange={e => setForm(f => ({ ...f, tag: e.target.value }))} placeholder="예: 상속, 유언" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">짧은 요약</label>
+              <input value={form.summary} onChange={e => setForm(f => ({ ...f, summary: e.target.value }))} placeholder="한 줄 요약 (선택)" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20" />
+            </div>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button onClick={handleSubmit} disabled={createMutation.isPending} className="bg-[#C9A961] text-white px-6 py-2 rounded-xl text-sm font-medium hover:bg-[#b8954f] transition-colors disabled:opacity-50">
+              {createMutation.isPending ? "등록 중..." : "등록하기"}
+            </button>
+            <button onClick={() => { setShowForm(false); resetForm(); }} className="border border-gray-200 text-gray-600 px-6 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">
+              취소
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 뉴스 목록 */}
+      {isLoading ? (
+        <div className="text-center py-16 text-gray-400">로딩 중...</div>
+      ) : !newsList || newsList.length === 0 ? (
+        <div className="text-center py-16 text-gray-400">
+          <Newspaper className="w-10 h-10 mx-auto mb-3 opacity-30" />
+          <p>등록된 뉴스가 없습니다</p>
+          <p className="text-sm mt-1">위의 "뉴스 등록" 버튼으로 추가하세요</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium">국가/신문사</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium">제목</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">발행일</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium">상태</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium">관리</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {newsList.map(item => (
+                <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{item.flag}</span>
+                      <div>
+                        <p className="font-medium text-[#1F3864]">{item.outlet}</p>
+                        <p className="text-xs text-gray-400">{item.country}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-[#1F3864] hover:text-[#C9A961] font-medium flex items-center gap-1 transition-colors">
+                      {item.title.length > 40 ? item.title.slice(0, 40) + "..." : item.title}
+                      <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                    </a>
+                    {item.tag && <span className="text-xs bg-[#C9A961]/10 text-[#C9A961] px-2 py-0.5 rounded-full mt-1 inline-block">{item.tag}</span>}
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 hidden md:table-cell">{item.publishedAt || "-"}</td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => toggleMutation.mutate({ id: item.id, isActive: item.isActive === 1 ? 0 : 1 })}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium transition-colors ${
+                        item.isActive === 1
+                          ? "bg-green-50 text-green-600 hover:bg-green-100"
+                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      }`}
+                    >
+                      {item.isActive === 1 ? <><Eye className="w-3 h-3" /> 공개</> : <><EyeOff className="w-3 h-3" /> 비공개</>}
+                    </button>
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => { if (confirm("삭제하시겠습니까?")) deleteMutation.mutate({ id: item.id }); }}
+                      className="text-red-400 hover:text-red-600 transition-colors p-1"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** 메인 관리자 페이지 */
 export default function AdminPage() {
   const { user, loading } = useAuth();
@@ -520,6 +683,7 @@ export default function AdminPage() {
     { id: "payments", label: "결제/매출", icon: CreditCard },
     { id: "wills", label: "자료 관리", icon: FileText },
     { id: "inquiries", label: "문의 관리", icon: MessageSquare },
+    { id: "news", label: "뉴스 관리", icon: Newspaper },
   ];
 
   return (
@@ -563,6 +727,7 @@ export default function AdminPage() {
         {activeTab === "payments" && <PaymentsTab />}
         {activeTab === "wills" && <WillsTab />}
         {activeTab === "inquiries" && <InquiriesTab />}
+        {activeTab === "news" && <NewsTab />}
       </div>
     </div>
   );
