@@ -138,6 +138,10 @@ type Step = "input" | "otp" | "sms_otp" | "profile" | "done"; // sms_otp: 비밀
 export default function LoginPage() {
   const [, navigate] = useLocation();
 
+  // URL 파라미터 mode=register 감지 → 회원가입 탭 자동 전환
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+  const initialRegisterMode = urlParams.get('mode') === 'register';
+
   // 로그인 방법 선택 (이메일 / 휴대폰)
   const [loginMethod, setLoginMethod] = useState<LoginMethod>("email");
 
@@ -164,7 +168,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isRegisterMode, setIsRegisterMode] = useState(false); // 로그인 vs 회원가입
+  const [isRegisterMode, setIsRegisterMode] = useState(initialRegisterMode); // 로그인 vs 회원가입 (mode=register 시 자동 전환)
   const [registerName, setRegisterName] = useState("");
   const [registerPhone, setRegisterPhone] = useState("");
   const [registerPhoneCode, setRegisterPhoneCode] = useState("+82");

@@ -93,7 +93,7 @@ export default function HeroSection() {
         >
           {/* 무료 가입 버튼 (단독, 크게) */}
           <button
-            onClick={() => navigate("/login")}
+            onClick={() => navigate("/login?mode=register")}
             className="group flex items-center gap-3 btn-gold px-14 py-5 rounded-full text-xl font-bold shadow-2xl shadow-[#C9A961]/40 min-w-[280px] justify-center transition-all duration-300 hover:scale-105"
           >
             <UserPlus className="w-6 h-6" />
