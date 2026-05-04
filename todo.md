@@ -393,3 +393,14 @@
 - [x] API: news.toggleActive - 공개/비공개 전환 (관리자 전용)
 - [x] AdminPage.tsx: 뉴스 관리 탭 추가 (URL+제목+신문사+국가+날짜 입력 폼, 목록, 수정/삭제)
 - [x] TrustSection.tsx: 하드코딩된 뉴스 데이터 → DB에서 실시간 조회로 교체
+
+## 휴대폰 로그인 보안 개선 (비밀번호 + SMS OTP 2단계)
+- [x] DB: users 테이블에 passwordHash 필드 활용 (기존 필드 재사용)
+- [x] API: phoneAuth.register - 신규 가입 시 이름+비밀번호 함께 저장
+- [x] API: phoneAuth.loginStep1 - 휴대폰번호+비밀번호 검증 → SMS OTP 발송
+- [x] API: phoneAuth.loginStep2 - SMS OTP 검증 → 세션 발급
+- [x] LoginPage.tsx: 휴대폰 탭 UI 개편
+  - 1단계: 국가코드 + 휴대폰번호 + 비밀번호 입력 → "로그인" 버튼
+  - 2단계: SMS OTP 6자리 입력 (기존 OTP 화면 재활용)
+  - 회원가입 서브탭: 이름 + 휴대폰번호 + 비밀번호 + 비밀번호 확인
+  - OTP 전용 로그인 서브모드도 유지 (휴대폰+OTP 방식)

@@ -1,10 +1,12 @@
 /**
- * 휴대폰 OTP 인증 라우터 (Twilio Verify)
- * 휴대폰 번호 입력 → SMS OTP 발송 → 코드 검증 → 세션 생성
+ * 휴대폰 인증 라우터 (Twilio Verify)
+ * [기존] OTP 전용: 번호 입력 → SMS OTP → 자동 가입+로그인
+ * [신규] 비밀번호 방식: 번호+비밀번호 → SMS OTP → 로그인
  */
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 import { users } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { getSessionCookieOptions } from "../_core/cookies";
@@ -99,7 +101,153 @@ export const phoneAuthRouter = router({
     }),
 
   /**
-   * 회원가입 후 추가 정보 저장 (전화번호 기반 가입자)
+   * [신규] 휴대폰+비밀번호 회원가입
+   * 이름 + 휴대폰번호 + 비밀번호 저장 (OTP 인증 없이 즉시 가입)
+   */
+  register: publicProcedure
+    .input(z.object({
+      phone: z.string().min(7, "올바른 전화번호를 입력해주세요").max(20),
+      countryCode: z.string().default("+82"),
+      password: z.string().min(8, "비밀번호는 8자 이상이어야 합니다").max(100),
+      name: z.string().min(1, "이름을 입력해주세요").max(50),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
+
+      const e164Phone = toE164(input.phone, input.countryCode);
+      const openId = `phone:${e164Phone}`;
+
+      // 이미 가입된 번호인지 확인
+      const existing = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+      if (existing.length > 0) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "이미 가입된 휴대폰 번호입니다. 로그인해주세요.",
+        });
+      }
+
+      const passwordHash = await bcrypt.hash(input.password, 12);
+      const newQrCode = randomUUID();
+
+      await db.insert(users).values({
+        openId,
+        phone: e164Phone,
+        name: input.name,
+        loginMethod: "phone_password",
+        passwordHash,
+        lastSignedIn: new Date(),
+        qrCode: newQrCode,
+      });
+
+      return { success: true };
+    }),
+
+  /**
+   * [신규] 로그인 1단계: 휴대폰번호 + 비밀번호 검증 → SMS OTP 발송
+   */
+  loginStep1: publicProcedure
+    .input(z.object({
+      phone: z.string().min(7, "올바른 전화번호를 입력해주세요").max(20),
+      countryCode: z.string().default("+82"),
+      password: z.string().min(1, "비밀번호를 입력해주세요"),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
+
+      const e164Phone = toE164(input.phone, input.countryCode);
+      const openId = `phone:${e164Phone}`;
+
+      const userRows = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+      if (userRows.length === 0) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "휴대폰 번호 또는 비밀번호가 올바르지 않습니다.",
+        });
+      }
+
+      const user = userRows[0];
+
+      // 비밀번호 방식 가입자인지 확인
+      if (!user.passwordHash) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "이 번호는 OTP 방식으로 가입되었습니다. 아래 'OTP로 로그인' 탭을 이용해주세요.",
+        });
+      }
+
+      // 비밀번호 검증
+      const isValid = await bcrypt.compare(input.password, user.passwordHash);
+      if (!isValid) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "휴대폰 번호 또는 비밀번호가 올바르지 않습니다.",
+        });
+      }
+
+      // SMS OTP 발송
+      const smsResult = await sendSmsOtp(e164Phone);
+      if (!smsResult.success) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "SMS 발송에 실패했습니다. 잠시 후 다시 시도해주세요.",
+        });
+      }
+
+      // 전화번호 마스킹
+      const maskedPhone = e164Phone.replace(/(\+\d{2,3})(\d+)(\d{4})$/, (_, cc, mid, last) => {
+        return `${cc}${"*".repeat(mid.length)}${last}`;
+      });
+
+      return { success: true, maskedPhone, phone: e164Phone };
+    }),
+
+  /**
+   * [신규] 로그인 2단계: SMS OTP 검증 → 세션 발급 (비밀번호 방식)
+   */
+  loginStep2: publicProcedure
+    .input(z.object({
+      phone: z.string().min(7).max(20), // E.164 형식
+      code: z.string().length(6, "6자리 코드를 입력해주세요"),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
+
+      // Twilio Verify로 코드 검증
+      const result = await verifySmsOtp(input.phone, input.code);
+      if (!result.success) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: result.error ?? "인증 코드가 올바르지 않습니다.",
+        });
+      }
+
+      const openId = `phone:${input.phone}`;
+      const userRows = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+      if (userRows.length === 0) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "사용자를 찾을 수 없습니다." });
+      }
+
+      const user = userRows[0];
+
+      // 마지막 로그인 시간 업데이트
+      await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.openId, openId));
+
+      // JWT 세션 토큰 생성
+      const token = await sdk.createSessionToken(openId, { name: user.name ?? input.phone });
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.cookie(COOKIE_NAME, token, {
+        ...cookieOptions,
+        maxAge: ONE_YEAR_MS,
+      });
+
+      return { success: true };
+    }),
+
+  /**
+   * [기존] 회원가입 후 추가 정보 저장 (전화번호 기반 가입자)
    */
   updateProfile: publicProcedure
     .input(z.object({

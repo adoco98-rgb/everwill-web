@@ -174,6 +174,15 @@ export default function LoginPage() {
   const [phoneCountryCode, setPhoneCountryCode] = useState("+82");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [e164Phone, setE164Phone] = useState(""); // 서버에서 반환된 E.164 형식
+  // 휴대폰 비밀번호 방식 상태
+  const [phoneSubMode, setPhoneSubMode] = useState<"password" | "otp">("password"); // 비밀번호 vs OTP
+  const [isPhoneRegisterMode, setIsPhoneRegisterMode] = useState(false); // 로그인 vs 회원가입
+  const [phonePassword, setPhonePassword] = useState("");
+  const [phoneConfirmPassword, setPhoneConfirmPassword] = useState("");
+  const [phoneName, setPhoneName] = useState("");
+  const [showPhonePassword, setShowPhonePassword] = useState(false);
+  const [phoneMasked, setPhoneMasked] = useState(""); // 비밀번호 로그인 후 마스킹된 번호
+  const [phoneE164ForStep2, setPhoneE164ForStep2] = useState(""); // 2단계 검증용 E.164 번호
 
   // 프로필 폼 - 공통
   const [profileName, setProfileName] = useState("");
@@ -296,6 +305,53 @@ export default function LoginPage() {
     },
     onError: (err) => {
       toast.error(err.message || "정보 저장에 실패했습니다. 다시 시도해주세요.");
+    },
+  });
+
+  // ── 휴대폰 비밀번호 방식 뮤테이션 ──
+  const phoneRegisterMutation = trpc.auth.phone.register.useMutation({
+    onSuccess: () => {
+      toast.success("회원가입이 완료되었습니다. 로그인해주세요.");
+      setIsPhoneRegisterMode(false);
+      setPhonePassword("");
+      setPhoneConfirmPassword("");
+      setPhoneName("");
+    },
+    onError: (err) => {
+      toast.error(err.message || "회원가입에 실패했습니다.");
+    },
+  });
+  const phoneLoginStep1Mutation = trpc.auth.phone.loginStep1.useMutation({
+    onSuccess: (data) => {
+      setPhoneMasked(data.maskedPhone);
+      setPhoneE164ForStep2(data.phone);
+      setStep("sms_otp");
+      setOtp(["", "", "", "", "", ""]);
+      setOtpAttempts(0);
+      setIsLocked(false);
+      toast.success(`휴대폰(${data.maskedPhone})으로 인증번호를 발송했습니다.`);
+    },
+    onError: (err) => {
+      toast.error(err.message || "로그인에 실패했습니다.");
+    },
+  });
+  const phoneLoginStep2Mutation = trpc.auth.phone.loginStep2.useMutation({
+    onSuccess: () => {
+      setStep("done");
+      toast.success("로그인에 성공했습니다!");
+      setTimeout(() => navigate("/dashboard"), 1000);
+    },
+    onError: (err) => {
+      const newAttempts = otpAttempts + 1;
+      setOtpAttempts(newAttempts);
+      if (newAttempts >= OTP_MAX_ATTEMPTS) {
+        setIsLocked(true);
+        toast.error("인증 코드를 5회 잘못 입력했습니다. 다시 로그인해주세요.");
+      } else {
+        toast.error(err.message || `인증 코드가 올바르지 않습니다. (${newAttempts}/${OTP_MAX_ATTEMPTS}회)`);
+      }
+      setOtp(["", "", "", "", "", ""]);
+      inputRefs.current[0]?.focus();
     },
   });
 
@@ -462,8 +518,13 @@ export default function LoginPage() {
   function submitOtp(code: string) {
     if (isLocked) return;
     if (step === "sms_otp") {
-      // 비밀번호 로그인 2단계 SMS OTP 검증
-      loginStep2Mutation.mutate({ email, code });
+      if (loginMethod === "phone" && phoneSubMode === "password") {
+        // 휴대폰 비밀번호 로그인 2단계 SMS OTP 검증
+        phoneLoginStep2Mutation.mutate({ phone: phoneE164ForStep2, code });
+      } else {
+        // 이메일 비밀번호 로그인 2단계 SMS OTP 검증
+        loginStep2Mutation.mutate({ email, code });
+      }
     } else if (loginMethod === "email") {
       verifyEmailOtp.mutate({ email, code });
     } else {
@@ -849,7 +910,7 @@ export default function LoginPage() {
                     </div>
                     <h1 className="text-3xl font-bold text-[#1F3864] mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>SMS 인증</h1>
                     <p className="text-gray-500 text-lg leading-relaxed">
-                      등록된 휴대폰 <span className="font-semibold text-[#1F3864]">{maskedPhone}</span>으로<br />
+                      등록된 휴대폰 <span className="font-semibold text-[#1F3864]">{loginMethod === "phone" ? phoneMasked : maskedPhone}</span>으로<br />
                       6자리 인증번호를 발송했습니다.
                     </p>
                   </div>
@@ -859,7 +920,7 @@ export default function LoginPage() {
                         type="text" inputMode="numeric" maxLength={1} value={digit}
                         onChange={(e) => handleOtpChange(i, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                        disabled={isLocked || loginStep2Mutation.isPending}
+                        disabled={isLocked || loginStep2Mutation.isPending || phoneLoginStep2Mutation.isPending}
                         className={`w-12 h-16 text-center text-2xl font-bold rounded-2xl border-2 outline-none transition-all ${
                           digit ? "border-[#1F3864] bg-[#1F3864]/5" : "border-gray-200"
                         } ${isLocked ? "opacity-50 cursor-not-allowed" : "focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10"}`}
@@ -872,7 +933,7 @@ export default function LoginPage() {
                       <p className="text-red-600 text-sm">인증 시도 횟수를 초과했습니다. 처음부터 다시 시도해주세요.</p>
                     </div>
                   )}
-                  {loginStep2Mutation.isPending && (
+                  {(loginStep2Mutation.isPending || phoneLoginStep2Mutation.isPending) && (
                     <div className="flex items-center justify-center gap-2 text-gray-500 mb-4">
                       <Loader2 className="w-5 h-5 animate-spin" />
                       <span>인증 확인 중...</span>
@@ -885,63 +946,191 @@ export default function LoginPage() {
                 </motion.div>
               )}
 
-              {/* ── Step 1: 휴대폰 번호 입력 ── */}
+              {/* ── Step 1: 휴대폰 입력 (비밀번호 방식 기본) ── */}
               {step === "input" && loginMethod === "phone" && (
                 <motion.div key="phone-input" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                  <div className="text-center mb-8">
+                  <div className="text-center mb-6">
                     <div className="w-16 h-16 bg-[#1F3864]/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
                       <Smartphone className="w-8 h-8 text-[#1F3864]" />
                     </div>
-                    <h1 className="text-3xl font-bold text-[#1F3864] mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>휴대폰으로 시작하기</h1>
-                    <p className="text-gray-500 text-lg leading-relaxed">휴대폰 번호를 입력하시면<br />문자(SMS)로 인증 코드를 보내드립니다.</p>
+                    <h1 className="text-3xl font-bold text-[#1F3864] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>휴대폰으로 시작하기</h1>
                   </div>
-                  <form onSubmit={handlePhoneSubmit} className="space-y-5">
-                    <div>
-                      <label className={labelClass}>
-                        <Phone className="w-4 h-4 inline mr-1.5 text-gray-400" />
-                        휴대폰 번호
-                      </label>
-                      <div className="flex gap-3">
-                        {/* 국가코드 선택 */}
-                        <select
-                          value={phoneCountryCode}
-                          onChange={(e) => setPhoneCountryCode(e.target.value)}
-                          className="px-4 py-4 rounded-2xl border-2 border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-lg transition-all bg-white w-36 shrink-0"
-                        >
-                          {PHONE_COUNTRY_CODES.map(c => (
-                            <option key={c.code} value={c.code}>
-                              {c.flag} {c.code}
-                            </option>
-                          ))}
-                        </select>
-                        {/* 번호 입력 */}
-                        <input
-                          type="tel"
-                          value={phoneNumber}
-                          onChange={(e) => setPhoneNumber(e.target.value.replace(/[^\d\-\s]/g, ""))}
-                          placeholder={phoneCountryCode === "+82" ? "010-0000-0000" : phoneCountryCode === "+1" ? "555-000-0000" : "번호 입력"}
-                          required
-                          autoFocus
-                          className="flex-1 px-5 py-4 rounded-2xl border-2 border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 outline-none text-gray-800 text-lg transition-all"
-                        />
-                      </div>
-                      <p className="mt-2 text-sm text-gray-400">
-                        {phoneCountryCode === "+82" ? "예: 010-1234-5678 (앞의 0 포함)" : "국가코드 없이 번호만 입력"}
-                      </p>
-                    </div>
-                    <button
-                      type="submit" disabled={isPendingSend || !phoneNumber.trim()}
-                      className="w-full bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-50 disabled:cursor-not-allowed text-white py-5 rounded-2xl font-bold text-xl flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg"
-                    >
-                      {isPendingSend
-                        ? <><Loader2 className="w-5 h-5 animate-spin" /> 발송 중...</>
-                        : <><Smartphone className="w-5 h-5" /> SMS 인증 코드 받기</>
-                      }
+
+                  {/* 로그인 / 회원가입 서브탭 */}
+                  <div className="flex rounded-xl bg-gray-100 p-1 mb-5 gap-1">
+                    <button type="button" onClick={() => setIsPhoneRegisterMode(false)}
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                        !isPhoneRegisterMode ? "bg-white text-[#1F3864] shadow-sm" : "text-gray-400 hover:text-gray-600"
+                      }`}>
+                      로그인
                     </button>
-                  </form>
-                  <p className="text-center text-sm text-gray-400 mt-6 leading-relaxed">
+                    <button type="button" onClick={() => setIsPhoneRegisterMode(true)}
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                        isPhoneRegisterMode ? "bg-white text-[#1F3864] shadow-sm" : "text-gray-400 hover:text-gray-600"
+                      }`}>
+                      회원가입
+                    </button>
+                  </div>
+
+                  {/* 로그인 폼 */}
+                  {!isPhoneRegisterMode && (
+                    <div className="space-y-4">
+                      {/* 비밀번호 / OTP 서브모드 선택 */}
+                      <div className="flex rounded-xl bg-gray-50 border border-gray-200 p-1 gap-1">
+                        <button type="button" onClick={() => setPhoneSubMode("password")}
+                          className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${
+                            phoneSubMode === "password" ? "bg-[#1F3864] text-white shadow-sm" : "text-gray-400 hover:text-gray-600"
+                          }`}>
+                          휴대폰+비밀번호
+                        </button>
+                        <button type="button" onClick={() => setPhoneSubMode("otp")}
+                          className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${
+                            phoneSubMode === "otp" ? "bg-[#1F3864] text-white shadow-sm" : "text-gray-400 hover:text-gray-600"
+                          }`}>
+                          OTP로 로그인
+                        </button>
+                      </div>
+
+                      {/* 비밀번호 로그인 */}
+                      {phoneSubMode === "password" && (
+                        <form onSubmit={(e) => {
+                          e.preventDefault();
+                          if (!phoneNumber.trim() || !phonePassword.trim()) return;
+                          phoneLoginStep1Mutation.mutate({ phone: phoneNumber.trim(), countryCode: phoneCountryCode, password: phonePassword });
+                        }} className="space-y-4">
+                          <div>
+                            <label className={labelClass}><Phone className="w-4 h-4 inline mr-1.5 text-gray-400" />휴대폰 번호</label>
+                            <div className="flex gap-2">
+                              <select value={phoneCountryCode} onChange={(e) => setPhoneCountryCode(e.target.value)}
+                                className="px-3 py-4 rounded-2xl border-2 border-gray-200 focus:border-[#1F3864] outline-none text-gray-800 text-base bg-white w-28 shrink-0">
+                                {PHONE_COUNTRY_CODES.map(c => <option key={c.code} value={c.code}>{c.flag} {c.code}</option>)}
+                              </select>
+                              <input type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value.replace(/[^\d\-\s]/g, ""))}
+                                placeholder={phoneCountryCode === "+82" ? "010-0000-0000" : "번호 입력"}
+                                required autoFocus
+                                className="flex-1 px-5 py-4 rounded-2xl border-2 border-gray-200 focus:border-[#1F3864] outline-none text-gray-800 text-lg" />
+                            </div>
+                          </div>
+                          <div>
+                            <label className={labelClass}><Lock className="w-4 h-4 inline mr-1.5 text-gray-400" />비밀번호</label>
+                            <div className="relative">
+                              <input type={showPhonePassword ? "text" : "password"} value={phonePassword} onChange={(e) => setPhonePassword(e.target.value)}
+                                placeholder="비밀번호 입력" required
+                                className={inputClass + " pr-12"} />
+                              <button type="button" onClick={() => setShowPhonePassword(v => !v)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                {showPhonePassword ? <X className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+                              </button>
+                            </div>
+                          </div>
+                          <button type="submit" disabled={phoneLoginStep1Mutation.isPending || !phoneNumber.trim() || !phonePassword.trim()}
+                            className="w-full bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-50 disabled:cursor-not-allowed text-white py-5 rounded-2xl font-bold text-xl flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg">
+                            {phoneLoginStep1Mutation.isPending
+                              ? <><Loader2 className="w-5 h-5 animate-spin" /> 확인 중...</>
+                              : <><Lock className="w-5 h-5" /> 로그인</>
+                            }
+                          </button>
+                        </form>
+                      )}
+
+                      {/* OTP 로그인 */}
+                      {phoneSubMode === "otp" && (
+                        <form onSubmit={handlePhoneSubmit} className="space-y-4">
+                          <div>
+                            <label className={labelClass}><Phone className="w-4 h-4 inline mr-1.5 text-gray-400" />휴대폰 번호</label>
+                            <div className="flex gap-2">
+                              <select value={phoneCountryCode} onChange={(e) => setPhoneCountryCode(e.target.value)}
+                                className="px-3 py-4 rounded-2xl border-2 border-gray-200 focus:border-[#1F3864] outline-none text-gray-800 text-base bg-white w-28 shrink-0">
+                                {PHONE_COUNTRY_CODES.map(c => <option key={c.code} value={c.code}>{c.flag} {c.code}</option>)}
+                              </select>
+                              <input type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value.replace(/[^\d\-\s]/g, ""))}
+                                placeholder={phoneCountryCode === "+82" ? "010-0000-0000" : "번호 입력"}
+                                required autoFocus
+                                className="flex-1 px-5 py-4 rounded-2xl border-2 border-gray-200 focus:border-[#1F3864] outline-none text-gray-800 text-lg" />
+                            </div>
+                            <p className="mt-1 text-xs text-gray-400">인증코드를 받아 로그인하는 방식입니다.</p>
+                          </div>
+                          <button type="submit" disabled={isPendingSend || !phoneNumber.trim()}
+                            className="w-full bg-[#1F3864] hover:bg-[#162a4e] disabled:opacity-50 disabled:cursor-not-allowed text-white py-5 rounded-2xl font-bold text-xl flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg">
+                            {isPendingSend
+                              ? <><Loader2 className="w-5 h-5 animate-spin" /> 발송 중...</>
+                              : <><Smartphone className="w-5 h-5" /> SMS 인증 코드 받기</>
+                            }
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 회원가입 폼 */}
+                  {isPhoneRegisterMode && (
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      if (!phoneName.trim() || !phoneNumber.trim() || !phonePassword.trim()) {
+                        toast.error("모든 항목을 입력해주세요.");
+                        return;
+                      }
+                      if (phonePassword !== phoneConfirmPassword) {
+                        toast.error("비밀번호가 일치하지 않습니다.");
+                        return;
+                      }
+                      if (phonePassword.length < 8) {
+                        toast.error("비밀번호는 8자 이상이어야 합니다.");
+                        return;
+                      }
+                      phoneRegisterMutation.mutate({ phone: phoneNumber.trim(), countryCode: phoneCountryCode, password: phonePassword, name: phoneName.trim() });
+                    }} className="space-y-4">
+                      <div>
+                        <label className={labelClass}><User className="w-4 h-4 inline mr-1.5 text-gray-400" />이름</label>
+                        <input type="text" value={phoneName} onChange={(e) => setPhoneName(e.target.value)}
+                          placeholder="홍길동" required autoFocus className={inputClass} />
+                      </div>
+                      <div>
+                        <label className={labelClass}><Phone className="w-4 h-4 inline mr-1.5 text-gray-400" />휴대폰 번호</label>
+                        <div className="flex gap-2">
+                          <select value={phoneCountryCode} onChange={(e) => setPhoneCountryCode(e.target.value)}
+                            className="px-3 py-4 rounded-2xl border-2 border-gray-200 focus:border-[#1F3864] outline-none text-gray-800 text-base bg-white w-28 shrink-0">
+                            {PHONE_COUNTRY_CODES.map(c => <option key={c.code} value={c.code}>{c.flag} {c.code}</option>)}
+                          </select>
+                          <input type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value.replace(/[^\d\-\s]/g, ""))}
+                            placeholder={phoneCountryCode === "+82" ? "010-0000-0000" : "번호 입력"}
+                            required className="flex-1 px-5 py-4 rounded-2xl border-2 border-gray-200 focus:border-[#1F3864] outline-none text-gray-800 text-lg" />
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">로그인 시 이 번호로 인증번호가 발송됩니다.</p>
+                      </div>
+                      <div>
+                        <label className={labelClass}><Lock className="w-4 h-4 inline mr-1.5 text-gray-400" />비밀번호 (8자 이상)</label>
+                        <div className="relative">
+                          <input type={showPhonePassword ? "text" : "password"} value={phonePassword} onChange={(e) => setPhonePassword(e.target.value)}
+                            placeholder="비밀번호 입력" required minLength={8}
+                            className={inputClass + " pr-12"} />
+                          <button type="button" onClick={() => setShowPhonePassword(v => !v)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            {showPhonePassword ? <X className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className={labelClass}><Lock className="w-4 h-4 inline mr-1.5 text-gray-400" />비밀번호 확인</label>
+                        <input type={showPhonePassword ? "text" : "password"} value={phoneConfirmPassword} onChange={(e) => setPhoneConfirmPassword(e.target.value)}
+                          placeholder="비밀번호 재입력" required className={inputClass} />
+                        {phoneConfirmPassword && phonePassword !== phoneConfirmPassword && (
+                          <p className="text-red-500 text-sm mt-1">비밀번호가 일치하지 않습니다.</p>
+                        )}
+                      </div>
+                      <button type="submit" disabled={phoneRegisterMutation.isPending}
+                        className="w-full bg-[#C9A961] hover:bg-[#b8944f] disabled:opacity-50 text-white py-5 rounded-2xl font-bold text-xl flex items-center justify-center gap-2 transition-all shadow-md">
+                        {phoneRegisterMutation.isPending
+                          ? <><Loader2 className="w-5 h-5 animate-spin" /> 가입 중...</>
+                          : <><Check className="w-5 h-5" /> 회원가입 완료</>
+                        }
+                      </button>
+                    </form>
+                  )}
+
+                  <p className="text-center text-xs text-gray-400 mt-5 leading-relaxed">
                     계속 진행하면{" "}
-                    <a href="/terms" className="text-[#1F3864] underline">이용약관</a>{" "}및{" "}
+                    <a href="/terms" className="text-[#1F3864] underline">이용약관</a>{" "}및{" "}
                     <a href="/privacy" className="text-[#1F3864] underline">개인정보처리방침</a>에 동의합니다.
                   </p>
                 </motion.div>
