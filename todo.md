@@ -418,3 +418,14 @@
   - 파일 업로드 버튼 (PC)
   - 스캔 결과 미리보기 + 자동 쉡움 (이름/번호/생년월일)
   - 수동 수정 가능
+
+## 결제/인증 단계 전체 흐름 완성 (Step 10)
+- [x] API: auth.sendReauthOtp - 로그인된 사용자 휴대폰으로 OTP 재발송 (재인증용)
+- [x] API: auth.verifyReauthOtp - 재인증 OTP 검증
+- [x] Step10Sign.tsx: 전체 흐름 재설계
+  - signStep 1: 신분증 스캔 (AI OCR 자동인식)
+  - signStep 2: 자산 정보 입력 (부동산/금융/기타, 국가별 맞춤)
+  - signStep 3: 관련 서류 파일 업로드 (S3)
+  - signStep 4: SMS OTP 재인증 (등록 휴대폰으로 재발송, 6자리 입력)
+  - signStep 5: 전자서명
+  - signStep 6: 결제

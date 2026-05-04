@@ -13,7 +13,7 @@ import { getDb } from "../db";
 import { ENV } from "../_core/env";
 import { getSessionCookieOptions } from "../_core/cookies";
 import { sdk } from "../_core/sdk";
-import { publicProcedure, router } from "../_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { randomUUID } from "crypto";
 import { sendSmsOtp, verifySmsOtp } from "../_core/sms";
@@ -329,6 +329,91 @@ export const emailAuthRouter = router({
         .where(eq(users.openId, openId));
 
       return { success: true };
+    }),
+
+  /**
+   * [재인증] 로그인된 사용자 휴대폰으로 SMS OTP 재발송 (결제/인증 단계 재인증용)
+   */
+  sendReauthOtp: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
+
+      const userRows = await db.select().from(users).where(eq(users.openId, ctx.user.openId)).limit(1);
+      if (userRows.length === 0) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "사용자를 찾을 수 없습니다." });
+      }
+
+      const user = userRows[0];
+
+      // 전화번호 확인
+      if (!user.phone) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "등록된 휴대폰 번호가 없습니다. 프로필에서 휴대폰 번호를 먼저 등록해주세요.",
+        });
+      }
+
+      // E.164 형식 변환
+      let phoneE164 = user.phone;
+      if (!phoneE164.startsWith("+")) {
+        phoneE164 = "+82" + phoneE164.replace(/^0/, "");
+      }
+
+      // SMS OTP 발송
+      const smsResult = await sendSmsOtp(phoneE164);
+      if (!smsResult.success) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "SMS 발송에 실패했습니다. 잠시 후 다시 시도해주세요.",
+        });
+      }
+
+      // 전화번호 마스킹
+      const maskedPhone = phoneE164.replace(/(\+\d{2,3})(\d+)(\d{4})$/, (_, cc, mid, last) => {
+        return `${cc}${"*".repeat(mid.length)}${last}`;
+      });
+
+      return { success: true, maskedPhone };
+    }),
+
+  /**
+   * [재인증] SMS OTP 검증 (결제/인증 단계 재인증용)
+   */
+  verifyReauthOtp: protectedProcedure
+    .input(z.object({
+      code: z.string().length(6, "6자리 코드를 입력해주세요"),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
+
+      const userRows = await db.select().from(users).where(eq(users.openId, ctx.user.openId)).limit(1);
+      if (userRows.length === 0) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "사용자를 찾을 수 없습니다." });
+      }
+
+      const user = userRows[0];
+
+      if (!user.phone) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "등록된 휴대폰 번호가 없습니다." });
+      }
+
+      let phoneE164 = user.phone;
+      if (!phoneE164.startsWith("+")) {
+        phoneE164 = "+82" + phoneE164.replace(/^0/, "");
+      }
+
+      // SMS OTP 검증
+      const verifyResult = await verifySmsOtp(phoneE164, input.code);
+      if (!verifyResult.success) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: verifyResult.error || "인증 코드가 올바르지 않습니다.",
+        });
+      }
+
+      return { success: true, verifiedAt: new Date().toISOString() };
     }),
 
   /**
