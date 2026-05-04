@@ -110,6 +110,7 @@ export const phoneAuthRouter = router({
       countryCode: z.string().default("+82"),
       password: z.string().min(8, "비밀번호는 8자 이상이어야 합니다").max(100),
       name: z.string().min(1, "이름을 입력해주세요").max(50),
+      address: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -134,6 +135,7 @@ export const phoneAuthRouter = router({
         openId,
         phone: e164Phone,
         name: input.name,
+        address: input.address || null,
         loginMethod: "phone_password",
         passwordHash,
         lastSignedIn: new Date(),

@@ -6,8 +6,9 @@
  */
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, CheckCircle2, Clock, Hash, CreditCard, FileDown, Lock, Pen, Trash2, RotateCcw } from "lucide-react";
+import { Shield, CheckCircle2, Clock, Hash, CreditCard, FileDown, Lock, Pen, Trash2, RotateCcw, ScanLine, Upload, Camera, X, Loader2, IdCard } from "lucide-react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 import type { StepProps } from "./StepProps";
 
 type AuthMethod = "pass" | "kakao" | "naver" | "cert" | null;
@@ -199,6 +200,68 @@ export default function Step10Sign({ will }: StepProps) {
   const [timestamp, setTimestamp] = useState("");
   const [secureHash, setSecureHash] = useState("");
 
+  // 신분증 스캔 OCR 상태
+  const [showIdScan, setShowIdScan] = useState(false);
+  const [idScanPreview, setIdScanPreview] = useState<string | null>(null);
+  const [idScanResult, setIdScanResult] = useState<{
+    name: string | null;
+    idNumber: string | null;
+    idNumberLabel: string | null;
+    birthDate: string | null;
+    country: string | null;
+    docType: string;
+    confidence: string;
+  } | null>(null);
+  const idFileInputRef = useRef<HTMLInputElement>(null);
+  const idCameraInputRef = useRef<HTMLInputElement>(null);
+
+  const idScanMutation = trpc.idScan.scanId.useMutation({
+    onSuccess: (data) => {
+      setIdScanResult(data.data);
+      toast.success("신분증 자동 인식 완료!");
+    },
+    onError: (err) => {
+      toast.error(err.message || "신분증 인식에 실패했습니다. 다시 시도해주세요.");
+    },
+  });
+
+  // 신분증 이미지 선택 후 OCR 실행
+  async function handleIdImageSelect(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("이미지 파일만 업로드 가능합니다.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("파일 크기는 10MB 이하여야 합니다.");
+      return;
+    }
+    // 미리보기 설정
+    const reader = new FileReader();
+    reader.onload = (e) => setIdScanPreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+    // 서버에 업로드하여 OCR 실행
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const uploadRes = await fetch("/api/upload-id-scan", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      if (!uploadRes.ok) throw new Error("Upload failed");
+      const { url } = await uploadRes.json() as { url: string };
+      idScanMutation.mutate({ imageUrl: url });
+    } catch {
+      // 업로드 실패 시 base64로 직접 전달
+      const base64Reader = new FileReader();
+      base64Reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        idScanMutation.mutate({ imageUrl: dataUrl });
+      };
+      base64Reader.readAsDataURL(file);
+    }
+  }
+
   const totalPrice = 49000 + (will.hasVideoWill ? 29000 : 0) + (will.hasHandwrittenScan ? 19000 : 0);
 
   const handleSigned = (dataUrl: string) => {
@@ -329,6 +392,133 @@ export default function Step10Sign({ will }: StepProps) {
               <Shield className="w-4 h-4" />
               {isSigned ? "서명 완료 — 본인인증으로 이동" : "먼저 서명을 완료해주세요"}
             </button>
+          </motion.div>
+        )}
+
+        {/* 신분증 스캔 OCR 섹션 */}
+        {signStep === "auth" && authState !== "success" && (
+          <motion.div
+            key="id-scan-section"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="border-2 border-dashed border-[#C9A961]/50 rounded-2xl p-4 bg-[#C9A961]/5"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <IdCard className="w-5 h-5 text-[#1F3864]" />
+                <span className="font-bold text-[#1F3864] text-sm">신분증 / 여권 자동 인식</span>
+                <span className="text-xs bg-[#C9A961] text-white px-2 py-0.5 rounded-full">선택</span>
+              </div>
+              <button onClick={() => setShowIdScan(v => !v)}
+                className="text-xs text-gray-400 hover:text-[#1F3864] flex items-center gap-1">
+                {showIdScan ? <X className="w-3.5 h-3.5" /> : <ScanLine className="w-3.5 h-3.5" />}
+                {showIdScan ? "접기" : "스캔 열기"}
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 mb-3">신분증을 스캔하면 이름·주민번호·생년월일이 자동 입력됩니다. 한국, 일본, 미국, 중국 등 전 세계 신분증 지원.</p>
+            {showIdScan && (
+              <div className="space-y-3">
+                {/* 업로드 버튼 그룹 */}
+                {!idScanPreview && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <button onClick={() => idCameraInputRef.current?.click()}
+                      className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-200 hover:border-[#1F3864] bg-white transition-all">
+                      <Camera className="w-7 h-7 text-[#1F3864]" />
+                      <span className="text-sm font-semibold text-[#1F3864]">카메라 촬영</span>
+                      <span className="text-xs text-gray-400">실시간 촬영</span>
+                    </button>
+                    <button onClick={() => idFileInputRef.current?.click()}
+                      className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-gray-200 hover:border-[#1F3864] bg-white transition-all">
+                      <Upload className="w-7 h-7 text-[#1F3864]" />
+                      <span className="text-sm font-semibold text-[#1F3864]">파일 업로드</span>
+                      <span className="text-xs text-gray-400">사진 선택</span>
+                    </button>
+                  </div>
+                )}
+                {/* 파일 입력 (hidden) */}
+                <input ref={idFileInputRef} type="file" accept="image/*" className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleIdImageSelect(f); }} />
+                <input ref={idCameraInputRef} type="file" accept="image/*" capture="environment" className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleIdImageSelect(f); }} />
+                {/* 미리보기 */}
+                {idScanPreview && (
+                  <div className="relative">
+                    <img src={idScanPreview} alt="신분증 미리보기" className="w-full h-40 object-cover rounded-xl border-2 border-[#C9A961]" />
+                    <button onClick={() => { setIdScanPreview(null); setIdScanResult(null); }}
+                      className="absolute top-2 right-2 bg-white/90 rounded-full p-1 hover:bg-red-50">
+                      <X className="w-4 h-4 text-red-500" />
+                    </button>
+                  </div>
+                )}
+                {/* OCR 로딩 */}
+                {idScanMutation.isPending && (
+                  <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-xl">
+                    <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                    <span className="text-sm text-blue-700">신분증 자동 인식 중...</span>
+                  </div>
+                )}
+                {/* OCR 결과 */}
+                {idScanResult && (
+                  <div className="bg-white border-2 border-green-200 rounded-xl p-4 space-y-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      <span className="text-sm font-bold text-green-700">자동 인식 완료 — 수정 후 확인하세요</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        idScanResult.confidence === 'high' ? 'bg-green-100 text-green-700' :
+                        idScanResult.confidence === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>신뢰도: {idScanResult.confidence === 'high' ? '높음' : idScanResult.confidence === 'medium' ? '중간' : '낙음'}</span>
+                    </div>
+                    {/* 수정 가능한 입력 필드 */}
+                    <div className="space-y-2">
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">이름</label>
+                        <input
+                          type="text"
+                          value={idScanResult.name || ''}
+                          onChange={(e) => setIdScanResult(prev => prev ? { ...prev, name: e.target.value } : prev)}
+                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 focus:outline-none focus:border-[#1F3864]"
+                          placeholder="이름"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">{idScanResult.idNumberLabel || '신분증 번호'}</label>
+                        <input
+                          type="text"
+                          value={idScanResult.idNumber || ''}
+                          onChange={(e) => setIdScanResult(prev => prev ? { ...prev, idNumber: e.target.value } : prev)}
+                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 font-mono focus:outline-none focus:border-[#1F3864]"
+                          placeholder="신분증 번호"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-400 mb-1 block">생년월일</label>
+                        <input
+                          type="text"
+                          value={idScanResult.birthDate || ''}
+                          onChange={(e) => setIdScanResult(prev => prev ? { ...prev, birthDate: e.target.value } : prev)}
+                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 focus:outline-none focus:border-[#1F3864]"
+                          placeholder="예) 1970-01-01"
+                        />
+                      </div>
+                      {idScanResult.country && (
+                        <div>
+                          <label className="text-xs text-gray-400 mb-1 block">국가</label>
+                          <input
+                            type="text"
+                            value={idScanResult.country || ''}
+                            onChange={(e) => setIdScanResult(prev => prev ? { ...prev, country: e.target.value } : prev)}
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 focus:outline-none focus:border-[#1F3864]"
+                            placeholder="국가"
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400">⚠️ AI가 인식한 정보입니다. 오류가 있으면 직접 수정해주세요.</p>
+                  </div>
+                )}
+              </div>
+            )}
           </motion.div>
         )}
 

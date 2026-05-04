@@ -155,6 +155,7 @@ export const emailAuthRouter = router({
       name: z.string().min(1, "이름을 입력해주세요").max(50),
       phone: z.string().min(7, "전화번호를 입력해주세요").max(20),
       country: z.string().min(2).max(3).default("KR"),
+      address: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -178,6 +179,7 @@ export const emailAuthRouter = router({
         name: input.name,
         phone: input.phone,
         country: input.country,
+        address: input.address || null,
         loginMethod: "email_password",
         passwordHash,
         lastSignedIn: new Date(),

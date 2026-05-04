@@ -168,6 +168,7 @@ export default function LoginPage() {
   const [registerName, setRegisterName] = useState("");
   const [registerPhone, setRegisterPhone] = useState("");
   const [registerPhoneCode, setRegisterPhoneCode] = useState("+82");
+  const [registerAddress, setRegisterAddress] = useState(""); // 이메일 회원가입 주소
   const [maskedPhone, setMaskedPhone] = useState(""); // SMS 발송 후 마스킹된 번호
 
   // 휴대폰 플로우
@@ -180,6 +181,7 @@ export default function LoginPage() {
   const [phonePassword, setPhonePassword] = useState("");
   const [phoneConfirmPassword, setPhoneConfirmPassword] = useState("");
   const [phoneName, setPhoneName] = useState("");
+  const [phoneAddress, setPhoneAddress] = useState(""); // 휴대폰 회원가입 주소
   const [showPhonePassword, setShowPhonePassword] = useState(false);
   const [phoneMasked, setPhoneMasked] = useState(""); // 비밀번호 로그인 후 마스킹된 번호
   const [phoneE164ForStep2, setPhoneE164ForStep2] = useState(""); // 2단계 검증용 E.164 번호
@@ -539,6 +541,28 @@ export default function LoginPage() {
     loginStep1Mutation.mutate({ email: email.trim().toLowerCase(), password });
   }
 
+  // 카카오 주소 검색 팔업 (어떤 setter든 재사용 가능)
+  function openKakaoPostcodeFor(setter: (addr: string) => void) {
+    if (typeof window === 'undefined') return;
+    const daum = (window as any).daum;
+    const openPostcode = () => {
+      new (window as any).daum.Postcode({
+        oncomplete: (data: any) => {
+          const addr = data.roadAddress || data.jibunAddress;
+          setter(addr);
+        }
+      }).open();
+    };
+    if (!daum?.Postcode) {
+      const script = document.createElement('script');
+      script.src = 'https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
+      script.onload = openPostcode;
+      document.head.appendChild(script);
+    } else {
+      openPostcode();
+    }
+  }
+
   // 이메일+비밀번호 회원가입 제출
   function handleRegister(e: React.FormEvent) {
     e.preventDefault();
@@ -561,6 +585,7 @@ export default function LoginPage() {
       name: registerName.trim(),
       phone: fullPhone,
       country: "KR",
+      address: registerAddress.trim() || undefined,
     });
   }
 
@@ -851,6 +876,17 @@ export default function LoginPage() {
                           <p className="text-red-500 text-sm mt-1">비밀번호가 일치하지 않습니다.</p>
                         )}
                       </div>
+                      <div>
+                        <label className={labelClass}><MapPin className="w-4 h-4 inline mr-1.5 text-gray-400" />주소 <span className="text-gray-400 text-sm font-normal">(선택)</span></label>
+                        <div className="flex gap-2">
+                          <input type="text" value={registerAddress} onChange={(e) => setRegisterAddress(e.target.value)}
+                            placeholder="주소 검색 또는 직접 입력" className={inputClass + " flex-1"} />
+                          <button type="button" onClick={() => openKakaoPostcodeFor(setRegisterAddress)}
+                            className="px-4 py-4 rounded-2xl border-2 border-[#1F3864] text-[#1F3864] font-medium text-sm hover:bg-[#1F3864] hover:text-white transition-colors whitespace-nowrap shrink-0">
+                            주소 검색
+                          </button>
+                        </div>
+                      </div>
                       <button type="button" onClick={() => setShowPassword(v => !v)}
                         className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1">
                         {showPassword ? <X className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
@@ -1078,7 +1114,7 @@ export default function LoginPage() {
                         toast.error("비밀번호는 8자 이상이어야 합니다.");
                         return;
                       }
-                      phoneRegisterMutation.mutate({ phone: phoneNumber.trim(), countryCode: phoneCountryCode, password: phonePassword, name: phoneName.trim() });
+                      phoneRegisterMutation.mutate({ phone: phoneNumber.trim(), countryCode: phoneCountryCode, password: phonePassword, name: phoneName.trim(), address: phoneAddress.trim() || undefined });
                     }} className="space-y-4">
                       <div>
                         <label className={labelClass}><User className="w-4 h-4 inline mr-1.5 text-gray-400" />이름</label>
@@ -1117,6 +1153,17 @@ export default function LoginPage() {
                         {phoneConfirmPassword && phonePassword !== phoneConfirmPassword && (
                           <p className="text-red-500 text-sm mt-1">비밀번호가 일치하지 않습니다.</p>
                         )}
+                      </div>
+                      <div>
+                        <label className={labelClass}><MapPin className="w-4 h-4 inline mr-1.5 text-gray-400" />주소 <span className="text-gray-400 text-sm font-normal">(선택)</span></label>
+                        <div className="flex gap-2">
+                          <input type="text" value={phoneAddress} onChange={(e) => setPhoneAddress(e.target.value)}
+                            placeholder="주소 검색 또는 직접 입력" className={inputClass + " flex-1"} />
+                          <button type="button" onClick={() => openKakaoPostcodeFor(setPhoneAddress)}
+                            className="px-4 py-4 rounded-2xl border-2 border-[#1F3864] text-[#1F3864] font-medium text-sm hover:bg-[#1F3864] hover:text-white transition-colors whitespace-nowrap shrink-0">
+                            주소 검색
+                          </button>
+                        </div>
                       </div>
                       <button type="submit" disabled={phoneRegisterMutation.isPending}
                         className="w-full bg-[#C9A961] hover:bg-[#b8944f] disabled:opacity-50 text-white py-5 rounded-2xl font-bold text-xl flex items-center justify-center gap-2 transition-all shadow-md">

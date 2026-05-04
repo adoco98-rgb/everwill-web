@@ -17,6 +17,7 @@ import { assetVerifyRouter } from "./routers/assetVerifyRouter";
 import { adminRouter } from "./routers/adminRouter";
 import { heirsRouter } from "./routers/heirsRouter";
 import { newsRouter } from "./routers/newsRouter";
+import { idScanRouter } from "./routers/idScanRouter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -61,6 +62,8 @@ export const appRouter = router({
   heirs: heirsRouter,
   // 글로벌 뉴스 라우터
   news: newsRouter,
+  // 신분증 스캔 OCR 라우터
+  idScan: idScanRouter,
 });
 
 export type AppRouter = typeof appRouter;
