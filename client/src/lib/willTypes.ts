@@ -67,7 +67,11 @@ export interface WillData {
   otherAssets: OtherAsset[];
 
   // 4. 특별 지시사항
-  executor: string; // 유언집행자
+  executor: string; // 유언집행자 (자유 입력 - 하위 호환)
+  executorType: 'heir1' | 'custom' | ''; // 집행자 유형: heir1=제1상속인 자동, custom=직접 지정
+  executorCustomName: string; // 직접 지정 시 이름
+  executorCustomPhone: string; // 직접 지정 시 연락처
+  executorCustomRelation: string; // 직접 지정 시 관계
   guardian: string; // 미성년 자녀 후견인
   funeralWish: string; // 장례 방식
   donationDetails: string; // 기부 내역
@@ -95,6 +99,10 @@ export const initialWillData: WillData = {
   financialAssets: [],
   otherAssets: [],
   executor: "",
+  executorType: "",
+  executorCustomName: "",
+  executorCustomPhone: "",
+  executorCustomRelation: "",
   guardian: "",
   funeralWish: "",
   donationDetails: "",

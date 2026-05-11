@@ -429,3 +429,11 @@
   - signStep 4: SMS OTP 재인증 (등록 휴대폰으로 재발송, 6자리 입력)
   - signStep 5: 전자서명
   - signStep 6: 결제
+
+## 유언집행자 지정 기능 (Step 7)
+- [x] WillData 타입에 executorType, executorCustomName, executorCustomPhone, executorCustomRelation 필드 추가
+- [x] Step7Special.tsx에 유언집행자 지정 섹션 추가
+  - 제1상속인 자동 vs 직접 지정 선택 UI
+  - 미지정 시: "제1상속인이 자동으로 집행자가 됩니다" 안내 표시
+  - 직접 지정 시: 이름/관계/연락처 입력 폼
+- [ ] 유언장 PDF/미리보기에 유언집행자 정보 반영 (Step9Preview)
