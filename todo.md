@@ -54,6 +54,11 @@
 - [x] EverWill 로고 배경 제거(누끼) 후 투명 PNG 생성 (AI 재생성 방법 사용)
 - [x] Navbar·ComingSoon에 새 로고 교체
 
+## 상속 서비스 가격 구조 명확화
+- [x] HeirServiceSection.tsx LANG_TEXT에 includedItems, lawyerTitle, lawyerDesc, lawyerFee1/Val, lawyerFee2/Val, lawyerNote, lawyerCta 필드 추가 (11개 언어)
+- [x] 기본 가입비 포함 내용 박스 UI 추가 (₩199,000 포함 항목 체크리스트)
+- [x] 변호사 선임 서비스 섹션 UI 추가 (착수금 ₩990,000 + 성공 보수 1% + 선임하기 버튼)
+
 ## 진행 중
 - [ ] DB 스키마 설계 (users, payments 테이블)
 - [ ] 회원가입/로그인 백엔드 API (이메일+비밀번호, 소셜 로그인)
@@ -440,3 +445,9 @@
 
 ## Step9 미리보기 유언집행자 정보 반영
 - [x] Step9Preview.tsx에 유언집행자 섹션 추가 (제1상속인 자동 vs 직접 지정 표시)
+
+## 상속 서비스 페이지 가격 구조 명확화
+- [ ] 기본 가입비 ₩199,000 포함 내용 명시 (상속절차 + 세금신고 가이드 + 서류 자동 작성 + PDF 다운로드)
+- [ ] 2억 초과분 0.1% 추가 수수료 계산기 유지
+- [ ] 변호사 선임 섹션 추가 (착수금 ₩990,000 + 성공 보수 1%)
+- [ ] 변호사 선임 계약서 전자서명 플로우 안내

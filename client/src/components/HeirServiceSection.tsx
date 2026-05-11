@@ -20,6 +20,7 @@ import {
   Shield,
   Clock,
   Globe,
+  Briefcase,
 } from "lucide-react";
 
 // 기준 환율 및 해외 프리미엄
@@ -59,6 +60,15 @@ const LANG_TEXT: Record<string, {
   footerNote: string;
   features: string[];
   steps: { title: string; desc: string }[];
+  includedItems: string[];
+  lawyerTitle: string;
+  lawyerDesc: string;
+  lawyerFee1: string;
+  lawyerFee1Val: string;
+  lawyerFee2: string;
+  lawyerFee2Val: string;
+  lawyerNote: string;
+  lawyerCta: string;
 }> = {
   ko: {
     badge: "상속인 전용 서비스",
@@ -77,6 +87,15 @@ const LANG_TEXT: Record<string, {
     cta: "상속인으로 가입하기",
     footerNote: "상속인 서비스는 유언자 사망 확인 후 활성화됩니다. 유언자가 EverWill 회원인 경우에만 이용 가능합니다.",
     features: ["법적 효력 있는 서류 자동 작성", "72시간 이내 서류 완성", "7개국 법률 자동 적용"],
+    includedItems: ["상속 절차 전 과정 안내", "상속세 자동 계산", "법적 신고 서류 자동 작성", "온라인 접수 또는 PDF 다운로드"],
+    lawyerTitle: "변호사 선임 서비스 (선택)",
+    lawyerDesc: "이의제기·소송 발생 시 EverWill 전속 변호사가 모든 법적 대응을 책임집니다.",
+    lawyerFee1: "착수금",
+    lawyerFee1Val: "₩990,000",
+    lawyerFee2: "성공 보수",
+    lawyerFee2Val: "상속 자산의 1%",
+    lawyerNote: "* 변호사 선임 시 위임 계약서가 자동 생성되며 전자서명 후 효력이 발생합니다.",
+    lawyerCta: "변호사 선임하기",
     steps: [
       { title: "상속인으로 가입", desc: "유언자의 사망 후 상속인 코드(Badge QR 또는 유언 번호)로 전용 가입 절차를 진행합니다." },
       { title: "유언 내용 확인", desc: "유언자가 남긴 유언장 전문을 열람하고, 상속 지분 및 특별 지시 사항을 확인합니다." },
@@ -101,6 +120,15 @@ const LANG_TEXT: Record<string, {
     cta: "Register as Heir",
     footerNote: "Heir services are activated after the testator's death is confirmed. Available only when the testator is an EverWill member.",
     features: ["Legally valid documents auto-generated", "Documents completed within 72 hours", "Laws of 7 countries auto-applied"],
+    includedItems: ["Full inheritance process guidance", "Automatic inheritance tax calculation", "Auto-generated legal filing documents", "Online submission or PDF download"],
+    lawyerTitle: "Attorney Representation (Optional)",
+    lawyerDesc: "If a dispute or lawsuit arises, EverWill's dedicated attorneys handle all legal proceedings.",
+    lawyerFee1: "Retainer Fee",
+    lawyerFee1Val: "$699",
+    lawyerFee2: "Contingency Fee",
+    lawyerFee2Val: "1% of estate value",
+    lawyerNote: "* Upon retaining an attorney, a legal representation agreement is auto-generated and becomes effective after e-signature.",
+    lawyerCta: "Retain an Attorney",
     steps: [
       { title: "Register as Heir", desc: "After the testator's passing, register using the heir code (Badge QR or will number) through a dedicated sign-up process." },
       { title: "Review the Will", desc: "Access the full will document and review inheritance shares and special instructions left by the testator." },
@@ -125,6 +153,15 @@ const LANG_TEXT: Record<string, {
     cta: "相続人として登録",
     footerNote: "相続人サービスは遺言者の死亡確認後に有効化されます。遺言者がEverWill会員の場合のみご利用いただけます。",
     features: ["法的効力のある書類を自動作成", "72時間以内に書類完成", "7カ国の法律を自動適用"],
+    includedItems: ["相続手続き全過程のガイド", "相続税の自動計算", "法的申告書類の自動作成", "オンライン申請またはPDFダウンロード"],
+    lawyerTitle: "弁護士選任サービス（任意）",
+    lawyerDesc: "異議申し立て・訴訟が発生した場合、EverWill専属弁護士がすべての法的対応を担当します。",
+    lawyerFee1: "着手金",
+    lawyerFee1Val: "¥99,000",
+    lawyerFee2: "成功報酬",
+    lawyerFee2Val: "相続資産の1%",
+    lawyerNote: "* 弁護士選任時に委任契約書が自動生成され、電子署名後に効力が発生します。",
+    lawyerCta: "弁護士を選任する",
     steps: [
       { title: "相続人として登録", desc: "遺言者の死亡後、相続人コード（Badge QRまたは遺言番号）で専用登録手続きを行います。" },
       { title: "遺言内容の確認", desc: "遺言書の全文を閲覧し、相続分および特別指示事項を確認します。" },
@@ -149,6 +186,15 @@ const LANG_TEXT: Record<string, {
     cta: "注册为继承人",
     footerNote: "继承人服务在确认遗嘱人死亡后激活。仅当遗嘱人是EverWill会员时方可使用。",
     features: ["自动生成具有法律效力的文件", "72小时内完成文件", "自动适用7国法律"],
+    includedItems: ["继承全程指导", "自动计算遗产税", "自动生成法律申报文件", "在线提交或PDF下载"],
+    lawyerTitle: "律师委托服务（可选）",
+    lawyerDesc: "如发生异议或诉讼，EverWill专属律师将负责所有法律应对。",
+    lawyerFee1: "委托金",
+    lawyerFee1Val: "¥4,900",
+    lawyerFee2: "成功报酬",
+    lawyerFee2Val: "遗产价值的1%",
+    lawyerNote: "* 委托律师后，委托合同自动生成，电子签名后生效。",
+    lawyerCta: "委托律师",
     steps: [
       { title: "注册为继承人", desc: "遗嘱人去世后，使用继承人代码（Badge二维码或遗嘱编号）通过专用注册流程进行注册。" },
       { title: "查阅遗嘱内容", desc: "查阅遗嘱全文，确认继承份额及特别指示事项。" },
@@ -173,6 +219,15 @@ const LANG_TEXT: Record<string, {
     cta: "Als Erbe registrieren",
     footerNote: "Erbendienste werden nach Bestätigung des Todes des Erblassers aktiviert. Nur verfügbar, wenn der Erblasser EverWill-Mitglied ist.",
     features: ["Rechtsgültige Dokumente automatisch erstellt", "Dokumente innerhalb von 72 Stunden fertig", "Gesetze von 7 Ländern automatisch angewendet"],
+    includedItems: ["Vollständige Erbschaftsberatung", "Automatische Erbschaftssteuerberechnung", "Automatisch erstellte Rechtsdokumente", "Online-Einreichung oder PDF-Download"],
+    lawyerTitle: "Anwaltliche Vertretung (Optional)",
+    lawyerDesc: "Bei Einsprüchen oder Klagen übernehmen EverWill-Anwälte alle rechtlichen Schritte.",
+    lawyerFee1: "Honorarvorschuss",
+    lawyerFee1Val: "€699",
+    lawyerFee2: "Erfolgsprovision",
+    lawyerFee2Val: "1% des Nachlasswerts",
+    lawyerNote: "* Bei Anwaltsmandatierung wird automatisch ein Vollmachtsvertrag erstellt, der nach e-Signatur wirksam wird.",
+    lawyerCta: "Anwalt beauftragen",
     steps: [
       { title: "Als Erbe registrieren", desc: "Nach dem Tod des Erblassers mit dem Erbencode (Badge-QR oder Testamentsnummer) registrieren." },
       { title: "Testament prüfen", desc: "Vollständiges Testament einsehen und Erbteile sowie besondere Anweisungen prüfen." },
@@ -197,6 +252,15 @@ const LANG_TEXT: Record<string, {
     cta: "Registrarse como Heredero",
     footerNote: "Los servicios para herederos se activan después de confirmar el fallecimiento del testador. Solo disponible cuando el testador es miembro de EverWill.",
     features: ["Documentos legalmente válidos generados automáticamente", "Documentos completados en 72 horas", "Leyes de 7 países aplicadas automáticamente"],
+    includedItems: ["Guía completa del proceso de herencia", "Cálculo automático del impuesto de sucesiones", "Documentos legales generados automáticamente", "Presentación en línea o descarga en PDF"],
+    lawyerTitle: "Representación Legal (Opcional)",
+    lawyerDesc: "En caso de disputa o litigio, los abogados exclusivos de EverWill se encargan de todo.",
+    lawyerFee1: "Honorario Inicial",
+    lawyerFee1Val: "$699",
+    lawyerFee2: "Honorario por Éxito",
+    lawyerFee2Val: "1% del valor del patrimonio",
+    lawyerNote: "* Al contratar un abogado, se genera automáticamente un contrato de representación que entra en vigor tras la firma electrónica.",
+    lawyerCta: "Contratar Abogado",
     steps: [
       { title: "Registrarse como Heredero", desc: "Tras el fallecimiento del testador, regístrese usando el código de heredero (Badge QR o número de testamento)." },
       { title: "Revisar el Testamento", desc: "Acceda al testamento completo y revise las cuotas de herencia e instrucciones especiales." },
@@ -221,6 +285,15 @@ const LANG_TEXT: Record<string, {
     cta: "التسجيل كوارث",
     footerNote: "يتم تفعيل خدمات الورثة بعد تأكيد وفاة الموصي. متاح فقط عندما يكون الموصي عضواً في EverWill.",
     features: ["وثائق ذات صلاحية قانونية تُنشأ تلقائياً", "اكتمال الوثائق خلال 72 ساعة", "تطبيق تلقائي لقوانين 7 دول"],
+    includedItems: ["إرشاد شامل لإجراءات الإرث", "حساب تلقائي لضريبة الإرث", "إنشاء تلقائي للوثائق القانونية", "تقديم إلكتروني أو تنزيل PDF"],
+    lawyerTitle: "خدمة تعيين محامٍ (اختياري)",
+    lawyerDesc: "في حالة الاعتراض أو التقاضي، يتولى محامو EverWill المتخصصون جميع الإجراءات القانونية.",
+    lawyerFee1: "رسوم الاستئجار",
+    lawyerFee1Val: "$699",
+    lawyerFee2: "أتعاب النجاح",
+    lawyerFee2Val: "1% من قيمة التركة",
+    lawyerNote: "* عند تعيين محامٍ، يُنشأ عقد التوكيل تلقائياً ويصبح نافذاً بعد التوقيع الإلكتروني.",
+    lawyerCta: "تعيين محامٍ",
     steps: [
       { title: "التسجيل كوارث", desc: "بعد وفاة الموصي، سجّل باستخدام رمز الوارث (QR البادج أو رقم الوصية)." },
       { title: "مراجعة الوصية", desc: "اطّلع على وثيقة الوصية الكاملة وراجع حصص الإرث والتعليمات الخاصة." },
@@ -245,6 +318,15 @@ const LANG_TEXT: Record<string, {
     cta: "S'inscrire comme Héritier",
     footerNote: "Les services pour héritiers sont activés après confirmation du décès du testateur. Disponible uniquement lorsque le testateur est membre d'EverWill.",
     features: ["Documents juridiquement valides générés automatiquement", "Documents complétés en 72 heures", "Lois de 7 pays appliquées automatiquement"],
+    includedItems: ["Guide complet du processus de succession", "Calcul automatique des droits de succession", "Documents juridiques générés automatiquement", "Soumission en ligne ou téléchargement PDF"],
+    lawyerTitle: "Représentation Juridique (Optionnel)",
+    lawyerDesc: "En cas de litige, les avocats dédiés d'EverWill prennent en charge toutes les démarches juridiques.",
+    lawyerFee1: "Honoraires de Dossier",
+    lawyerFee1Val: "€699",
+    lawyerFee2: "Honoraires de Succès",
+    lawyerFee2Val: "1% de la valeur du patrimoine",
+    lawyerNote: "* Lors du mandat, un contrat de représentation est généré automatiquement et prend effet après signature électronique.",
+    lawyerCta: "Mandater un Avocat",
     steps: [
       { title: "S'inscrire comme Héritier", desc: "Après le décès du testateur, inscrivez-vous avec le code héritier (Badge QR ou numéro de testament)." },
       { title: "Consulter le Testament", desc: "Accédez au testament complet et vérifiez les parts d'héritage et les instructions spéciales." },
@@ -269,6 +351,15 @@ const LANG_TEXT: Record<string, {
     cta: "Зарегистрироваться как Наследник",
     footerNote: "Услуги для наследников активируются после подтверждения смерти завещателя. Доступно только когда завещатель является членом EverWill.",
     features: ["Юридически действительные документы создаются автоматически", "Документы готовы в течение 72 часов", "Законы 7 стран применяются автоматически"],
+    includedItems: ["Полное руководство по наследованию", "Автоматический расчёт налога на наследство", "Автоматическое создание юридических документов", "Онлайн-подача или загрузка PDF"],
+    lawyerTitle: "Юридическое представительство (Необязательно)",
+    lawyerDesc: "При возникновении споров или судебных разбирательств адвокаты EverWill берут на себя все правовые вопросы.",
+    lawyerFee1: "Гонорар за ведение дела",
+    lawyerFee1Val: "$699",
+    lawyerFee2: "Гонорар за успех",
+    lawyerFee2Val: "1% от стоимости наследства",
+    lawyerNote: "* При найме адвоката автоматически создаётся договор представительства, вступающий в силу после электронной подписи.",
+    lawyerCta: "Нанять Адвоката",
     steps: [
       { title: "Зарегистрироваться как Наследник", desc: "После смерти завещателя зарегистрируйтесь с кодом наследника (Badge QR или номер завещания)." },
       { title: "Ознакомиться с Завещанием", desc: "Просмотрите полный текст завещания и проверьте доли наследства и особые инструкции." },
@@ -293,6 +384,15 @@ const LANG_TEXT: Record<string, {
     cta: "उत्तराधिकारी के रूप में पंजीकरण करें",
     footerNote: "उत्तराधिकारी सेवाएं वसीयतकर्ता की मृत्यु की पुष्टि के बाद सक्रिय होती हैं। केवल तभी उपलब्ध जब वसीयतकर्ता EverWill सदस्य हो।",
     features: ["कानूनी रूप से वैध दस्तावेज़ स्वचालित रूप से तैयार", "72 घंटों के भीतर दस्तावेज़ पूर्ण", "7 देशों के कानून स्वचालित रूप से लागू"],
+    includedItems: ["विरासत प्रक्रिया का पूर्ण मार्गदर्शन", "विरासत कर की स्वचालित गणना", "कानूनी दस्तावेज़ स्वचालित रूप से तैयार", "ऑनलाइन जमा या PDF डाउनलोड"],
+    lawyerTitle: "वकील नियुक्ति सेवा (वैकल्पिक)",
+    lawyerDesc: "विवाद या मुकदमे की स्थिति में EverWill के समर्पित वकील सभी कानूनी कार्यवाही संभालते हैं।",
+    lawyerFee1: "अग्रिम शुल्क",
+    lawyerFee1Val: "$699",
+    lawyerFee2: "सफलता शुल्क",
+    lawyerFee2Val: "संपत्ति मूल्य का 1%",
+    lawyerNote: "* वकील नियुक्त करने पर प्रतिनिधित्व अनुबंध स्वचालित रूप से बनता है और ई-हस्ताक्षर के बाद प्रभावी होता है।",
+    lawyerCta: "वकील नियुक्त करें",
     steps: [
       { title: "उत्तराधिकारी के रूप में पंजीकरण", desc: "वसीयतकर्ता के निधन के बाद, उत्तराधिकारी कोड (Badge QR या वसीयत नंबर) का उपयोग करके पंजीकरण करें।" },
       { title: "वसीयत की समीक्षा करें", desc: "पूर्ण वसीयत दस्तावेज़ देखें और विरासत के हिस्से और विशेष निर्देश जांचें।" },
@@ -317,6 +417,15 @@ const LANG_TEXT: Record<string, {
     cta: "Registrar como Herdeiro",
     footerNote: "Os serviços para herdeiros são ativados após a confirmação do falecimento do testador. Disponível apenas quando o testador é membro do EverWill.",
     features: ["Documentos juridicamente válidos gerados automaticamente", "Documentos concluídos em 72 horas", "Leis de 7 países aplicadas automaticamente"],
+    includedItems: ["Orientação completa do processo de herança", "Cálculo automático do imposto de herança", "Documentos legais gerados automaticamente", "Envio online ou download em PDF"],
+    lawyerTitle: "Representação Jurídica (Opcional)",
+    lawyerDesc: "Em caso de disputa ou litígio, os advogados dedicados da EverWill cuidam de todos os procedimentos legais.",
+    lawyerFee1: "Honorário Inicial",
+    lawyerFee1Val: "$699",
+    lawyerFee2: "Honorário de Êxito",
+    lawyerFee2Val: "1% do valor do patrimônio",
+    lawyerNote: "* Ao contratar um advogado, um contrato de representação é gerado automaticamente e entra em vigor após assinatura eletrônica.",
+    lawyerCta: "Contratar Advogado",
     steps: [
       { title: "Registrar como Herdeiro", desc: "Após o falecimento do testador, registre-se usando o código do herdeiro (Badge QR ou número do testamento)." },
       { title: "Revisar o Testamento", desc: "Acesse o documento completo do testamento e revise as cotas de herança e instruções especiais." },
@@ -556,12 +665,82 @@ export default function HeirServiceSection() {
           </motion.div>
         </div>
 
+        {/* ── 기본 가입비 포함 내용 박스 ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="mt-10 bg-white rounded-3xl shadow-sm border border-[#C9A961]/20 p-8"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-[#C9A961]/15 flex items-center justify-center">
+              <CheckCircle className="w-5 h-5 text-[#C9A961]" />
+            </div>
+            <div>
+              <h3 className="font-bold text-[#1F3864] text-lg">
+                {isKo ? "₩199,000 기본 가입비에 포함된 내용" : "Included in the Base Service Fee"}
+              </h3>
+              <p className="text-gray-500 text-xs">
+                {isKo ? "별도 추가 비용 없음" : "No additional charges"}
+              </p>
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {t.includedItems.map((item, i) => (
+              <div key={i} className="flex items-center gap-3 bg-[#F5F3EE] rounded-xl px-4 py-3">
+                <CheckCircle className="w-4 h-4 text-[#C9A961] flex-shrink-0" />
+                <span className="text-[#1F3864] text-sm font-semibold">{item}</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* ── 변호사 선임 서비스 섹션 ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.45 }}
+          className="mt-6 bg-gradient-to-br from-[#1F3864] to-[#2a4a7f] rounded-3xl p-8 text-white"
+        >
+          <div className="flex items-start gap-4 mb-6">
+            <div className="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
+              <Briefcase className="w-6 h-6 text-[#C9A961]" />
+            </div>
+            <div>
+              <h3 className="font-bold text-white text-xl mb-1">{t.lawyerTitle}</h3>
+              <p className="text-white/70 text-sm leading-relaxed">{t.lawyerDesc}</p>
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4 mb-6">
+            <div className="bg-white/10 rounded-2xl p-5">
+              <div className="text-white/60 text-xs font-medium mb-1">{t.lawyerFee1}</div>
+              <div className="text-3xl font-extrabold text-[#C9A961]">{t.lawyerFee1Val}</div>
+            </div>
+            <div className="bg-white/10 rounded-2xl p-5">
+              <div className="text-white/60 text-xs font-medium mb-1">{t.lawyerFee2}</div>
+              <div className="text-3xl font-extrabold text-[#C9A961]">{t.lawyerFee2Val}</div>
+            </div>
+          </div>
+          <p className="text-white/50 text-xs mb-5">{t.lawyerNote}</p>
+          <button
+            onClick={() => {
+              import("sonner").then(({ toast }) => {
+                toast.info(isKo ? "변호사 선임 서비스 준비 중입니다. 곧 오픈합니다!" : "Attorney service coming soon!");
+              });
+            }}
+            className="w-full py-3 rounded-xl bg-[#C9A961] hover:bg-[#d4b870] text-[#1F3864] font-bold text-sm transition-all flex items-center justify-center gap-2"
+          >
+            <Briefcase className="w-4 h-4" />
+            {t.lawyerCta}
+          </button>
+        </motion.div>
+
         {/* ── 하단 안내 ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.5 }}
-          className="mt-10 bg-[#1F3864]/5 border border-[#1F3864]/10 rounded-2xl px-6 py-4 text-center"
+          className="mt-6 bg-[#1F3864]/5 border border-[#1F3864]/10 rounded-2xl px-6 py-4 text-center"
         >
           <p className="text-gray-600 text-sm leading-relaxed">{t.footerNote}</p>
         </motion.div>
