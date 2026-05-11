@@ -241,10 +241,43 @@ export default function Step9Preview({ will }: StepProps) {
             </div>
           )}
 
-          {(will.executor || will.guardian || will.funeralWish) && (
+          {/* 유언집행자 섹션 - 항상 표시 (미지정 시 제1상속인 자동) */}
+          <div className="border border-[#C9A961]/30 rounded-xl p-4 bg-[#C9A961]/5">
+            <p className="font-bold text-[#1F3864] mb-3">
+              ⚖️ 【유언집행자 지정】
+            </p>
+            {(!will.executorType || will.executorType === 'heir1') ? (
+              <div>
+                <p className="mb-1 text-sm">
+                  제1항. 유언집행자는 제1상속인{" "}
+                  {will.heirs.length > 0 ? (
+                    <strong className="text-[#1F3864]">{will.heirs[0].name}</strong>
+                  ) : (
+                    <span className="text-gray-400">(제1상속인)</span>
+                  )}
+                  {" "}이(가) 자동으로 맡는다.
+                </p>
+                <p className="text-xs text-gray-400 mt-1">※ 별도 지정 없음 — 제1상속인이 유언집행자로 자동 지정됩니다.</p>
+              </div>
+            ) : (
+              <div>
+                <p className="mb-1 text-sm">
+                  제1항. 유언집행자로{" "}
+                  <strong className="text-[#1F3864]">{will.executorCustomName || '___'}</strong>
+                  {will.executorCustomRelation && <span className="text-gray-500"> ({will.executorCustomRelation})</span>}
+                  {" "}을(를) 지정한다.
+                </p>
+                {will.executorCustomPhone && (
+                  <p className="text-xs text-gray-500 mt-1">연락처: {will.executorCustomPhone}</p>
+                )}
+                <p className="text-xs text-[#C9A961] mt-1">✓ 유언자가 직접 지정한 유언집행자입니다.</p>
+              </div>
+            )}
+          </div>
+
+          {(will.guardian || will.funeralWish || will.donationDetails || will.specialInstructions) && (
             <div>
               <p className="font-bold text-[#1F3864] mb-2">【제3조 특별 지시사항】</p>
-              {will.executor && <p className="mb-1">제1항. 유언집행자로 {will.executor}을(를) 지정한다.</p>}
               {will.guardian && <p className="mb-1">제2항. 미성년 자녀의 후견인으로 {will.guardian}을(를) 지정한다.</p>}
               {will.funeralWish && <p className="mb-1">제3항. 장례는 {will.funeralWish}으로 한다.</p>}
               {will.donationDetails && <p className="mb-1">제4항. {will.donationDetails}</p>}
