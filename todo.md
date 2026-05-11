@@ -54,6 +54,9 @@
 - [x] EverWill 로고 배경 제거(누끼) 후 투명 PNG 생성 (AI 재생성 방법 사용)
 - [x] Navbar·ComingSoon에 새 로고 교체
 
+## 상속 서비스 비교 표
+- [x] HeirServiceSection.tsx에 기본 서비스 vs 변호사 선임 서비스 상세 비교 표 추가 (11개 언어)
+
 ## 상속 서비스 가격 구조 명확화
 - [x] HeirServiceSection.tsx LANG_TEXT에 includedItems, lawyerTitle, lawyerDesc, lawyerFee1/Val, lawyerFee2/Val, lawyerNote, lawyerCta 필드 추가 (11개 언어)
 - [x] 기본 가입비 포함 내용 박스 UI 추가 (₩199,000 포함 항목 체크리스트)

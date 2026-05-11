@@ -69,6 +69,11 @@ const LANG_TEXT: Record<string, {
   lawyerFee2Val: string;
   lawyerNote: string;
   lawyerCta: string;
+  compareTitle: string;
+  compareColFeature: string;
+  compareColBasic: string;
+  compareColLawyer: string;
+  compareRows: { feature: string; basic: string | boolean; lawyer: string | boolean }[];
 }> = {
   ko: {
     badge: "상속인 전용 서비스",
@@ -96,6 +101,22 @@ const LANG_TEXT: Record<string, {
     lawyerFee2Val: "상속 자산의 1%",
     lawyerNote: "* 변호사 선임 시 위임 계약서가 자동 생성되며 전자서명 후 효력이 발생합니다.",
     lawyerCta: "변호사 선임하기",
+    compareTitle: "서비스 비교",
+    compareColFeature: "항목",
+    compareColBasic: "기본 서비스",
+    compareColLawyer: "변호사 선임",
+    compareRows: [
+      { feature: "서비스 비용", basic: "₩199,000 (기본)", lawyer: "₩990,000 착수금 + 성공 보수 1%" },
+      { feature: "상속 절차 안내", basic: true, lawyer: true },
+      { feature: "상속세 자동 계산", basic: true, lawyer: true },
+      { feature: "법적 서류 자동 작성", basic: true, lawyer: true },
+      { feature: "온라인/PDF 접수 지원", basic: true, lawyer: true },
+      { feature: "이의제기·분쟁 대응", basic: false, lawyer: true },
+      { feature: "소송 법적 대리", basic: false, lawyer: true },
+      { feature: "위임 계약서 자동 생성", basic: false, lawyer: true },
+      { feature: "전담 변호사 1:1 상담", basic: false, lawyer: true },
+      { feature: "법원 출석 대리", basic: false, lawyer: true }
+    ],
     steps: [
       { title: "상속인으로 가입", desc: "유언자의 사망 후 상속인 코드(Badge QR 또는 유언 번호)로 전용 가입 절차를 진행합니다." },
       { title: "유언 내용 확인", desc: "유언자가 남긴 유언장 전문을 열람하고, 상속 지분 및 특별 지시 사항을 확인합니다." },
@@ -129,6 +150,22 @@ const LANG_TEXT: Record<string, {
     lawyerFee2Val: "1% of estate value",
     lawyerNote: "* Upon retaining an attorney, a legal representation agreement is auto-generated and becomes effective after e-signature.",
     lawyerCta: "Retain an Attorney",
+    compareTitle: "Service Comparison",
+    compareColFeature: "Feature",
+    compareColBasic: "Basic Service",
+    compareColLawyer: "Attorney Service",
+    compareRows: [
+      { feature: "Service Fee", basic: "$149 (Basic)", lawyer: "$699 retainer + 1% success fee" },
+      { feature: "Inheritance Process Guidance", basic: true, lawyer: true },
+      { feature: "Automatic Tax Calculation", basic: true, lawyer: true },
+      { feature: "Auto-Generated Legal Documents", basic: true, lawyer: true },
+      { feature: "Online / PDF Submission Support", basic: true, lawyer: true },
+      { feature: "Dispute & Objection Handling", basic: false, lawyer: true },
+      { feature: "Litigation Legal Representation", basic: false, lawyer: true },
+      { feature: "Auto-Generated Retainer Agreement", basic: false, lawyer: true },
+      { feature: "Dedicated Attorney 1:1 Consultation", basic: false, lawyer: true },
+      { feature: "Court Appearance Representation", basic: false, lawyer: true }
+    ],
     steps: [
       { title: "Register as Heir", desc: "After the testator's passing, register using the heir code (Badge QR or will number) through a dedicated sign-up process." },
       { title: "Review the Will", desc: "Access the full will document and review inheritance shares and special instructions left by the testator." },
@@ -162,6 +199,22 @@ const LANG_TEXT: Record<string, {
     lawyerFee2Val: "相続資産の1%",
     lawyerNote: "* 弁護士選任時に委任契約書が自動生成され、電子署名後に効力が発生します。",
     lawyerCta: "弁護士を選任する",
+    compareTitle: "サービス比較",
+    compareColFeature: "項目",
+    compareColBasic: "基本サービス",
+    compareColLawyer: "弁護士選任",
+    compareRows: [
+      { feature: "サービス料金", basic: "$149（基本）", lawyer: "¥99,000着手金 + 成功報酬1%" },
+      { feature: "相続手続きガイド", basic: true, lawyer: true },
+      { feature: "相続税自動計算", basic: true, lawyer: true },
+      { feature: "法的書類自動作成", basic: true, lawyer: true },
+      { feature: "オンライン/PDF申請サポート", basic: true, lawyer: true },
+      { feature: "異議申し立て・紛争対応", basic: false, lawyer: true },
+      { feature: "訴訟法的代理", basic: false, lawyer: true },
+      { feature: "委任契約書自動生成", basic: false, lawyer: true },
+      { feature: "専任弁護士1:1相談", basic: false, lawyer: true },
+      { feature: "法廷出席代理", basic: false, lawyer: true }
+    ],
     steps: [
       { title: "相続人として登録", desc: "遺言者の死亡後、相続人コード（Badge QRまたは遺言番号）で専用登録手続きを行います。" },
       { title: "遺言内容の確認", desc: "遺言書の全文を閲覧し、相続分および特別指示事項を確認します。" },
@@ -195,6 +248,22 @@ const LANG_TEXT: Record<string, {
     lawyerFee2Val: "遗产价值的1%",
     lawyerNote: "* 委托律师后，委托合同自动生成，电子签名后生效。",
     lawyerCta: "委托律师",
+    compareTitle: "服务比较",
+    compareColFeature: "项目",
+    compareColBasic: "基本服务",
+    compareColLawyer: "律师委托",
+    compareRows: [
+      { feature: "服务费用", basic: "$149（基本）", lawyer: "¥4,900委托金 + 成功报酬1%" },
+      { feature: "继承手续指导", basic: true, lawyer: true },
+      { feature: "遗产税自动计算", basic: true, lawyer: true },
+      { feature: "法律文件自动生成", basic: true, lawyer: true },
+      { feature: "在线/PDF申请支持", basic: true, lawyer: true },
+      { feature: "异议与纠纷处理", basic: false, lawyer: true },
+      { feature: "诉讼法律代理", basic: false, lawyer: true },
+      { feature: "委托合同自动生成", basic: false, lawyer: true },
+      { feature: "专属律师1:1咨询", basic: false, lawyer: true },
+      { feature: "出庭代理", basic: false, lawyer: true }
+    ],
     steps: [
       { title: "注册为继承人", desc: "遗嘱人去世后，使用继承人代码（Badge二维码或遗嘱编号）通过专用注册流程进行注册。" },
       { title: "查阅遗嘱内容", desc: "查阅遗嘱全文，确认继承份额及特别指示事项。" },
@@ -228,6 +297,22 @@ const LANG_TEXT: Record<string, {
     lawyerFee2Val: "1% des Nachlasswerts",
     lawyerNote: "* Bei Anwaltsmandatierung wird automatisch ein Vollmachtsvertrag erstellt, der nach e-Signatur wirksam wird.",
     lawyerCta: "Anwalt beauftragen",
+    compareTitle: "Servicevergleich",
+    compareColFeature: "Merkmal",
+    compareColBasic: "Basisservice",
+    compareColLawyer: "Anwaltlicher Service",
+    compareRows: [
+      { feature: "Servicegebühr", basic: "$149 (Basis)", lawyer: "€699 Vorschuss + 1% Erfolgsprovision" },
+      { feature: "Erbschaftsprozess-Beratung", basic: true, lawyer: true },
+      { feature: "Automatische Steuerberechnung", basic: true, lawyer: true },
+      { feature: "Automatisch erstellte Rechtsdokumente", basic: true, lawyer: true },
+      { feature: "Online/PDF-Einreichungsunterstützung", basic: true, lawyer: true },
+      { feature: "Einspruchs- & Streitbearbeitung", basic: false, lawyer: true },
+      { feature: "Gerichtliche Rechtsvertretung", basic: false, lawyer: true },
+      { feature: "Automatisch erstellter Vollmachtsvertrag", basic: false, lawyer: true },
+      { feature: "Dedizierter Anwalt 1:1-Beratung", basic: false, lawyer: true },
+      { feature: "Gerichtsvertretung", basic: false, lawyer: true }
+    ],
     steps: [
       { title: "Als Erbe registrieren", desc: "Nach dem Tod des Erblassers mit dem Erbencode (Badge-QR oder Testamentsnummer) registrieren." },
       { title: "Testament prüfen", desc: "Vollständiges Testament einsehen und Erbteile sowie besondere Anweisungen prüfen." },
@@ -261,6 +346,22 @@ const LANG_TEXT: Record<string, {
     lawyerFee2Val: "1% del valor del patrimonio",
     lawyerNote: "* Al contratar un abogado, se genera automáticamente un contrato de representación que entra en vigor tras la firma electrónica.",
     lawyerCta: "Contratar Abogado",
+    compareTitle: "Comparación de Servicios",
+    compareColFeature: "Característica",
+    compareColBasic: "Servicio Básico",
+    compareColLawyer: "Servicio de Abogado",
+    compareRows: [
+      { feature: "Tarifa del Servicio", basic: "$149 (Básico)", lawyer: "$699 honorario + 1% honorario de éxito" },
+      { feature: "Guía del Proceso de Herencia", basic: true, lawyer: true },
+      { feature: "Cálculo Automático de Impuestos", basic: true, lawyer: true },
+      { feature: "Documentos Legales Generados Automáticamente", basic: true, lawyer: true },
+      { feature: "Soporte de Presentación Online/PDF", basic: true, lawyer: true },
+      { feature: "Manejo de Disputas y Objeciones", basic: false, lawyer: true },
+      { feature: "Representación Legal en Litigios", basic: false, lawyer: true },
+      { feature: "Contrato de Representación Automático", basic: false, lawyer: true },
+      { feature: "Consulta 1:1 con Abogado Dedicado", basic: false, lawyer: true },
+      { feature: "Representación en Tribunal", basic: false, lawyer: true }
+    ],
     steps: [
       { title: "Registrarse como Heredero", desc: "Tras el fallecimiento del testador, regístrese usando el código de heredero (Badge QR o número de testamento)." },
       { title: "Revisar el Testamento", desc: "Acceda al testamento completo y revise las cuotas de herencia e instrucciones especiales." },
@@ -294,6 +395,22 @@ const LANG_TEXT: Record<string, {
     lawyerFee2Val: "1% من قيمة التركة",
     lawyerNote: "* عند تعيين محامٍ، يُنشأ عقد التوكيل تلقائياً ويصبح نافذاً بعد التوقيع الإلكتروني.",
     lawyerCta: "تعيين محامٍ",
+    compareTitle: "مقارنة الخدمات",
+    compareColFeature: "الميزة",
+    compareColBasic: "الخدمة الأساسية",
+    compareColLawyer: "خدمة المحامي",
+    compareRows: [
+      { feature: "رسوم الخدمة", basic: "$149 (أساسي)", lawyer: "$699 استئجار + 1% رسوم النجاح" },
+      { feature: "إرشاد إجراءات الإرث", basic: true, lawyer: true },
+      { feature: "حساب تلقائي للضرائب", basic: true, lawyer: true },
+      { feature: "وثائق قانونية تُنشأ تلقائياً", basic: true, lawyer: true },
+      { feature: "دعم التقديم الإلكتروني/PDF", basic: true, lawyer: true },
+      { feature: "معالجة الاعتراضات والنزاعات", basic: false, lawyer: true },
+      { feature: "التمثيل القانوني في التقاضي", basic: false, lawyer: true },
+      { feature: "عقد توكيل يُنشأ تلقائياً", basic: false, lawyer: true },
+      { feature: "استشارة 1:1 مع محامٍ متخصص", basic: false, lawyer: true },
+      { feature: "التمثيل أمام المحكمة", basic: false, lawyer: true }
+    ],
     steps: [
       { title: "التسجيل كوارث", desc: "بعد وفاة الموصي، سجّل باستخدام رمز الوارث (QR البادج أو رقم الوصية)." },
       { title: "مراجعة الوصية", desc: "اطّلع على وثيقة الوصية الكاملة وراجع حصص الإرث والتعليمات الخاصة." },
@@ -327,6 +444,22 @@ const LANG_TEXT: Record<string, {
     lawyerFee2Val: "1% de la valeur du patrimoine",
     lawyerNote: "* Lors du mandat, un contrat de représentation est généré automatiquement et prend effet après signature électronique.",
     lawyerCta: "Mandater un Avocat",
+    compareTitle: "Comparaison des Services",
+    compareColFeature: "Fonctionnalité",
+    compareColBasic: "Service de Base",
+    compareColLawyer: "Service d'Avocat",
+    compareRows: [
+      { feature: "Frais de Service", basic: "$149 (Basique)", lawyer: "€699 honoraires + 1% honoraires de succès" },
+      { feature: "Guide du Processus de Succession", basic: true, lawyer: true },
+      { feature: "Calcul Automatique des Impôts", basic: true, lawyer: true },
+      { feature: "Documents Juridiques Générés Automatiquement", basic: true, lawyer: true },
+      { feature: "Support de Soumission en Ligne/PDF", basic: true, lawyer: true },
+      { feature: "Gestion des Litiges et Contestations", basic: false, lawyer: true },
+      { feature: "Représentation Juridique en Procès", basic: false, lawyer: true },
+      { feature: "Contrat de Représentation Automatique", basic: false, lawyer: true },
+      { feature: "Consultation 1:1 avec Avocat Dédié", basic: false, lawyer: true },
+      { feature: "Représentation Judiciaire", basic: false, lawyer: true }
+    ],
     steps: [
       { title: "S'inscrire comme Héritier", desc: "Après le décès du testateur, inscrivez-vous avec le code héritier (Badge QR ou numéro de testament)." },
       { title: "Consulter le Testament", desc: "Accédez au testament complet et vérifiez les parts d'héritage et les instructions spéciales." },
@@ -360,6 +493,22 @@ const LANG_TEXT: Record<string, {
     lawyerFee2Val: "1% от стоимости наследства",
     lawyerNote: "* При найме адвоката автоматически создаётся договор представительства, вступающий в силу после электронной подписи.",
     lawyerCta: "Нанять Адвоката",
+    compareTitle: "Сравнение Услуг",
+    compareColFeature: "Функция",
+    compareColBasic: "Базовая Услуга",
+    compareColLawyer: "Юридическая Услуга",
+    compareRows: [
+      { feature: "Стоимость услуги", basic: "$149 (Базовый)", lawyer: "$699 гонорар + 1% гонорар за успех" },
+      { feature: "Руководство по наследованию", basic: true, lawyer: true },
+      { feature: "Автоматический расчёт налогов", basic: true, lawyer: true },
+      { feature: "Автоматически созданные юридические документы", basic: true, lawyer: true },
+      { feature: "Поддержка онлайн/PDF подачи", basic: true, lawyer: true },
+      { feature: "Урегулирование споров и возражений", basic: false, lawyer: true },
+      { feature: "Юридическое представительство в суде", basic: false, lawyer: true },
+      { feature: "Автоматически созданный договор представительства", basic: false, lawyer: true },
+      { feature: "Консультация 1:1 с выделенным адвокатом", basic: false, lawyer: true },
+      { feature: "Представительство в суде", basic: false, lawyer: true }
+    ],
     steps: [
       { title: "Зарегистрироваться как Наследник", desc: "После смерти завещателя зарегистрируйтесь с кодом наследника (Badge QR или номер завещания)." },
       { title: "Ознакомиться с Завещанием", desc: "Просмотрите полный текст завещания и проверьте доли наследства и особые инструкции." },
@@ -393,6 +542,22 @@ const LANG_TEXT: Record<string, {
     lawyerFee2Val: "संपत्ति मूल्य का 1%",
     lawyerNote: "* वकील नियुक्त करने पर प्रतिनिधित्व अनुबंध स्वचालित रूप से बनता है और ई-हस्ताक्षर के बाद प्रभावी होता है।",
     lawyerCta: "वकील नियुक्त करें",
+    compareTitle: "सेवा तुलना",
+    compareColFeature: "विशेषता",
+    compareColBasic: "बेसिक सेवा",
+    compareColLawyer: "वकील सेवा",
+    compareRows: [
+      { feature: "सेवा शुल्क", basic: "$149 (बेसिक)", lawyer: "$699 अग्रिम + 1% सफलता शुल्क" },
+      { feature: "विरासत प्रक्रिया मार्गदर्शन", basic: true, lawyer: true },
+      { feature: "स्वचालित कर गणना", basic: true, lawyer: true },
+      { feature: "स्वचालित कानूनी दस्तावेज़", basic: true, lawyer: true },
+      { feature: "ऑनलाइन/PDF जमा सहायता", basic: true, lawyer: true },
+      { feature: "विवाद और आपत्ति प्रबंधन", basic: false, lawyer: true },
+      { feature: "मुकदमे में कानूनी प्रतिनिधित्व", basic: false, lawyer: true },
+      { feature: "स्वचालित प्रतिनिधित्व अनुबंध", basic: false, lawyer: true },
+      { feature: "समर्पित वकील 1:1 परामर्श", basic: false, lawyer: true },
+      { feature: "न्यायालय में उपस्थिति", basic: false, lawyer: true }
+    ],
     steps: [
       { title: "उत्तराधिकारी के रूप में पंजीकरण", desc: "वसीयतकर्ता के निधन के बाद, उत्तराधिकारी कोड (Badge QR या वसीयत नंबर) का उपयोग करके पंजीकरण करें।" },
       { title: "वसीयत की समीक्षा करें", desc: "पूर्ण वसीयत दस्तावेज़ देखें और विरासत के हिस्से और विशेष निर्देश जांचें।" },
@@ -426,6 +591,22 @@ const LANG_TEXT: Record<string, {
     lawyerFee2Val: "1% do valor do patrimônio",
     lawyerNote: "* Ao contratar um advogado, um contrato de representação é gerado automaticamente e entra em vigor após assinatura eletrônica.",
     lawyerCta: "Contratar Advogado",
+    compareTitle: "Comparação de Serviços",
+    compareColFeature: "Recurso",
+    compareColBasic: "Serviço Básico",
+    compareColLawyer: "Serviço de Advogado",
+    compareRows: [
+      { feature: "Taxa de Serviço", basic: "$149 (Básico)", lawyer: "$699 honorário + 1% honorário de êxito" },
+      { feature: "Orientação do Processo de Herança", basic: true, lawyer: true },
+      { feature: "Cálculo Automático de Impostos", basic: true, lawyer: true },
+      { feature: "Documentos Legais Gerados Automaticamente", basic: true, lawyer: true },
+      { feature: "Suporte de Envio Online/PDF", basic: true, lawyer: true },
+      { feature: "Gestão de Disputas e Objeções", basic: false, lawyer: true },
+      { feature: "Representação Legal em Litígios", basic: false, lawyer: true },
+      { feature: "Contrato de Representação Automático", basic: false, lawyer: true },
+      { feature: "Consulta 1:1 com Advogado Dedicado", basic: false, lawyer: true },
+      { feature: "Representação Judicial", basic: false, lawyer: true }
+    ],
     steps: [
       { title: "Registrar como Herdeiro", desc: "Após o falecimento do testador, registre-se usando o código do herdeiro (Badge QR ou número do testamento)." },
       { title: "Revisar o Testamento", desc: "Acesse o documento completo do testamento e revise as cotas de herança e instruções especiais." },
@@ -735,11 +916,79 @@ export default function HeirServiceSection() {
           </button>
         </motion.div>
 
-        {/* ── 하단 안내 ── */}
+        {/* ── 서비스 비교 표 ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.5 }}
+          className="mt-6"
+        >
+          <h3 className="text-2xl font-bold text-[#1F3864] mb-6 text-center">{t.compareTitle}</h3>
+          <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-sm">
+            <table className="w-full text-sm">
+              <thead>
+                <tr>
+                  <th className="bg-gray-50 text-left px-5 py-4 text-gray-500 font-semibold w-2/5 border-b border-gray-200">
+                    {t.compareColFeature}
+                  </th>
+                  <th className="bg-[#F5F3EE] text-center px-5 py-4 text-[#1F3864] font-bold border-b border-gray-200">
+                    <div className="flex flex-col items-center gap-1">
+                      <CheckCircle className="w-4 h-4 text-[#C9A961]" />
+                      <span>{t.compareColBasic}</span>
+                    </div>
+                  </th>
+                  <th className="bg-[#1F3864] text-center px-5 py-4 text-white font-bold border-b border-[#1F3864]">
+                    <div className="flex flex-col items-center gap-1">
+                      <Briefcase className="w-4 h-4 text-[#C9A961]" />
+                      <span>{t.compareColLawyer}</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {t.compareRows.map((row, i) => (
+                  <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
+                    <td className="px-5 py-3.5 text-gray-700 font-medium border-b border-gray-100">
+                      {row.feature}
+                    </td>
+                    <td className="px-5 py-3.5 text-center border-b border-gray-100">
+                      {row.basic === true ? (
+                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100">
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                        </span>
+                      ) : row.basic === false ? (
+                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100">
+                          <span className="text-gray-300 font-bold text-base leading-none">—</span>
+                        </span>
+                      ) : (
+                        <span className="text-[#1F3864] font-semibold text-xs">{row.basic}</span>
+                      )}
+                    </td>
+                    <td className="px-5 py-3.5 text-center bg-[#1F3864]/5 border-b border-gray-100">
+                      {row.lawyer === true ? (
+                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#C9A961]/20">
+                          <CheckCircle className="w-4 h-4 text-[#C9A961]" />
+                        </span>
+                      ) : row.lawyer === false ? (
+                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100">
+                          <span className="text-gray-300 font-bold text-base leading-none">—</span>
+                        </span>
+                      ) : (
+                        <span className="text-[#1F3864] font-semibold text-xs">{row.lawyer}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </motion.div>
+
+        {/* ── 하단 안내 ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.55 }}
           className="mt-6 bg-[#1F3864]/5 border border-[#1F3864]/10 rounded-2xl px-6 py-4 text-center"
         >
           <p className="text-gray-600 text-sm leading-relaxed">{t.footerNote}</p>
