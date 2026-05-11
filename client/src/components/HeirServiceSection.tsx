@@ -27,10 +27,11 @@ import {
 const BASE_EXCHANGE_RATE = 1400; // 1 USD = 1,400 KRW
 const OVERSEAS_PREMIUM = 1.15;   // 해외 +15%
 
-// 한국 기준 수수료
-const BASE_FEE_KRW = 199000;
-const BASE_LIMIT_KRW = 200000000; // 2억
-const RATE = 0.001; // 0.1%
+// 한국 기준 수수료 (3단계)
+const FREE_LIMIT_KRW = 100000000;  // 1억 이하: 무료
+const BASE_FEE_KRW = 199000;       // 1억~2억: ₩199,000
+const BASE_LIMIT_KRW = 200000000;  // 2억 이하 상한
+const RATE = 0.001;                // 2억 초과분 × 0.1%
 
 // 원화 → 달러 변환 (해외 +15% 프리미엄)
 function krwToUsd(krw: number): number {
@@ -49,8 +50,11 @@ const LANG_TEXT: Record<string, {
   processTitle: string;
   calcTitle: string;
   calcSub: string;
+  tier0Label: string;
   tier1Label: string;
   tier2Label: string;
+  tier3Label: string;
+  assetBasisNote: string;
   inputLabel: string;
   inputPlaceholder: string;
   feeLabel: string;
@@ -82,8 +86,11 @@ const LANG_TEXT: Record<string, {
     processTitle: "상속인 가입 절차",
     calcTitle: "서비스 수수료 계산기",
     calcSub: "상속 자산 규모에 따라 자동 계산",
+    tier0Label: "1억원 이하",
     tier1Label: "2억원 이하",
     tier2Label: "2억원 초과분",
+    tier3Label: "2억원 초과분 × 0.1%",
+    assetBasisNote: "* 평가 기준: 현금·주식·채권 = 시가(가액), 부동산 = 공시지가 기준",
     inputLabel: "상속 자산 총액 (원)",
     inputPlaceholder: "예: 500,000,000",
     feeLabel: "예상 서비스 수수료",
@@ -131,8 +138,11 @@ const LANG_TEXT: Record<string, {
     processTitle: "Heir Registration Process",
     calcTitle: "Service Fee Calculator",
     calcSub: "Auto-calculated by estate size",
+    tier0Label: "Up to $100K",
     tier1Label: "Up to $200K",
     tier2Label: "Amount over $200K",
+    tier3Label: "Excess × 0.1%",
+    assetBasisNote: "* Valuation: Cash/Stocks/Bonds = Market Value; Real Estate = Official Assessed Value",
     inputLabel: "Total Estate Value (USD)",
     inputPlaceholder: "e.g. 500,000",
     feeLabel: "Estimated Service Fee",
@@ -180,8 +190,11 @@ const LANG_TEXT: Record<string, {
     processTitle: "相続人登録プロセス",
     calcTitle: "サービス手数料計算機",
     calcSub: "相続資産規模に応じて自動計算",
+    tier0Label: "$100K以下",
     tier1Label: "$200K以下",
     tier2Label: "$200K超過分",
+    tier3Label: "超過分 × 0.1%",
+    assetBasisNote: "* 評価基準：現金・株式・債券 = 時価（価額）、不動産 = 公示地価基準",
     inputLabel: "相続資産総額 (USD)",
     inputPlaceholder: "例: 500,000",
     feeLabel: "予想サービス手数料",
@@ -229,8 +242,11 @@ const LANG_TEXT: Record<string, {
     processTitle: "继承人注册流程",
     calcTitle: "服务费用计算器",
     calcSub: "根据遗产规模自动计算",
+    tier0Label: "10万美元以下",
     tier1Label: "20万美元以下",
     tier2Label: "超过20万美元部分",
+    tier3Label: "超出部分 × 0.1%",
+    assetBasisNote: "* 评估标准：现金/股票/债券 = 市值（价额），房产 = 官方评估价",
     inputLabel: "遗产总额 (USD)",
     inputPlaceholder: "例: 500,000",
     feeLabel: "预估服务费用",
@@ -278,8 +294,11 @@ const LANG_TEXT: Record<string, {
     processTitle: "Erbenregistrierungsprozess",
     calcTitle: "Servicegebührenrechner",
     calcSub: "Automatisch nach Nachlassgröße berechnet",
+    tier0Label: "Bis $100K",
     tier1Label: "Bis $200K",
     tier2Label: "Betrag über $200K",
+    tier3Label: "Überschuss × 0,1%",
+    assetBasisNote: "* Bewertung: Bargeld/Aktien/Anleihen = Marktwert; Immobilien = Amtlicher Einheitswert",
     inputLabel: "Gesamter Nachlasswert (USD)",
     inputPlaceholder: "z.B. 500.000",
     feeLabel: "Geschätzte Servicegebühr",
@@ -327,8 +346,11 @@ const LANG_TEXT: Record<string, {
     processTitle: "Proceso de Registro de Heredero",
     calcTitle: "Calculadora de Honorarios",
     calcSub: "Calculado automáticamente según el tamaño del patrimonio",
+    tier0Label: "Hasta $100K",
     tier1Label: "Hasta $200K",
     tier2Label: "Cantidad sobre $200K",
+    tier3Label: "Exceso × 0,1%",
+    assetBasisNote: "* Valoración: Efectivo/Acciones/Bonos = Valor de mercado; Inmuebles = Valor catastral oficial",
     inputLabel: "Valor Total del Patrimonio (USD)",
     inputPlaceholder: "ej. 500,000",
     feeLabel: "Honorario Estimado",
@@ -376,8 +398,11 @@ const LANG_TEXT: Record<string, {
     processTitle: "عملية تسجيل الوارث",
     calcTitle: "حاسبة رسوم الخدمة",
     calcSub: "تُحسب تلقائياً حسب حجم التركة",
+    tier0Label: "حتى $100K",
     tier1Label: "حتى $200K",
     tier2Label: "المبلغ الزائد عن $200K",
+    tier3Label: "الزيادة × 0.1%",
+    assetBasisNote: "* التقييم: النقد/الأسهم/السندات = القيمة السوقية؛ العقارات = القيمة الرسمية المقدرة",
     inputLabel: "إجمالي قيمة التركة (USD)",
     inputPlaceholder: "مثال: 500,000",
     feeLabel: "رسوم الخدمة المقدرة",
@@ -425,8 +450,11 @@ const LANG_TEXT: Record<string, {
     processTitle: "Processus d'Inscription des Héritiers",
     calcTitle: "Calculateur de Frais de Service",
     calcSub: "Calculé automatiquement selon la taille du patrimoine",
+    tier0Label: "Jusqu'à $100K",
     tier1Label: "Jusqu'à $200K",
     tier2Label: "Montant au-delà de $200K",
+    tier3Label: "Excédent × 0,1%",
+    assetBasisNote: "* Évaluation : Liquidités/Actions/Obligations = Valeur marchande ; Immobilier = Valeur cadastrale officielle",
     inputLabel: "Valeur Totale du Patrimoine (USD)",
     inputPlaceholder: "ex. 500 000",
     feeLabel: "Frais de Service Estimés",
@@ -474,8 +502,11 @@ const LANG_TEXT: Record<string, {
     processTitle: "Процесс Регистрации Наследника",
     calcTitle: "Калькулятор Сервисных Сборов",
     calcSub: "Автоматически рассчитывается по размеру имущества",
+    tier0Label: "До $100K",
     tier1Label: "До $200K",
     tier2Label: "Сумма свыше $200K",
+    tier3Label: "Превышение × 0,1%",
+    assetBasisNote: "* Оценка: Наличные/Акции/Облигации = Рыночная стоимость; Недвижимость = Официальная кадастровая стоимость",
     inputLabel: "Общая Стоимость Имущества (USD)",
     inputPlaceholder: "напр. 500 000",
     feeLabel: "Расчётный Сервисный Сбор",
@@ -523,8 +554,11 @@ const LANG_TEXT: Record<string, {
     processTitle: "उत्तराधिकारी पंजीकरण प्रक्रिया",
     calcTitle: "सेवा शुल्क कैलकुलेटर",
     calcSub: "संपत्ति के आकार के अनुसार स्वचालित गणना",
+    tier0Label: "$100K तक",
     tier1Label: "$200K तक",
     tier2Label: "$200K से अधिक राशि",
+    tier3Label: "अतिरिक्त × 0.1%",
+    assetBasisNote: "* मूल्यांकन: नकद/शेयर/बांड = बाजार मूल्य; अचल संपत्ति = आधिकारिक मूल्यांकन मूल्य",
     inputLabel: "कुल संपत्ति मूल्य (USD)",
     inputPlaceholder: "उदा. 500,000",
     feeLabel: "अनुमानित सेवा शुल्क",
@@ -572,8 +606,11 @@ const LANG_TEXT: Record<string, {
     processTitle: "Processo de Registro de Herdeiro",
     calcTitle: "Calculadora de Taxas de Serviço",
     calcSub: "Calculado automaticamente pelo tamanho do espólio",
+    tier0Label: "Até $100K",
     tier1Label: "Até $200K",
     tier2Label: "Valor acima de $200K",
+    tier3Label: "Excesso × 0,1%",
+    assetBasisNote: "* Avaliação: Dinheiro/Ações/Títulos = Valor de mercado; Imóveis = Valor de avaliação oficial",
     inputLabel: "Valor Total do Espólio (USD)",
     inputPlaceholder: "ex. 500.000",
     feeLabel: "Taxa de Serviço Estimada",
@@ -630,9 +667,9 @@ export default function HeirServiceSection() {
   const [fee, setFee] = useState<number | null>(null);
 
   // 한국어: 원화 기준 계산, 해외: USD 기준 계산
+   const FREE_LIMIT = isKo ? FREE_LIMIT_KRW : krwToUsd(FREE_LIMIT_KRW);
   const BASE_FEE = isKo ? BASE_FEE_KRW : krwToUsd(BASE_FEE_KRW);
   const BASE_LIMIT = isKo ? BASE_LIMIT_KRW : krwToUsd(BASE_LIMIT_KRW);
-
   function calculateFee(input: string) {
     const raw = input.replace(/[^0-9]/g, "");
     const amount = parseInt(raw, 10);
@@ -640,7 +677,10 @@ export default function HeirServiceSection() {
       setFee(null);
       return;
     }
-    if (amount <= BASE_LIMIT) {
+    // 3단계: 1억 이하 무료 / 1억~2억 ₩199,000 / 2억 초과분 × 0.1%
+    if (amount <= FREE_LIMIT) {
+      setFee(0);
+    } else if (amount <= BASE_LIMIT) {
       setFee(BASE_FEE);
     } else {
       const extra = (amount - BASE_LIMIT) * RATE;
@@ -659,11 +699,24 @@ export default function HeirServiceSection() {
     return parseInt(raw, 10).toLocaleString(isKo ? "ko-KR" : "en-US");
   }
 
-  // 수수료 구조 표시 텍스트
+  // 수수료 구조 표시 텍스트 (3단계) - 동적 임계값 사용
+  const freeLimitDisplay = isKo
+    ? "₩1억 이하"
+    : `$${krwToUsd(FREE_LIMIT_KRW).toLocaleString("en-US")}`;
+  const baseLimitDisplay = isKo
+    ? "₩2억 이하"
+    : `$${krwToUsd(BASE_LIMIT_KRW).toLocaleString("en-US")}`;
+  const tier0Value = isKo ? "무료" : "Free";
   const tier1Value = isKo ? "₩199,000" : `$${krwToUsd(BASE_FEE_KRW)}`;
   const tier2Value = isKo
     ? "₩199,000 + 초과분 × 0.1%"
     : `$${krwToUsd(BASE_FEE_KRW)} + excess × 0.1%`;
+  // 결과 카드 보조 문구
+  const freeDesc = t.tier0Label + " " + tier0Value;
+  const fixedDesc = `${freeLimitDisplay} ~ ${baseLimitDisplay}`;
+  const excessDesc = isKo
+    ? `기본 ₩199,000 + 초과분 × 0.1%`
+    : `Base ${tier1Value} + excess × 0.1%`;
 
   const icons = [UserCheck, FileText, Scale, CheckCircle];
 
@@ -767,17 +820,29 @@ export default function HeirServiceSection() {
               </div>
             </div>
 
-            {/* 수수료 구조 안내 */}
-            <div className="bg-[#F5F3EE] rounded-2xl p-4 mb-6 space-y-2">
+            {/* 수수료 구조 안내 (3단계) */}
+            <div className="bg-[#F5F3EE] rounded-2xl p-4 mb-4 space-y-2">
+              {/* 단계 0: 1억 이하 무료 */}
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600 font-medium">{t.tier0Label}</span>
+                <span className="font-bold text-green-600">{tier0Value}</span>
+              </div>
+              <div className="h-px bg-gray-200" />
+              {/* 단계 1: 2억 이하 */}
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-600 font-medium">{t.tier1Label}</span>
                 <span className="font-bold text-[#1F3864]">{tier1Value}</span>
               </div>
               <div className="h-px bg-gray-200" />
+              {/* 단계 2: 2억 초과분 */}
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-600 font-medium">{t.tier2Label}</span>
                 <span className="font-bold text-[#1F3864]">{tier2Value}</span>
               </div>
+            </div>
+            {/* 자산 평가 기준 안내 */}
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6">
+              <p className="text-amber-700 text-xs leading-relaxed">{t.assetBasisNote}</p>
             </div>
 
             {/* 입력 */}
@@ -809,15 +874,25 @@ export default function HeirServiceSection() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-gradient-to-br from-[#1F3864] to-[#2a4a7f] rounded-2xl p-5 text-white"
+                className={`rounded-2xl p-5 text-white ${
+                  fee === 0
+                    ? "bg-gradient-to-br from-green-600 to-green-700"
+                    : "bg-gradient-to-br from-[#1F3864] to-[#2a4a7f]"
+                }`}
               >
                 <div className="text-sm font-medium text-white/70 mb-1">{t.feeLabel}</div>
-                <div className="text-3xl font-extrabold mb-2">{formatAmount(fee)}</div>
+                <div className="text-3xl font-extrabold mb-2">
+                  {fee === 0 ? (isKo ? "무료" : "Free") : formatAmount(fee)}
+                </div>
+                {fee === 0 && (
+                  <div className="text-xs text-white/80">{freeDesc}</div>
+                )}
+                {fee > 0 && fee <= BASE_FEE && (
+                  <div className="text-xs text-white/60">{fixedDesc}</div>
+                )}
                 {fee > BASE_FEE && (
                   <div className="text-xs text-white/60">
-                    {isKo
-                      ? `기본 ₩199,000 + 초과분 ${formatAmount(fee - BASE_FEE)}`
-                      : `Base ${formatAmount(BASE_FEE)} + excess ${formatAmount(fee - BASE_FEE)}`}
+                    {excessDesc} ({formatAmount(fee - BASE_FEE)})
                   </div>
                 )}
                 <div className="mt-3 pt-3 border-t border-white/20 text-xs text-white/60">
