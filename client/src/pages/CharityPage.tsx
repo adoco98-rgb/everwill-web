@@ -46,25 +46,29 @@ export default function CharityPage() {
   return (
     <div className="min-h-screen bg-[#FAFAFA]" dir={isRTL ? "rtl" : "ltr"}>
 
-      {/* ── Hero 섹션 ── */}
-      <section className="relative overflow-hidden">
+      {/* ── Hero 섹션 (이미지 풀스크린 + Jeff 인용구 오버레이) ── */}
+      <section className="relative overflow-hidden min-h-screen flex flex-col justify-end">
+        {/* 배경 이미지 */}
         <div className="absolute inset-0">
           <img
             src="/manus-storage/charity_hero_a1375e07.png"
             alt="사회기부 히어로"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#1F3864]/70 via-[#1F3864]/50 to-[#1F3864]/80" />
+          {/* 상단 어두운 그라디언트 - 제목 가독성 */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#1F3864]/60 via-transparent to-[#1F3864]/85" />
         </div>
-        <div className="relative z-10 max-w-4xl mx-auto px-6 py-28 text-center text-white">
+
+        {/* 상단 제목 영역 */}
+        <div className="relative z-10 max-w-4xl mx-auto px-6 pt-32 pb-0 text-center text-white w-full">
           <div className="inline-flex items-center gap-2 bg-[#C9A961]/20 border border-[#C9A961]/40 rounded-full px-4 py-1.5 mb-6">
             <Heart className="w-4 h-4 text-[#C9A961]" />
             <span className="text-sm text-[#C9A961] font-medium">{cp.navLabel}</span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6 whitespace-pre-line">
+          <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6 whitespace-pre-line drop-shadow-lg">
             {cp.heroTitle}
           </h1>
-          <p className="text-xl text-white/80 mb-10">{cp.heroSubtitle}</p>
+          <p className="text-xl text-white/90 mb-10 drop-shadow">{cp.heroSubtitle}</p>
           <Link href="/write">
             <button className="inline-flex items-center gap-2 bg-[#C9A961] hover:bg-[#b8943e] text-white font-semibold px-8 py-4 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl">
               {cp.ctaBtn}
@@ -72,19 +76,17 @@ export default function CharityPage() {
             </button>
           </Link>
         </div>
-      </section>
 
-      {/* ── Jeff 감성 인용구 ── */}
-      <section className="py-16 bg-white">
-        <div className="max-w-3xl mx-auto px-6">
-          <div className="relative bg-[#1F3864]/5 border-l-4 border-[#C9A961] rounded-2xl p-8 md:p-10">
-            <Quote className="absolute top-6 left-6 w-8 h-8 text-[#C9A961]/30" />
-            <p className="text-lg md:text-xl text-[#1A1A1A] leading-relaxed font-medium italic pl-4">
+        {/* Jeff 인용구 - 이미지 하단 오버레이 */}
+        <div className="relative z-10 max-w-3xl mx-auto px-6 pb-16 pt-12 w-full">
+          <div className="relative bg-white/10 backdrop-blur-md border border-white/20 border-l-4 border-l-[#C9A961] rounded-2xl p-8 md:p-10 shadow-2xl">
+            <Quote className="absolute top-6 left-6 w-8 h-8 text-[#C9A961]/50" />
+            <p className="text-base md:text-lg text-white leading-relaxed font-medium italic pl-4 drop-shadow">
               {cp.jeffQuote}
             </p>
             <div className="mt-6 flex items-center gap-3 pl-4">
               <div className="w-8 h-0.5 bg-[#C9A961]" />
-              <span className="text-sm text-[#6B7280] font-medium">Jeff Lah · EverWill Founder</span>
+              <span className="text-sm text-white/80 font-medium">Jeff Ra · EverWill Founder</span>
             </div>
           </div>
         </div>

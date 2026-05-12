@@ -18,7 +18,7 @@ const LANGS = {
     badge: "Series A · 2026 · CONFIDENTIAL",
     title: "EverWill 사업소개서",
     subtitle: "세계 최초 디지털 유언 OS — 유언 작성부터 사후 자동 집행까지",
-    company: "주식회사 사람 (EverWill Inc.) · 대표 라수환 (Jeff Lah)",
+    company: "주식회사 사람 (EverWill Inc.) · 대표 라수환 (Jeff Ra)",
     sections: ["사업 개요", "시장 현황", "국가별 시장", "차별성", "수익 모델", "비전·로드맵", "팀·투자 조건", "투자 문의"],
     s1: "01 사업 개요 및 의의",
     s1mission: "미션",
@@ -67,7 +67,7 @@ const LANGS = {
     badge: "Series A · 2026 · CONFIDENTIAL",
     title: "EverWill Business Proposal",
     subtitle: "World's First Digital Will OS — From Will Creation to Automated Post-Death Execution",
-    company: "EverWill Inc. · CEO Jeff Lah (라수환)",
+    company: "EverWill Inc. · CEO Jeff Ra (라수환)",
     sections: ["Overview", "Market", "By Country", "Differentiation", "Revenue", "Vision", "Team", "Contact"],
     s1: "01 Business Overview",
     s1mission: "Mission",
@@ -116,7 +116,7 @@ const LANGS = {
     badge: "Series A · 2026 · CONFIDENTIAL",
     title: "EverWill 事業紹介書",
     subtitle: "世界初のデジタル遺言OS — 遺言作成から死後自動執行まで",
-    company: "株式会社サラム (EverWill Inc.) · 代表 ラ・スファン (Jeff Lah)",
+    company: "株式会社サラム (EverWill Inc.) · 代表 ラ・スファン (Jeff Ra)",
     sections: ["事業概要", "市場概況", "国別市場", "差別化", "収益モデル", "ビジョン", "チーム", "お問い合わせ"],
     s1: "01 事業概要",
     s1mission: "ミッション",
@@ -165,7 +165,7 @@ const LANGS = {
     badge: "Series A · 2026 · CONFIDENTIAL",
     title: "EverWill 商业计划书",
     subtitle: "全球首个数字遗嘱OS — 从遗嘱起草到身后自动执行",
-    company: "株式会社EverWill · CEO 罗秀焕 (Jeff Lah)",
+    company: "株式会社EverWill · CEO 罗秀焕 (Jeff Ra)",
     sections: ["业务概述", "市场概况", "各国市场", "差异化", "收益模式", "愿景", "团队", "联系我们"],
     s1: "01 业务概述",
     s1mission: "使命",
@@ -856,7 +856,7 @@ export default function PitchPage() {
                   J
                 </div>
                 <div>
-                  <div className="font-bold text-gray-900">라수환 (Jeff Lah)</div>
+                  <div className="font-bold text-gray-900">라수환 (Jeff Ra)</div>
                   <div className="text-sm text-[#1F3864] font-medium">대표이사 · 창업자</div>
                   <div className="text-xs text-gray-500 mt-1">주식회사 사람 (EverWill Inc.)</div>
                   <div className="text-xs text-gray-500">제품기획 · 디자인 · 회계/재무 · 글로벌 전략</div>
