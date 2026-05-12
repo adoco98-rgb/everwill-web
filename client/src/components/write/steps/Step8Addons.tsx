@@ -85,7 +85,7 @@ export default function Step8Addons({ will, update }: StepProps) {
               {s.s2AdditionalAuth || (isKo ? "추가 인증 서비스" : "Optional Additional Certification")}
             </p>
             <p className="text-purple-600 text-xs leading-relaxed">
-              {s.s2LegalNote || (isKo ? "기본 가입만으로도 법적 효력이 있는 유언장이 완성됩니다. 영상 유언장은 이를 더욱 확고히 하는 선택적 추가 인증입니다." : "Basic membership already creates a legally valid will. Video Will is an optional add-on for stronger legal certainty.")}
+              {s.s2LegalNote || (isKo ? "기본 가입만으로도 전자 인증 유언장이 완성됩니다. 영상 유언장은 이를 더욱 확고히 하는 선택적 추가 인증입니다." : "Basic membership already creates a legally valid will. Video Will is an optional add-on for stronger legal certainty.")}
             </p>
             <p className="text-purple-500 text-[11px] mt-1 leading-relaxed">
               {s.s2LegalBase || ""}
@@ -141,7 +141,7 @@ export default function Step8Addons({ will, update }: StepProps) {
               {s.s3AdditionalAuth || (isKo ? "추가 인증 서비스" : "Optional Additional Certification")}
             </p>
             <p className="text-amber-600 text-xs leading-relaxed">
-              {s.s3LegalNote || (isKo ? "기본 가입만으로도 법적 효력이 있는 유언장이 완성됩니다. 자필 유언 스캔은 이를 더욱 확고히 하는 선택적 추가 인증입니다." : "Basic membership already creates a legally valid will. Handwritten Will Scan is an optional add-on for stronger legal certainty.")}
+              {s.s3LegalNote || (isKo ? "기본 가입만으로도 전자 인증 유언장이 완성됩니다. 자필 유언 스캔은 이를 더욱 확고히 하는 선택적 추가 인증입니다." : "Basic membership already creates a legally valid will. Handwritten Will Scan is an optional add-on for stronger legal certainty.")}
             </p>
             <p className="text-amber-500 text-[11px] mt-1 leading-relaxed">
               {s.s3LegalBase || ""}

@@ -225,7 +225,7 @@ export default function AIWizard({ onBack }: Props) {
                 {/* 혜택 아이콘 */}
                 <div className="flex justify-around mb-5">
                   {[
-                    { icon: Shield, label: "법적 효력", sub: "민법 준수" },
+                    { icon: Shield, label: "전자 인증", sub: "민법 준수" },
                     { icon: Sparkles, label: "AI 검증", sub: "오류 0건" },
                     { icon: Clock, label: "평생 보관", sub: "안전 저장" },
                   ].map(({ icon: Icon, label, sub }) => (

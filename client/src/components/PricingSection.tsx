@@ -38,7 +38,7 @@ export default function PricingSection() {
   const certPriceStr = planPrices.cert.total;
   const paywallNote = isKo
     ? `🔐 전자 인증(${certPriceStr}) 후 법적 효력 · 72시간 임시 저장`
-    : `🔐 Legal effect after certification (${certPriceStr}) · 72hr temp save`;
+    : `🔐 Certification required for validity (${certPriceStr}) · 72hr temp save`;
 
   // 인증 플랜 할인 배지 텍스트
   const certBadge = isKo ? "59% 할인" : "59% OFF";
@@ -59,10 +59,10 @@ export default function PricingSection() {
     },
     cert: {
       name: t.pricing.certTitle || (isKo ? "유언장 인증" : "Will Certification"),
-      description: t.pricing.certDesc || (isKo ? "법적 효력 있는 유언장 + 사후 자동 집행" : "Legally valid will + auto execution"),
+      description: t.pricing.certDesc || (isKo ? "전자 인증 유언장 + 사후 자동 집행" : "Certified will + auto execution"),
       features: [
         isKo ? "무료 시작" : "Free Start",
-        isKo ? "eKYC 법적 효력 보장" : "eKYC Legal Validity",
+        isKo ? "eKYC 전자 인증 완료" : "eKYC Certified",
         isKo ? "은행급 보안" : "Bank-Level Security",
         isKo ? "사후 자동 집행" : "Auto Post-Death Execution",
       ],
@@ -72,7 +72,7 @@ export default function PricingSection() {
       name: t.pricing.plan3y || (isKo ? "3년 플랜" : "3-Year Plan"),
       description: t.pricing.plan3yStorage || (isKo ? "3년 보관" : "3-year storage"),
       features: [
-        isKo ? "eKYC 법적 효력 보장" : "eKYC Legal Validity",
+        isKo ? "eKYC 전자 인증 완료" : "eKYC Certified",
         isKo ? "은행급 보안" : "Bank-Level Security",
         isKo ? "3년 보관" : "3-Year Storage",
         isKo ? "유족 자동 알림" : "Auto Family Notification",
@@ -83,7 +83,7 @@ export default function PricingSection() {
       name: t.pricing.plan5y || (isKo ? "5년 플랜" : "5-Year Plan"),
       description: t.pricing.plan5yStorage || (isKo ? "5년 보관" : "5-year storage"),
       features: [
-        isKo ? "eKYC 법적 효력 보장" : "eKYC Legal Validity",
+        isKo ? "eKYC 전자 인증 완료" : "eKYC Certified",
         isKo ? "은행급 보안" : "Bank-Level Security",
         isKo ? "5년 보관" : "5-Year Storage",
         isKo ? "유족 자동 알림" : "Auto Family Notification",
@@ -94,7 +94,7 @@ export default function PricingSection() {
       name: t.pricing.planPerm || (isKo ? "영구 플랜" : "Lifetime Plan"),
       description: t.pricing.planPermStorage || (isKo ? "영구 보관" : "Lifetime storage"),
       features: [
-        isKo ? "eKYC 법적 효력 보장" : "eKYC Legal Validity",
+        isKo ? "eKYC 전자 인증 완료" : "eKYC Certified",
         isKo ? "은행급 보안" : "Bank-Level Security",
         isKo ? "영구 보관" : "Lifetime Storage",
         isKo ? "유족 자동 알림" : "Auto Family Notification",

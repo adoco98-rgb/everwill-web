@@ -116,7 +116,7 @@ const LANG_TEXT: Record<string, {
       { feature: "서비스 비용", basic: "₩199,000 (기본)", lawyer: "₩990,000 착수금 + 성공 보수 1%" },
       { feature: "상속 절차 안내", basic: true, lawyer: true },
       { feature: "상속세 자동 계산", basic: true, lawyer: true },
-      { feature: "법적 서류 자동 작성", basic: true, lawyer: true },
+      { feature: "상속 신고 서류 초안 자동 작성", basic: true, lawyer: true },
       { feature: "온라인/PDF 접수 지원", basic: true, lawyer: true },
       { feature: "이의제기·분쟁 대응", basic: false, lawyer: true },
       { feature: "소송 법적 대리", basic: false, lawyer: true },
