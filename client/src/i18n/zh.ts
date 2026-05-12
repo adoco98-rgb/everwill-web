@@ -410,6 +410,19 @@ export const zh = {
       other: "其他",
     },
   },
+  charityStats: {
+    title: "全球遗嘱捐赠统计",
+    subtitle: "EverWill会员在遗嘱中承诺的社会捐赠",
+    totalLabel: "总捐赠预定金额",
+    donorLabel: "捐赠遗嘱登记者",
+    donorUnit: "人",
+    countryTitle: "按国家统计",
+    categoryTitle: "按领域统计",
+    noData: "暂无数据",
+    krwEquiv: "韩元换算基准",
+    pledgeNote: "EverWill将选定经过认证的机构，透明地传递您的心意",
+    ctaBtn: "登记捐赠遗嘱",
+  },
   // Footer
   footer: {
     company: "EverWill株式会社",

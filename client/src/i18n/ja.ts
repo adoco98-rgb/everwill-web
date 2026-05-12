@@ -410,6 +410,19 @@ export const ja = {
       other: "その他",
     },
   },
+  charityStats: {
+    title: "世界の遺贈寄付状況",
+    subtitle: "EverWillメンバーが遺言に込めた社会貢献の誓いです",
+    totalLabel: "寄付予定総額",
+    donorLabel: "寄付遺言登録者",
+    donorUnit: "名",
+    countryTitle: "国別寄付状況",
+    categoryTitle: "分野別寄付状況",
+    noData: "まだデータがありません",
+    krwEquiv: "KRW換算基準",
+    pledgeNote: "EverWillが認定団体を選定し、透明に届けます",
+    ctaBtn: "寄付遺言を登録する",
+  },
   // Footer
   footer: {
     company: "EverWill株式会社",

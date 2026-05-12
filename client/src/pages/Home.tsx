@@ -15,6 +15,7 @@ import LawyersSection from "@/components/LawyersSection";
 import HeirServiceSection from "@/components/HeirServiceSection";
 import ReviewsSection from "@/components/ReviewsSection";
 import ReferralSection from "@/components/ReferralSection";
+import CharityStatsSection from "@/components/CharityStatsSection";
 import PricingSection from "@/components/PricingSection";
 import CertifiedCounterBanner from "@/components/CertifiedCounterBanner";
 import ContactSection from "@/components/ContactSection";
@@ -42,9 +43,11 @@ export default function Home() {
       <LawyersSection />
       {/* 9. 상속인 서비스 */}
       <HeirServiceSection />
-      {/* 10. 추천/공유 */}
+      {/* 10. 추쳌/공유 */}
       <ReferralSection />
-      {/* 11. 고객 후기 */}
+      {/* 11. 사회기부 누적 현황 */}
+      <CharityStatsSection />
+      {/* 12. 고객 후기 */}
       <ReviewsSection />
       {/* 11. 인증회원 카운터 */}
       <section className="py-10 bg-[#FAFAF8]">

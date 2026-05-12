@@ -410,6 +410,19 @@ export const en = {
       other: "Other",
     },
   },
+  charityStats: {
+    title: "Global Charitable Will Statistics",
+    subtitle: "Charitable pledges made by EverWill members in their wills",
+    totalLabel: "Total Pledged Amount",
+    donorLabel: "Donors",
+    donorUnit: "",
+    countryTitle: "By Country",
+    categoryTitle: "By Category",
+    noData: "No data yet",
+    krwEquiv: "KRW equivalent",
+    pledgeNote: "EverWill selects verified organizations and delivers transparently",
+    ctaBtn: "Add Charitable Bequest",
+  },
   // Footer
   footer: {
     company: "EverWill Inc.",

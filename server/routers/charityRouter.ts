@@ -1,12 +1,13 @@
 /**
  * 사회기부 유언 라우터
  * 유언자가 사망 후 특정 분야/단체에 기부 의사를 등록·수정·삭제
+ * 글로벌 누적 통계 (publicProcedure) - 국가별 화폐 기준 집계
  */
 import { z } from "zod";
-import { protectedProcedure, router } from "../_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
-import { charityDonations } from "../../drizzle/schema";
-import { eq, and } from "drizzle-orm";
+import { charityDonations, users } from "../../drizzle/schema";
+import { eq, and, sql } from "drizzle-orm";
 
 // 기부 분야 카테고리 목록
 const CHARITY_CATEGORIES = [
@@ -23,6 +24,46 @@ const CHARITY_CATEGORIES = [
   "religion",
   "other",
 ] as const;
+
+/** 국가 코드 → 통화 매핑 */
+const COUNTRY_CURRENCY: Record<string, { code: string; symbol: string; countryName: string; flag: string }> = {
+  KR: { code: "KRW", symbol: "₩",   countryName: "한국",       flag: "🇰🇷" },
+  JP: { code: "JPY", symbol: "¥",   countryName: "日本",       flag: "🇯🇵" },
+  CN: { code: "CNY", symbol: "¥",   countryName: "中国",       flag: "🇨🇳" },
+  HK: { code: "HKD", symbol: "HK$", countryName: "香港",       flag: "🇭🇰" },
+  TW: { code: "TWD", symbol: "NT$", countryName: "台灣",       flag: "🇹🇼" },
+  US: { code: "USD", symbol: "$",   countryName: "USA",        flag: "🇺🇸" },
+  DE: { code: "EUR", symbol: "€",   countryName: "Deutschland",flag: "🇩🇪" },
+  FR: { code: "EUR", symbol: "€",   countryName: "France",     flag: "🇫🇷" },
+  ES: { code: "EUR", symbol: "€",   countryName: "España",     flag: "🇪🇸" },
+  SA: { code: "SAR", symbol: "﷼",   countryName: "السعودية",   flag: "🇸🇦" },
+  AE: { code: "AED", symbol: "د.إ", countryName: "الإمارات",   flag: "🇦🇪" },
+  RU: { code: "RUB", symbol: "₽",   countryName: "Россия",     flag: "🇷🇺" },
+  IN: { code: "INR", symbol: "₹",   countryName: "India",      flag: "🇮🇳" },
+  BR: { code: "BRL", symbol: "R$",  countryName: "Brasil",     flag: "🇧🇷" },
+  GB: { code: "GBP", symbol: "£",   countryName: "UK",         flag: "🇬🇧" },
+  AU: { code: "AUD", symbol: "A$",  countryName: "Australia",  flag: "🇦🇺" },
+  CA: { code: "CAD", symbol: "C$",  countryName: "Canada",     flag: "🇨🇦" },
+};
+
+/** KRW 기준 환율 (고정 참고값) */
+const KRW_RATES: Record<string, number> = {
+  KRW: 1,
+  JPY: 9.0,
+  CNY: 190,
+  HKD: 170,
+  TWD: 41,
+  USD: 1350,
+  EUR: 1480,
+  SAR: 360,
+  AED: 368,
+  RUB: 15,
+  INR: 16,
+  BRL: 270,
+  GBP: 1720,
+  AUD: 890,
+  CAD: 1000,
+};
 
 export const charityRouter = router({
   /** 내 기부 유언 목록 조회 */
@@ -108,4 +149,95 @@ export const charityRouter = router({
         );
       return { success: true };
     }),
+
+  /**
+   * 글로벌 기부 누적 통계 (공개 API)
+   * - 국가별 기부금 합산 (해당 국가 사용자의 기부금 합계)
+   * - 전체 기부 예정 금액 (KRW 환산 합계)
+   * - 기부 유언 등록자 수
+   * - 분야별 기부금 합계
+   */
+  getGlobalStats: publicProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) {
+      return {
+        totalKrw: 0,
+        donorCount: 0,
+        byCountry: [] as Array<{
+          countryCode: string;
+          countryName: string;
+          flag: string;
+          currencyCode: string;
+          currencySymbol: string;
+          totalAmount: number;
+          donorCount: number;
+        }>,
+        byCategory: [] as Array<{ category: string; totalKrw: number; donorCount: number }>,
+      };
+    }
+
+    // 국가별 기부금 합산 (users.country JOIN)
+    const countryRows = await db
+      .select({
+        country: users.country,
+        totalAmount: sql<number>`COALESCE(SUM(${charityDonations.amount}), 0)`,
+        donorCount: sql<number>`COUNT(DISTINCT ${charityDonations.userId})`,
+      })
+      .from(charityDonations)
+      .leftJoin(users, eq(charityDonations.userId, users.id))
+      .groupBy(users.country);
+
+    // 분야별 기부금 합산
+    const categoryRows = await db
+      .select({
+        category: charityDonations.category,
+        totalAmount: sql<number>`COALESCE(SUM(${charityDonations.amount}), 0)`,
+        donorCount: sql<number>`COUNT(DISTINCT ${charityDonations.userId})`,
+      })
+      .from(charityDonations)
+      .groupBy(charityDonations.category);
+
+    // 국가별 결과 가공
+    const byCountry = countryRows
+      .filter((r) => r.totalAmount > 0)
+      .map((r) => {
+        const code = (r.country ?? "KR").toUpperCase();
+        const meta = COUNTRY_CURRENCY[code] ?? COUNTRY_CURRENCY["KR"];
+        const rate = KRW_RATES[meta.code] ?? 1;
+        // DB에 저장된 금액은 KRW 기준 → 해당 국가 통화로 환산
+        const totalInCurrency = Math.round(Number(r.totalAmount) / rate);
+        return {
+          countryCode: code,
+          countryName: meta.countryName,
+          flag: meta.flag,
+          currencyCode: meta.code,
+          currencySymbol: meta.symbol,
+          totalAmount: totalInCurrency,
+          donorCount: Number(r.donorCount),
+        };
+      })
+      .sort((a, b) => b.donorCount - a.donorCount);
+
+    // 전체 KRW 합산
+    const totalKrw = countryRows.reduce((sum, r) => sum + Number(r.totalAmount), 0);
+
+    // 전체 기부자 수 (중복 제거)
+    const donorCount = await db
+      .select({ cnt: sql<number>`COUNT(DISTINCT ${charityDonations.userId})` })
+      .from(charityDonations);
+
+    // 분야별 결과 가공
+    const byCategory = categoryRows.map((r) => ({
+      category: r.category,
+      totalKrw: Number(r.totalAmount),
+      donorCount: Number(r.donorCount),
+    }));
+
+    return {
+      totalKrw,
+      donorCount: Number(donorCount[0]?.cnt ?? 0),
+      byCountry,
+      byCategory,
+    };
+  }),
 });

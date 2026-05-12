@@ -460,6 +460,19 @@ export const ko = {
           other: "기타",
     },
   },
+  charityStats: {
+    title: "전 세계 기부 유언 현황",
+    subtitle: "EverWill 회원들이 유언에 담은 사회기부 약속입니다",
+    totalLabel: "전체 기부 예정 금액",
+    donorLabel: "기부 유언 등록자",
+    donorUnit: "명",
+    countryTitle: "국가별 기부 현황",
+    categoryTitle: "분야별 기부 현황",
+    noData: "아직 데이터가 없습니다",
+    krwEquiv: "KRW 환산 기준",
+    pledgeNote: "EverWill이 검증된 단체를 선정하여 투명하게 전달합니다",
+    ctaBtn: "기부 유언 등록하기",
+  },
   // Footer
   footer: {
     company: "주식회사 사람",

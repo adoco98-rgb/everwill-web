@@ -410,6 +410,19 @@ export const hi = {
       other: "अन्य",
     },
   },
+  charityStats: {
+    title: "वैश्विक दान सांख्यिकी",
+    subtitle: "EverWill सदस्यों द्वारा वसीयत में किए गए सामाजिक दान के वादे",
+    totalLabel: "कुल दान राशि",
+    donorLabel: "दाताओं",
+    donorUnit: "",
+    countryTitle: "देश के अनुसार",
+    categoryTitle: "श्रेणी के अनुसार",
+    noData: "अभी तक कोई डेटा नहीं",
+    krwEquiv: "KRW समकक्ष",
+    pledgeNote: "EverWill सत्यापित संगठनों का चयन करता है और पारदर्शी रूप से वितरित करता है",
+    ctaBtn: "दान वसीयत दर्ज करें",
+  },
   // Footer
   footer: {
     company: "EverWill Inc.",

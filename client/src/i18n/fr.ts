@@ -410,6 +410,19 @@ export const fr = {
       other: "Autre",
     },
   },
+  charityStats: {
+    title: "Statistiques Mondiales des Dons",
+    subtitle: "Promesses de dons sociaux des membres EverWill dans leurs testaments",
+    totalLabel: "Montant Total Promis",
+    donorLabel: "Donateurs",
+    donorUnit: "",
+    countryTitle: "Par Pays",
+    categoryTitle: "Par Catégorie",
+    noData: "Pas encore de données",
+    krwEquiv: "Équivalent KRW",
+    pledgeNote: "EverWill sélectionne des organisations vérifiées et livre de manière transparente",
+    ctaBtn: "Enregistrer un Legs Charitable",
+  },
   // Footer
   footer: {
     company: "EverWill Inc.",

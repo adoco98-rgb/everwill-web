@@ -410,6 +410,19 @@ export const ru = {
       other: "Другое",
     },
   },
+  charityStats: {
+    title: "Глобальная Статистика Пожертвований",
+    subtitle: "Обещания социальных пожертвований членов EverWill в их завещаниях",
+    totalLabel: "Общая Сумма Пожертвований",
+    donorLabel: "Жертвователей",
+    donorUnit: "",
+    countryTitle: "По Странам",
+    categoryTitle: "По Категориям",
+    noData: "Данных пока нет",
+    krwEquiv: "Эквивалент KRW",
+    pledgeNote: "EverWill выбирает проверенные организации и доставляет прозрачно",
+    ctaBtn: "Зарегистрировать Завещательное Пожертвование",
+  },
   // Footer
   footer: {
     company: "EverWill Inc.",

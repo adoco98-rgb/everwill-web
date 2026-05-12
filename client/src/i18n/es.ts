@@ -410,6 +410,19 @@ export const es = {
       other: "Otros",
     },
   },
+  charityStats: {
+    title: "Estadísticas Globales de Donaciones",
+    subtitle: "Promesas de donación social de miembros de EverWill en sus testamentos",
+    totalLabel: "Monto Total Prometido",
+    donorLabel: "Donantes",
+    donorUnit: "",
+    countryTitle: "Por País",
+    categoryTitle: "Por Categoría",
+    noData: "Sin datos aún",
+    krwEquiv: "Equivalente en KRW",
+    pledgeNote: "EverWill selecciona organizaciones verificadas y entrega de forma transparente",
+    ctaBtn: "Registrar Donación Testamentaria",
+  },
   // Footer
   footer: {
     company: "EverWill Inc.",

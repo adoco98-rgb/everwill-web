@@ -410,6 +410,19 @@ export const de = {
       other: "Sonstiges",
     },
   },
+  charityStats: {
+    title: "Globale Spendenstatistik",
+    subtitle: "Soziale Spendenversprechen von EverWill-Mitgliedern in ihren Testamenten",
+    totalLabel: "Gesamter Spendenbetrag",
+    donorLabel: "Spender",
+    donorUnit: "",
+    countryTitle: "Nach Land",
+    categoryTitle: "Nach Kategorie",
+    noData: "Noch keine Daten",
+    krwEquiv: "KRW-Äquivalent",
+    pledgeNote: "EverWill wählt geprüfte Organisationen aus und liefert transparent",
+    ctaBtn: "Spende im Testament eintragen",
+  },
   // Footer
   footer: {
     company: "EverWill GmbH",

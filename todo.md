@@ -511,3 +511,11 @@
 - [x] 기존 Step7~10을 Step8~11로 번호 이동
 - [x] 페이월 게이트 step 10→11 전환으로 업데이트
 - [x] TypeScript 오류 0건 확인
+
+## 홈 메인 화면 사회기부 누적 현황 섹션
+- [x] charityRouter에 getGlobalStats 프로시저 추가 (국가별 기부금 합산, publicProcedure)
+- [x] CharityStatsSection.tsx 컴포넌트 생성 (국가별 화폐 기준 누적 기부금 표시)
+- [x] Home.tsx에 CharityStatsSection 삽입 (ReferralSection 이후)
+- [x] 11개 언어 i18n charityStats 섹션 추가
+- [x] 카운트업 애니메이션 적용
+- [ ] TypeScript 오류 0건 확인

@@ -410,6 +410,19 @@ export const ar = {
       other: "أخرى",
     },
   },
+  charityStats: {
+    title: "إحصائيات التبرع العالمية",
+    subtitle: "تعهدات التبرع الاجتماعي لأعضاء EverWill في وصاياهم",
+    totalLabel: "إجمالي مبلغ التبرع المخطط",
+    donorLabel: "المتبرعون",
+    donorUnit: "",
+    countryTitle: "حسب الدولة",
+    categoryTitle: "حسب الفئة",
+    noData: "لا توجد بيانات بعد",
+    krwEquiv: "ما يعادل KRW",
+    pledgeNote: "تختار EverWill منظمات معتمدة وتسلم بشفافية",
+    ctaBtn: "تسجيل وصية التبرع",
+  },
   // Footer
   footer: {
     company: "شركة EverWill",
