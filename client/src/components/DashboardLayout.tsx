@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { MemberGradeBadge } from "@/components/MemberGradeBadge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -214,9 +215,12 @@ function DashboardLayoutContent({
                     <p className="text-sm font-medium truncate leading-none">
                       {user?.name || "-"}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate mt-1.5">
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">
                       {user?.email || "-"}
                     </p>
+                    <div className="mt-1">
+                      <MemberGradeBadge size="sm" />
+                    </div>
                   </div>
                 </button>
               </DropdownMenuTrigger>

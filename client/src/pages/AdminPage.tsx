@@ -14,7 +14,7 @@ import {
   Users, CreditCard, FileText, MessageSquare,
   BarChart3, Search, ChevronLeft, ChevronRight,
   TrendingUp, Shield, Clock, CheckCircle,
-  Newspaper, Plus, Trash2, Eye, EyeOff, ExternalLink, Pencil
+  Newspaper, Plus, Trash2, Eye, EyeOff, ExternalLink, Pencil, KeyRound
 } from "lucide-react";
 
 type Tab = "stats" | "users" | "payments" | "wills" | "inquiries" | "news";
@@ -59,13 +59,8 @@ function StatsTab() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Users} label="총 회원수" value={`${data.totalUsers.toLocaleString()}명`} sub={`오늘 +${data.todayUsers}명`} color="bg-[#1F3864]" />
         <StatCard icon={TrendingUp} label="이번달 매출" value={formatKRW(data.monthRevenue)} sub={`총 ${formatKRW(data.totalRevenue)}`} color="bg-[#C9A961]" />
-        <StatCard icon={FileText} label="유언장 수" value={`${data.totalWills.toLocaleString()}건`} sub={`인증완료 ${data.certifiedWills}건`} color="bg-green-500" />
-        <StatCard icon={MessageSquare} label="미답변 문의" value={`${data.pendingInquiries}건`} sub={`전체 문의 ${data.totalInquiries}건`} color="bg-orange-500" />
-      </div>
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        <StatCard icon={Users} label="이번달 신규" value={`${data.thisMonthUsers}명`} color="bg-blue-500" />
-        <StatCard icon={CreditCard} label="총 결제건수" value={`${data.totalPayments}건`} color="bg-purple-500" />
-        <StatCard icon={Shield} label="인증 유언장" value={`${data.certifiedWills}건`} color="bg-teal-500" />
+        <StatCard icon={FileText} label="유언장 수" value={`${data.totalWills.toLocaleString()}건`} color="bg-green-500" />
+        <StatCard icon={MessageSquare} label="미답변 문의" value={`${data.pendingInquiries}건`} color="bg-orange-500" />
       </div>
     </div>
   );
@@ -77,6 +72,9 @@ function UsersTab() {
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | "user" | "admin">("all");
+  const [resetTarget, setResetTarget] = useState<{ id: number; name: string } | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const utils = trpc.useUtils();
 
   const { data, isLoading } = trpc.admin.getUsers.useQuery({ page, limit: 20, search, role: roleFilter });
@@ -88,10 +86,56 @@ function UsersTab() {
     onError: () => toast.error("변경에 실패했습니다."),
   });
 
+  const updateGrade = trpc.admin.updateUserGrade.useMutation({
+    onSuccess: () => { toast.success("등급이 변경되었습니다."); utils.admin.getUsers.invalidate(); },
+    onError: () => toast.error("등급 변경에 실패했습니다."),
+  });
+
+  const resetPassword = trpc.admin.resetUserPassword.useMutation({
+    onSuccess: () => {
+      toast.success("비밀번호가 초기화되었습니다.");
+      setResetTarget(null);
+      setNewPassword("");
+    },
+    onError: () => toast.error("비밀번호 초기화에 실패했습니다."),
+  });
+
   const totalPages = data ? Math.ceil(data.total / 20) : 1;
 
   return (
     <div className="space-y-4">
+      {/* 비밀번호 초기화 모달 */}
+      {resetTarget && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+            <h3 className="font-bold text-[#1F3864] text-lg mb-1">비밀번호 초기화</h3>
+            <p className="text-sm text-gray-400 mb-4">{resetTarget.name} 회원의 새 비밀번호를 입력하세요.</p>
+            <div className="relative mb-4">
+              <input
+                type={showPw ? "text" : "password"}
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1F3864] pr-10"
+                placeholder="새 비밀번호 (8자 이상)"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+              />
+              <button className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" onClick={() => setShowPw(v => !v)}>
+                {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <button
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-500 hover:bg-gray-50"
+                onClick={() => { setResetTarget(null); setNewPassword(""); }}
+              >취소</button>
+              <button
+                className="flex-1 py-2.5 rounded-xl bg-[#1F3864] text-white text-sm font-semibold hover:bg-[#162d52] disabled:opacity-50"
+                disabled={newPassword.length < 8 || resetPassword.isPending}
+                onClick={() => resetPassword.mutate({ userId: resetTarget.id, newPassword })}
+              >{resetPassword.isPending ? "처리 중..." : "초기화"}</button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <h2 className="text-lg font-bold text-[#1F3864]">회원 관리 <span className="text-sm font-normal text-gray-400">({data?.total ?? 0}명)</span></h2>
         <div className="flex gap-2 w-full sm:w-auto">
@@ -127,7 +171,9 @@ function UsersTab() {
                 <th className="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">전화번호</th>
                 <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">국가</th>
                 <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">가입일</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium">등급</th>
                 <th className="text-left px-4 py-3 text-gray-500 font-medium">역할</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium">관리</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -144,6 +190,19 @@ function UsersTab() {
                   <td className="px-4 py-3 text-gray-500 hidden lg:table-cell">{formatDate(u.createdAt)}</td>
                   <td className="px-4 py-3">
                     <select
+                      className="text-xs px-2 py-1 rounded-lg border font-medium bg-white"
+                      value={u.memberGrade ?? "general"}
+                      onChange={e => updateGrade.mutate({ userId: u.id, grade: e.target.value as any })}
+                    >
+                      <option value="general">일반</option>
+                      <option value="silver">Silver</option>
+                      <option value="gold">Gold</option>
+                      <option value="platinum">Platinum</option>
+                      <option value="vip">VIP</option>
+                    </select>
+                  </td>
+                  <td className="px-4 py-3">
+                    <select
                       className={`text-xs px-2 py-1 rounded-lg border font-medium ${
                         u.role === "admin" ? "bg-purple-50 border-purple-200 text-purple-700" : "bg-gray-50 border-gray-200 text-gray-600"
                       }`}
@@ -153,6 +212,16 @@ function UsersTab() {
                       <option value="user">일반</option>
                       <option value="admin">관리자</option>
                     </select>
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      className="flex items-center gap-1 text-xs text-gray-500 border border-gray-200 hover:bg-gray-50 px-2 py-1 rounded-lg"
+                      onClick={() => setResetTarget({ id: u.id, name: u.name || "회원" })}
+                      title="비밀번호 초기화"
+                    >
+                      <KeyRound className="w-3 h-3" />
+                      비번
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -184,7 +253,7 @@ function PaymentsTab() {
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
 
-  const { data, isLoading } = trpc.admin.getPayments.useQuery({ page, limit: 20, status: statusFilter, search });
+  const { data, isLoading } = trpc.admin.getPayments.useQuery({ page, limit: 20, search });
   const totalPages = data ? Math.ceil(data.total / 20) : 1;
 
   const statusLabel: Record<string, { label: string; color: string }> = {
@@ -223,25 +292,7 @@ function PaymentsTab() {
         </div>
       </div>
 
-      {/* 월별 매출 차트 */}
-      {data?.monthlyRevenue && data.monthlyRevenue.length > 0 && (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-600 mb-4">월별 매출 (최근 6개월)</h3>
-          <div className="flex items-end gap-2 h-24">
-            {data.monthlyRevenue.map((m) => {
-              const maxVal = Math.max(...data.monthlyRevenue.map(x => x.total));
-              const height = maxVal > 0 ? Math.max(8, (m.total / maxVal) * 80) : 8;
-              return (
-                <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
-                  <span className="text-xs text-gray-500">{formatKRW(m.total)}</span>
-                  <div className="w-full bg-[#1F3864] rounded-t-md" style={{ height: `${height}px` }} />
-                  <span className="text-xs text-gray-400">{m.month?.slice(5)}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
@@ -263,8 +314,8 @@ function PaymentsTab() {
                 <tr><td colSpan={6} className="text-center py-10 text-gray-400">결제 내역이 없습니다.</td></tr>
               ) : data?.list.map(p => (
                 <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 text-gray-600 truncate max-w-[160px]">{p.customerEmail || "-"}</td>
-                  <td className="px-4 py-3 font-semibold text-[#1F3864]">{p.amountTotal ? formatKRW(p.amountTotal) : "-"}</td>
+                  <td className="px-4 py-3 text-gray-600 truncate max-w-[160px]">{p.userEmail || "-"}</td>
+                  <td className="px-4 py-3 font-semibold text-[#1F3864]">{p.amount ? formatKRW(p.amount) : "-"}</td>
                   <td className="px-4 py-3 text-gray-500 uppercase hidden md:table-cell">{p.currency || "krw"}</td>
                   <td className="px-4 py-3">
                     <span className={`text-xs px-2 py-1 rounded-lg font-medium ${statusLabel[p.status]?.color ?? "bg-gray-50 text-gray-600"}`}>
@@ -299,7 +350,7 @@ function PaymentsTab() {
 function WillsTab() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<"all" | "draft" | "certified" | "expired">("all");
-  const { data, isLoading } = trpc.admin.getWills.useQuery({ page, limit: 20, status: statusFilter });
+  const { data, isLoading } = trpc.admin.getWills.useQuery({ page, limit: 20 });
   const totalPages = data ? Math.ceil(data.total / 20) : 1;
 
   const statusLabel: Record<string, { label: string; color: string }> = {
@@ -343,12 +394,12 @@ function WillsTab() {
                 <tr><td colSpan={5} className="text-center py-10 text-gray-400">유언장이 없습니다.</td></tr>
               ) : data?.list.map(w => (
                 <tr key={w.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-[#1F3864] truncate max-w-[160px]">{w.title || `유언장 #${w.id}`}</td>
+                  <td className="px-4 py-3 font-medium text-[#1F3864] truncate max-w-[160px]">{`유언장 #${w.id}`}</td>
                   <td className="px-4 py-3 text-gray-600">
                     <div>{w.userName}</div>
                     <div className="text-xs text-gray-400">{w.userEmail}</div>
                   </td>
-                  <td className="px-4 py-3 text-gray-500 hidden md:table-cell">{w.mode === "ai" ? "AI 작성" : "직접 작성"}</td>
+                  <td className="px-4 py-3 text-gray-500 hidden md:table-cell">{w.isCertified ? "인증완료" : "미인증"}</td>
                   <td className="px-4 py-3">
                     <span className={`text-xs px-2 py-1 rounded-lg font-medium ${statusLabel[w.status]?.color ?? "bg-gray-50 text-gray-600"}`}>
                       {statusLabel[w.status]?.label ?? w.status}
@@ -380,12 +431,11 @@ function WillsTab() {
 /** 문의 관리 탭 */
 function InquiriesTab() {
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "answered" | "closed">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "answered">("all");
   const [replyingId, setReplyingId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
   const utils = trpc.useUtils();
-
-  const { data, isLoading } = trpc.admin.getInquiries.useQuery({ page, limit: 20, status: statusFilter });
+  const { data, isLoading } = trpc.admin.getInquiries.useQuery({ page, limit: 20, status: statusFilter });;
   const replyMutation = trpc.admin.replyInquiry.useMutation({
     onSuccess: () => {
       toast.success("답변이 저장되었습니다.");
@@ -432,11 +482,11 @@ function InquiriesTab() {
                   <span className={`text-xs px-2 py-0.5 rounded-lg font-medium ${statusLabel[inq.status]?.color}`}>
                     {statusLabel[inq.status]?.label}
                   </span>
-                  <span className="text-xs text-gray-400">{inq.category}</span>
+                  <span className="text-xs text-gray-400">{inq.subject}</span>
                   <span className="text-xs text-gray-400">{formatDate(inq.createdAt)}</span>
                 </div>
                 <h3 className="font-semibold text-[#1F3864]">{inq.subject}</h3>
-                <p className="text-xs text-gray-500">{inq.name} · {inq.email}</p>
+                <p className="text-xs text-gray-500">{inq.userName} · {inq.userEmail}</p>
               </div>
               {inq.status === "pending" && (
                 <button

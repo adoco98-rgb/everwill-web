@@ -5,6 +5,7 @@
  * - 포인트 잔액 및 적립 내역
  */
 import { useAuth } from "@/_core/hooks/useAuth";
+import { MemberGradeCard } from "@/components/MemberGradeBadge";
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -369,7 +370,7 @@ export default function ProfilePage() {
         className="bg-white rounded-2xl border border-gray-100 p-6"
       >
         {/* 헤더 */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-5">
             <div className="w-16 h-16 bg-[#1F3864] rounded-2xl flex items-center justify-center shrink-0">
               <span className="text-white font-bold text-xl">{initials}</span>
@@ -383,6 +384,7 @@ export default function ProfilePage() {
             </div>
           </div>
           {/* 수정 / 저장 버튼 */}
+          <div className="shrink-0">
           {!isEditing ? (
             <button
               onClick={() => setIsEditing(true)}
@@ -408,9 +410,11 @@ export default function ProfilePage() {
                 {isSaving ? "저장 중..." : "저장"}
               </button>
             </div>
-          )}
+           )}
+          </div>
         </div>
-
+        {/* 회원 등급 카드 */}
+        <MemberGradeCard className="mb-4" />
         <div className="space-y-4 border-t border-gray-50 pt-5">
           {/* 이름 */}
           <div className="flex items-center gap-3">

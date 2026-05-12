@@ -66,6 +66,17 @@ export const users = mysqlTable("users", {
   qrPublic: int("qrPublic").default(1),
   /** bcrypt 해시된 비밀번호 (이메일+비밀번호 로그인 방식 사용 시) */
   passwordHash: varchar("passwordHash", { length: 256 }),
+  /**
+   * 회원 등급
+   * - general: 일반회원 (자산 등록 완료)
+   * - silver: 실버 (유료 서비스 구매)
+   * - gold: 골드 (Badge Premium ₩299,000 결제)
+   * - platinum: 플래티넘 (Gold + 자산 3억 이상)
+   * - vip: VIP (Gold + 자산 5억 이상)
+   */
+  memberGrade: mysqlEnum("memberGrade", ["general", "silver", "gold", "platinum", "vip"]).default("general").notNull(),
+  /** 등급 마지막 업데이트 시각 */
+  gradeUpdatedAt: timestamp("gradeUpdatedAt"),
 });
 
 export type User = typeof users.$inferSelect;

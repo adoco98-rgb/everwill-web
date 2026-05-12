@@ -19,6 +19,7 @@ import { heirsRouter } from "./routers/heirsRouter";
 import { newsRouter } from "./routers/newsRouter";
 import { idScanRouter } from "./routers/idScanRouter";
 import { charityRouter } from "./routers/charityRouter";
+import { memberGradeRouter } from "./routers/memberGradeRouter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -67,6 +68,8 @@ export const appRouter = router({
   idScan: idScanRouter,
   // 사회기부 유언 라우터
   charity: charityRouter,
+  // 회원 등급 관리 라우터
+  memberGrade: memberGradeRouter,
 });
 
 export type AppRouter = typeof appRouter;
