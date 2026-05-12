@@ -3,21 +3,26 @@ import { motion } from "framer-motion";
 import { MessageSquare, Send, CheckCircle, AlertCircle, ChevronDown } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-// 문의 유형 옵션
-const CATEGORIES = [
-  { value: "general", label: "일반 문의" },
-  { value: "service", label: "서비스 이용" },
-  { value: "payment", label: "결제/환불" },
-  { value: "badge", label: "Badge 주문" },
-  { value: "lawyer", label: "변호사 연결" },
-  { value: "other", label: "기타" },
-] as const;
-
-type Category = typeof CATEGORIES[number]["value"];
+// 문의 유형 value 타입
+const CATEGORY_VALUES = ["general", "service", "payment", "badge", "lawyer", "other"] as const;
+type Category = typeof CATEGORY_VALUES[number];
 
 export default function ContactSection() {
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const c = t.contact;
+
+  // 카테고리 레이블 (i18n 기반)
+  const CATEGORIES: { value: Category; label: string }[] = [
+    { value: "general", label: c.cat_general },
+    { value: "service", label: c.cat_service },
+    { value: "payment", label: c.cat_billing },
+    { value: "badge",   label: "Badge" },
+    { value: "lawyer",  label: c.cat_legal },
+    { value: "other",   label: c.cat_other },
+  ];
   const [form, setForm] = useState({
     name: user?.name ?? "",
     email: user?.email ?? "",
@@ -26,27 +31,30 @@ export default function ContactSection() {
     content: "",
   });
   const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const createMutation = trpc.inquiry.create.useMutation({
     onSuccess: () => {
       setSubmitted(true);
-      setError("");
+      setError(null);
     },
     onError: (err) => {
-      setError(err.message || "문의 접수 중 오류가 발생했습니다.");
+      setError(err.message || c.errorMsg);
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.email || !form.subject || !form.content) {
-      setError("모든 항목을 입력해 주세요.");
+    if (!form.name.trim() || !form.email.trim() || !form.subject.trim() || form.content.trim().length < 10) {
+      setError(c.errorMsg);
       return;
     }
     createMutation.mutate({
-      ...form,
-      userId: user?.id,
+      name: form.name,
+      email: form.email,
+      category: form.category,
+      subject: form.subject,
+      content: form.content,
     });
   };
 
@@ -63,14 +71,14 @@ export default function ContactSection() {
         >
           <div className="inline-flex items-center gap-2 bg-[#1F3864]/10 text-[#1F3864] px-4 py-2 rounded-full text-sm font-medium mb-4">
             <MessageSquare className="w-4 h-4" />
-            1:1 문의
+            {c.badge}
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-[#1F3864] mb-4">
-            무엇이든 물어보세요
+            {c.title}
           </h2>
           <p className="text-gray-500 text-lg">
-            궁금한 점이 있으시면 언제든 문의해 주세요.<br />
-            영업일 기준 1-2일 내 이메일로 답변드립니다.
+            {c.subtitle}<br />
+            {c.subtitle2}
           </p>
         </motion.div>
 
@@ -88,9 +96,9 @@ export default function ContactSection() {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">문의가 접수됐습니다</h3>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">{c.successTitle}</h3>
               <p className="text-gray-500 mb-6">
-                영업일 기준 1-2일 내에 <strong>{form.email}</strong>로 답변드리겠습니다.
+                {c.successDesc}
               </p>
               <button
                 onClick={() => {
@@ -99,7 +107,7 @@ export default function ContactSection() {
                 }}
                 className="px-6 py-2 bg-[#1F3864] text-white rounded-lg hover:bg-[#1F3864]/90 transition-colors"
               >
-                새 문의 작성
+                {c.newInquiry}
               </button>
             </div>
           ) : (
@@ -108,19 +116,19 @@ export default function ContactSection() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    이름 <span className="text-red-500">*</span>
+                    {c.labelName} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    placeholder="홍길동"
+                    placeholder={c.placeholderName}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3864]/30 focus:border-[#1F3864] transition-colors"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    이메일 <span className="text-red-500">*</span>
+                    {c.labelEmail} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
@@ -135,7 +143,7 @@ export default function ContactSection() {
               {/* 문의 유형 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  문의 유형 <span className="text-red-500">*</span>
+                  {c.labelCategory} <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <select
@@ -154,13 +162,13 @@ export default function ContactSection() {
               {/* 제목 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  제목 <span className="text-red-500">*</span>
+                  {c.labelSubject} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={form.subject}
                   onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                  placeholder="문의 제목을 입력해 주세요"
+                  placeholder={c.placeholderSubject}
                   maxLength={200}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3864]/30 focus:border-[#1F3864] transition-colors"
                 />
@@ -169,12 +177,12 @@ export default function ContactSection() {
               {/* 내용 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  문의 내용 <span className="text-red-500">*</span>
+                  {c.labelContent} <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   value={form.content}
                   onChange={(e) => setForm({ ...form, content: e.target.value })}
-                  placeholder="문의 내용을 자세히 입력해 주세요 (최소 10자)"
+                  placeholder={c.placeholderContent}
                   rows={6}
                   maxLength={5000}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3864]/30 focus:border-[#1F3864] transition-colors resize-none"
@@ -199,18 +207,18 @@ export default function ContactSection() {
                 {createMutation.isPending ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    접수 중...
+                    {c.submitting}
                   </>
                 ) : (
                   <>
                     <Send className="w-5 h-5" />
-                    문의 접수하기
+                    {c.submitBtn}
                   </>
                 )}
               </button>
 
               <p className="text-center text-xs text-gray-400">
-                * 접수된 문의는 <strong>adoco98@gmail.com</strong>으로 답변드립니다.
+                * {c.replyNote}
               </p>
             </form>
           )}
