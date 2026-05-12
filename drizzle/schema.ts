@@ -568,3 +568,45 @@ export const newsPosts = mysqlTable("newsPosts", {
 });
 export type NewsPost = typeof newsPosts.$inferSelect;
 export type InsertNewsPost = typeof newsPosts.$inferInsert;
+
+/**
+ * 사회기부 유언 테이블
+ * 유언자가 사망 후 특정 분야/단체에 기부 의사를 남기는 테이블
+ * 기부 단체는 EverWill이 분야별로 선정하여 전달
+ */
+export const charityDonations = mysqlTable("charityDonations", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 유언자 사용자 ID */
+  userId: int("userId").notNull(),
+  /**
+   * 기부 분야 카테고리
+   * education=교육, children=아동·청소년, elderly=노인복지,
+   * disabled=장애인, medical=의료·보건, environment=환경·기후,
+   * culture=문화·예술, science=과학·기술, animal=동물복지,
+   * disaster=재난·긴급구호, religion=종교·사회봉사, other=기타
+   */
+  category: mysqlEnum("category", [
+    "education",    // 교육
+    "children",     // 아동·청소년
+    "elderly",      // 노인복지
+    "disabled",     // 장애인
+    "medical",      // 의료·보건
+    "environment",  // 환경·기후
+    "culture",      // 문화·예술
+    "science",      // 과학·기술
+    "animal",       // 동물복지
+    "disaster",     // 재난·긴급구호
+    "religion",     // 종교·사회봉사
+    "other",        // 기타 (단체명 직접 입력)
+  ]).notNull(),
+  /** 기타 선택 시 단체명 직접 입력 */
+  customOrgName: varchar("customOrgName", { length: 128 }),
+  /** 기부 금액 (원) */
+  amount: bigint("amount", { mode: "number" }).notNull().default(0),
+  /** 메모 (선택) */
+  memo: text("memo"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type CharityDonation = typeof charityDonations.$inferSelect;
+export type InsertCharityDonation = typeof charityDonations.$inferInsert;

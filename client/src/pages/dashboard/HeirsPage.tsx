@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import {
   Users, Plus, Trash2, Edit2, Save, X, Phone, MapPin,
-  User, Crown, MessageSquare, ChevronDown, ChevronUp
+  User, Crown, MessageSquare, ChevronDown, ChevronUp,
+  Heart, Building2
 } from "lucide-react";
 
 /**
@@ -324,6 +325,8 @@ export default function HeirsPage() {
           </CardContent>
         </Card>
       )}
+      {/* ── 사회기부 유언 섹션 ── */}
+      <CharitySection />
     </div>
   );
 }
@@ -521,6 +524,234 @@ function HeirForm({
           취소
         </Button>
       </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// 사회기부 유언 섹션 컴포넌트
+// ─────────────────────────────────────────────
+
+/** 기부 분야 정의 */
+const CHARITY_CATEGORIES = [
+  { key: "education",   label: "교육",          emoji: "📚", desc: "장학금·학교 설립·교육 기자재 지원" },
+  { key: "children",    label: "아동·청소년",    emoji: "👶", desc: "결식아동·보육원·청소년 자립 지원" },
+  { key: "elderly",     label: "노인복지",       emoji: "👴", desc: "독거노인·요양·치매 케어" },
+  { key: "disabled",    label: "장애인",         emoji: "♿", desc: "재활·자립 생활·보조기기 지원" },
+  { key: "medical",     label: "의료·보건",      emoji: "🏥", desc: "희귀질환·저소득층 의료비·백신 지원" },
+  { key: "environment", label: "환경·기후",      emoji: "🌿", desc: "탄소중립·해양 정화·산림 보호" },
+  { key: "culture",     label: "문화·예술",      emoji: "🎨", desc: "문화 소외 계층·예술 지원·문화재 보존" },
+  { key: "science",     label: "과학·기술",      emoji: "🔬", desc: "이공계 인재 육성·R&D 지원" },
+  { key: "animal",      label: "동물복지",       emoji: "🐾", desc: "유기동물 보호·동물 학대 방지" },
+  { key: "disaster",    label: "재난·긴급구호",  emoji: "🆘", desc: "자연재해·전쟁 피해 긴급 지원" },
+  { key: "religion",    label: "종교·사회봉사",  emoji: "🙏", desc: "종교 기관 운영·봉사 활동" },
+  { key: "other",       label: "기타 (직접 입력)", emoji: "✏️", desc: "단체명을 직접 입력해주세요" },
+] as const;
+
+type CharityCategory = typeof CHARITY_CATEGORIES[number]["key"];
+
+/** 금액 포맷 (입력 중 콤마 표시) */
+function formatAmount(val: string): string {
+  const num = val.replace(/[^0-9]/g, "");
+  return num ? Number(num).toLocaleString() : "";
+}
+
+function CharitySection() {
+  // DB에서 기존 기부 데이터 조회
+  const { data: savedList = [], isLoading: charityLoading, refetch } = trpc.charity.list.useQuery();
+  const upsertMutation = trpc.charity.upsert.useMutation({
+    onSuccess: () => { toast.success("기부 유언이 저장되었습니다."); refetch(); },
+    onError: (err) => toast.error(err.message),
+  });
+  const deleteMutation = trpc.charity.delete.useMutation({
+    onSuccess: () => { toast.success("기부 유언이 삭제되었습니다."); refetch(); },
+    onError: (err) => toast.error(err.message),
+  });
+
+  // 로컬 상태: 체크된 분야 + 금액 + 기타 단체명
+  const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const [amounts, setAmounts] = useState<Record<string, string>>({});
+  const [customOrg, setCustomOrg] = useState<Record<string, string>>({});
+
+  // savedList 비동기 수신 후 로컬 상태 동기화
+  useEffect(() => {
+    if (savedList.length === 0) return;
+    const newChecked: Record<string, boolean> = {};
+    const newAmounts: Record<string, string> = {};
+    const newCustomOrg: Record<string, string> = {};
+    savedList.forEach((d) => {
+      newChecked[d.category] = true;
+      newAmounts[d.category] = d.amount > 0 ? d.amount.toLocaleString() : "";
+      if (d.customOrgName) newCustomOrg[d.category] = d.customOrgName;
+    });
+    setChecked(newChecked);
+    setAmounts(newAmounts);
+    setCustomOrg(newCustomOrg);
+  }, [savedList]);
+
+  // 체크 토글
+  const handleToggle = (key: string) => {
+    const next = !checked[key];
+    setChecked((prev) => ({ ...prev, [key]: next }));
+    if (!next) {
+      // 체크 해제 시 DB에서도 삭제
+      const existing = savedList.find((d) => d.category === key);
+      if (existing) {
+        deleteMutation.mutate({ category: key as CharityCategory });
+      }
+    }
+  };
+
+  // 저장
+  const handleSave = (key: string) => {
+    const rawAmount = (amounts[key] || "0").replace(/[^0-9]/g, "");
+    const amount = parseInt(rawAmount, 10) || 0;
+    if (amount <= 0) return toast.error("기부 금액을 입력해주세요");
+    if (key === "other" && !customOrg["other"]?.trim()) return toast.error("단체명을 입력해주세요");
+    upsertMutation.mutate({
+      category: key as CharityCategory,
+      customOrgName: key === "other" ? customOrg["other"] : undefined,
+      amount,
+    });
+  };
+
+  // 총 기부 금액 합산
+  const totalDonation = savedList.reduce((sum, d) => sum + (d.amount ?? 0), 0);
+
+  if (charityLoading) {
+    return (
+      <div className="mt-10 flex items-center justify-center py-12 text-gray-400 text-sm gap-2">
+        <div className="w-4 h-4 border-2 border-gray-300 border-t-rose-400 rounded-full animate-spin" />
+        기부 유언 정보를 불러오는 중...
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-10">
+      {/* 섹션 헤더 */}
+      <div className="flex items-center gap-3 mb-2">
+        <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center">
+          <Heart className="w-4 h-4 text-rose-500" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-[#1F3864]">사회기부 유언</h2>
+          <p className="text-xs text-gray-500">사망 후 기부하고 싶은 분야를 선택하고 금액을 입력하세요</p>
+        </div>
+      </div>
+
+      {/* 안내 배너 */}
+      <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 mb-5 flex items-start gap-2">
+        <Building2 className="w-4 h-4 text-rose-400 mt-0.5 shrink-0" />
+        <p className="text-xs text-rose-700 leading-relaxed">
+          기부 단체는 <strong>EverWill이 분야별로 검증된 단체를 선정하여 전달</strong>합니다.
+          단체 후원 신청은 EverWill 공식 채널을 통해 접수됩니다.
+        </p>
+      </div>
+
+      {/* 총 기부 금액 표시 */}
+      {totalDonation > 0 && (
+        <div className="bg-[#1F3864]/5 border border-[#1F3864]/20 rounded-xl p-4 mb-5 flex items-center justify-between">
+          <span className="text-sm text-[#1F3864] font-medium">총 기부 예정 금액</span>
+          <span className="text-lg font-bold text-[#C9A961]">₩{totalDonation.toLocaleString()}</span>
+        </div>
+      )}
+
+      {/* 분야 카드 그리드 */}
+      <div className="space-y-3">
+        {CHARITY_CATEGORIES.map((cat) => {
+          const isChecked = !!checked[cat.key];
+          const isSaved = savedList.some((d) => d.category === cat.key);
+          return (
+            <div key={cat.key} className={`rounded-xl border-2 transition-all duration-200 ${
+              isChecked ? "border-rose-300 bg-rose-50/50" : "border-gray-200 bg-white"
+            }`}>
+              {/* 체크박스 행 */}
+              <button
+                type="button"
+                className="w-full flex items-center gap-3 px-4 py-3 text-left"
+                onClick={() => handleToggle(cat.key)}
+              >
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                  isChecked ? "bg-rose-500 border-rose-500" : "border-gray-300"
+                }`}>
+                  {isChecked && <span className="text-white text-xs font-bold">✓</span>}
+                </div>
+                <span className="text-lg">{cat.emoji}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-[#1F3864] text-sm">{cat.label}</div>
+                  <div className="text-xs text-gray-400 truncate">{cat.desc}</div>
+                </div>
+                {isSaved && (
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium shrink-0">저장됨</span>
+                )}
+              </button>
+
+              {/* 체크 시 확장 영역 */}
+              {isChecked && (
+                <div className="px-4 pb-4 space-y-3 border-t border-rose-200/60 pt-3">
+                  {/* 기타: 단체명 입력 */}
+                  {cat.key === "other" && (
+                    <div>
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">단체명 *</label>
+                      <input
+                        type="text"
+                        placeholder="기부하고 싶은 단체명을 입력하세요"
+                        value={customOrg["other"] ?? ""}
+                        onChange={(e) => setCustomOrg((prev) => ({ ...prev, other: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                      />
+                    </div>
+                  )}
+                  {/* 금액 입력 */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">기부 금액 (원) *</label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₩</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="예: 10,000,000"
+                          value={amounts[cat.key] ?? ""}
+                          onChange={(e) => {
+                            const formatted = formatAmount(e.target.value);
+                            setAmounts((prev) => ({ ...prev, [cat.key]: formatted }));
+                          }}
+                          className="w-full border border-gray-300 rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleSave(cat.key)}
+                        disabled={upsertMutation.isPending}
+                        className="px-4 py-2 bg-[#1F3864] hover:bg-[#162a4e] text-white text-sm rounded-lg font-medium transition-colors disabled:opacity-50"
+                      >
+                        {upsertMutation.isPending ? "저장 중..." : isSaved ? "수정" : "저장"}
+                      </button>
+                    </div>
+                  </div>
+                  {/* 저장된 금액 표시 */}
+                  {isSaved && (
+                    <div className="text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2">
+                      ✓ 저장된 금액: ₩{(savedList.find((d) => d.category === cat.key)?.amount ?? 0).toLocaleString()}
+                      {cat.key === "other" && savedList.find((d) => d.category === "other")?.customOrgName && (
+                        <span className="ml-2 text-gray-500">({savedList.find((d) => d.category === "other")?.customOrgName})</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* 하단 안내 */}
+      <p className="text-xs text-gray-400 text-center mt-6 leading-relaxed">
+        * 기부 유언은 유언자 사망 확인 후 EverWill이 선정한 단체에 전달됩니다.<br />
+        * 기부 금액은 상속 자산에서 우선 공제 후 집행됩니다.
+      </p>
     </div>
   );
 }

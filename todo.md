@@ -54,6 +54,17 @@
 - [x] EverWill 로고 배경 제거(누끼) 후 투명 PNG 생성 (AI 재생성 방법 사용)
 - [x] Navbar·ComingSoon에 새 로고 교체
 
+## 사회기부 섹션 추가
+- [x] DB: charityDonations 테이블 추가 (userId, category, customOrgName, amount)
+- [x] tRPC: charity.list / charity.upsert / charity.delete 프로시저 구현
+- [x] HeirsPage 하단에 사회기부 섹션 UI 추가
+  - 12개 분야 체크박스 (교육/아동청소년/노인복지/장애인/의료보건/환경기후/문화예술/과학기술/동물복지/재난구호/종교사회보사/기타)
+  - 체크 시 해당 분야 카드 바로 아래 금액 입력칸 표시
+  - 기타 선택 시 단체명 직접 입력 + 금액 입력
+  - 총 기부금액 자동 합산 표시
+  - "EverWill이 선정하여 전달" 안내 문구
+- [x] pnpm db:push 실행 완료 (charityDonations 테이블 생성)
+
 ## 법적 위험 문구 안전 표현으로 교체
 - [x] "법적 효력 있는 서류 자동 작성" → "상속 신고 서류 양식 자동 생성" (features 배지)
 - [x] "법적 신고 서류 자동 작성" → "상속 신고 서류 초안 자동 작성" (포함 내용 박스)

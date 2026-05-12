@@ -134,6 +134,13 @@
       "when": 1777851870498,
       "tag": "0018_lovely_revanche",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1778547181060,
+      "tag": "0019_slimy_spiral",
+      "breakpoints": true
     }
   ]
 }
