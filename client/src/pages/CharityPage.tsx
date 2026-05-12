@@ -5,6 +5,7 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "wouter";
 import { Heart, BookOpen, Users, Leaf, FlaskConical, Music, Dog, Zap, Church, HelpCircle, Baby, UserCheck, CheckCircle, ArrowRight, Building2, Quote } from "lucide-react";
+import CharityStatsSection from "@/components/CharityStatsSection";
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   education: <BookOpen className="w-6 h-6" />,
@@ -156,6 +157,9 @@ export default function CharityPage() {
           </div>
         </div>
       </section>
+
+      {/* ── 기부금 누적 현황 ── */}
+      <CharityStatsSection />
 
       {/* ── CTA 섹션 ── */}
       <section className="py-20 bg-gradient-to-br from-[#1F3864] to-[#2d4f8a]">
