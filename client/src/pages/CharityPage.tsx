@@ -1,0 +1,192 @@
+/**
+ * 사회기부 소개·홍보 페이지
+ * "나의 편지" 메뉴를 대체하는 EverWill 사회기부 안내 페이지
+ */
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Link } from "wouter";
+import { Heart, BookOpen, Users, Leaf, FlaskConical, Music, Dog, Zap, Church, HelpCircle, Baby, UserCheck, CheckCircle, ArrowRight, Building2, Quote } from "lucide-react";
+
+const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+  education: <BookOpen className="w-6 h-6" />,
+  children: <Baby className="w-6 h-6" />,
+  elderly: <UserCheck className="w-6 h-6" />,
+  disability: <Heart className="w-6 h-6" />,
+  medical: <Heart className="w-6 h-6" />,
+  environment: <Leaf className="w-6 h-6" />,
+  culture: <Music className="w-6 h-6" />,
+  science: <FlaskConical className="w-6 h-6" />,
+  animal: <Dog className="w-6 h-6" />,
+  disaster: <Zap className="w-6 h-6" />,
+  religion: <Church className="w-6 h-6" />,
+  other: <HelpCircle className="w-6 h-6" />,
+};
+
+const CATEGORY_COLORS: Record<string, string> = {
+  education: "bg-blue-50 text-blue-700 border-blue-200",
+  children: "bg-pink-50 text-pink-700 border-pink-200",
+  elderly: "bg-amber-50 text-amber-700 border-amber-200",
+  disability: "bg-purple-50 text-purple-700 border-purple-200",
+  medical: "bg-red-50 text-red-700 border-red-200",
+  environment: "bg-green-50 text-green-700 border-green-200",
+  culture: "bg-indigo-50 text-indigo-700 border-indigo-200",
+  science: "bg-cyan-50 text-cyan-700 border-cyan-200",
+  animal: "bg-orange-50 text-orange-700 border-orange-200",
+  disaster: "bg-yellow-50 text-yellow-700 border-yellow-200",
+  religion: "bg-teal-50 text-teal-700 border-teal-200",
+  other: "bg-gray-50 text-gray-700 border-gray-200",
+};
+
+export default function CharityPage() {
+  const { t, language } = useLanguage();
+  const cp = t.charityPage;
+  const isRTL = language === "ar";
+
+  const categories = Object.entries(cp.cats) as [string, string][];
+
+  return (
+    <div className="min-h-screen bg-[#FAFAFA]" dir={isRTL ? "rtl" : "ltr"}>
+
+      {/* ── Hero 섹션 ── */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0">
+          <img
+            src="/manus-storage/charity_hero_a1375e07.png"
+            alt="사회기부 히어로"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#1F3864]/70 via-[#1F3864]/50 to-[#1F3864]/80" />
+        </div>
+        <div className="relative z-10 max-w-4xl mx-auto px-6 py-28 text-center text-white">
+          <div className="inline-flex items-center gap-2 bg-[#C9A961]/20 border border-[#C9A961]/40 rounded-full px-4 py-1.5 mb-6">
+            <Heart className="w-4 h-4 text-[#C9A961]" />
+            <span className="text-sm text-[#C9A961] font-medium">{cp.navLabel}</span>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6 whitespace-pre-line">
+            {cp.heroTitle}
+          </h1>
+          <p className="text-xl text-white/80 mb-10">{cp.heroSubtitle}</p>
+          <Link href="/write">
+            <button className="inline-flex items-center gap-2 bg-[#C9A961] hover:bg-[#b8943e] text-white font-semibold px-8 py-4 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl">
+              {cp.ctaBtn}
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </Link>
+        </div>
+      </section>
+
+      {/* ── Jeff 감성 인용구 ── */}
+      <section className="py-16 bg-white">
+        <div className="max-w-3xl mx-auto px-6">
+          <div className="relative bg-[#1F3864]/5 border-l-4 border-[#C9A961] rounded-2xl p-8 md:p-10">
+            <Quote className="absolute top-6 left-6 w-8 h-8 text-[#C9A961]/30" />
+            <p className="text-lg md:text-xl text-[#1A1A1A] leading-relaxed font-medium italic pl-4">
+              {cp.jeffQuote}
+            </p>
+            <div className="mt-6 flex items-center gap-3 pl-4">
+              <div className="w-8 h-0.5 bg-[#C9A961]" />
+              <span className="text-sm text-[#6B7280] font-medium">Jeff Lah · EverWill Founder</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── EverWill 약속 ── */}
+      <section className="py-16 bg-[#1F3864]">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#C9A961]/20 rounded-full mb-6">
+            <Heart className="w-8 h-8 text-[#C9A961]" />
+          </div>
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">{cp.everwillPledgeTitle}</h2>
+          <p className="text-xl text-white/80 leading-relaxed max-w-2xl mx-auto">{cp.everwillPledge}</p>
+
+          {/* 투명성 원칙 3가지 */}
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[cp.transparency1, cp.transparency2, cp.transparency3].map((item, i) => (
+              <div key={i} className="flex items-center gap-3 bg-white/10 rounded-xl px-5 py-4">
+                <CheckCircle className="w-5 h-5 text-[#C9A961] flex-shrink-0" />
+                <span className="text-white/90 text-sm font-medium">{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 기부 절차 3단계 ── */}
+      <section className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-[#1F3864] text-center mb-12">{cp.howTitle}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { title: cp.step1Title, desc: cp.step1Desc, num: "01" },
+              { title: cp.step2Title, desc: cp.step2Desc, num: "02" },
+              { title: cp.step3Title, desc: cp.step3Desc, num: "03" },
+            ].map((step, i) => (
+              <div key={i} className="relative text-center">
+                {i < 2 && (
+                  <div className="hidden md:block absolute top-8 left-[calc(100%-1rem)] w-8 h-0.5 bg-[#C9A961]/40 z-10" />
+                )}
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-[#1F3864] rounded-full text-[#C9A961] font-bold text-xl mb-4">
+                  {step.num}
+                </div>
+                <h3 className="font-bold text-[#1F3864] mb-2">{step.title}</h3>
+                <p className="text-[#6B7280] text-sm leading-relaxed">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 후원 분야 12개 ── */}
+      <section className="py-20 bg-[#FAFAFA]">
+        <div className="max-w-5xl mx-auto px-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-[#1F3864] text-center mb-3">{cp.categoriesTitle}</h2>
+          <p className="text-center text-[#6B7280] mb-10 text-sm">EverWill이 검증된 단체를 선정하여 전달합니다</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {categories.map(([key, label]) => (
+              <div
+                key={key}
+                className={`flex flex-col items-center gap-3 p-5 rounded-2xl border ${CATEGORY_COLORS[key] || "bg-gray-50 text-gray-700 border-gray-200"} transition-transform hover:-translate-y-1 hover:shadow-md`}
+              >
+                <div className="opacity-80">{CATEGORY_ICONS[key] || <HelpCircle className="w-6 h-6" />}</div>
+                <span className="font-semibold text-sm text-center">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA 섹션 ── */}
+      <section className="py-20 bg-gradient-to-br from-[#1F3864] to-[#2d4f8a]">
+        <div className="max-w-2xl mx-auto px-6 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">{cp.ctaTitle}</h2>
+          <p className="text-white/70 mb-8">{cp.ctaDesc}</p>
+          <Link href="/write">
+            <button className="inline-flex items-center gap-2 bg-[#C9A961] hover:bg-[#b8943e] text-white font-bold px-10 py-4 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl text-lg">
+              {cp.ctaBtn}
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </Link>
+        </div>
+      </section>
+
+      {/* ── 기부 단체 후원 신청 ── */}
+      <section className="py-16 bg-white">
+        <div className="max-w-2xl mx-auto px-6 text-center">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-[#C9A961]/10 rounded-full mb-4">
+            <Building2 className="w-7 h-7 text-[#C9A961]" />
+          </div>
+          <h2 className="text-xl font-bold text-[#1F3864] mb-3">{cp.applyTitle}</h2>
+          <p className="text-[#6B7280] text-sm mb-6 leading-relaxed">{cp.applyDesc}</p>
+          <a
+            href="mailto:adoco98@gmail.com?subject=EverWill 기부 단체 후원 신청"
+            className="inline-flex items-center gap-2 border-2 border-[#1F3864] text-[#1F3864] hover:bg-[#1F3864] hover:text-white font-semibold px-8 py-3 rounded-full transition-all duration-200"
+          >
+            {cp.applyBtn}
+            <ArrowRight className="w-4 h-4" />
+          </a>
+        </div>
+      </section>
+
+    </div>
+  );
+}

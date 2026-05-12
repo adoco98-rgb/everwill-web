@@ -28,6 +28,7 @@ import InternalPage from "./pages/InternalPage";
 import AdminPage from "./pages/AdminPage";
 import LetterDashboard from "./pages/LetterDashboard";
 import LetterWrite from "./pages/LetterWrite";
+import CharityPage from "./pages/CharityPage";
 import Feedback from "./pages/Feedback";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
@@ -75,6 +76,8 @@ function Router() {
       {/* 유서 쓰기 */}
       <Route path={"/letter"} component={LetterDashboard} />
       <Route path={"/letter/write"} component={LetterWrite} />
+      {/* 사회기부 소개 페이지 */}
+      <Route path={"/charity"} component={CharityPage} />
       {/* 만족도 평가 페이지 (이메일 링크 클릭 시) */}
       <Route path={"/feedback"} component={Feedback} />
       {/* 관리자 대시보드 */}
