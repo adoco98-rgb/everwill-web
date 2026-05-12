@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, openId, name, email, CASE WHEN passwordHash IS NOT NULL THEN 'SET' ELSE 'NULL' END as pwStatus FROM users WHERE openId = 'email:adoco98@gmail.com';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aTj4qahS4dKfPu.349ddf4404ef --database PhaVJexqfm3CAwoPdg4NhS --execute SELECT id, openId, name, email, CASE WHEN passwordHash IS NOT NULL THEN 'SET' ELSE 'NULL' END as pwStatus FROM users WHERE openId = 'email:adoco98@gmail.com';",
+  "rows": [
+    {
+      "id": "1920008",
+      "openId": "email:adoco98@gmail.com",
+      "name": "adoco98",
+      "email": "adoco98@gmail.com",
+      "pwStatus": "SET"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\topenId\tname\temail\tpwStatus\n1920008\temail:adoco98@gmail.com\tadoco98\tadoco98@gmail.com\tSET\n",
+  "stderr": "",
+  "execution_time_ms": 1855
+}

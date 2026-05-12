@@ -1,0 +1,26 @@
+{
+  "query": "SELECT id, openId, name, email, loginMethod, createdAt FROM users WHERE openId LIKE '%adoco%' OR email LIKE '%adoco%' LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aTj4qahS4dKfPu.349ddf4404ef --database PhaVJexqfm3CAwoPdg4NhS --execute SELECT id, openId, name, email, loginMethod, createdAt FROM users WHERE openId LIKE '%adoco%' OR email LIKE '%adoco%' LIMIT 5;",
+  "rows": [
+    {
+      "id": "1",
+      "openId": "2BDsaTKX35muXjxuGZbuww",
+      "name": "BAROCOOK FCS",
+      "email": "adoco98@gmail.com",
+      "loginMethod": "google",
+      "createdAt": "2026-04-20 08:33:59"
+    },
+    {
+      "id": "1920008",
+      "openId": "email:adoco98@gmail.com",
+      "name": "adoco98",
+      "email": "adoco98@gmail.com",
+      "loginMethod": "email",
+      "createdAt": "2026-04-29 05:09:26"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\topenId\tname\temail\tloginMethod\tcreatedAt\n1\t2BDsaTKX35muXjxuGZbuww\tBAROCOOK FCS\tadoco98@gmail.com\tgoogle\t2026-04-20 08:33:59\n1920008\temail:adoco98@gmail.com\tadoco98\tadoco98@gmail.com\temail\t2026-04-29 05:09:26\n",
+  "stderr": "",
+  "execution_time_ms": 1858
+}

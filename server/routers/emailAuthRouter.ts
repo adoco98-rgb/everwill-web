@@ -198,7 +198,7 @@ export const emailAuthRouter = router({
       email: z.string().email("올바른 이메일 주소를 입력해주세요"),
       password: z.string().min(1, "비밀번호를 입력해주세요"),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
 
@@ -225,35 +225,47 @@ export const emailAuthRouter = router({
         throw new TRPCError({ code: "UNAUTHORIZED", message: "이메일 또는 비밀번호가 올바르지 않습니다." });
       }
 
-      // 등록된 전화번호 확인
-      if (!user.phone) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "등록된 전화번호가 없습니다. 고객센터에 문의해주세요.",
+      // 관리자는 OTP 없이 즉시 세션 발급
+      if (user.role === "admin") {
+        await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.openId, openId));
+        const token = await sdk.createSessionToken(openId, { name: user.name ?? "" });
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, token, {
+          ...cookieOptions,
+          maxAge: ONE_YEAR_MS,
         });
+        return { success: true, isAdmin: true, otpChannel: null as null, maskedContact: null as null };
       }
-
-      // SMS OTP 발송 (전화번호가 E.164 형식이 아니면 변환)
-      let phoneE164 = user.phone;
-      if (!phoneE164.startsWith("+")) {
-        // 한국 번호 기본 처리
-        phoneE164 = "+82" + phoneE164.replace(/^0/, "");
+      // 일반 회원: 전화번호 있으면 SMS, 없으면 이메일 OTP 발송
+      if (user.phone) {
+        let phoneE164 = user.phone;
+        if (!phoneE164.startsWith("+")) {
+          phoneE164 = "+82" + phoneE164.replace(/^0/, "");
+        }
+        const smsResult = await sendSmsOtp(phoneE164);
+        if (smsResult.success) {
+          const maskedPhone = phoneE164.replace(/(\+\d{2,3})(\d+)(\d{4})$/, (_: string, cc: string, mid: string, last: string) => {
+            return `${cc}${"*".repeat(mid.length)}${last}`;
+          });
+          return { success: true, isAdmin: false, otpChannel: "sms" as const, maskedContact: maskedPhone };
+        }
       }
-
-      const smsResult = await sendSmsOtp(phoneE164);
-      if (!smsResult.success) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "SMS 발송에 실패했습니다. 잠시 후 다시 시도해주세요.",
+      // 전화번호 없거나 SMS 실패 → 이메일 OTP 발송
+      const loginCode = generateOtp();
+      const loginExpiresAt = new Date(Date.now() + OTP_EXPIRES_MS);
+      await db.update(emailOtps).set({ used: 1 }).where(and(eq(emailOtps.email, input.email), eq(emailOtps.used, 0)));
+      await db.insert(emailOtps).values({ email: input.email, code: loginCode, expiresAt: loginExpiresAt, used: 0, failCount: 0 });
+      const resend = new Resend(ENV.resendApiKey);
+      try {
+        await resend.emails.send({
+          from: "EverWill <noreply@everwill.co.kr>",
+          to: input.email,
+          subject: "[EverWill] 로그인 인증 코드",
+          html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px"><h2 style="color:#1F3864">EverWill 로그인 인증</h2><p>아래 인증 코드를 입력해주세요:</p><div style="font-size:32px;font-weight:bold;letter-spacing:8px;color:#C9A961;padding:16px;background:#f5f5f5;border-radius:8px;text-align:center">${loginCode}</div><p style="color:#666;font-size:14px">10분 내에 입력해주세요.</p></div>`,
         });
-      }
-
-      // 전화번호 마스킹 (앞 3자리 + *** + 뒤 4자리)
-      const maskedPhone = phoneE164.replace(/(\+\d{2,3})(\d+)(\d{4})$/, (_, cc, mid, last) => {
-        return `${cc}${"*".repeat(mid.length)}${last}`;
-      });
-
-      return { success: true, maskedPhone };
+      } catch (e) { /* 이메일 발송 실패 무시 */ }
+      const maskedEmail = input.email.replace(/(.)(.+)(@.+)/, (_: string, f: string, m: string, d: string) => f + "*".repeat(Math.min(m.length, 4)) + d);
+      return { success: true, isAdmin: false, otpChannel: "email" as const, maskedContact: maskedEmail };
     }),
 
   /**
@@ -277,22 +289,32 @@ export const emailAuthRouter = router({
 
       const user = userRows[0];
 
-      if (!user.phone) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "등록된 전화번호가 없습니다." });
-      }
-
-      let phoneE164 = user.phone;
-      if (!phoneE164.startsWith("+")) {
-        phoneE164 = "+82" + phoneE164.replace(/^0/, "");
-      }
-
-      // SMS OTP 검증
-      const verifyResult = await verifySmsOtp(phoneE164, input.code);
-      if (!verifyResult.success) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: verifyResult.error || "인증 코드가 올바르지 않습니다.",
-        });
+      // 전화번호 있으면 SMS OTP 검증, 없으면 이메일 OTP 검증
+      if (user.phone) {
+        let phoneE164 = user.phone;
+        if (!phoneE164.startsWith("+")) {
+          phoneE164 = "+82" + phoneE164.replace(/^0/, "");
+        }
+        const verifyResult = await verifySmsOtp(phoneE164, input.code);
+        if (!verifyResult.success) {
+          // SMS 검증 실패 시 이메일 OTP로 fallback
+          const emailOtpRows2 = await db.select().from(emailOtps).where(
+            and(eq(emailOtps.email, input.email), eq(emailOtps.used, 0), gt(emailOtps.expiresAt, new Date()))
+          ).limit(1);
+          if (emailOtpRows2.length === 0 || emailOtpRows2[0].code !== input.code) {
+            throw new TRPCError({ code: "UNAUTHORIZED", message: verifyResult.error || "인증 코드가 올바르지 않습니다." });
+          }
+          await db.update(emailOtps).set({ used: 1 }).where(eq(emailOtps.id, emailOtpRows2[0].id));
+        }
+      } else {
+        // 이메일 OTP 검증
+        const emailOtpRows3 = await db.select().from(emailOtps).where(
+          and(eq(emailOtps.email, input.email), eq(emailOtps.used, 0), gt(emailOtps.expiresAt, new Date()))
+        ).limit(1);
+        if (emailOtpRows3.length === 0 || emailOtpRows3[0].code !== input.code) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "인증 코드가 올바르지 않거나 만료되었습니다." });
+        }
+        await db.update(emailOtps).set({ used: 1 }).where(eq(emailOtps.id, emailOtpRows3[0].id));
       }
 
       // 마지막 로그인 시간 업데이트

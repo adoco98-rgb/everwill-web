@@ -216,11 +216,19 @@ export default function LoginPage() {
 
   // ── tRPC mutations ──
   const emailLoginStep1 = trpc.auth.email.loginStep1.useMutation({
-    onSuccess: (data: { maskedPhone: string }) => {
-      setLoginMaskedContact(data.maskedPhone);
+    onSuccess: (data) => {
+      // 관리자는 OTP 없이 즉시 로그인 완료
+      if (data.isAdmin) {
+        toast.success("로그인 완료!");
+        window.location.href = "/dashboard";
+        return;
+      }
+      const contact = data.maskedContact ?? "";
+      setLoginMaskedContact(contact);
       setLoginStep("otp");
       setOtpTimer(600);
-      toast.success(`OTP가 ${data.maskedPhone}으로 발송되었습니다`);
+      const channel = data.otpChannel === "sms" ? "SMS" : "이메일";
+      toast.success(`인증 코드가 ${channel}(${contact})으로 발송되었습니다`);
     },
     onError: (e: { message: string }) => toast.error(e.message),
   });

@@ -1,0 +1,8 @@
+{
+  "query": "SELECT id, open_id, name, email, created_at FROM users WHERE open_id LIKE '%adoco%' OR email LIKE '%adoco%' LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aTj4qahS4dKfPu.349ddf4404ef --database PhaVJexqfm3CAwoPdg4NhS --execute SELECT id, open_id, name, email, created_at FROM users WHERE open_id LIKE '%adoco%' OR email LIKE '%adoco%' LIMIT 5;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'open_id' in 'where clause'"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE users SET passwordHash = '$2b$12$G3s5rfLW.5Q7fTXvwW0DpO4ltlGGsouniYiDu8rSeHRHvCp/8uVXG' WHERE openId = 'email:adoco98@gmail.com';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aTj4qahS4dKfPu.349ddf4404ef --database PhaVJexqfm3CAwoPdg4NhS --execute UPDATE users SET passwordHash = '$2b$12$G3s5rfLW.5Q7fTXvwW0DpO4ltlGGsouniYiDu8rSeHRHvCp/8uVXG' WHERE openId = 'email:adoco98@gmail.com';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1840
+}
