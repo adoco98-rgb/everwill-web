@@ -1,7 +1,7 @@
 /**
  * 사회기부 누적 현황 섹션
- * - 전체 기부 예정 금액 (KRW 환산)
- * - 국가별 화폐 기준 기부금 표시
+ * - 전체 기부 예정 금액 (현재 언어 국가 화폐로 환산 표시)
+ * - 국가별 카드: 제목(국가명) 중앙 → 국기 → 기부금액 순서
  * - 분야별 기부 현황
  * - 카운트업 애니메이션
  */
@@ -11,8 +11,43 @@ import { Heart, Globe2, TrendingUp, Users } from "lucide-react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLanguage } from "@/contexts/LanguageContext";
+import type { Language } from "@/i18n";
 
-// 카운트업 훅
+// ─── 언어 → 통화 매핑 ───────────────────────────────────────────
+const LANG_CURRENCY: Record<Language, { code: string; symbol: string }> = {
+  ko: { code: "KRW", symbol: "₩" },
+  ja: { code: "JPY", symbol: "¥" },
+  zh: { code: "CNY", symbol: "¥" },
+  de: { code: "EUR", symbol: "€" },
+  fr: { code: "EUR", symbol: "€" },
+  es: { code: "EUR", symbol: "€" },
+  ar: { code: "SAR", symbol: "﷼" },
+  ru: { code: "RUB", symbol: "₽" },
+  hi: { code: "INR", symbol: "₹" },
+  pt: { code: "BRL", symbol: "R$" },
+  en: { code: "USD", symbol: "$" },
+};
+
+/** KRW 기준 환율 (고정 참고값) */
+const KRW_RATES: Record<string, number> = {
+  KRW: 1,
+  JPY: 9.0,
+  CNY: 190,
+  HKD: 170,
+  TWD: 41,
+  USD: 1350,
+  EUR: 1480,
+  SAR: 360,
+  AED: 368,
+  RUB: 15,
+  INR: 16,
+  BRL: 270,
+  GBP: 1720,
+  AUD: 890,
+  CAD: 1000,
+};
+
+// ─── 카운트업 훅 ────────────────────────────────────────────────
 function useCountUp(target: number, duration = 2000) {
   const [current, setCurrent] = useState(0);
   const rafRef = useRef<number | null>(null);
@@ -39,88 +74,65 @@ function useCountUp(target: number, duration = 2000) {
   return current;
 }
 
-// 숫자 포맷 (국가별 통화 기준)
+// ─── 통화 포맷 ──────────────────────────────────────────────────
 function formatCurrency(amount: number, currencyCode: string, symbol: string): string {
-  // 큰 금액 단위 처리
   const absAmount = Math.abs(amount);
 
-  // 통화별 단위 처리
   if (currencyCode === "KRW" || currencyCode === "JPY" || currencyCode === "CNY") {
-    // 소수점 없는 통화
     if (absAmount >= 100_000_000) {
-      const val = (amount / 100_000_000).toFixed(1);
-      const unit = currencyCode === "KRW" ? "억" : currencyCode === "JPY" ? "億" : "亿";
-      return `${symbol}${val}${unit}`;
+      const unit = currencyCode === "KRW" ? "억" : "億";
+      return `${symbol}${(amount / 100_000_000).toFixed(1)}${unit}`;
     }
     if (absAmount >= 10_000) {
-      const val = (amount / 10_000).toFixed(1);
-      const unit = currencyCode === "KRW" ? "만" : currencyCode === "JPY" ? "万" : "万";
-      return `${symbol}${val}${unit}`;
+      const unit = currencyCode === "KRW" ? "만" : "万";
+      return `${symbol}${(amount / 10_000).toFixed(1)}${unit}`;
     }
     return `${symbol}${amount.toLocaleString()}`;
   }
 
-  // 소수점 있는 통화 (USD, EUR 등)
-  if (absAmount >= 1_000_000) {
-    return `${symbol}${(amount / 1_000_000).toFixed(1)}M`;
-  }
-  if (absAmount >= 1_000) {
-    return `${symbol}${(amount / 1_000).toFixed(1)}K`;
-  }
-  return `${symbol}${amount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  if (absAmount >= 1_000_000) return `${symbol}${(amount / 1_000_000).toFixed(1)}M`;
+  if (absAmount >= 1_000) return `${symbol}${(amount / 1_000).toFixed(1)}K`;
+  return `${symbol}${amount.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 }
 
-// 분야 아이콘 매핑
+// ─── 분야 아이콘 ────────────────────────────────────────────────
 const CATEGORY_ICONS: Record<string, string> = {
-  education:   "🎓",
-  children:    "👶",
-  elderly:     "👴",
-  disabled:    "♿",
-  medical:     "🏥",
-  environment: "🌱",
-  culture:     "🎨",
-  science:     "🔬",
-  animal:      "🐾",
-  disaster:    "🆘",
-  religion:    "🕊️",
-  other:       "💝",
+  education: "🎓", children: "👶", elderly: "👴", disabled: "♿",
+  medical: "🏥", environment: "🌱", culture: "🎨", science: "🔬",
+  animal: "🐾", disaster: "🆘", religion: "🕊️", other: "💝",
 };
 
-// 분야 한국어 이름 (fallback)
 const CATEGORY_NAMES_KO: Record<string, string> = {
-  education:   "교육",
-  children:    "아동·청소년",
-  elderly:     "노인복지",
-  disabled:    "장애인",
-  medical:     "의료·보건",
-  environment: "환경·기후",
-  culture:     "문화·예술",
-  science:     "과학·기술",
-  animal:      "동물복지",
-  disaster:    "재난·구호",
-  religion:    "종교·봉사",
-  other:       "기타",
+  education: "교육", children: "아동·청소년", elderly: "노인복지",
+  disabled: "장애인", medical: "의료·보건", environment: "환경·기후",
+  culture: "문화·예술", science: "과학·기술", animal: "동물복지",
+  disaster: "재난·구호", religion: "종교·봉사", other: "기타",
 };
 
+// ─── 메인 컴포넌트 ──────────────────────────────────────────────
 export default function CharityStatsSection() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const cs = t.charityStats;
 
+  // 현재 언어 기준 통화
+  const localCurrency = LANG_CURRENCY[language] ?? LANG_CURRENCY["ko"];
+  const localRate = KRW_RATES[localCurrency.code] ?? 1;
+
   const { data, isLoading } = trpc.charity.getGlobalStats.useQuery(undefined, {
-    refetchInterval: 60_000, // 1분마다 갱신
+    refetchInterval: 60_000,
     staleTime: 30_000,
   });
 
-  // KRW 총액 카운트업
   const totalKrw = data?.totalKrw ?? 0;
   const donorCount = data?.donorCount ?? 0;
-  const animatedKrw = useCountUp(totalKrw, 2200);
+
+  // 현지 화폐로 환산한 총액
+  const totalLocal = Math.round(totalKrw / localRate);
+  const animatedLocal = useCountUp(totalLocal, 2200);
   const animatedDonors = useCountUp(donorCount, 1800);
 
   const byCountry = data?.byCountry ?? [];
   const byCategory = data?.byCategory ?? [];
-
-  // 분야별 최대값 (막대 비율용)
   const maxCategoryAmount = Math.max(...byCategory.map((c) => c.totalKrw), 1);
 
   return (
@@ -156,7 +168,7 @@ export default function CharityStatsSection() {
 
         {/* 상단 요약 카드 2개 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-14 max-w-2xl mx-auto">
-          {/* 전체 기부 예정 금액 */}
+          {/* 전체 기부 예정 금액 — 현지 화폐 환산 */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
@@ -172,10 +184,12 @@ export default function CharityStatsSection() {
               <div className="h-10 w-36 bg-white/10 rounded-lg animate-pulse mx-auto" />
             ) : (
               <p className="text-3xl font-bold text-[#C9A961]">
-                ₩{animatedKrw.toLocaleString()}
+                {formatCurrency(animatedLocal, localCurrency.code, localCurrency.symbol)}
               </p>
             )}
-            <p className="text-blue-300 text-xs mt-1 opacity-70">{cs.krwEquiv}</p>
+            <p className="text-blue-300 text-xs mt-1 opacity-70">
+              {localCurrency.code} {cs.krwEquiv}
+            </p>
           </motion.div>
 
           {/* 기부 유언 등록자 수 */}
@@ -194,13 +208,14 @@ export default function CharityStatsSection() {
               <div className="h-10 w-24 bg-white/10 rounded-lg animate-pulse mx-auto" />
             ) : (
               <p className="text-3xl font-bold text-[#C9A961]">
-                {animatedDonors.toLocaleString()}{cs.donorUnit && <span className="text-xl ml-1">{cs.donorUnit}</span>}
+                {animatedDonors.toLocaleString()}
+                {cs.donorUnit && <span className="text-xl ml-1">{cs.donorUnit}</span>}
               </p>
             )}
           </motion.div>
         </div>
 
-        {/* 국가별 기부 현황 */}
+        {/* 국가별 기부 현황 — 제목 중앙, 국기, 기부금액 순서 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -208,7 +223,8 @@ export default function CharityStatsSection() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="mb-14"
         >
-          <div className="flex items-center gap-2 mb-6">
+          {/* 섹션 제목 중앙 정렬 */}
+          <div className="flex items-center justify-center gap-2 mb-8">
             <Globe2 className="w-5 h-5 text-[#C9A961]" />
             <h3 className="text-xl font-bold text-white">{cs.countryTitle}</h3>
           </div>
@@ -216,7 +232,7 @@ export default function CharityStatsSection() {
           {isLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="bg-white/10 rounded-xl p-4 animate-pulse h-24" />
+                <div key={i} className="bg-white/10 rounded-2xl p-5 animate-pulse h-32" />
               ))}
             </div>
           ) : byCountry.length === 0 ? (
@@ -242,7 +258,7 @@ export default function CharityStatsSection() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mb-12"
           >
-            <div className="flex items-center gap-2 mb-6">
+            <div className="flex items-center justify-center gap-2 mb-6">
               <Heart className="w-5 h-5 text-[#C9A961]" />
               <h3 className="text-xl font-bold text-white">{cs.categoryTitle}</h3>
             </div>
@@ -268,10 +284,13 @@ export default function CharityStatsSection() {
                           </span>
                         </div>
                         <span className="text-[#C9A961] text-sm font-bold">
-                          ₩{cat.totalKrw.toLocaleString()}
+                          {formatCurrency(
+                            Math.round(cat.totalKrw / localRate),
+                            localCurrency.code,
+                            localCurrency.symbol
+                          )}
                         </span>
                       </div>
-                      {/* 진행 바 */}
                       <div className="w-full bg-white/10 rounded-full h-1.5">
                         <motion.div
                           initial={{ width: 0 }}
@@ -281,7 +300,7 @@ export default function CharityStatsSection() {
                           className="bg-gradient-to-r from-[#C9A961] to-[#e8c97a] h-1.5 rounded-full"
                         />
                       </div>
-                      <p className="text-blue-300 text-xs mt-1">{cat.donorCount}명</p>
+                      <p className="text-blue-300 text-xs mt-1">{cat.donorCount}{cs.donorUnit || "명"}</p>
                     </motion.div>
                   );
                 })}
@@ -313,7 +332,8 @@ export default function CharityStatsSection() {
   );
 }
 
-// 국가 카드 컴포넌트
+// ─── 국가 카드 컴포넌트 ─────────────────────────────────────────
+// 레이아웃: 국가명(중앙) → 국기(대형) → 기부금액 → 기부자 수
 function CountryCard({
   country,
   delay,
@@ -338,12 +358,18 @@ function CountryCard({
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay }}
-      className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl p-4 text-center hover:bg-white/15 transition-colors"
+      className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl p-5 text-center hover:bg-white/15 transition-colors flex flex-col items-center gap-2"
     >
-      <div className="text-3xl mb-2">{country.flag}</div>
-      <p className="text-white text-xs font-medium mb-1 truncate">{country.countryName}</p>
-      <p className="text-[#C9A961] font-bold text-lg leading-tight">{formatted}</p>
-      <p className="text-blue-300 text-xs mt-1 opacity-70">{country.donorCount}명</p>
+      {/* 1. 국가명 — 상단 중앙 */}
+      <p className="text-white/80 text-xs font-semibold tracking-wide uppercase">
+        {country.countryName}
+      </p>
+      {/* 2. 국기 — 대형 이모지 */}
+      <div className="text-5xl leading-none my-1">{country.flag}</div>
+      {/* 3. 기부금액 */}
+      <p className="text-[#C9A961] font-bold text-xl leading-tight">{formatted}</p>
+      {/* 4. 기부자 수 */}
+      <p className="text-blue-300 text-xs opacity-70">{country.donorCount.toLocaleString()}명</p>
     </motion.div>
   );
 }
