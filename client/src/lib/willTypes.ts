@@ -115,18 +115,19 @@ export const initialWillData: WillData = {
   lastSaved: "",
 };
 
-// AI 모드 10단계 정의
+// AI 모드 11단계 정의 (Step7: 사회기부 추가)
 export const AI_STEPS = [
-  { id: 1, title: "기본 정보",        desc: "유언자 본인 정보를 입력합니다",         icon: "👤" },
-  { id: 2, title: "가족 관계",        desc: "가족 구성원을 확인합니다",              icon: "👨‍👩‍👧‍👦" },
-  { id: 3, title: "상속인 지정",      desc: "유산을 물려줄 분들을 등록합니다",       icon: "📋" },
-  { id: 4, title: "부동산 자산",      desc: "부동산 자산을 입력합니다",              icon: "🏠" },
-  { id: 5, title: "금융 자산",        desc: "예금·주식·보험 등을 입력합니다",        icon: "💰" },
-  { id: 6, title: "기타 자산",        desc: "자동차·귀금속 등 기타 자산",            icon: "📦" },
-  { id: 7, title: "특별 지시사항",    desc: "집행자·후견인·장례 방식 등",            icon: "📝" },
-  { id: 8, title: "부가 서비스",      desc: "영상 유언·자필 스캔 선택",              icon: "🎬" },
-  { id: 9, title: "미리보기",         desc: "작성된 유언장을 확인합니다",            icon: "👁" },
-  { id: 10, title: "인증 및 저장",    desc: "전자서명 후 법적 효력 부여",            icon: "✅" },
+  { id: 1,  title: "기본 정보",        desc: "유언자 본인 정보를 입력합니다",         icon: "👤" },
+  { id: 2,  title: "가족 관계",        desc: "가족 구성원을 확인합니다",              icon: "👨‍👩‍👧‍👦" },
+  { id: 3,  title: "상속인 지정",      desc: "유산을 물려줄 분들을 등록합니다",       icon: "📋" },
+  { id: 4,  title: "부동산 자산",      desc: "부동산 자산을 입력합니다",              icon: "🏠" },
+  { id: 5,  title: "금융 자산",        desc: "예금·주식·보험 등을 입력합니다",        icon: "💰" },
+  { id: 6,  title: "기타 자산",        desc: "자동차·귀금속 등 기타 자산",            icon: "📦" },
+  { id: 7,  title: "사회기부 유언",    desc: "유산의 일부를 사회에 환원합니다 (선택)", icon: "❤️" },
+  { id: 8,  title: "특별 지시사항",    desc: "집행자·후견인·장례 방식 등",            icon: "📝" },
+  { id: 9,  title: "부가 서비스",      desc: "영상 유언·자필 스캔 선택",              icon: "🎬" },
+  { id: 10, title: "미리보기",         desc: "작성된 유언장을 확인합니다",            icon: "👁" },
+  { id: 11, title: "인증 및 저장",     desc: "전자서명 후 법적 효력 부여",            icon: "✅" },
 ];
 
 // 유류분 비율 (민법 제1112조)

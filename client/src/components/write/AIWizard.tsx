@@ -1,7 +1,8 @@
 /**
- * EverWill AI 가이드 모드 - 10단계 마법사 + 서명 단계
+ * EverWill AI 가이드 모드 - 11단계 마법사 + 서명 단계
  * 한국 민법 기준 유언장 자동 작성
- * 페이월: 1~9단계 무료, 9→10 전환 시 결제 게이트 표시
+ * 페이월: 1~10단계 무료, 10→11 전환 시 결제 게이트 표시
+ * Step7: 사회기부 유언 (선택)
  */
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,6 +18,7 @@ import Step3Heirs from "./steps/Step3Heirs";
 import Step4RealEstate from "./steps/Step4RealEstate";
 import Step5Financial from "./steps/Step5Financial";
 import Step6Other from "./steps/Step6Other";
+import WillCharityStep from "./steps/WillCharityStep";
 import Step7Special from "./steps/Step7Special";
 import Step8Addons from "./steps/Step8Addons";
 import Step9Preview from "./steps/Step9Preview";
@@ -126,12 +128,12 @@ export default function AIWizard({ onBack }: Props) {
     setWill((prev) => ({ ...prev, ...partial }));
 
   const next = () => {
-    // Step9 → Step10 전환 시 페이월 게이트 표시
-    if (step === 9) {
+    // Step10 → Step11 전환 시 페이월 게이트 표시
+    if (step === 10) {
       setShowPaywall(true);
       return;
     }
-    if (step < 10) setStep((s) => s + 1);
+    if (step < 11) setStep((s) => s + 1);
   };
 
   const prev = () => {
@@ -139,10 +141,10 @@ export default function AIWizard({ onBack }: Props) {
     else onBack();
   };
 
-  // 페이월 확인 → Step10으로 이동
+  // 페이월 확인 → Step11로 이동
   const handlePaywallConfirm = () => {
     setShowPaywall(false);
-    setStep(10);
+    setStep(11);
   };
 
   // 임시 저장 (72시간 유효)
@@ -311,21 +313,22 @@ export default function AIWizard({ onBack }: Props) {
           transition={{ duration: 0.3 }}
           className="bg-white rounded-2xl border border-gray-100 p-6 lg:p-8 shadow-sm"
         >
-          {step === 1 && <Step1Testator {...stepProps} />}
-          {step === 2 && <Step2Family {...stepProps} />}
-          {step === 3 && <Step3Heirs {...stepProps} />}
-          {step === 4 && <Step4RealEstate {...stepProps} />}
-          {step === 5 && <Step5Financial {...stepProps} />}
-          {step === 6 && <Step6Other {...stepProps} />}
-          {step === 7 && <Step7Special {...stepProps} />}
-          {step === 8 && <Step8Addons {...stepProps} />}
-          {step === 9 && <Step9Preview {...stepProps} />}
-          {step === 10 && <Step10Sign {...stepProps} />}
+          {step === 1  && <Step1Testator {...stepProps} />}
+          {step === 2  && <Step2Family {...stepProps} />}
+          {step === 3  && <Step3Heirs {...stepProps} />}
+          {step === 4  && <Step4RealEstate {...stepProps} />}
+          {step === 5  && <Step5Financial {...stepProps} />}
+          {step === 6  && <Step6Other {...stepProps} />}
+          {step === 7  && <WillCharityStep {...stepProps} />}
+          {step === 8  && <Step7Special {...stepProps} />}
+          {step === 9  && <Step8Addons {...stepProps} />}
+          {step === 10 && <Step9Preview {...stepProps} />}
+          {step === 11 && <Step10Sign {...stepProps} />}
         </motion.div>
       </AnimatePresence>
 
       {/* 하단 네비 (서명 단계 제외) */}
-      {step < 10 && (
+      {step < 11 && (
         <div className="flex items-center justify-between mt-6">
           <button
             onClick={prev}
@@ -334,7 +337,7 @@ export default function AIWizard({ onBack }: Props) {
             <ArrowLeft className="w-4 h-4" />
             {step === 1 ? "모드 선택" : "이전"}
           </button>
-          {step === 9 ? (
+          {step === 10 ? (
             <button
               onClick={next}
               className="btn-gold flex items-center gap-2 px-8 py-3 rounded-full font-semibold text-sm"
@@ -354,8 +357,8 @@ export default function AIWizard({ onBack }: Props) {
         </div>
       )}
 
-      {/* Step9 하단 안내 배너 */}
-      {step === 9 && (
+      {/* Step10 하단 안내 배너 (미리보기) */}
+      {step === 10 && (
         <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start gap-3">
           <Lock className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
           <div>
