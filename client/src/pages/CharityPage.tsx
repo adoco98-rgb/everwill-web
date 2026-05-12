@@ -1,40 +1,61 @@
 /**
  * 사회기부 소개·홍보 페이지
  * "나의 편지" 메뉴를 대체하는 EverWill 사회기부 안내 페이지
+ * 분야 카드: 이미지 + 아이콘 + 텍스트 조합
  */
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "wouter";
 import { Heart, BookOpen, Users, Leaf, FlaskConical, Music, Dog, Zap, Church, HelpCircle, Baby, UserCheck, CheckCircle, ArrowRight, Building2, Quote } from "lucide-react";
 import CharityStatsSection from "@/components/CharityStatsSection";
 
-const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-  education: <BookOpen className="w-6 h-6" />,
-  children: <Baby className="w-6 h-6" />,
-  elderly: <UserCheck className="w-6 h-6" />,
-  disability: <Heart className="w-6 h-6" />,
-  medical: <Heart className="w-6 h-6" />,
-  environment: <Leaf className="w-6 h-6" />,
-  culture: <Music className="w-6 h-6" />,
-  science: <FlaskConical className="w-6 h-6" />,
-  animal: <Dog className="w-6 h-6" />,
-  disaster: <Zap className="w-6 h-6" />,
-  religion: <Church className="w-6 h-6" />,
-  other: <HelpCircle className="w-6 h-6" />,
+// 분야별 감성 이미지 (manus-storage)
+const CATEGORY_IMAGES: Record<string, string> = {
+  education:   "/manus-storage/charity_education_fd78152c.jpg",
+  children:    "/manus-storage/charity_children_47b9432a.jpg",
+  elderly:     "/manus-storage/charity_elderly_d54f3504.jpg",
+  disability:  "/manus-storage/charity_disabled_06da545b.jpg",
+  disabled:    "/manus-storage/charity_disabled_06da545b.jpg",
+  medical:     "/manus-storage/charity_medical_270a8196.jpg",
+  environment: "/manus-storage/charity_environment_f8aca49a.jpg",
+  culture:     "/manus-storage/charity_culture_022d1544.jpg",
+  science:     "/manus-storage/charity_science_997af245.jpg",
+  animal:      "/manus-storage/charity_animal_dcb6e6da.jpg",
+  disaster:    "/manus-storage/charity_disaster_278812bd.jpg",
+  religion:    "/manus-storage/charity_religion_7af51a22.jpg",
+  other:       "/manus-storage/charity_other_779cb314.jpg",
 };
 
-const CATEGORY_COLORS: Record<string, string> = {
-  education: "bg-blue-50 text-blue-700 border-blue-200",
-  children: "bg-pink-50 text-pink-700 border-pink-200",
-  elderly: "bg-amber-50 text-amber-700 border-amber-200",
-  disability: "bg-purple-50 text-purple-700 border-purple-200",
-  medical: "bg-red-50 text-red-700 border-red-200",
-  environment: "bg-green-50 text-green-700 border-green-200",
-  culture: "bg-indigo-50 text-indigo-700 border-indigo-200",
-  science: "bg-cyan-50 text-cyan-700 border-cyan-200",
-  animal: "bg-orange-50 text-orange-700 border-orange-200",
-  disaster: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  religion: "bg-teal-50 text-teal-700 border-teal-200",
-  other: "bg-gray-50 text-gray-700 border-gray-200",
+const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+  education:   <BookOpen className="w-5 h-5" />,
+  children:    <Baby className="w-5 h-5" />,
+  elderly:     <UserCheck className="w-5 h-5" />,
+  disability:  <Heart className="w-5 h-5" />,
+  disabled:    <Heart className="w-5 h-5" />,
+  medical:     <Heart className="w-5 h-5" />,
+  environment: <Leaf className="w-5 h-5" />,
+  culture:     <Music className="w-5 h-5" />,
+  science:     <FlaskConical className="w-5 h-5" />,
+  animal:      <Dog className="w-5 h-5" />,
+  disaster:    <Zap className="w-5 h-5" />,
+  religion:    <Church className="w-5 h-5" />,
+  other:       <HelpCircle className="w-5 h-5" />,
+};
+
+// 분야별 텍스트 컬러 (카드 하단 배지용)
+const CATEGORY_TEXT_COLOR: Record<string, string> = {
+  education:   "text-blue-600",
+  children:    "text-pink-600",
+  elderly:     "text-amber-600",
+  disability:  "text-purple-600",
+  disabled:    "text-purple-600",
+  medical:     "text-red-600",
+  environment: "text-green-600",
+  culture:     "text-indigo-600",
+  science:     "text-cyan-600",
+  animal:      "text-orange-600",
+  disaster:    "text-yellow-600",
+  religion:    "text-teal-600",
+  other:       "text-gray-600",
 };
 
 export default function CharityPage() {
@@ -139,21 +160,51 @@ export default function CharityPage() {
         </div>
       </section>
 
-      {/* ── 후원 분야 12개 ── */}
+      {/* ── 후원 분야 12개 — 이미지+텍스트 카드 ── */}
       <section className="py-20 bg-[#FAFAFA]">
         <div className="max-w-5xl mx-auto px-6">
           <h2 className="text-2xl md:text-3xl font-bold text-[#1F3864] text-center mb-3">{cp.categoriesTitle}</h2>
           <p className="text-center text-[#6B7280] mb-10 text-sm">EverWill이 검증된 단체를 선정하여 전달합니다</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {categories.map(([key, label]) => (
-              <div
-                key={key}
-                className={`flex flex-col items-center gap-3 p-5 rounded-2xl border ${CATEGORY_COLORS[key] || "bg-gray-50 text-gray-700 border-gray-200"} transition-transform hover:-translate-y-1 hover:shadow-md`}
-              >
-                <div className="opacity-80">{CATEGORY_ICONS[key] || <HelpCircle className="w-6 h-6" />}</div>
-                <span className="font-semibold text-sm text-center">{label}</span>
-              </div>
-            ))}
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+            {categories.map(([key, label]) => {
+              const imgUrl = CATEGORY_IMAGES[key];
+              const iconColor = CATEGORY_TEXT_COLOR[key] ?? "text-gray-600";
+              return (
+                <div
+                  key={key}
+                  className="group overflow-hidden rounded-2xl shadow-md hover:-translate-y-1 hover:shadow-xl transition-all duration-300 bg-white border border-gray-100"
+                >
+                  {/* 이미지 영역 */}
+                  <div className="relative h-36 overflow-hidden">
+                    {imgUrl ? (
+                      <img
+                        src={imgUrl}
+                        alt={label}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                        <div className={`opacity-40 scale-150 ${iconColor}`}>
+                          {CATEGORY_ICONS[key] || <HelpCircle className="w-8 h-8" />}
+                        </div>
+                      </div>
+                    )}
+                    {/* 하단 그라디언트 오버레이 */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                  </div>
+
+                  {/* 텍스트 + 아이콘 영역 */}
+                  <div className="px-4 py-3 flex items-center gap-2.5">
+                    <div className={`flex-shrink-0 ${iconColor}`}>
+                      {CATEGORY_ICONS[key] || <HelpCircle className="w-4 h-4" />}
+                    </div>
+                    <span className="font-semibold text-sm text-[#1F3864] leading-tight">{label}</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
