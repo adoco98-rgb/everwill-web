@@ -12,6 +12,7 @@
  *   Step 3: 로그인 완료 → 대시보드 이동
  */
 import { trpc } from "@/lib/trpc";
+import AddressSearch from "@/components/write/AddressSearch";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, Mail, Phone, Lock, User, Calendar, Globe,
@@ -676,11 +677,22 @@ export default function LoginPage() {
                       </select>
                     </div>
 
-                    {/* 주소 */}
+                    {/* 주소 - 한국이면 카카오 주소검색, 해외면 수기 입력 */}
                     <div>
-                      <label className={labelCls}><MapPin className="w-4 h-4 inline mr-1.5 text-gray-400" />주소 <span className="text-gray-400 font-normal text-xs">(선택)</span></label>
-                      <input type="text" value={signupAddress} onChange={e => setSignupAddress(e.target.value)}
-                        placeholder="서울특별시 강남구..." className={inputCls} />
+                      {signupCountry === "KR" ? (
+                        <AddressSearch
+                          value={signupAddress}
+                          onChange={(addr) => setSignupAddress(addr)}
+                          label="주소 (선택)"
+                          placeholder="주소 검색 버튼을 눌러주세요"
+                        />
+                      ) : (
+                        <>
+                          <label className={labelCls}><MapPin className="w-4 h-4 inline mr-1.5 text-gray-400" />주소 <span className="text-gray-400 font-normal text-xs">(선택)</span></label>
+                          <input type="text" value={signupAddress} onChange={e => setSignupAddress(e.target.value)}
+                            placeholder="Enter your address" className={inputCls} />
+                        </>
+                      )}
                     </div>
 
                     {/* 비밀번호 설정 */}
