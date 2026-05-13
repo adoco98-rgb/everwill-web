@@ -5,7 +5,7 @@
  */
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "wouter";
-import { Heart, BookOpen, Users, Leaf, FlaskConical, Music, Dog, Zap, Church, HelpCircle, Baby, UserCheck, CheckCircle, ArrowRight, Building2, Quote } from "lucide-react";
+import { Heart, BookOpen, Users, Leaf, FlaskConical, Music, Dog, Zap, Church, HelpCircle, Baby, UserCheck, CheckCircle, ArrowRight, Building2, Quote, Shield, Calendar, AlertTriangle, UserCircle2 } from "lucide-react";
 import CharityStatsSection from "@/components/CharityStatsSection";
 
 // 분야별 감성 이미지 (manus-storage)
@@ -211,6 +211,150 @@ export default function CharityPage() {
 
       {/* ── 기부금 누적 현황 ── */}
       <CharityStatsSection />
+
+      {/* ── 사회적후원 운영위원회 소개 ── */}
+      <section className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-6">
+
+          {/* 섹션 헤더 */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-[#1F3864]/10 text-[#1F3864] text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
+              <Shield className="w-4 h-4" />
+              투명한 집행 거버넌스
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#1F3864] mb-3">
+              EverWill 사회적후원 운영위원회
+            </h2>
+            <p className="text-[#6B7280] text-sm leading-relaxed max-w-xl mx-auto">
+              유언자의 기부 의사를 가장 투명하고 공정하게 집행하기 위해
+              독립적인 운영위원회가 모든 후원 결정을 심의합니다.
+            </p>
+          </div>
+
+          {/* 위원회 구성 2개 카드 */}
+          <div className="grid md:grid-cols-2 gap-6 mb-10">
+
+            {/* 비영리·시민사회단체장 */}
+            <div className="bg-gradient-to-br from-[#1F3864] to-[#2d4f8a] rounded-2xl p-6 text-white">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                  <Building2 className="w-6 h-6 text-[#C9A961]" />
+                </div>
+                <div>
+                  <p className="font-bold text-lg">비영리·시민사회단체장</p>
+                  <p className="text-white/60 text-sm">3명</p>
+                </div>
+              </div>
+              <p className="text-white/80 text-sm leading-relaxed">
+                사회복지, 환경, 교육 등 각 분야를 대표하는
+                비영리·시민사회단체의 장으로 구성됩니다.
+                전문성과 현장 경험을 바탕으로 기부금이
+                실질적인 변화를 만들 수 있도록 심의합니다.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {["사회복지", "환경", "교육"].map((tag) => (
+                  <span key={tag} className="text-xs bg-white/20 text-white/90 px-2.5 py-1 rounded-full">{tag}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* EverWill 일반 시민 위원 */}
+            <div className="bg-gradient-to-br from-[#C9A961] to-[#b8943e] rounded-2xl p-6 text-white">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="font-bold text-lg">EverWill 일반 시민 위원</p>
+                  <p className="text-white/70 text-sm">5명</p>
+                </div>
+              </div>
+              <p className="text-white/90 text-sm leading-relaxed">
+                EverWill 회원 중 공개 모집을 통해 선발된
+                일반 시민 5명이 참여합니다.
+                전문가 편향 없이 시민의 눈높이에서
+                기부 집행의 공정성을 감독합니다.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {["공개 모집", "시민 대표", "독립성"].map((tag) => (
+                  <span key={tag} className="text-xs bg-white/20 text-white/90 px-2.5 py-1 rounded-full">{tag}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 총 구성 요약 배너 */}
+          <div className="bg-[#FAFAFA] border border-[#1F3864]/10 rounded-2xl px-6 py-4 flex flex-wrap items-center justify-center gap-6 mb-12">
+            <div className="flex items-center gap-2 text-[#1F3864]">
+              <UserCircle2 className="w-5 h-5 text-[#C9A961]" />
+              <span className="font-bold">총 8명</span>
+              <span className="text-[#6B7280] text-sm">위원 구성</span>
+            </div>
+            <div className="w-px h-6 bg-gray-200 hidden sm:block" />
+            <div className="flex items-center gap-2 text-[#1F3864]">
+              <Shield className="w-5 h-5 text-[#C9A961]" />
+              <span className="font-bold">독립 운영</span>
+              <span className="text-[#6B7280] text-sm">EverWill로부터 독립적 심의</span>
+            </div>
+            <div className="w-px h-6 bg-gray-200 hidden sm:block" />
+            <div className="flex items-center gap-2 text-[#1F3864]">
+              <CheckCircle className="w-5 h-5 text-[#C9A961]" />
+              <span className="font-bold">결과 공개</span>
+              <span className="text-[#6B7280] text-sm">집행 결과 유족에게 투명 공개</span>
+            </div>
+          </div>
+
+          {/* 후원 결정 방식 */}
+          <h3 className="text-xl font-bold text-[#1F3864] text-center mb-6">후원 결정 방식</h3>
+          <div className="grid md:grid-cols-2 gap-5">
+
+            {/* 정기 후원 결정 */}
+            <div className="border border-[#C9A961]/30 rounded-2xl p-6 bg-amber-50/50">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-[#C9A961]/20 rounded-full flex items-center justify-center shrink-0">
+                  <Calendar className="w-5 h-5 text-[#C9A961]" />
+                </div>
+                <div>
+                  <p className="font-bold text-[#1F3864]">정기 후원 결정</p>
+                  <p className="text-xs text-[#6B7280]">연 1회 · 매년 연말</p>
+                </div>
+              </div>
+              <p className="text-sm text-[#4B5563] leading-relaxed">
+                매년 <strong>연말 1회 정기회의</strong>를 통해 해당 연도에 접수된
+                기부 유언을 검토하고, 후원 단체 및 금액을 최종 결정합니다.
+                결정 내용은 유족 및 지정 상속인에게 공식 통보됩니다.
+              </p>
+              <div className="mt-4 flex items-center gap-2 text-xs text-[#C9A961] font-semibold">
+                <CheckCircle className="w-3.5 h-3.5" />
+                연말 정기회의 → 후원 단체 선정 → 집행 → 결과 보고
+              </div>
+            </div>
+
+            {/* 긴급 임시 후원 결정 */}
+            <div className="border border-red-200 rounded-2xl p-6 bg-red-50/50">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-red-500" />
+                </div>
+                <div>
+                  <p className="font-bold text-[#1F3864]">긴급 임시 후원 결정</p>
+                  <p className="text-xs text-[#6B7280]">긴급 상황 발생 시</p>
+                </div>
+              </div>
+              <p className="text-sm text-[#4B5563] leading-relaxed">
+                재난·긴급구호 등 <strong>긴급 상황 발생 시</strong> 임시회의를
+                신속히 소집하여 후원 결정을 내립니다.
+                정기회의를 기다리지 않고 즉각적인 사회적 지원이
+                가능하도록 운영됩니다.
+              </p>
+              <div className="mt-4 flex items-center gap-2 text-xs text-red-500 font-semibold">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                긴급 상황 발생 → 임시회의 소집 → 신속 결정 → 즉시 집행
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ── CTA 섹션 ── */}
       <section className="py-20 bg-gradient-to-br from-[#1F3864] to-[#2d4f8a]">
