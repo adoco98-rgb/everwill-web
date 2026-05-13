@@ -300,4 +300,44 @@ export const phoneAuthRouter = router({
         .where(eq(users.openId, openId));
       return { success: true };
     }),
+  /**
+   * 이메일 가입 시 전화번호 인증용 OTP 발송 (세션 생성 없음)
+   */
+  sendVerifyOtp: publicProcedure
+    .input(z.object({
+      phone: z.string().min(7, "올바른 전화번호를 입력해주세요").max(20),
+      countryCode: z.string().default("+82"),
+    }))
+    .mutation(async ({ input }) => {
+      const e164Phone = toE164(input.phone, input.countryCode);
+      const result = await sendSmsOtp(e164Phone);
+      if (!result.success) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: result.error ?? "SMS 발송에 실패했습니다. 잠시 후 다시 시도해주세요.",
+        });
+      }
+      return { success: true, phone: e164Phone };
+    }),
+  /**
+   * 이메일 가입 시 전화번호 OTP 검증 (세션 생성 없음, 인증 여부만 확인)
+   */
+  checkVerifyOtp: publicProcedure
+    .input(z.object({
+      phone: z.string().min(7).max(20),
+      countryCode: z.string().default("+82"),
+      code: z.string().length(6, "6자리 코드를 입력해주세요"),
+    }))
+    .mutation(async ({ input }) => {
+      const e164Phone = toE164(input.phone, input.countryCode);
+      const result = await verifySmsOtp(e164Phone, input.code);
+      if (!result.success) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: result.error ?? "인증 코드가 올바르지 않습니다.",
+        });
+      }
+      return { success: true, phone: e164Phone };
+    }),
+
 });
