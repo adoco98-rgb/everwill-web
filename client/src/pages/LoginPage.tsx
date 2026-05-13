@@ -806,26 +806,49 @@ export default function LoginPage() {
                                     placeholder={typeInfo.placeholder}
                                     className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mb-2 focus:outline-none focus:border-[#1F3864] bg-white" />
                                 )}
-                                {/* 금액 입력 - 자동 콤마 + 만원/억원 단위 표시 */}
-                                <div className="relative">
-                                  <input
-                                    type="text"
-                                    inputMode="numeric"
-                                    value={formatNumberInput(asset.value)}
-                                    onChange={e => {
-                                      const raw = e.target.value.replace(/[^0-9]/g, "");
-                                      updateAsset(asset.id, "value", raw);
-                                    }}
-                                    placeholder="자산 가액"
-                                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[#1F3864] bg-white pr-8"
-                                  />
-                                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">원</span>
-                                </div>
-                                {/* 만원/억원 단위 표시 */}
-                                {asset.value && formatKoreanUnit(asset.value) && (
-                                  <p className="text-xs text-[#C9A961] font-semibold mt-1 ml-1">
-                                    ≈ {formatKoreanUnit(asset.value)}
-                                  </p>
+                                {/* 채권/주식: 주식수 입력 / 그 외: 금액 입력 */}
+                                {asset.type === "bond" ? (
+                                  <div className="relative">
+                                    <input
+                                      type="text"
+                                      inputMode="numeric"
+                                      value={formatNumberInput(asset.value)}
+                                      onChange={e => {
+                                        const raw = e.target.value.replace(/[^0-9]/g, "");
+                                        updateAsset(asset.id, "value", raw);
+                                      }}
+                                      placeholder="보유 주식 수"
+                                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[#1F3864] bg-white pr-10"
+                                    />
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">주</span>
+                                    {asset.value && (
+                                      <p className="text-xs text-[#C9A961] font-semibold mt-1 ml-1">
+                                        {parseInt(asset.value, 10).toLocaleString("ko-KR")}주 보유
+                                      </p>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div className="relative">
+                                      <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        value={formatNumberInput(asset.value)}
+                                        onChange={e => {
+                                          const raw = e.target.value.replace(/[^0-9]/g, "");
+                                          updateAsset(asset.id, "value", raw);
+                                        }}
+                                        placeholder="자산 가액"
+                                        className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[#1F3864] bg-white pr-8"
+                                      />
+                                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">원</span>
+                                    </div>
+                                    {asset.value && formatKoreanUnit(asset.value) && (
+                                      <p className="text-xs text-[#C9A961] font-semibold mt-1 ml-1">
+                                        ≈ {formatKoreanUnit(asset.value)}
+                                      </p>
+                                    )}
+                                  </>
                                 )}
                               </div>
                             );
