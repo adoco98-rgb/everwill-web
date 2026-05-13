@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useLocation } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { formatPrice, getPlanPrices, isKorean, PLAN_KRW_PRICES } from "@/lib/pricing";
 
 export default function PricingSection() {
@@ -204,7 +206,17 @@ export default function PricingSection() {
     },
   ];
 
+  const [, navigate] = useLocation();
+  const { isAuthenticated } = useAuth();
   const comingSoonMsg = isKo ? "서비스 준비 중입니다. 곧 오픈합니다!" : "Coming soon!";
+  // 무료 플랜 버튼: 로그인 여부에 따라 /write 또는 /login?returnTo=/write
+  const handleFreeStart = () => {
+    if (isAuthenticated) {
+      navigate("/write");
+    } else {
+      navigate("/login?returnTo=/write");
+    }
+  };
 
   return (
     <section id="pricing" className="py-16 lg:py-28 bg-white" ref={ref}>
@@ -345,7 +357,7 @@ export default function PricingSection() {
 
                   {/* CTA 버튼 */}
                   <button
-                    onClick={() => toast.info(comingSoonMsg)}
+                    onClick={() => plan.id === "free" ? handleFreeStart() : toast.info(comingSoonMsg)}
                     className={`w-full flex items-center justify-center gap-1.5 py-3 rounded-xl font-semibold text-sm transition-all ${plan.ctaClass}`}
                   >
                     {plan.cta}
@@ -438,7 +450,7 @@ export default function PricingSection() {
 
                   {/* CTA 버튼 */}
                   <button
-                    onClick={() => toast.info(comingSoonMsg)}
+                    onClick={() => plan.id === "free" ? handleFreeStart() : toast.info(comingSoonMsg)}
                     className={`flex-shrink-0 flex items-center gap-1 px-5 py-2.5 rounded-xl font-semibold text-xs transition-all whitespace-nowrap ${plan.ctaClass}`}
                   >
                     {plan.cta}

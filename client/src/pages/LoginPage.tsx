@@ -172,6 +172,7 @@ export default function LoginPage() {
   const [, navigate] = useLocation();
   const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
   const initialMode: PageMode = urlParams.get("mode") === "signup" ? "signup" : "login";
+  const returnTo = urlParams.get("returnTo") || "/dashboard";
 
   // ── 공통 상태 ──
   const [pageMode, setPageMode] = useState<PageMode>(initialMode);
@@ -220,7 +221,7 @@ export default function LoginPage() {
       // 관리자는 OTP 없이 즉시 로그인 완료
       if (data.isAdmin) {
         toast.success("로그인 완료!");
-        window.location.href = "/dashboard";
+        window.location.href = returnTo;
         return;
       }
       const contact = data.maskedContact ?? "";
@@ -247,7 +248,7 @@ export default function LoginPage() {
   const emailLoginStep2 = trpc.auth.email.loginStep2.useMutation({
     onSuccess: () => {
       setLoginStep("done");
-      setTimeout(() => navigate("/dashboard"), 1500);
+      setTimeout(() => navigate(returnTo), 1500);
     },
     onError: (e: { message: string }) => toast.error(e.message),
   });
@@ -255,7 +256,7 @@ export default function LoginPage() {
   const phoneLoginStep2 = trpc.auth.phone.loginStep2.useMutation({
     onSuccess: () => {
       setLoginStep("done");
-      setTimeout(() => navigate("/dashboard"), 1500);
+      setTimeout(() => navigate(returnTo), 1500);
     },
     onError: (e: { message: string }) => toast.error(e.message),
   });

@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, UserPlus } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 const HERO_IMAGE =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/hero-global-elders-v2-DB4mTEuKjbV7DYjdv5fYBA.webp";
@@ -15,6 +16,16 @@ const HERO_IMAGE =
 export default function HeroSection() {
   const [, navigate] = useLocation();
   const { t } = useLanguage();
+  const { isAuthenticated } = useAuth();
+
+  // 로그인 상태면 바로 /write, 비로그인이면 /login 후 /write 리다이렉트
+  const handleStart = () => {
+    if (isAuthenticated) {
+      navigate("/write");
+    } else {
+      navigate("/login?returnTo=/write");
+    }
+  };
 
   const scrollToPricing = () => {
     const el = document.querySelector("#pricing");
@@ -93,7 +104,7 @@ export default function HeroSection() {
         >
           {/* 무료 가입 버튼 (단독, 크게) */}
           <button
-            onClick={() => navigate("/login?mode=register")}
+            onClick={handleStart}
             className="group flex items-center gap-3 btn-gold px-14 py-5 rounded-full text-xl font-bold shadow-2xl shadow-[#C9A961]/40 min-w-[280px] justify-center transition-all duration-300 hover:scale-105"
           >
             <UserPlus className="w-6 h-6" />
