@@ -683,15 +683,18 @@ export default function LoginPage() {
                         </label>
                         {!signupPhoneVerified ? (
                           <>
+                            {/* 국가코드 + 전화번호 + 발송 버튼 */}
                             <div className="flex gap-2 mb-2">
                               <select value={signupPhoneCode} onChange={e => { setSignupPhoneCode(e.target.value); setSignupPhoneOtpSent(false); }}
-                                className={inputCls + " w-28 shrink-0"}>
+                                style={{ width: '90px', flexShrink: 0 }}
+                                className={inputCls}>
                                 {PHONE_CODES.map(c => <option key={c.code} value={c.code}>{c.flag} {c.code}</option>)}
                               </select>
                               <input type="tel" value={signupPhone}
                                 onChange={e => { setSignupPhone(e.target.value); setSignupPhoneOtpSent(false); }}
                                 placeholder="010-0000-0000"
-                                className={inputCls + " flex-1"}
+                                style={{ flex: 1, minWidth: 0 }}
+                                className={inputCls}
                                 disabled={signupPhoneOtpSent}
                               />
                               <button
@@ -701,7 +704,8 @@ export default function LoginPage() {
                                   sendVerifyOtp.mutate({ phone: signupPhone, countryCode: signupPhoneCode });
                                 }}
                                 disabled={sendVerifyOtp.isPending || (signupPhoneOtpSent && signupPhoneTimer > 0)}
-                                className="shrink-0 px-3 py-2 bg-[#1F3864] hover:bg-[#162a4e] text-white text-sm font-semibold rounded-xl transition disabled:opacity-50 whitespace-nowrap"
+                                style={{ flexShrink: 0 }}
+                                className="px-3 py-2 bg-[#1F3864] hover:bg-[#162a4e] text-white text-sm font-semibold rounded-xl transition disabled:opacity-50 whitespace-nowrap"
                               >
                                 {sendVerifyOtp.isPending ? "발송중..." : signupPhoneOtpSent ? `재발송 (${Math.floor(signupPhoneTimer/60)}:${String(signupPhoneTimer%60).padStart(2,"0")})` : "인증번호 발송"}
                               </button>
