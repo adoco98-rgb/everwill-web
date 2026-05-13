@@ -543,3 +543,21 @@
 - [ ] willRouter.ts save/get/list 프로시저 추가 (DB 저장)
 - [ ] 단계별 자동저장 (로그인 회원 → DB, 비로그인 → localStorage)
 - [ ] 미리보기 단계(Step10)에서 완성된 법적 문서 전문 표시
+
+## 전체 플로우 점검 및 일괄 수정 (2026-05-13)
+- [x] Step1Testator - 거주 국가 선택 + GlobalAddressSearch + PhoneInput 적용
+- [x] Step3Heirs - 상속인 PhoneInput(국가코드) + GlobalAddressSearch 적용
+- [x] Step4RealEstate - 부동산 주소 GlobalAddressSearch + 예상가액 AmountInput 적용
+- [x] Step5Financial - 금액 AmountInput(콤마/만원/억원) + 주식 보유수 분기 처리
+- [x] Step6Other - 기타 자산 예상가액 AmountInput 적용
+- [x] Step9Preview - 왼쪽 법적 검토+AI, 오른쪽 실시간 문서 미리보기 (데스크탑 좌우분할/모바일 탭)
+- [x] WillDocumentPreview - 한국 민법 기준 법적 유언장 문서 형식 실시간 미리보기 컴포넌트
+- [x] 공통 컴포넌트 - AmountInput, PhoneInput, GlobalAddressSearch 생성
+- [x] 공통 유틸 - formatUtils.ts (formatKoreanUnit, formatNumberWithComma) 생성
+- [x] 회원가입 주소 - GlobalAddressSearch 적용 (한국: 카카오, 해외: Google Places)
+- [x] 이메일 가입 - 전화번호 OTP 인증 추가
+- [x] 무료 시작하기 버튼 - /write 이동 수정
+- [x] 사회기부 유언 - 분야 선택 + 단체 직접 지정 + EverWill 운영위원회 집행 문구
+- [x] 사회기부 페이지 - EverWill 사회적후원 운영위원회 소개 섹션 추가
+- [x] 채권/주식 자산 - 금액 대신 보유 주식 수(주) 입력으로 변경
+- [x] 빌드 확인 - TS 에러 0개, Vite 빌드 성공

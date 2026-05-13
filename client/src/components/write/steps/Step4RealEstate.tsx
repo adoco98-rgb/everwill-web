@@ -4,12 +4,29 @@ import { nanoid } from "nanoid";
 import type { StepProps } from "./StepProps";
 import type { RealEstate } from "@/lib/willTypes";
 import AIGuide from "../AIGuide";
+import GlobalAddressSearch from "../GlobalAddressSearch";
+import AmountInput from "../AmountInput";
 
 const RE_TYPES = ["아파트", "단독주택", "빌라/연립", "오피스텔", "토지", "상가/건물", "기타"];
+
+const RE_COUNTRIES = [
+  { code: "KR", label: "🇰🇷 한국" },
+  { code: "US", label: "🇺🇸 미국" },
+  { code: "JP", label: "🇯🇵 일본" },
+  { code: "CN", label: "🇨🇳 중국" },
+  { code: "HK", label: "🇭🇰 홍콩" },
+  { code: "TW", label: "🇹🇼 대만" },
+  { code: "GB", label: "🇬🇧 영국" },
+  { code: "DE", label: "🇩🇪 독일" },
+  { code: "AU", label: "🇦🇺 호주" },
+  { code: "CA", label: "🇨🇦 캐나다" },
+  { code: "AE", label: "🇦🇪 UAE" },
+];
 
 export default function Step4RealEstate({ will, update }: StepProps) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<Partial<RealEstate>>({ distributionMode: "percent" });
+  const [reCountry, setReCountry] = useState<string>("KR");
 
   const save = () => {
     if (!form.address) return;
@@ -124,13 +141,24 @@ export default function Step4RealEstate({ will, update }: StepProps) {
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
               />
             </div>
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-gray-500 mb-1">주소 *</label>
-              <input
-                value={form.address || ""}
-                onChange={(e) => setForm({ ...form, address: e.target.value })}
-                placeholder="서울시 강남구 테헤란로 123, 101동 1001호"
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">소재지 국가</label>
+              <select
+                value={reCountry}
+                onChange={(e) => { setReCountry(e.target.value); setForm({ ...form, address: "" }); }}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
+              >
+                {RE_COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
+              </select>
+            </div>
+            <div className="sm:col-span-2">
+              <GlobalAddressSearch
+                label="주소 *"
+                value={form.address || ""}
+                onChange={(address) => setForm({ ...form, address })}
+                countryCode={reCountry}
+                placeholder={reCountry === "KR" ? "주소 검색 버튼을 눌러주세요" : "Start typing address..."}
+                showLabel
               />
             </div>
             <div>
@@ -144,11 +172,11 @@ export default function Step4RealEstate({ will, update }: StepProps) {
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1">예상 가액</label>
-              <input
+              <AmountInput
                 value={form.estimatedValue || ""}
-                onChange={(e) => setForm({ ...form, estimatedValue: e.target.value })}
-                placeholder="5억 원"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
+                onChange={(raw) => setForm({ ...form, estimatedValue: raw })}
+                placeholder="예상 가액 입력"
+                unit="원"
               />
             </div>
           </div>
@@ -213,11 +241,11 @@ export default function Step4RealEstate({ will, update }: StepProps) {
             ) : (
               <div>
                 <label className="block text-xs text-gray-400 mb-1">배분 금액</label>
-                <input
+                <AmountInput
                   value={form.shareAmount || ""}
-                  onChange={(e) => setForm({ ...form, shareAmount: e.target.value })}
-                  placeholder="예: 2억 5천만원, 150,000,000원"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
+                  onChange={(raw) => setForm({ ...form, shareAmount: raw })}
+                  placeholder="배분 금액 입력"
+                  unit="원"
                 />
                 <p className="text-xs text-gray-400 mt-1">구체적인 금액을 입력하면 유언장에 그대로 반영됩니다</p>
               </div>

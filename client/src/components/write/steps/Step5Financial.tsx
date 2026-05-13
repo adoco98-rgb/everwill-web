@@ -9,6 +9,7 @@ import { nanoid } from "nanoid";
 import type { StepProps } from "./StepProps";
 import type { FinancialAsset } from "@/lib/willTypes";
 import AIGuide from "../AIGuide";
+import AmountInput from "../AmountInput";
 
 const FA_TYPES = ["예금/적금", "주식/펀드", "보험", "연금", "채권", "가상자산", "기타"];
 const INSTITUTIONS = ["KB국민은행", "신한은행", "하나은행", "우리은행", "NH농협", "카카오뱅크", "토스뱅크", "삼성증권", "미래에셋", "기타"];
@@ -145,13 +146,32 @@ export default function Step5Financial({ will, update }: StepProps) {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1">예상 가액</label>
-              <input
-                value={form.estimatedValue || ""}
-                onChange={(e) => setForm({ ...form, estimatedValue: e.target.value })}
-                placeholder="1억 원"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
-              />
+              {(form.type === "주식/펀드") ? (
+                <>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">보유 주식 수</label>
+                  <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                    <input
+                      type="number"
+                      min={0}
+                      value={form.accountNo || ""}
+                      onChange={(e) => setForm({ ...form, accountNo: e.target.value })}
+                      placeholder="보유 주수 입력"
+                      className="flex-1 px-3 py-2 text-sm focus:outline-none"
+                    />
+                    <span className="px-3 py-2 text-gray-400 text-sm bg-gray-50 border-l border-gray-200">주</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">예상 가액</label>
+                  <AmountInput
+                    value={form.estimatedValue || ""}
+                    onChange={(raw) => setForm({ ...form, estimatedValue: raw })}
+                    placeholder="예상 가액 입력"
+                    unit="원"
+                  />
+                </>
+              )}
             </div>
           </div>
 
@@ -215,11 +235,11 @@ export default function Step5Financial({ will, update }: StepProps) {
             ) : (
               <div>
                 <label className="block text-xs text-gray-400 mb-1">배분 금액</label>
-                <input
+                <AmountInput
                   value={form.shareAmount || ""}
-                  onChange={(e) => setForm({ ...form, shareAmount: e.target.value })}
-                  placeholder="예: 5,000만원, 100,000,000원"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
+                  onChange={(raw) => setForm({ ...form, shareAmount: raw })}
+                  placeholder="배분 금액 입력"
+                  unit="원"
                 />
                 <p className="text-xs text-gray-400 mt-1">구체적인 금액을 입력하면 유언장에 그대로 반영됩니다</p>
               </div>

@@ -8,6 +8,7 @@ import { nanoid } from "nanoid";
 import type { StepProps } from "./StepProps";
 import type { OtherAsset } from "@/lib/willTypes";
 import AIGuide from "../AIGuide";
+import AmountInput from "../AmountInput";
 
 const OTHER_TYPES = ["자동차", "귀금속/보석", "미술품/골동품", "지식재산권", "사업체 지분", "기타"];
 
@@ -76,7 +77,12 @@ export default function Step6Other({ will, update }: StepProps) {
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1">예상 가액</label>
-              <input value={form.estimatedValue || ""} onChange={(e) => setForm({ ...form, estimatedValue: e.target.value })} placeholder="500만 원" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]" />
+              <AmountInput
+                value={form.estimatedValue || ""}
+                onChange={(raw) => setForm({ ...form, estimatedValue: raw })}
+                placeholder="예상 가액 입력"
+                unit="원"
+              />
             </div>
             <div className="sm:col-span-2">
               <label className="block text-xs font-semibold text-gray-500 mb-1">상세 설명 *</label>

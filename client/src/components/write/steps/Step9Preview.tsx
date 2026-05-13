@@ -1,16 +1,19 @@
 /**
- * Step9: 미리보기 + AI 초안 생성 + 자필 작성 가이드
+ * Step9: 미리보기 - 왼쪽 법적 유효성 검토 + AI 초안, 오른쪽 실시간 법적 문서 미리보기
+ * 한국 민법 제1066조 자필증서 유언 형식 기준
  */
 import { useState } from "react";
-import { FileText, AlertCircle, CheckCircle2, Sparkles, Download, PenLine, Copy, Check } from "lucide-react";
+import { FileText, AlertCircle, CheckCircle2, Sparkles, PenLine, Copy, Check } from "lucide-react";
 import type { StepProps } from "./StepProps";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import WillDocumentPreview from "@/components/write/WillDocumentPreview";
 
 export default function Step9Preview({ will }: StepProps) {
   const [aiDraft, setAiDraft] = useState<string>("");
   const [copied, setCopied] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [mobileTab, setMobileTab] = useState<"check" | "preview">("check");
 
   const today = new Date(will.writtenDate || Date.now());
   const dateStr = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
@@ -22,7 +25,8 @@ export default function Step9Preview({ will }: StepProps) {
   if (!will.testatorAddress) issues.push("주소가 입력되지 않았습니다.");
   if (will.heirs.length === 0) issues.push("상속인이 등록되지 않았습니다.");
   const totalShare = will.heirs.reduce((s, h) => s + h.share, 0);
-  if (will.heirs.length > 0 && totalShare !== 100) issues.push(`상속 지분 합계가 ${totalShare}%입니다. 100%가 되어야 합니다.`);
+  if (will.heirs.length > 0 && totalShare !== 100)
+    issues.push(`상속 지분 합계가 ${totalShare}%입니다. 100%가 되어야 합니다.`);
 
   // AI 초안 생성 mutation
   const generateDraft = trpc.will.generateDraft.useMutation({
@@ -68,8 +72,9 @@ export default function Step9Preview({ will }: StepProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  return (
-    <div className="space-y-5">
+  // 왼쪽 패널 공통 컨텐츠
+  const LeftPanel = () => (
+    <div className="space-y-4">
       {/* 법적 유효성 검토 */}
       {issues.length > 0 ? (
         <div className="bg-red-50 border border-red-100 rounded-xl p-4 space-y-2">
@@ -90,7 +95,24 @@ export default function Step9Preview({ will }: StepProps) {
         </div>
       )}
 
-      {/* AI 초안 생성 버튼 */}
+      {/* 작성 내용 요약 */}
+      <div className="grid grid-cols-3 gap-2 text-xs">
+        {[
+          { label: "상속인", value: `${will.heirs.length}명` },
+          { label: "부동산", value: `${will.realEstates.length}건` },
+          { label: "금융자산", value: `${will.financialAssets.length}건` },
+          { label: "기타자산", value: `${will.otherAssets.length}건` },
+          { label: "사회기부", value: will.donationDetails ? "있음" : "없음" },
+          { label: "집행자", value: will.executorType === "heir1" ? "제1상속인" : will.executorCustomName ? "직접지정" : "미지정" },
+        ].map((item) => (
+          <div key={item.label} className="bg-gray-50 rounded-lg p-2.5 text-center">
+            <p className="text-gray-400">{item.label}</p>
+            <p className="font-bold text-[#1F3864] mt-0.5">{item.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* AI 초안 생성 */}
       <div className="bg-gradient-to-r from-[#1F3864] to-[#2a4a80] rounded-2xl p-5 text-white">
         <div className="flex items-start gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl bg-[#C9A961]/20 flex items-center justify-center flex-shrink-0">
@@ -128,23 +150,19 @@ export default function Step9Preview({ will }: StepProps) {
               <Sparkles className="w-4 h-4 text-[#C9A961]" />
               <span className="font-semibold text-[#1F3864] text-sm">AI 생성 유언장 초안</span>
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={handleCopy}
-                className="flex items-center gap-1.5 text-xs text-[#1F3864] hover:text-[#C9A961] transition-colors px-3 py-1.5 rounded-lg hover:bg-[#C9A961]/10"
-              >
-                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied ? "복사됨" : "복사"}
-              </button>
-            </div>
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 text-xs text-[#1F3864] hover:text-[#C9A961] transition-colors px-3 py-1.5 rounded-lg hover:bg-[#C9A961]/10"
+            >
+              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? "복사됨" : "복사"}
+            </button>
           </div>
-          <div className="p-5">
+          <div className="p-5 max-h-80 overflow-y-auto">
             <pre className="whitespace-pre-wrap font-serif text-sm text-gray-700 leading-loose" style={{ fontFamily: "Georgia, 'Noto Serif KR', serif" }}>
               {aiDraft}
             </pre>
           </div>
-
-          {/* 자필 작성 안내 */}
           <div className="border-t border-[#C9A961]/20 bg-amber-50 px-5 py-4">
             <button
               onClick={() => setShowGuide(!showGuide)}
@@ -158,26 +176,18 @@ export default function Step9Preview({ will }: StepProps) {
               <div className="mt-3 space-y-2 text-amber-800 text-sm">
                 <p className="font-semibold">📝 자필증서 유언 작성 방법 (한국 민법 제1066조)</p>
                 <div className="space-y-1.5 text-xs leading-relaxed">
-                  <div className="flex gap-2">
-                    <span className="w-5 h-5 rounded-full bg-amber-200 flex items-center justify-center flex-shrink-0 font-bold text-amber-800">1</span>
-                    <span><strong>A4 용지</strong>에 위 내용을 <strong>반드시 손으로 직접</strong> 써주세요. (타이핑·프린트 출력 불가)</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <span className="w-5 h-5 rounded-full bg-amber-200 flex items-center justify-center flex-shrink-0 font-bold text-amber-800">2</span>
-                    <span><strong>연월일</strong>을 반드시 기재하세요. (예: 2026년 4월 20일)</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <span className="w-5 h-5 rounded-full bg-amber-200 flex items-center justify-center flex-shrink-0 font-bold text-amber-800">3</span>
-                    <span><strong>주소</strong>를 자필로 기재하세요.</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <span className="w-5 h-5 rounded-full bg-amber-200 flex items-center justify-center flex-shrink-0 font-bold text-amber-800">4</span>
-                    <span><strong>성명</strong>을 자필로 서명하고 <strong>도장(날인)</strong>을 찍으세요.</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <span className="w-5 h-5 rounded-full bg-amber-200 flex items-center justify-center flex-shrink-0 font-bold text-amber-800">5</span>
-                    <span>작성 완료 후 <strong>사진 또는 스캔</strong>하여 다음 단계에서 업로드하세요.</span>
-                  </div>
+                  {[
+                    "A4 용지에 위 내용을 반드시 손으로 직접 써주세요. (타이핑·프린트 출력 불가)",
+                    "연월일을 반드시 기재하세요. (예: 2026년 4월 20일)",
+                    "주소를 자필로 기재하세요.",
+                    "성명을 자필로 서명하고 도장(날인)을 찍으세요.",
+                    "작성 완료 후 사진 또는 스캔하여 다음 단계에서 업로드하세요.",
+                  ].map((step, i) => (
+                    <div key={i} className="flex gap-2">
+                      <span className="w-5 h-5 rounded-full bg-amber-200 flex items-center justify-center flex-shrink-0 font-bold text-amber-800 text-xs">{i + 1}</span>
+                      <span>{step}</span>
+                    </div>
+                  ))}
                 </div>
                 <div className="mt-2 bg-amber-100 rounded-lg p-3 text-xs text-amber-700">
                   ✅ 자필증서 유언은 <strong>증인이 필요 없습니다.</strong> 위 4가지 요건만 충족하면 법적 효력이 발생합니다.
@@ -187,116 +197,61 @@ export default function Step9Preview({ will }: StepProps) {
           </div>
         </div>
       )}
+    </div>
+  );
 
-      {/* 기존 유언장 미리보기 */}
-      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-        <div className="bg-[#1F3864] px-6 py-4 flex items-center gap-2">
-          <FileText className="w-4 h-4 text-[#C9A961]" />
-          <span className="text-white font-semibold text-sm">유언장 구조 미리보기</span>
-          <span className="ml-auto text-white/40 text-xs">한국 민법 제1065조 기준</span>
+  return (
+    <div className="space-y-5">
+      {/* 상단 안내 */}
+      <div className="bg-[#1F3864]/5 border border-[#1F3864]/10 rounded-xl px-4 py-3 flex items-center gap-3">
+        <FileText className="w-5 h-5 text-[#1F3864] flex-shrink-0" />
+        <div>
+          <p className="text-sm font-semibold text-[#1F3864]">작성일: {dateStr}</p>
+          <p className="text-xs text-gray-500 mt-0.5">
+            데스크탑에서는 왼쪽 검토 + 오른쪽 실시간 문서 미리보기를 동시에 확인하세요.
+          </p>
         </div>
-        <div className="p-6 font-serif text-sm text-gray-700 leading-loose space-y-6" style={{ fontFamily: "Georgia, 'Noto Serif KR', serif" }}>
-          <div className="text-center">
-            <h2 className="text-xl font-bold text-[#1F3864] mb-1">유 언 장</h2>
-            <p className="text-gray-400 text-xs">LAST WILL AND TESTAMENT</p>
+      </div>
+
+      {/* 모바일 탭 전환 */}
+      <div className="flex bg-gray-100 rounded-xl p-1 lg:hidden">
+        <button
+          onClick={() => setMobileTab("check")}
+          className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
+            mobileTab === "check" ? "bg-white text-[#1F3864] shadow-sm" : "text-gray-500"
+          }`}
+        >
+          검토 & AI
+        </button>
+        <button
+          onClick={() => setMobileTab("preview")}
+          className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
+            mobileTab === "preview" ? "bg-white text-[#1F3864] shadow-sm" : "text-gray-500"
+          }`}
+        >
+          문서 미리보기
+        </button>
+      </div>
+
+      {/* 데스크탑: 좌우 분할 */}
+      <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6">
+        <LeftPanel />
+        <div className="sticky top-4">
+          <div className="flex items-center gap-2 mb-3">
+            <FileText className="w-4 h-4 text-[#1F3864]" />
+            <span className="text-sm font-semibold text-[#1F3864]">실시간 유언장 문서 미리보기</span>
+            <span className="text-xs text-gray-400 ml-auto">입력 즉시 반영</span>
           </div>
-
-          <div className="border-t border-b border-gray-100 py-4 space-y-1">
-            <p><strong>유언자 성명:</strong> {will.testatorName || "_______________"}</p>
-            <p><strong>주민등록번호:</strong> {will.testatorRRN ? will.testatorRRN.replace(/(\d{6})-?(\d{7})/, "$1-*******") : "_______________"}</p>
-            <p><strong>주소:</strong> {will.testatorAddress || "_______________"}</p>
-            <p><strong>작성일:</strong> {dateStr}</p>
-          </div>
-
-          <div>
-            <p className="font-bold text-[#1F3864] mb-2">【유언 전문】</p>
-            <p className="bg-gray-50 rounded-lg p-3 text-sm leading-relaxed">
-              본인 {will.testatorName || "___"}은(는) 정신이 맑고 건강한 상태에서 다음과 같이 유언한다.
-            </p>
-          </div>
-
-          {will.heirs.length > 0 && (
-            <div>
-              <p className="font-bold text-[#1F3864] mb-2">【제1조 상속인 지정 및 재산 분배】</p>
-              {will.heirs.map((heir, i) => (
-                <p key={heir.id} className="mb-1">
-                  제{i + 1}항. 본인의 {heir.relation} {heir.name}에게 전체 재산의 {heir.share}%를 상속한다.
-                </p>
-              ))}
-            </div>
-          )}
-
-          {(will.realEstates.length > 0 || will.financialAssets.length > 0 || will.otherAssets.length > 0) && (
-            <div>
-              <p className="font-bold text-[#1F3864] mb-2">【제2조 재산 목록】</p>
-              {will.realEstates.map((re, i) => (
-                <p key={re.id} className="mb-1">부동산 {i + 1}. {re.type} — {re.address}</p>
-              ))}
-              {will.financialAssets.map((fa, i) => (
-                <p key={fa.id} className="mb-1">금융자산 {i + 1}. {fa.type} — {fa.institution}</p>
-              ))}
-              {will.otherAssets.map((oa, i) => (
-                <p key={oa.id} className="mb-1">기타자산 {i + 1}. {oa.type} — {oa.description}</p>
-              ))}
-            </div>
-          )}
-
-          {/* 유언집행자 섹션 - 항상 표시 (미지정 시 제1상속인 자동) */}
-          <div className="border border-[#C9A961]/30 rounded-xl p-4 bg-[#C9A961]/5">
-            <p className="font-bold text-[#1F3864] mb-3">
-              ⚖️ 【유언집행자 지정】
-            </p>
-            {(!will.executorType || will.executorType === 'heir1') ? (
-              <div>
-                <p className="mb-1 text-sm">
-                  제1항. 유언집행자는 제1상속인{" "}
-                  {will.heirs.length > 0 ? (
-                    <strong className="text-[#1F3864]">{will.heirs[0].name}</strong>
-                  ) : (
-                    <span className="text-gray-400">(제1상속인)</span>
-                  )}
-                  {" "}이(가) 자동으로 맡는다.
-                </p>
-                <p className="text-xs text-gray-400 mt-1">※ 별도 지정 없음 — 제1상속인이 유언집행자로 자동 지정됩니다.</p>
-              </div>
-            ) : (
-              <div>
-                <p className="mb-1 text-sm">
-                  제1항. 유언집행자로{" "}
-                  <strong className="text-[#1F3864]">{will.executorCustomName || '___'}</strong>
-                  {will.executorCustomRelation && <span className="text-gray-500"> ({will.executorCustomRelation})</span>}
-                  {" "}을(를) 지정한다.
-                </p>
-                {will.executorCustomPhone && (
-                  <p className="text-xs text-gray-500 mt-1">연락처: {will.executorCustomPhone}</p>
-                )}
-                <p className="text-xs text-[#C9A961] mt-1">✓ 유언자가 직접 지정한 유언집행자입니다.</p>
-              </div>
-            )}
-          </div>
-
-          {(will.guardian || will.funeralWish || will.donationDetails || will.specialInstructions) && (
-            <div>
-              <p className="font-bold text-[#1F3864] mb-2">【제3조 특별 지시사항】</p>
-              {will.guardian && <p className="mb-1">제2항. 미성년 자녀의 후견인으로 {will.guardian}을(를) 지정한다.</p>}
-              {will.funeralWish && <p className="mb-1">제3항. 장례는 {will.funeralWish}으로 한다.</p>}
-              {will.donationDetails && <p className="mb-1">제4항. {will.donationDetails}</p>}
-              {will.specialInstructions && <p className="mb-1">제5항. {will.specialInstructions}</p>}
-            </div>
-          )}
-
-          <div className="border-t border-gray-100 pt-4">
-            <p className="bg-gray-50 rounded-lg p-3 text-sm leading-relaxed">
-              위 유언은 본인의 자유로운 의사에 따라 작성하였음을 확인한다.
-            </p>
-          </div>
-
-          <div className="text-right space-y-2">
-            <p>{dateStr}</p>
-            <p>유언자: {will.testatorName || "_______________"} (서명/날인)</p>
-            <p className="text-gray-400 text-xs">전자서명 및 분산 암호화 보안 인증 후 법적 효력 발생</p>
+          <div className="max-h-[calc(100vh-200px)] overflow-y-auto rounded-2xl">
+            <WillDocumentPreview will={will} />
           </div>
         </div>
+      </div>
+
+      {/* 모바일: 탭별 표시 */}
+      <div className="lg:hidden">
+        {mobileTab === "check" && <LeftPanel />}
+        {mobileTab === "preview" && <WillDocumentPreview will={will} />}
       </div>
     </div>
   );
