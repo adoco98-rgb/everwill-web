@@ -82,17 +82,33 @@ export const charityRouter = router({
     .input(
       z.object({
         category: z.enum(CHARITY_CATEGORIES),
+        /** 단체 직접 지정 여부 (false=EverWill이 선정, true=직접 지정) */
+        hasSpecificOrg: z.boolean().optional().default(false),
+        /** 직접 지정 시 단체명 */
         customOrgName: z.string().max(128).optional(),
+        /** 직접 지정 시 단체 주소 */
+        orgAddress: z.string().max(256).optional(),
+        /** 직접 지정 시 단체 연락처 */
+        orgPhone: z.string().max(64).optional(),
         amount: z.number().int().min(1, "기부 금액은 1원 이상이어야 합니다"),
         memo: z.string().max(500).optional(),
       }).refine(
-        (data) => data.category !== "other" || (!!data.customOrgName && data.customOrgName.trim().length > 0),
-        { message: "기타 선택 시 단체명을 입력해주세요", path: ["customOrgName"] }
+        (data) => !data.hasSpecificOrg || (!!data.customOrgName && data.customOrgName.trim().length > 0),
+        { message: "단체를 직접 지정하는 경우 단체명을 입력해주세요", path: ["customOrgName"] }
       )
     )
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new Error("DB 연결 실패");
+
+      const setData = {
+        hasSpecificOrg: input.hasSpecificOrg ? 1 : 0,
+        customOrgName: input.hasSpecificOrg ? (input.customOrgName ?? null) : null,
+        orgAddress: input.hasSpecificOrg ? (input.orgAddress ?? null) : null,
+        orgPhone: input.hasSpecificOrg ? (input.orgPhone ?? null) : null,
+        amount: input.amount,
+        memo: input.memo ?? null,
+      };
 
       // 기존 레코드 확인
       const existing = await db
@@ -109,11 +125,7 @@ export const charityRouter = router({
       if (existing.length > 0) {
         await db
           .update(charityDonations)
-          .set({
-            customOrgName: input.customOrgName ?? null,
-            amount: input.amount,
-            memo: input.memo ?? null,
-          })
+          .set(setData)
           .where(
             and(
               eq(charityDonations.userId, ctx.user.id),
@@ -125,9 +137,7 @@ export const charityRouter = router({
         await db.insert(charityDonations).values({
           userId: ctx.user.id,
           category: input.category,
-          customOrgName: input.customOrgName ?? null,
-          amount: input.amount,
-          memo: input.memo ?? null,
+          ...setData,
         });
         return { action: "created" as const };
       }
@@ -152,10 +162,6 @@ export const charityRouter = router({
 
   /**
    * 글로벌 기부 누적 통계 (공개 API)
-   * - 국가별 기부금 합산 (해당 국가 사용자의 기부금 합계)
-   * - 전체 기부 예정 금액 (KRW 환산 합계)
-   * - 기부 유언 등록자 수
-   * - 분야별 기부금 합계
    */
   getGlobalStats: publicProcedure.query(async () => {
     const db = await getDb();
@@ -176,7 +182,6 @@ export const charityRouter = router({
       };
     }
 
-    // 국가별 기부금 합산 (users.country JOIN)
     const countryRows = await db
       .select({
         country: users.country,
@@ -187,7 +192,6 @@ export const charityRouter = router({
       .leftJoin(users, eq(charityDonations.userId, users.id))
       .groupBy(users.country);
 
-    // 분야별 기부금 합산
     const categoryRows = await db
       .select({
         category: charityDonations.category,
@@ -197,14 +201,12 @@ export const charityRouter = router({
       .from(charityDonations)
       .groupBy(charityDonations.category);
 
-    // 국가별 결과 가공
     const byCountry = countryRows
       .filter((r) => r.totalAmount > 0)
       .map((r) => {
         const code = (r.country ?? "KR").toUpperCase();
         const meta = COUNTRY_CURRENCY[code] ?? COUNTRY_CURRENCY["KR"];
         const rate = KRW_RATES[meta.code] ?? 1;
-        // DB에 저장된 금액은 KRW 기준 → 해당 국가 통화로 환산
         const totalInCurrency = Math.round(Number(r.totalAmount) / rate);
         return {
           countryCode: code,
@@ -218,15 +220,12 @@ export const charityRouter = router({
       })
       .sort((a, b) => b.donorCount - a.donorCount);
 
-    // 전체 KRW 합산
     const totalKrw = countryRows.reduce((sum, r) => sum + Number(r.totalAmount), 0);
 
-    // 전체 기부자 수 (중복 제거)
     const donorCount = await db
       .select({ cnt: sql<number>`COUNT(DISTINCT ${charityDonations.userId})` })
       .from(charityDonations);
 
-    // 분야별 결과 가공
     const byCategory = categoryRows.map((r) => ({
       category: r.category,
       totalKrw: Number(r.totalAmount),

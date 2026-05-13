@@ -148,6 +148,13 @@
       "when": 1778579994039,
       "tag": "0020_absurd_annihilus",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1778657079758,
+      "tag": "0021_steep_jack_power",
+      "breakpoints": true
     }
   ]
 }

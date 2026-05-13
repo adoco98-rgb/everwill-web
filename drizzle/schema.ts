@@ -610,8 +610,14 @@ export const charityDonations = mysqlTable("charityDonations", {
     "religion",     // 종교·사회봉사
     "other",        // 기타 (단체명 직접 입력)
   ]).notNull(),
-  /** 기타 선택 시 단체명 직접 입력 */
+  /** 단체 지정 여부 (false=EverWill이 선정, true=직접 지정) */
+  hasSpecificOrg: tinyint("hasSpecificOrg").default(0),
+  /** 지정 단체명 (직접 지정 시) */
   customOrgName: varchar("customOrgName", { length: 128 }),
+  /** 지정 단체 주소 */
+  orgAddress: varchar("orgAddress", { length: 256 }),
+  /** 지정 단체 연락처 */
+  orgPhone: varchar("orgPhone", { length: 64 }),
   /** 기부 금액 (원) */
   amount: bigint("amount", { mode: "number" }).notNull().default(0),
   /** 메모 (선택) */
