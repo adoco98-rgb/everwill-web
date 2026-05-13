@@ -13,6 +13,7 @@
  */
 import { trpc } from "@/lib/trpc";
 import AddressSearch from "@/components/write/AddressSearch";
+import GlobalAddressSearch from "@/components/write/GlobalAddressSearch";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, Mail, Phone, Lock, User, Calendar, Globe,
@@ -35,6 +36,7 @@ interface AssetEntry {
   type: "bank" | "bond" | "real_estate" | "other";
   name: string;
   value: string;
+  address?: string; // 부동산 주소
 }
 
 // ─── 국가 목록 ───────────────────────────────────────────────
@@ -273,13 +275,36 @@ export default function LoginPage() {
   });
 
   // ── 자산 관리 ──
+  // ── 금액 포맷 유틸 ──
+  // 숫자 → 콤마 표시 (입력용)
+  function formatNumberInput(val: string): string {
+    const num = val.replace(/[^0-9]/g, "");
+    if (!num) return "";
+    return parseInt(num, 10).toLocaleString("ko-KR");
+  }
+  // 숫자 → 만원/억원 단위 표시
+  function formatKoreanUnit(val: string): string {
+    const num = parseInt(val.replace(/[^0-9]/g, ""), 10);
+    if (!num || isNaN(num)) return "";
+    if (num >= 100_000_000) {
+      const eok = Math.floor(num / 100_000_000);
+      const man = Math.floor((num % 100_000_000) / 10_000);
+      return man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
+    }
+    if (num >= 10_000) {
+      const man = Math.floor(num / 10_000);
+      const rest = num % 10_000;
+      return rest > 0 ? `${man.toLocaleString()}만 ${rest.toLocaleString()}원` : `${man.toLocaleString()}만원`;
+    }
+    return `${num.toLocaleString()}원`;
+  }
   function addAsset(type: AssetEntry["type"]) {
     setAssetList(prev => [...prev, { id: Math.random().toString(36).slice(2), type, name: "", value: "" }]);
   }
   function removeAsset(id: string) {
     setAssetList(prev => prev.filter(a => a.id !== id));
   }
-  function updateAsset(id: string, field: "name" | "value", val: string) {
+  function updateAsset(id: string, field: "name" | "value" | "address", val: string) {
     setAssetList(prev => prev.map(a => a.id === id ? { ...a, [field]: val } : a));
   }
 
@@ -677,22 +702,15 @@ export default function LoginPage() {
                       </select>
                     </div>
 
-                    {/* 주소 - 한국이면 카카오 주소검색, 해외면 수기 입력 */}
+                    {/* 주소 - 모든 국가 자동검색 (한국: 카카오, 해외: Google Places) */}
                     <div>
-                      {signupCountry === "KR" ? (
-                        <AddressSearch
-                          value={signupAddress}
-                          onChange={(addr) => setSignupAddress(addr)}
-                          label="주소 (선택)"
-                          placeholder="주소 검색 버튼을 눌러주세요"
-                        />
-                      ) : (
-                        <>
-                          <label className={labelCls}><MapPin className="w-4 h-4 inline mr-1.5 text-gray-400" />주소 <span className="text-gray-400 font-normal text-xs">(선택)</span></label>
-                          <input type="text" value={signupAddress} onChange={e => setSignupAddress(e.target.value)}
-                            placeholder="Enter your address" className={inputCls} />
-                        </>
-                      )}
+                      <GlobalAddressSearch
+                        value={signupAddress}
+                        onChange={(addr) => setSignupAddress(addr)}
+                        countryCode={signupCountry}
+                        label="주소 (선택)"
+                        placeholder={signupCountry === "KR" ? "주소 검색 버튼을 눌러주세요" : "Start typing your address..."}
+                      />
                     </div>
 
                     {/* 비밀번호 설정 */}
@@ -766,17 +784,49 @@ export default function LoginPage() {
                                     <Trash2 className="w-4 h-4" />
                                   </button>
                                 </div>
-                                <input type="text" value={asset.name}
-                                  onChange={e => updateAsset(asset.id, "name", e.target.value)}
-                                  placeholder={typeInfo.placeholder}
-                                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mb-2 focus:outline-none focus:border-[#1F3864] bg-white" />
+                                {/* 자산명 입력 (부동산은 주소 자동검색) */}
+                                {asset.type === "real_estate" ? (
+                                  <div className="mb-2">
+                                    <GlobalAddressSearch
+                                      value={asset.address || ""}
+                                      onChange={(addr) => updateAsset(asset.id, "address", addr)}
+                                      countryCode={signupCountry}
+                                      label="부동산 주소"
+                                      placeholder={signupCountry === "KR" ? "주소 검색 버튼을 눌러주세요" : "Enter property address..."}
+                                      showLabel={false}
+                                    />
+                                    <input type="text" value={asset.name}
+                                      onChange={e => updateAsset(asset.id, "name", e.target.value)}
+                                      placeholder="예: 아파트, 단독주택, 상가 등 (선택)"
+                                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mt-2 focus:outline-none focus:border-[#1F3864] bg-white" />
+                                  </div>
+                                ) : (
+                                  <input type="text" value={asset.name}
+                                    onChange={e => updateAsset(asset.id, "name", e.target.value)}
+                                    placeholder={typeInfo.placeholder}
+                                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm mb-2 focus:outline-none focus:border-[#1F3864] bg-white" />
+                                )}
+                                {/* 금액 입력 - 자동 콤마 + 만원/억원 단위 표시 */}
                                 <div className="relative">
-                                  <input type="number" value={asset.value}
-                                    onChange={e => updateAsset(asset.id, "value", e.target.value)}
+                                  <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={formatNumberInput(asset.value)}
+                                    onChange={e => {
+                                      const raw = e.target.value.replace(/[^0-9]/g, "");
+                                      updateAsset(asset.id, "value", raw);
+                                    }}
                                     placeholder="자산 가액"
-                                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[#1F3864] bg-white pr-8" />
+                                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[#1F3864] bg-white pr-8"
+                                  />
                                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">원</span>
                                 </div>
+                                {/* 만원/억원 단위 표시 */}
+                                {asset.value && formatKoreanUnit(asset.value) && (
+                                  <p className="text-xs text-[#C9A961] font-semibold mt-1 ml-1">
+                                    ≈ {formatKoreanUnit(asset.value)}
+                                  </p>
+                                )}
                               </div>
                             );
                           })}
