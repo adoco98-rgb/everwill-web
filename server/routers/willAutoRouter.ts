@@ -1,0 +1,450 @@
+/**
+ * willAutoRouter - 구매 후 자동화 파이프라인
+ *
+ * 1. scanAssetDocument  - 자산증명서 이미지 AI OCR (은행잔액증명/등기부등본/주식보유증명/보험증권/기타)
+ * 2. buildAssetData     - 스캔 결과 목록 → 구조화된 자산 데이터 자동완성
+ * 3. generateWillDraft  - 자산 데이터 + 상속인 목록 → 한국 민법 기반 유언장 초안 자동 생성
+ */
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { invokeLLM } from "../_core/llm";
+import { protectedProcedure, router } from "../_core/trpc";
+import { getDb } from "../db";
+import { users, heirs } from "../../drizzle/schema";
+import { eq } from "drizzle-orm";
+
+// ─── 자산증명서 유형 ───────────────────────────────────────────
+const ASSET_DOC_TYPES = [
+  "bank_balance",        // 은행 잔액증명서
+  "real_estate_registry", // 부동산 등기부등본
+  "stock_certificate",   // 주식보유증명서
+  "insurance_policy",    // 보험증권
+  "bond_certificate",    // 채권증명서
+  "other",               // 기타 자산 서류
+] as const;
+
+export const willAutoRouter = router({
+  /**
+   * 자산증명서 이미지 AI OCR 분석
+   * - 은행잔액증명서, 부동산 등기부등본, 주식보유증명서, 보험증권 등
+   * - 이미지(data URL 또는 https URL)를 받아 AI가 자동 분석
+   */
+  scanAssetDocument: protectedProcedure
+    .input(z.object({
+      imageUrl: z.string().refine(
+        (v) => v.startsWith("http") || v.startsWith("data:image/"),
+        { message: "올바른 이미지 URL 또는 data URL을 입력해주세요" }
+      ),
+      docTypeHint: z.enum(ASSET_DOC_TYPES).optional(),
+    }))
+    .mutation(async ({ input }) => {
+      try {
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: `당신은 한국 금융·부동산·주식 관련 자산증명서 전문 OCR 시스템입니다.
+              제공된 이미지에서 자산 정보를 정확하게 추출하세요.
+              
+              지원 문서 유형:
+              - bank_balance: 은행 잔액증명서 (예금주, 은행명, 계좌번호, 잔액, 기준일)
+              - real_estate_registry: 부동산 등기부등본 (소재지, 면적, 소유자, 공시지가, 등기일)
+              - stock_certificate: 주식보유증명서 (종목명, 종목코드, 보유주수, 평가금액, 기준일)
+              - insurance_policy: 보험증권 (보험사, 상품명, 보험금액, 만기일, 수익자)
+              - bond_certificate: 채권증명서 (발행기관, 채권명, 액면금액, 만기일)
+              - other: 기타 자산 관련 서류
+              
+              규칙:
+              1. 명확하게 보이는 텍스트만 추출 (추측 금지)
+              2. 금액은 숫자만 (원화 기준, 단위 제거)
+              3. 날짜는 YYYY-MM-DD 형식
+              4. 불명확한 필드는 null 반환
+              5. JSON만 반환`,
+            },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "image_url",
+                  image_url: { url: input.imageUrl, detail: "high" },
+                },
+                {
+                  type: "text",
+                  text: `이 자산증명서를 분석하고 다음 JSON 형식으로만 반환하세요:
+{
+  "docType": "${input.docTypeHint || "자동감지"}",
+  "detectedDocType": "bank_balance|real_estate_registry|stock_certificate|insurance_policy|bond_certificate|other",
+  "issuer": "발급기관명 (은행명, 법원, 증권사 등)",
+  "ownerName": "소유자/예금주 이름",
+  "assetName": "자산명 (계좌번호, 소재지, 종목명 등)",
+  "assetCode": "고유코드 (계좌번호 뒷4자리, 종목코드 등)",
+  "amount": "금액 (숫자만, 원화 기준)",
+  "unit": "원|주|㎡|필지",
+  "referenceDate": "기준일 YYYY-MM-DD",
+  "expiryDate": "만기일 YYYY-MM-DD (해당시)",
+  "location": "소재지 (부동산인 경우)",
+  "area": "면적 (부동산인 경우, 숫자만)",
+  "beneficiary": "수익자/수혜자 (보험인 경우)",
+  "additionalInfo": "기타 중요 정보",
+  "confidence": "high|medium|low"
+}`,
+                },
+              ],
+            },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "asset_doc_scan_result",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  docType: { type: "string" },
+                  detectedDocType: { type: "string" },
+                  issuer: { type: ["string", "null"] },
+                  ownerName: { type: ["string", "null"] },
+                  assetName: { type: ["string", "null"] },
+                  assetCode: { type: ["string", "null"] },
+                  amount: { type: ["string", "null"] },
+                  unit: { type: ["string", "null"] },
+                  referenceDate: { type: ["string", "null"] },
+                  expiryDate: { type: ["string", "null"] },
+                  location: { type: ["string", "null"] },
+                  area: { type: ["string", "null"] },
+                  beneficiary: { type: ["string", "null"] },
+                  additionalInfo: { type: ["string", "null"] },
+                  confidence: { type: "string" },
+                },
+                required: [
+                  "docType", "detectedDocType", "issuer", "ownerName", "assetName",
+                  "assetCode", "amount", "unit", "referenceDate", "expiryDate",
+                  "location", "area", "beneficiary", "additionalInfo", "confidence",
+                ],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+
+        const content = response.choices?.[0]?.message?.content;
+        if (!content) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "자산증명서 분석에 실패했습니다." });
+        }
+        const result = typeof content === "string" ? JSON.parse(content) : content;
+
+        // 자산 유형별 한국어 레이블
+        const docTypeLabels: Record<string, string> = {
+          bank_balance: "은행 잔액증명서",
+          real_estate_registry: "부동산 등기부등본",
+          stock_certificate: "주식보유증명서",
+          insurance_policy: "보험증권",
+          bond_certificate: "채권증명서",
+          other: "기타 자산 서류",
+        };
+
+        return {
+          success: true,
+          data: {
+            ...result,
+            docTypeLabel: docTypeLabels[result.detectedDocType] || "자산 서류",
+          },
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        console.error("[willAuto] 자산증명서 OCR 오류:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "자산증명서 분석 중 오류가 발생했습니다. 이미지를 다시 확인해주세요.",
+        });
+      }
+    }),
+
+  /**
+   * AI 자산 데이터 자동완성
+   * - 여러 자산증명서 스캔 결과를 통합하여 구조화된 자산 목록 생성
+   */
+  buildAssetData: protectedProcedure
+    .input(z.object({
+      scanResults: z.array(z.object({
+        docTypeLabel: z.string(),
+        detectedDocType: z.string(),
+        issuer: z.string().nullable(),
+        ownerName: z.string().nullable(),
+        assetName: z.string().nullable(),
+        assetCode: z.string().nullable(),
+        amount: z.string().nullable(),
+        unit: z.string().nullable(),
+        referenceDate: z.string().nullable(),
+        location: z.string().nullable(),
+        area: z.string().nullable(),
+        beneficiary: z.string().nullable(),
+        additionalInfo: z.string().nullable(),
+        confidence: z.string(),
+      })),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+
+      // 사용자 정보 조회
+      const userRows = await db.select().from(users).where(eq(users.openId, ctx.user.openId)).limit(1);
+      const user = userRows[0];
+
+      try {
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: `당신은 한국 상속법 전문가입니다. 제공된 자산증명서 스캔 데이터를 바탕으로 
+              구조화된 자산 목록을 생성하세요. 한국 민법 및 상속세법 기준으로 자산을 분류하고 
+              총 자산 가치를 계산하세요.`,
+            },
+            {
+              role: "user",
+              content: `다음 자산증명서 스캔 결과를 분석하여 구조화된 자산 데이터를 생성하세요.
+              
+소유자: ${user?.name || "미확인"}
+
+스캔 결과:
+${JSON.stringify(input.scanResults, null, 2)}
+
+다음 JSON 형식으로 반환하세요:
+{
+  "assets": [
+    {
+      "id": "고유ID (asset_1, asset_2...)",
+      "category": "real_estate|financial_bank|financial_stock|financial_insurance|financial_bond|other",
+      "categoryLabel": "부동산|예금/적금|주식/펀드|보험|채권|기타",
+      "name": "자산명",
+      "description": "상세 설명 (소재지, 계좌번호 뒷4자리 등)",
+      "estimatedValue": "추정 가치 (숫자, 원화)",
+      "unit": "원|주",
+      "quantity": "수량 (주식인 경우 주수)",
+      "issuer": "발급기관/은행/증권사",
+      "referenceDate": "기준일",
+      "location": "소재지 (부동산)",
+      "area": "면적 (부동산, ㎡)",
+      "country": "KR",
+      "notes": "특이사항"
+    }
+  ],
+  "summary": {
+    "totalEstimatedValue": "총 추정 자산 가치 (원화 숫자)",
+    "realEstateTotal": "부동산 합계",
+    "financialTotal": "금융자산 합계",
+    "otherTotal": "기타 합계",
+    "taxableEstimate": "과세 추정액 (상속세 기준)",
+    "notes": "자산 평가 주의사항"
+  }
+}`,
+            },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "asset_data_result",
+              strict: false,
+              schema: {
+                type: "object",
+                properties: {
+                  assets: { type: "array" },
+                  summary: { type: "object" },
+                },
+                required: ["assets", "summary"],
+              },
+            },
+          },
+        });
+
+        const content = response.choices?.[0]?.message?.content;
+        if (!content) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "자산 데이터 생성 실패" });
+        const result = typeof content === "string" ? JSON.parse(content) : content;
+
+        return { success: true, data: result };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "자산 데이터 자동완성 중 오류가 발생했습니다." });
+      }
+    }),
+
+  /**
+   * 법적 유언장 초안 자동 생성
+   * - 신분증 정보 + 자산 데이터 + 상속인 목록 → 한국 민법 기반 유언장 자동 작성
+   * - 민법 제1065조~1072조 (공정증서 유언 요건 포함)
+   */
+  generateWillDraft: protectedProcedure
+    .input(z.object({
+      // 유언자 정보 (신분증 스캔 결과)
+      testator: z.object({
+        name: z.string(),
+        idNumber: z.string().optional(),
+        birthDate: z.string().optional(),
+        address: z.string().optional(),
+        nationality: z.string().optional(),
+      }),
+      // 자산 목록 (buildAssetData 결과)
+      assets: z.array(z.object({
+        id: z.string(),
+        categoryLabel: z.string(),
+        name: z.string(),
+        description: z.string().optional(),
+        estimatedValue: z.string().optional(),
+        location: z.string().optional(),
+        issuer: z.string().optional(),
+        notes: z.string().optional(),
+      })),
+      // 상속인 목록 (DB heirs 또는 직접 입력)
+      heirs: z.array(z.object({
+        priority: z.number(),
+        name: z.string(),
+        relationship: z.string(),
+        shareValue: z.string().optional(),
+        shareType: z.string().optional(),
+        address: z.string().optional(),
+        phone: z.string().optional(),
+      })),
+      // 추가 지시사항
+      specialInstructions: z.object({
+        funeralWish: z.string().optional(),
+        executor: z.string().optional(),
+        donationAmount: z.string().optional(),
+        donationOrg: z.string().optional(),
+        petCare: z.string().optional(),
+        otherWishes: z.string().optional(),
+      }).optional(),
+      // 유언 유형
+      willType: z.enum(["holographic", "notarial", "electronic"]).default("electronic"),
+    }))
+    .mutation(async ({ input }) => {
+      try {
+        const today = new Date();
+        const dateStr = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
+
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: `당신은 한국 민법 전문 유언장 작성 전문가입니다.
+              
+              한국 민법 유언 관련 조항:
+              - 제1065조: 유언의 방식 (자필증서, 녹음, 공정증서, 비밀증서, 구수증서)
+              - 제1066조: 자필증서에 의한 유언 (전문 자필, 연월일, 주소, 성명 자필, 날인)
+              - 제1068조: 공정증서에 의한 유언 요건
+              - 제1073조: 유언의 효력 발생 시기 (사망 시)
+              - 제1112조~1118조: 유류분 (직계비속·배우자 1/2, 직계존속·형제자매 1/3)
+              - 제1000조: 상속 순위 (직계비속→직계존속→형제자매→4촌이내 방계혈족)
+              
+              중요 규칙:
+              1. "법적 효력 보장" 표현 금지 → "민법 요건에 따라 작성된" 표현 사용
+              2. 유류분 침해 여부 자동 검토 및 경고 포함
+              3. 상속세 납부 의무 안내 포함
+              4. 전문적이고 공식적인 문어체 사용
+              5. 날짜, 장소, 서명란 포함`,
+            },
+            {
+              role: "user",
+              content: `다음 정보를 바탕으로 한국 민법 기준 유언장 초안을 작성하세요.
+
+## 유언자 정보
+- 성명: ${input.testator.name}
+- 주민등록번호: ${input.testator.idNumber || "미확인"}
+- 생년월일: ${input.testator.birthDate || "미확인"}
+- 주소: ${input.testator.address || "미확인"}
+- 국적: ${input.testator.nationality || "대한민국"}
+
+## 자산 목록
+${input.assets.map((a, i) => `${i + 1}. [${a.categoryLabel}] ${a.name}
+   - 설명: ${a.description || ""}
+   - 추정가치: ${a.estimatedValue ? Number(a.estimatedValue).toLocaleString() + "원" : "미확인"}
+   - 소재지: ${a.location || ""}
+   - 발급기관: ${a.issuer || ""}
+   - 비고: ${a.notes || ""}`).join("\n")}
+
+## 상속인 목록
+${input.heirs.map((h) => `- ${h.priority}순위: ${h.name} (${h.relationship})
+   - 분배: ${h.shareValue || "미정"} ${h.shareType === "percent" ? "%" : "원"}
+   - 주소: ${h.address || "미확인"}
+   - 연락처: ${h.phone || "미확인"}`).join("\n")}
+
+## 특별 지시사항
+- 장례 방식: ${input.specialInstructions?.funeralWish || "미지정"}
+- 유언 집행자: ${input.specialInstructions?.executor || "1순위 상속인"}
+- 사회 기부: ${input.specialInstructions?.donationAmount ? input.specialInstructions.donationAmount + "원" : "없음"} (${input.specialInstructions?.donationOrg || ""})
+- 반려동물 돌봄: ${input.specialInstructions?.petCare || "없음"}
+- 기타: ${input.specialInstructions?.otherWishes || "없음"}
+
+## 작성 날짜
+${dateStr}
+
+다음 JSON 형식으로 반환하세요:
+{
+  "willText": "완성된 유언장 전문 (한국어, 공식 문어체, 마크다운 사용 가능)",
+  "legalWarnings": ["유류분 경고", "상속세 안내 등 법적 주의사항 배열"],
+  "inheritanceRatioCheck": {
+    "isValid": true,
+    "totalPercent": 100,
+    "issues": ["분배 비율 문제점 배열"]
+  },
+  "estimatedInheritanceTax": "상속세 추정액 (원화)",
+  "recommendedActions": ["공증 권장", "변호사 검토 권장 등 추천 조치 배열"],
+  "willSummary": "유언장 핵심 내용 3줄 요약"
+}`,
+            },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "will_draft_result",
+              strict: false,
+              schema: {
+                type: "object",
+                properties: {
+                  willText: { type: "string" },
+                  legalWarnings: { type: "array" },
+                  inheritanceRatioCheck: { type: "object" },
+                  estimatedInheritanceTax: { type: "string" },
+                  recommendedActions: { type: "array" },
+                  willSummary: { type: "string" },
+                },
+                required: ["willText", "legalWarnings", "inheritanceRatioCheck", "estimatedInheritanceTax", "recommendedActions", "willSummary"],
+              },
+            },
+          },
+        });
+
+        const content = response.choices?.[0]?.message?.content;
+        if (!content) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "유언장 생성 실패" });
+        const result = typeof content === "string" ? JSON.parse(content) : content;
+
+        return {
+          success: true,
+          data: {
+            ...result,
+            generatedAt: new Date().toISOString(),
+            testatorName: input.testator.name,
+            assetCount: input.assets.length,
+            heirCount: input.heirs.length,
+          },
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "유언장 자동 생성 중 오류가 발생했습니다." });
+      }
+    }),
+
+  /**
+   * 로그인 사용자의 상속인 목록 조회 (유언장 생성용)
+   */
+  getHeirsForWill: protectedProcedure
+    .query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+
+      const userRows = await db.select().from(users).where(eq(users.openId, ctx.user.openId)).limit(1);
+      if (userRows.length === 0) throw new TRPCError({ code: "UNAUTHORIZED", message: "사용자를 찾을 수 없습니다." });
+
+      const heirRows = await db.select().from(heirs).where(eq(heirs.userId, userRows[0].id));
+      return { success: true, heirs: heirRows };
+    }),
+});
