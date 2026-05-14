@@ -12,6 +12,15 @@ export const SARAM_PRODUCTS = {
     currency: "krw",
     key: "certification",
   },
+  /** 전자 인증 프리미엄 (영상유언 + 자필유언 포함) */
+  CERTIFICATION_PREMIUM: {
+    name: "SARAM 전자 인증 프리미엄",
+    description: "전자 인증 + 영상 유언장 + 자필 유언장 스캔 인증 — 모든 인증 방식 포함",
+    amount: 69000,
+    currency: "krw",
+    key: "certification_premium",
+    includes: ["certification", "video_will", "handwritten_scan"],
+  },
   /** 영상 유언장 */
   VIDEO_WILL: {
     name: "영상 유언장",
@@ -96,3 +105,4 @@ export const SARAM_PRODUCTS = {
 } as const;
 
 export type ProductKey = keyof typeof SARAM_PRODUCTS;
+export type ProductKeyStr = "certification" | "certification_premium" | "video_will" | "handwritten_scan" | "storage_1y" | "storage_3y" | "storage_5y" | "storage_10y" | "storage_lifetime" | "badge_essential" | "badge_wearable" | "badge_necklace" | "badge_premium";

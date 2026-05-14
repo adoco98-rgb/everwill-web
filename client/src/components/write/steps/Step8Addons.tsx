@@ -1,47 +1,149 @@
-import { Video, PenLine, Check, Info, Scale } from "lucide-react";
+import { Video, PenLine, Check, Info, Scale, Star, Zap } from "lucide-react";
 import type { StepProps } from "./StepProps";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Step8Addons({ will, update }: StepProps) {
   const { t, language } = useLanguage();
   const isKo = language === "ko";
-
-  // 추가 인증 설명 텍스트 (번역 파일 연동)
   const s = t.services;
+
+  // 현재 선택된 플랜 계산
+  const isPremiumPlan = will.hasVideoWill && will.hasHandwrittenScan;
+  const totalPrice = 49000 + (will.hasVideoWill ? 29000 : 0) + (will.hasHandwrittenScan ? 19000 : 0);
 
   return (
     <div className="space-y-5">
-      {/* 추가 인증 개념 안내 배너 */}
+      {/* 안내 배너 */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
         <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
         <div>
           <p className="text-blue-800 text-sm font-semibold mb-1">
-            {isKo ? "기본 가입만으로도 법적 효력이 있습니다" : (s.s2AdditionalAuth || "Optional Additional Certification")}
+            {isKo ? "기본 가입만으로도 법적 효력이 있습니다" : "Basic certification is legally valid"}
           </p>
           <p className="text-blue-700 text-xs leading-relaxed">
             {isKo
               ? "에버윌 기본 가입 + eKYC 전자 인증만으로 법적 효력 있는 유언장이 완성됩니다. 아래 추가 인증 서비스는 더 높은 수준의 법적 확실성을 원하시는 분들을 위한 선택적 옵션입니다."
-              : (language === "ja"
-                ? "EverWillの基本会員登録とeKYC電子認証だけで、法的効力のある遺言書が完成します。以下の追加認証サービスは、より高い法的確実性をお求めの方のための任意オプションです。"
-                : language === "zh"
-                ? "仅凭EverWill基础会员注册和eKYC电子认证，即可完成具有法律效力的遗嘱。以下附加认证服务是为希望获得更高法律确定性的用户提供的可选选项。"
-                : language === "ar"
-                ? "التسجيل الأساسي في EverWill مع التوثيق الإلكتروني eKYC وحده يُنشئ وصية ذات صلاحية قانونية كاملة. خدمات التوثيق الإضافية أدناه خيارات اختيارية لمن يرغب في مستوى أعلى من اليقين القانوني."
-                : "EverWill basic membership + eKYC electronic certification alone creates a legally valid will. The additional certification services below are optional for those seeking an even higher level of legal certainty."
-              )
-            }
+              : "EverWill basic membership + eKYC electronic certification alone creates a legally valid will."}
           </p>
         </div>
       </div>
 
-      <p className="text-gray-500 text-sm">
-        {isKo ? "선택 사항입니다. 나중에 추가할 수도 있습니다." : "Optional. You can add these later as well."}
-      </p>
+      {/* ── 플랜 선택 카드 ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* 기본 플랜 */}
+        <div
+          onClick={() => update({ hasVideoWill: false, hasHandwrittenScan: false })}
+          className={`cursor-pointer rounded-2xl border-2 p-5 transition-all relative ${
+            !will.hasVideoWill && !will.hasHandwrittenScan
+              ? "border-[#1F3864] bg-[#1F3864]/4 shadow-md"
+              : "border-gray-200 bg-white hover:border-[#1F3864]/30"
+          }`}
+        >
+          {(!will.hasVideoWill && !will.hasHandwrittenScan) && (
+            <span className="absolute -top-2.5 left-4 bg-[#1F3864] text-white text-xs font-bold px-3 py-0.5 rounded-full">
+              선택됨
+            </span>
+          )}
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
+              <Check className="w-5 h-5 text-gray-600" />
+            </div>
+            <div>
+              <p className="font-bold text-[#1F3864] text-sm">{isKo ? "전자 인증 기본" : "Basic Certification"}</p>
+              <p className="text-xs text-gray-400">{isKo ? "전자 인증만" : "e-Certification only"}</p>
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-[#1F3864] mb-3">
+            {isKo ? "₩49,000" : "$39"}
+          </div>
+          <ul className="space-y-1.5">
+            {(isKo
+              ? ["유언장 전자 인증", "블록체인 해시 기록", "인증서 발급"]
+              : ["Electronic certification", "Blockchain hash record", "Certificate issuance"]
+            ).map((f) => (
+              <li key={f} className="flex items-center gap-2 text-xs text-gray-500">
+                <Check className="w-3 h-3 text-gray-400 flex-shrink-0" />{f}
+              </li>
+            ))}
+          </ul>
+          <div className={`mt-4 w-full py-2 rounded-xl text-xs font-semibold text-center transition-all ${
+            !will.hasVideoWill && !will.hasHandwrittenScan
+              ? "bg-[#1F3864] text-white"
+              : "bg-gray-100 text-gray-500"
+          }`}>
+            {!will.hasVideoWill && !will.hasHandwrittenScan ? "✓ 선택됨" : "선택하기"}
+          </div>
+        </div>
 
-      {/* 영상 유언장 */}
+        {/* 프리미엄 플랜 */}
+        <div
+          onClick={() => update({ hasVideoWill: true, hasHandwrittenScan: true })}
+          className={`cursor-pointer rounded-2xl border-2 p-5 transition-all relative ${
+            isPremiumPlan
+              ? "border-[#C9A961] bg-[#C9A961]/5 shadow-md"
+              : "border-gray-200 bg-white hover:border-[#C9A961]/30"
+          }`}
+        >
+          <span className="absolute -top-2.5 left-4 bg-[#C9A961] text-white text-xs font-bold px-3 py-0.5 rounded-full">
+            {isKo ? "추천 · 할인 ₩29,000" : "Recommended · Save $29"}
+          </span>
+          {isPremiumPlan && (
+            <span className="absolute -top-2.5 right-4 bg-green-500 text-white text-xs font-bold px-3 py-0.5 rounded-full">
+              선택됨
+            </span>
+          )}
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+              <Star className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="font-bold text-[#1F3864] text-sm">{isKo ? "전자 인증 프리미엄" : "Premium Certification"}</p>
+              <p className="text-xs text-gray-400">{isKo ? "영상 + 자필 모두 포함" : "Video + Handwritten included"}</p>
+            </div>
+          </div>
+          <div className="flex items-baseline gap-2 mb-1">
+            <span className="text-2xl font-bold text-[#C9A961]">
+              {isKo ? "₩69,000" : "$59"}
+            </span>
+            <span className="text-sm text-gray-400 line-through">
+              {isKo ? "₩97,000" : "$87"}
+            </span>
+          </div>
+          <p className="text-xs text-green-600 font-semibold mb-3">
+            {isKo ? "영상 + 자필 묶음 할인 적용" : "Bundle discount applied"}
+          </p>
+          <ul className="space-y-1.5">
+            {(isKo
+              ? ["유언장 전자 인증", "블록체인 해시 기록", "인증서 발급", "영상 유언장 (법적 녹음)", "자필 유언장 스캔 인증"]
+              : ["Electronic certification", "Blockchain hash record", "Certificate issuance", "Video Will (legal recording)", "Handwritten Will scan"]
+            ).map((f, i) => (
+              <li key={f} className={`flex items-center gap-2 text-xs ${i >= 3 ? "text-[#C9A961] font-semibold" : "text-gray-500"}`}>
+                <Check className={`w-3 h-3 flex-shrink-0 ${i >= 3 ? "text-[#C9A961]" : "text-gray-400"}`} />{f}
+                {i >= 3 && <span className="ml-auto text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">포함</span>}
+              </li>
+            ))}
+          </ul>
+          <div className={`mt-4 w-full py-2 rounded-xl text-xs font-semibold text-center transition-all ${
+            isPremiumPlan
+              ? "bg-[#C9A961] text-white"
+              : "bg-amber-50 text-[#C9A961] border border-[#C9A961]/30"
+          }`}>
+            {isPremiumPlan ? "✓ 선택됨" : "선택하기"}
+          </div>
+        </div>
+      </div>
+
+      {/* 개별 선택 구분선 */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-px bg-gray-200" />
+        <span className="text-xs text-gray-400 font-semibold">또는 개별 선택</span>
+        <div className="flex-1 h-px bg-gray-200" />
+      </div>
+
+      {/* 영상 유언장 (개별) */}
       <div
         onClick={() => update({ hasVideoWill: !will.hasVideoWill })}
-        className={`cursor-pointer rounded-2xl border-2 p-6 transition-all ${
+        className={`cursor-pointer rounded-2xl border-2 p-5 transition-all ${
           will.hasVideoWill
             ? "border-[#1F3864] bg-[#1F3864]/4"
             : "border-gray-200 bg-white hover:border-[#1F3864]/30"
@@ -53,8 +155,8 @@ export default function Step8Addons({ will, update }: StepProps) {
               <Video className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <h4 className="font-bold text-[#1F3864]">{s.s2Title || (isKo ? "영상 유언장" : "Video Will")}</h4>
-              <p className="text-gray-400 text-sm">{isKo ? "법적 녹음 유언 + 가족 감성 메시지" : "Legal recorded will + emotional family messages"}</p>
+              <h4 className="font-bold text-[#1F3864]">{isKo ? "영상 유언장" : "Video Will"}</h4>
+              <p className="text-gray-400 text-sm">{isKo ? "법적 녹음 유언 + 가족 감성 메시지" : "Legal recorded will + family messages"}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -76,28 +178,12 @@ export default function Step8Addons({ will, update }: StepProps) {
             </li>
           ))}
         </ul>
-
-        {/* 추가 인증 법적 근거 설명 */}
-        <div className="mt-4 ml-16 bg-purple-50 border border-purple-100 rounded-lg p-3 flex items-start gap-2">
-          <Scale className="w-4 h-4 text-purple-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-purple-700 text-xs font-semibold mb-0.5">
-              {s.s2AdditionalAuth || (isKo ? "추가 인증 서비스" : "Optional Additional Certification")}
-            </p>
-            <p className="text-purple-600 text-xs leading-relaxed">
-              {s.s2LegalNote || (isKo ? "기본 가입만으로도 전자 인증 유언장이 완성됩니다. 영상 유언장은 이를 더욱 확고히 하는 선택적 추가 인증입니다." : "Basic membership already creates a legally valid will. Video Will is an optional add-on for stronger legal certainty.")}
-            </p>
-            <p className="text-purple-500 text-[11px] mt-1 leading-relaxed">
-              {s.s2LegalBase || ""}
-            </p>
-          </div>
-        </div>
       </div>
 
-      {/* 자필 유언장 스캔 */}
+      {/* 자필 유언장 스캔 (개별) */}
       <div
         onClick={() => update({ hasHandwrittenScan: !will.hasHandwrittenScan })}
-        className={`cursor-pointer rounded-2xl border-2 p-6 transition-all ${
+        className={`cursor-pointer rounded-2xl border-2 p-5 transition-all ${
           will.hasHandwrittenScan
             ? "border-[#1F3864] bg-[#1F3864]/4"
             : "border-gray-200 bg-white hover:border-[#1F3864]/30"
@@ -109,7 +195,7 @@ export default function Step8Addons({ will, update }: StepProps) {
               <PenLine className="w-6 h-6 text-amber-600" />
             </div>
             <div>
-              <h4 className="font-bold text-[#1F3864]">{s.s3Title || (isKo ? "자필 유언장 스캔 인증" : "Handwritten Will Scan")}</h4>
+              <h4 className="font-bold text-[#1F3864]">{isKo ? "자필 유언장 스캔 인증" : "Handwritten Will Scan"}</h4>
               <p className="text-gray-400 text-sm">{isKo ? "자필 원본 업로드 + AI 형식 검증" : "Upload photo → AI format validation"}</p>
             </div>
           </div>
@@ -132,40 +218,36 @@ export default function Step8Addons({ will, update }: StepProps) {
             </li>
           ))}
         </ul>
-
-        {/* 추가 인증 법적 근거 설명 */}
-        <div className="mt-4 ml-16 bg-amber-50 border border-amber-100 rounded-lg p-3 flex items-start gap-2">
-          <Scale className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-amber-700 text-xs font-semibold mb-0.5">
-              {s.s3AdditionalAuth || (isKo ? "추가 인증 서비스" : "Optional Additional Certification")}
-            </p>
-            <p className="text-amber-600 text-xs leading-relaxed">
-              {s.s3LegalNote || (isKo ? "기본 가입만으로도 전자 인증 유언장이 완성됩니다. 자필 유언 스캔은 이를 더욱 확고히 하는 선택적 추가 인증입니다." : "Basic membership already creates a legally valid will. Handwritten Will Scan is an optional add-on for stronger legal certainty.")}
-            </p>
-            <p className="text-amber-500 text-[11px] mt-1 leading-relaxed">
-              {s.s3LegalBase || ""}
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* 합계 */}
-      {(will.hasVideoWill || will.hasHandwrittenScan) && (
-        <div className="bg-[#1F3864] rounded-xl p-4 flex items-center justify-between">
-          <span className="text-white/70 text-sm">
+      <div className={`rounded-xl p-4 flex items-center justify-between ${
+        isPremiumPlan ? "bg-[#C9A961]" : "bg-[#1F3864]"
+      }`}>
+        <div>
+          <span className="text-white/80 text-sm">
             {isKo ? "전자 인증 ₩49,000" : "Certification $39"}
             {will.hasVideoWill && (isKo ? " + 영상 ₩29,000" : " + Video $29")}
             {will.hasHandwrittenScan && (isKo ? " + 자필 ₩19,000" : " + Scan $19")}
           </span>
-          <span className="text-[#C9A961] font-bold text-lg">
+          {isPremiumPlan && (
+            <p className="text-white/70 text-xs mt-0.5">
+              {isKo ? "프리미엄 묶음 할인 적용 (₩29,000 절약)" : "Bundle discount applied (Save $29)"}
+            </p>
+          )}
+        </div>
+        <div className="text-right">
+          {isPremiumPlan && (
+            <p className="text-white/60 text-xs line-through">₩97,000</p>
+          )}
+          <span className="text-white font-bold text-lg">
             {isKo
-              ? `₩${(49000 + (will.hasVideoWill ? 29000 : 0) + (will.hasHandwrittenScan ? 19000 : 0)).toLocaleString()}`
-              : `$${39 + (will.hasVideoWill ? 29 : 0) + (will.hasHandwrittenScan ? 19 : 0)}`
+              ? `₩${(isPremiumPlan ? 69000 : totalPrice).toLocaleString()}`
+              : `$${isPremiumPlan ? 59 : (39 + (will.hasVideoWill ? 29 : 0) + (will.hasHandwrittenScan ? 19 : 0))}`
             }
           </span>
         </div>
-      )}
+      </div>
     </div>
   );
 }

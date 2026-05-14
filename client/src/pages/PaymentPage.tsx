@@ -10,6 +10,7 @@ import { Link } from "wouter";
 
 type ProductKey =
   | "certification"
+  | "certification_premium"
   | "video_will"
   | "handwritten_scan"
   | "storage_1y"
@@ -29,8 +30,9 @@ interface CartItem {
   quantity: number;
 }
 
-const PRODUCTS: { key: ProductKey; name: string; desc: string; amount: number; category: string; recommended?: boolean }[] = [
-  { key: "certification", name: "전자 인증", desc: "유언장 전자 인증 · 분산 암호화 기록 · 인증서 발급", amount: 49000, category: "인증", recommended: true },
+const PRODUCTS: { key: ProductKey; name: string; desc: string; amount: number; category: string; recommended?: boolean; badge?: string; includes?: string[] }[] = [
+  { key: "certification", name: "전자 인증 기본", desc: "유언장 전자 인증 · 블록체인 해시 기록 · 인증서 발급", amount: 49000, category: "인증" },
+  { key: "certification_premium", name: "전자 인증 프리미엄", desc: "전자 인증 + 영상 유언장 + 자필 유언장 스캔 인증 — 모든 인증 방식 포함", amount: 69000, category: "인증", recommended: true, badge: "할인 ₩29,000", includes: ["영상 유언장", "자필 유언장 스캔"] },
   { key: "video_will", name: "영상 유언장", desc: "법적 녹음 유언 + 가족 감성 메시지 · 평생 보관", amount: 29000, category: "부가서비스" },
   { key: "handwritten_scan", name: "자필 유언장 스캔", desc: "자필 원본 업로드 · AI 형식 검증 · 분산 암호화 보안 기록", amount: 19000, category: "부가서비스" },
   { key: "storage_1y", name: "보관 1년", desc: "디지털 유언장 1년 보관 (2년차~)", amount: 9900, category: "보관" },
@@ -164,14 +166,33 @@ export default function PaymentPage() {
                       추천
                     </span>
                   )}
+                  {product.badge && (
+                    <span className="absolute -top-2.5 right-4 bg-green-500 text-white text-xs font-bold px-3 py-0.5 rounded-full">
+                      {product.badge}
+                    </span>
+                  )}
                   <div className="flex items-start justify-between mb-3">
-                    <div>
+                    <div className="flex-1">
                       <h3 className="font-bold text-[#1F3864] text-sm">{product.name}</h3>
                       <p className="text-gray-400 text-xs mt-0.5">{product.desc}</p>
+                      {product.includes && product.includes.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {product.includes.map((item) => (
+                            <span key={item} className="inline-flex items-center gap-1 text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">
+                              <Check className="w-3 h-3" />{item}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <span className="text-[#1F3864] font-bold text-sm ml-3 whitespace-nowrap">
-                      ₩{product.amount.toLocaleString()}
-                    </span>
+                    <div className="text-right ml-3 flex-shrink-0">
+                      <span className="text-[#1F3864] font-bold text-sm whitespace-nowrap">
+                        ₩{product.amount.toLocaleString()}
+                      </span>
+                      {product.key === "certification_premium" && (
+                        <p className="text-xs text-gray-400 line-through">₩97,000</p>
+                      )}
+                    </div>
                   </div>
                   <button
                     onClick={() => inCart(product.key) ? removeFromCart(product.key) : addToCart(product.key)}

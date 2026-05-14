@@ -283,7 +283,11 @@ export default function Step10Sign({ will }: StepProps) {
   const [secureHash, setSecureHash] = useState("");
   const [paymentDone, setPaymentDone] = useState(false);
 
-  const totalPrice = 49000 + (will.hasVideoWill ? 29000 : 0) + (will.hasHandwrittenScan ? 19000 : 0);
+  // 프리미엄 플랜(영상+자필 모두 선택) 시 69,000원 묶음 할인 적용
+  const isPremiumPlan = will.hasVideoWill && will.hasHandwrittenScan;
+  const totalPrice = isPremiumPlan
+    ? 69000
+    : 49000 + (will.hasVideoWill ? 29000 : 0) + (will.hasHandwrittenScan ? 19000 : 0);
 
   // ── tRPC 뮤테이션 ──
   const idScanMutation = trpc.idScan.scanId.useMutation({
@@ -1247,21 +1251,41 @@ export default function Step10Sign({ will }: StepProps) {
                 {/* 결제 내역 */}
                 <div className="bg-white border border-gray-100 rounded-xl p-4 space-y-3">
                   <p className="text-xs font-semibold text-gray-600 mb-2">결제 내역</p>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">전자 인증 (최초)</span>
-                    <span className="font-semibold">₩49,000</span>
-                  </div>
-                  {will.hasVideoWill && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">영상 유언</span>
-                      <span className="font-semibold">₩29,000</span>
-                    </div>
-                  )}
-                  {will.hasHandwrittenScan && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">자필 스캔 인증</span>
-                      <span className="font-semibold">₩19,000</span>
-                    </div>
+                  {isPremiumPlan ? (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <div>
+                          <span className="text-gray-500">전자 인증 프리미엄</span>
+                          <span className="ml-2 text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">묶음 할인</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="font-semibold">₩69,000</span>
+                          <p className="text-xs text-gray-400 line-through">₩97,000</p>
+                        </div>
+                      </div>
+                      <div className="bg-green-50 rounded-lg p-2 text-xs text-green-700">
+                        ✓ 영상 유언장 + 자필 유언장 스캔 인증 포함 (₩29,000 절약)
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">전자 인증 (최초)</span>
+                        <span className="font-semibold">₩49,000</span>
+                      </div>
+                      {will.hasVideoWill && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">영상 유언</span>
+                          <span className="font-semibold">₩29,000</span>
+                        </div>
+                      )}
+                      {will.hasHandwrittenScan && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">자필 스캔 인증</span>
+                          <span className="font-semibold">₩19,000</span>
+                        </div>
+                      )}
+                    </>
                   )}
                   <div className="border-t border-gray-100 pt-2 flex justify-between font-bold text-[#1F3864]">
                     <span>합계</span>
