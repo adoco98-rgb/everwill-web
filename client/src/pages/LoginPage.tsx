@@ -359,7 +359,7 @@ export default function LoginPage() {
   function handleSignupStep2(e: React.FormEvent) {
     e.preventDefault();
     if (!signupName.trim()) return toast.error("이름을 입력해주세요");
-    if (loginMethod === "email" && signupPhone && !signupPhoneVerified) return toast.error("전화번호 인증을 완료해주세요");
+    // 전화번호 인증은 유언장 인증/결제(Step10) 단계에서 진행 (가입 시 불필요)
     if (!signupPassword) return toast.error("비밀번호를 입력해주세요");
     if (signupPassword.length < 8) return toast.error("비밀번호는 8자 이상이어야 합니다");
     if (signupPassword !== signupConfirmPw) return toast.error("비밀번호가 일치하지 않습니다");
@@ -674,81 +674,7 @@ export default function LoginPage() {
                       </div>
                     )}
 
-                    {/* 이메일 가입 시 전화번호 인증 */}
-                    {loginMethod === "email" && (
-                      <div>
-                        <label className={labelCls}>
-                          <Phone className="w-4 h-4 inline mr-1.5 text-gray-400" />
-                          휴대폰 번호 <span className="text-red-400 font-normal text-xs">(필수 · OTP 인증)</span>
-                        </label>
-                        {!signupPhoneVerified ? (
-                          <>
-                            {/* 국가코드 + 전화번호 + 발송 버튼 */}
-                            <div className="flex gap-2 mb-2">
-                              <select value={signupPhoneCode} onChange={e => { setSignupPhoneCode(e.target.value); setSignupPhoneOtpSent(false); }}
-                                style={{ width: '90px', flexShrink: 0 }}
-                                className={inputCls}>
-                                {PHONE_CODES.map(c => <option key={c.code} value={c.code}>{c.flag} {c.code}</option>)}
-                              </select>
-                              <input type="tel" value={signupPhone}
-                                onChange={e => { setSignupPhone(e.target.value); setSignupPhoneOtpSent(false); }}
-                                placeholder="010-0000-0000"
-                                style={{ flex: 1, minWidth: 0 }}
-                                className={inputCls}
-                                disabled={signupPhoneOtpSent}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (!signupPhone) return toast.error("전화번호를 입력해주세요");
-                                  sendVerifyOtp.mutate({ phone: signupPhone, countryCode: signupPhoneCode });
-                                }}
-                                disabled={sendVerifyOtp.isPending || (signupPhoneOtpSent && signupPhoneTimer > 0)}
-                                style={{ flexShrink: 0 }}
-                                className="px-3 py-2 bg-[#1F3864] hover:bg-[#162a4e] text-white text-sm font-semibold rounded-xl transition disabled:opacity-50 whitespace-nowrap"
-                              >
-                                {sendVerifyOtp.isPending ? "발송중..." : signupPhoneOtpSent ? `재발송 (${Math.floor(signupPhoneTimer/60)}:${String(signupPhoneTimer%60).padStart(2,"0")})` : "인증번호 발송"}
-                              </button>
-                            </div>
-                            {signupPhoneOtpSent && (
-                              <div className="flex gap-2 mt-2">
-                                <input
-                                  type="text"
-                                  inputMode="numeric"
-                                  maxLength={6}
-                                  value={signupPhoneOtp}
-                                  onChange={e => setSignupPhoneOtp(e.target.value.replace(/[^0-9]/g, ""))}
-                                  placeholder="인증번호 6자리"
-                                  className={inputCls + " flex-1 tracking-widest text-center font-mono text-lg"}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (signupPhoneOtp.length !== 6) return toast.error("6자리 인증번호를 입력해주세요");
-                                    checkVerifyOtp.mutate({ phone: signupPhone, countryCode: signupPhoneCode, code: signupPhoneOtp });
-                                  }}
-                                  disabled={checkVerifyOtp.isPending || signupPhoneOtp.length !== 6}
-                                  className="shrink-0 px-4 py-2 bg-[#C9A961] hover:bg-[#b8943e] text-white text-sm font-semibold rounded-xl transition disabled:opacity-50"
-                                >
-                                  {checkVerifyOtp.isPending ? "확인중..." : "인증 확인"}
-                                </button>
-                              </div>
-                            )}
-                            <p className="text-xs text-gray-400 mt-1.5">인증 후 로그인 시 이 번호로 OTP가 발송됩니다</p>
-                          </>
-                        ) : (
-                          <div className="flex items-center gap-2 px-4 py-3 bg-green-50 border border-green-200 rounded-xl">
-                            <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
-                            <div>
-                              <p className="text-sm font-semibold text-green-700">전화번호 인증 완료</p>
-                              <p className="text-xs text-green-600">{signupPhoneCode} {signupPhone}</p>
-                            </div>
-                            <button type="button" onClick={() => { setSignupPhoneVerified(false); setSignupPhoneOtp(""); setSignupPhoneOtpSent(false); }}
-                              className="ml-auto text-xs text-gray-400 hover:text-gray-600 underline">변경</button>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    {/* 전화번호 인증은 유언장 인증/결제(Step10) 단계에서 진행 */}
 
                     <button type="submit"
                       className="w-full py-3.5 bg-[#1F3864] hover:bg-[#162a4e] text-white font-bold rounded-xl transition flex items-center justify-center gap-2">
