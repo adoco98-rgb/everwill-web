@@ -99,12 +99,16 @@ const STEP_ORDER: SignStep[] = [
 ];
 
 const ASSET_DOC_TYPES = [
-  { value: "bank_balance",         label: "은행 잔액증명서",    icon: <Banknote className="w-4 h-4 text-blue-600" /> },
-  { value: "real_estate_registry", label: "부동산 등기부등본",  icon: <Building2 className="w-4 h-4 text-green-600" /> },
-  { value: "stock_certificate",    label: "주식보유증명서",     icon: <Package className="w-4 h-4 text-purple-600" /> },
-  { value: "insurance_policy",     label: "보험증권",           icon: <Shield className="w-4 h-4 text-orange-600" /> },
-  { value: "bond_certificate",     label: "채권증명서",         icon: <FileText className="w-4 h-4 text-red-600" /> },
-  { value: "other",                label: "기타 자산 서류",     icon: <FileCheck className="w-4 h-4 text-gray-600" /> },
+  { value: "bank_balance",          label: "은행 잔액증명서",    icon: <Banknote className="w-4 h-4 text-blue-600" /> },
+  { value: "real_estate_registry",  label: "부동산 등기부등본",  icon: <Building2 className="w-4 h-4 text-green-600" /> },
+  { value: "stock_certificate",     label: "주식보유증명서",     icon: <Package className="w-4 h-4 text-purple-600" /> },
+  { value: "insurance_policy",      label: "보험증권",           icon: <Shield className="w-4 h-4 text-orange-600" /> },
+  { value: "bond_certificate",      label: "채권증명서",         icon: <FileText className="w-4 h-4 text-red-600" /> },
+  { value: "pension_statement",     label: "연금 수급 확인서",   icon: <CreditCard className="w-4 h-4 text-teal-600" /> },
+  { value: "vehicle_registration",  label: "자동차 등록증",      icon: <Package className="w-4 h-4 text-indigo-600" /> },
+  { value: "business_registration", label: "사업자등록증",       icon: <Building2 className="w-4 h-4 text-amber-600" /> },
+  { value: "loan_statement",        label: "대출 잔액 확인서",   icon: <AlertTriangle className="w-4 h-4 text-rose-600" /> },
+  { value: "other",                 label: "기타 자산 서류",     icon: <FileCheck className="w-4 h-4 text-gray-600" /> },
 ];
 
 // ─── 서명 캔버스 컴포넌트 ─────────────────────────────────────
@@ -292,7 +296,7 @@ export default function Step10Sign({ will }: StepProps) {
     },
   });
 
-  const assetDocScanMutation = trpc.willAuto.scanAssetDocument.useMutation({
+  const assetDocScanMutation = trpc.willAuto.scanAndSaveAssetDocument.useMutation({
     onSuccess: (data, variables) => {
       const newDoc: ScannedAssetDoc = {
         id: Date.now().toString(),
@@ -654,13 +658,44 @@ export default function Step10Sign({ will }: StepProps) {
               </div>
             </div>
 
-            {/* 업로드 버튼 */}
+            {/* 업로드 영역 — 다중 파일 + 드래그앤드롭 */}
+            <div
+              className="border-2 border-dashed border-[#1F3864]/30 rounded-xl p-5 text-center bg-[#1F3864]/[0.02] hover:bg-[#1F3864]/[0.04] transition-colors cursor-pointer"
+              onClick={() => !assetDocScanMutation.isPending && assetDocFileInputRef.current?.click()}
+              onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-[#1F3864]', 'bg-[#1F3864]/[0.06]'); }}
+              onDragLeave={(e) => { e.currentTarget.classList.remove('border-[#1F3864]', 'bg-[#1F3864]/[0.06]'); }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.currentTarget.classList.remove('border-[#1F3864]', 'bg-[#1F3864]/[0.06]');
+                const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                files.forEach(f => handleAssetDocImageSelect(f));
+              }}
+            >
+              {assetDocScanMutation.isPending ? (
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 className="w-8 h-8 text-[#1F3864] animate-spin" />
+                  <p className="text-sm font-semibold text-[#1F3864]">AI가 서류를 분석하고 있습니다...</p>
+                  <p className="text-xs text-gray-500">잔액, 소재지, 보유 주수 등을 자동으로 인식합니다</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2">
+                  <Upload className="w-8 h-8 text-[#1F3864]/40" />
+                  <p className="text-sm font-semibold text-[#1F3864]">클릭하거나 파일을 드래그하세요</p>
+                  <p className="text-xs text-gray-500">여러 장 동시 선택 가능 · JPG, PNG, HEIC 지원 · 최대 20MB</p>
+                  {scannedDocs.length > 0 && (
+                    <span className="mt-1 bg-green-100 text-green-700 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                      현재 {scannedDocs.length}건 스캔 완료
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
             <div className="flex gap-3">
-              <button onClick={() => assetDocFileInputRef.current?.click()}
+              <button onClick={() => !assetDocScanMutation.isPending && assetDocFileInputRef.current?.click()}
                 disabled={assetDocScanMutation.isPending}
                 className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#1F3864] text-white text-sm font-semibold rounded-xl hover:bg-[#162a4e] transition-all disabled:opacity-50">
-                {assetDocScanMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                파일 업로드
+                <Upload className="w-4 h-4" />
+                파일 선택 (여러 장)
               </button>
               <button onClick={() => assetDocCameraInputRef.current?.click()}
                 disabled={assetDocScanMutation.isPending}
@@ -669,8 +704,13 @@ export default function Step10Sign({ will }: StepProps) {
                 카메라 촬영
               </button>
             </div>
-            <input ref={assetDocFileInputRef} type="file" accept="image/*" className="hidden"
-              onChange={(e) => e.target.files?.[0] && handleAssetDocImageSelect(e.target.files[0])} />
+            <input ref={assetDocFileInputRef} type="file" accept="image/*" multiple className="hidden"
+              onChange={(e) => {
+                if (e.target.files) {
+                  Array.from(e.target.files).forEach(f => handleAssetDocImageSelect(f));
+                  e.target.value = '';
+                }
+              }} />
             <input ref={assetDocCameraInputRef} type="file" accept="image/*" capture="environment" className="hidden"
               onChange={(e) => e.target.files?.[0] && handleAssetDocImageSelect(e.target.files[0])} />
 

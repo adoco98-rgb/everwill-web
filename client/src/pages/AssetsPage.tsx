@@ -12,6 +12,7 @@ import {
   Car, Briefcase, PiggyBank, Gem, Package,
   Plus, Trash2, Edit3, Users, ChevronRight,
   Home, ArrowLeft, CheckCircle2, AlertCircle,
+  ScanLine, FileText, Eye, Loader2,
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -61,7 +62,7 @@ const emptyHeirForm = {
 
 export default function AssetsPage() {
   const { user, isAuthenticated, loading } = useAuth();
-  const [tab, setTab] = useState<"assets" | "heirs">("assets");
+  const [tab, setTab] = useState<"assets" | "heirs" | "scans">("assets");
   const [showAssetForm, setShowAssetForm] = useState(false);
   const [showHeirForm, setShowHeirForm] = useState(false);
   const [assetForm, setAssetForm] = useState(emptyAssetForm);
@@ -76,6 +77,24 @@ export default function AssetsPage() {
   const { data: heirList = [], isLoading: heirsLoading } = trpc.asset.listHeirs.useQuery(
     undefined, { enabled: isAuthenticated }
   );
+
+  // ── 자산증명서 스캔 ──
+  const { data: scanData, isLoading: scansLoading, refetch: refetchScans } = trpc.willAuto.listAssetScans.useQuery(
+    undefined, { enabled: isAuthenticated && tab === "scans" }
+  );
+  const scanList = (scanData?.scans || []) as any[];
+  const deleteScanMutation = trpc.willAuto.deleteAssetScan.useMutation({
+    onSuccess: () => { toast.success("삭제되었습니다."); refetchScans(); },
+    onError: (err) => toast.error(err.message || "삭제 실패"),
+  });
+  const [editingScanId, setEditingScanId] = useState<number | null>(null);
+  const [editMemo, setEditMemo] = useState("");
+  const [editValue, setEditValue] = useState("");
+  const updateScanMutation = trpc.willAuto.updateAssetScanMemo.useMutation({
+    onSuccess: () => { toast.success("수정되었습니다."); setEditingScanId(null); refetchScans(); },
+    onError: (err) => toast.error(err.message || "수정 실패"),
+  });
+  const [expandedScanId, setExpandedScanId] = useState<number | null>(null);
 
   // ── 재산 뮤테이션 ──
   const addAsset = trpc.asset.addAsset.useMutation({
@@ -176,16 +195,16 @@ export default function AssetsPage() {
         </div>
 
         {/* ── 탭 ── */}
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 w-fit">
-          {(["assets", "heirs"] as const).map((t) => (
+        <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 flex-wrap">
+          {(["assets", "heirs", "scans"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                 tab === t ? "bg-white text-[#1F3864] shadow-sm" : "text-gray-500"
               }`}
             >
-              {t === "assets" ? "💰 내 재산" : "👨‍👩‍👧 상속자"}
+              {t === "assets" ? "💰 내 재산" : t === "heirs" ? "👨‍👩‍👧 상속자" : "📄 자산증명서"}
             </button>
           ))}
         </div>
@@ -349,6 +368,130 @@ export default function AssetsPage() {
           </div>
         )}
 
+        {/* ══════════════ 자산증명서 스캔 탭 ══════════════ */}
+        {tab === "scans" && (
+          <div>
+            <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl mb-4">
+              <ScanLine className="w-6 h-6 text-green-600 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-bold text-green-800">자산증명서 스캔 보관함</p>
+                <p className="text-xs text-green-600 mt-0.5">유언장 작성 시 스캔한 서류가 자동으로 연동됩니다. 여러 장의 등기부등본도 모두 저장됩니다.</p>
+              </div>
+            </div>
+            {scansLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 text-[#1F3864] animate-spin" />
+              </div>
+            ) : scanList.length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
+                <ScanLine className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+                <p className="text-gray-400 text-sm">스캔된 자산증명서가 없습니다.</p>
+                <p className="text-gray-300 text-xs mt-1">유언장 작성 시 2단계에서 업로드하세요.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-xs text-gray-500 font-semibold">전체 {scanList.length}건 저장됨</p>
+                {scanList.map((scan: any) => (
+                  <div key={scan.id} className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+                    <div className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#1F3864]/10 flex items-center justify-center flex-shrink-0">
+                          <FileText className="w-5 h-5 text-[#1F3864]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-bold text-[#1F3864]">{scan.docTypeLabel || scan.docType}</p>
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
+                              scan.confidence === "high" ? "bg-green-100 text-green-700" :
+                              scan.confidence === "medium" ? "bg-yellow-100 text-yellow-700" :
+                              "bg-red-100 text-red-700"
+                            }`}>
+                              {scan.confidence === "high" ? "높음" : scan.confidence === "medium" ? "보통" : "낙음"} 신뢰도
+                            </span>
+                          </div>
+                          {scan.issuer && <p className="text-xs text-gray-500 mt-0.5">{scan.issuer}</p>}
+                          {scan.assetName && <p className="text-xs text-gray-600 mt-0.5 font-medium">{scan.assetName}</p>}
+                          {scan.amount && (
+                            <p className="text-sm font-bold text-[#C9A961] mt-1">
+                              {Number(scan.amount).toLocaleString()}{scan.unit || "원"}
+                            </p>
+                          )}
+                          {scan.location && <p className="text-xs text-gray-400 mt-0.5">소재지: {scan.location}</p>}
+                          {scan.referenceDate && <p className="text-xs text-gray-400">발급일: {scan.referenceDate}</p>}
+                          {scan.userMemo && <p className="text-xs text-blue-600 mt-0.5">메모: {scan.userMemo}</p>}
+                        </div>
+                        <div className="flex gap-1 flex-shrink-0">
+                          <button onClick={() => setExpandedScanId(expandedScanId === scan.id ? null : scan.id)}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[#1F3864] hover:bg-[#1F3864]/5 transition-colors">
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => {
+                            setEditingScanId(scan.id);
+                            setEditMemo(scan.userMemo || "");
+                            setEditValue(scan.estimatedValue ? String(scan.estimatedValue) : "");
+                          }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => {
+                            if (window.confirm("이 자산증명서를 삭제하시겠습니까?"))
+                              deleteScanMutation.mutate({ scanId: scan.id });
+                          }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                      {/* 메모 수정 폼 */}
+                      {editingScanId === scan.id && (
+                        <div className="mt-3 p-3 bg-gray-50 rounded-xl space-y-2">
+                          <div>
+                            <label className="text-xs font-semibold text-gray-600">메모</label>
+                            <input value={editMemo} onChange={(e) => setEditMemo(e.target.value)}
+                              placeholder="자유롭게 메모를 입력하세요"
+                              className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1F3864]" />
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold text-gray-600">수동 입력 추정가치 (원)</label>
+                            <input type="number" value={editValue} onChange={(e) => setEditValue(e.target.value)}
+                              placeholder="예: 150000000"
+                              className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1F3864]" />
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={() => setEditingScanId(null)}
+                              className="flex-1 py-2 rounded-lg border border-gray-200 text-sm text-gray-500 font-semibold">장닫기</button>
+                            <button onClick={() => updateScanMutation.mutate({
+                              scanId: scan.id,
+                              userMemo: editMemo,
+                              estimatedValue: editValue ? Number(editValue) : undefined,
+                            })} disabled={updateScanMutation.isPending}
+                              className="flex-1 py-2 rounded-lg bg-[#1F3864] text-white text-sm font-semibold disabled:opacity-50">
+                              {updateScanMutation.isPending ? "저장 중..." : "저장"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {/* 상세 펼치기 */}
+                      {expandedScanId === scan.id && (
+                        <div className="mt-3 p-3 bg-gray-50 rounded-xl text-xs text-gray-600 space-y-1">
+                          {scan.ownerName && <p><span className="font-semibold">소유자:</span> {scan.ownerName}</p>}
+                          {scan.assetCode && <p><span className="font-semibold">자산코드:</span> {scan.assetCode}</p>}
+                          {scan.area && <p><span className="font-semibold">면적:</span> {scan.area}</p>}
+                          {scan.beneficiary && <p><span className="font-semibold">수익자:</span> {scan.beneficiary}</p>}
+                          {scan.additionalInfo && <p><span className="font-semibold">추가정보:</span> {scan.additionalInfo}</p>}
+                          {scan.imageUrl && (
+                            <a href={scan.imageUrl} target="_blank" rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[#1F3864] font-semibold hover:underline mt-1">
+                              <Eye className="w-3.5 h-3.5" />원본 이미지 보기
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         {/* ══════════════ 상속자 탭 ══════════════ */}
         {tab === "heirs" && (
           <div>

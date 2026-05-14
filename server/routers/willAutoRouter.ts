@@ -10,18 +10,36 @@ import { z } from "zod";
 import { invokeLLM } from "../_core/llm";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
-import { users, heirs } from "../../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { users, heirs, willAssetScans } from "../../drizzle/schema";
+import { eq, desc } from "drizzle-orm";
+import { storagePut } from "../storage";
 
 // ─── 자산증명서 유형 ───────────────────────────────────────────
 const ASSET_DOC_TYPES = [
-  "bank_balance",        // 은행 잔액증명서
-  "real_estate_registry", // 부동산 등기부등본
-  "stock_certificate",   // 주식보유증명서
-  "insurance_policy",    // 보험증권
-  "bond_certificate",    // 채권증명서
-  "other",               // 기타 자산 서류
+  "bank_balance",
+  "real_estate_registry",
+  "stock_certificate",
+  "insurance_policy",
+  "bond_certificate",
+  "pension_statement",
+  "vehicle_registration",
+  "business_registration",
+  "loan_statement",
+  "other",
 ] as const;
+
+const DOC_TYPE_LABELS: Record<string, string> = {
+  bank_balance: "은행 잔액증명서",
+  real_estate_registry: "부동산 등기부등본",
+  stock_certificate: "주식보유증명서",
+  insurance_policy: "보험증권",
+  bond_certificate: "채권증명서",
+  pension_statement: "연금 수급 확인서",
+  vehicle_registration: "자동차 등록증",
+  business_registration: "사업자등록증",
+  loan_statement: "대출 잔액 확인서",
+  other: "기타 자산 서류",
+};
 
 export const willAutoRouter = router({
   /**
@@ -431,6 +449,196 @@ ${dateStr}
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "유언장 자동 생성 중 오류가 발생했습니다." });
       }
+    }),
+
+  /**
+   * 자산증명서 이미지 AI OCR 분석 + DB 저장 (무제한 다중 업로드)
+   */
+  scanAndSaveAssetDocument: protectedProcedure
+    .input(z.object({
+      imageUrl: z.string().min(1),
+      docTypeHint: z.enum(ASSET_DOC_TYPES).optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      const userRows = await db.select().from(users).where(eq(users.openId, ctx.user.openId)).limit(1);
+      if (userRows.length === 0) throw new TRPCError({ code: "UNAUTHORIZED", message: "사용자를 찾을 수 없습니다." });
+      const userId = userRows[0].id;
+      const docTypeHint = input.docTypeHint || "other";
+
+      // ── AI OCR 분석 ──
+      let ocrResult: any = {
+        detectedDocType: docTypeHint,
+        docTypeLabel: DOC_TYPE_LABELS[docTypeHint],
+        issuer: null, ownerName: null, assetName: null, assetCode: null,
+        amount: null, unit: null, referenceDate: null, location: null,
+        area: null, beneficiary: null, additionalInfo: null,
+        confidence: "low", estimatedValue: null,
+      };
+      try {
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: `당신은 한국 자산증명서 OCR 전문가입니다. 이미지에서 자산 정보를 추출하세요. 힌트: "${DOC_TYPE_LABELS[docTypeHint]}". 계좌번호/주민번호는 마지막 4자리만 표시. JSON만 반환.`,
+            },
+            {
+              role: "user",
+              content: [
+                { type: "text", text: `이 자산증명서(${DOC_TYPE_LABELS[docTypeHint]})를 분석해주세요.` },
+                { type: "image_url", image_url: { url: input.imageUrl, detail: "high" } },
+              ],
+            },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "asset_ocr",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  detectedDocType: { type: "string" },
+                  docTypeLabel: { type: "string" },
+                  issuer: { type: ["string", "null"] },
+                  ownerName: { type: ["string", "null"] },
+                  assetName: { type: ["string", "null"] },
+                  assetCode: { type: ["string", "null"] },
+                  amount: { type: ["string", "null"] },
+                  unit: { type: ["string", "null"] },
+                  referenceDate: { type: ["string", "null"] },
+                  location: { type: ["string", "null"] },
+                  area: { type: ["string", "null"] },
+                  beneficiary: { type: ["string", "null"] },
+                  additionalInfo: { type: ["string", "null"] },
+                  confidence: { type: "string" },
+                  estimatedValue: { type: ["string", "null"] },
+                },
+                required: ["detectedDocType", "docTypeLabel", "confidence"],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+        const content = response.choices?.[0]?.message?.content;
+        if (content) ocrResult = typeof content === "string" ? JSON.parse(content) : content;
+      } catch (e) {
+        console.error("[willAuto] OCR 실패:", e);
+      }
+
+      // ── S3에 이미지 저장 ──
+      let savedImageKey: string | null = null;
+      let savedImageUrl: string | null = null;
+      try {
+        if (input.imageUrl.startsWith("data:")) {
+          const matches = input.imageUrl.match(/^data:([^;]+);base64,(.+)$/);
+          if (matches) {
+            const mimeType = matches[1];
+            const buffer = Buffer.from(matches[2], "base64");
+            const ext = mimeType.split("/")[1] || "jpg";
+            const { key, url } = await storagePut(`asset-scans/${userId}/${Date.now()}.${ext}`, buffer, mimeType);
+            savedImageKey = key;
+            savedImageUrl = url;
+          }
+        } else if (input.imageUrl.startsWith("http")) {
+          savedImageUrl = input.imageUrl;
+        }
+      } catch (e) {
+        console.error("[willAuto] S3 저장 실패:", e);
+      }
+
+      // ── DB에 저장 ──
+      const validDocType = ASSET_DOC_TYPES.includes(ocrResult.detectedDocType)
+        ? ocrResult.detectedDocType as typeof ASSET_DOC_TYPES[number]
+        : docTypeHint;
+
+      await db.insert(willAssetScans).values({
+        userId,
+        docType: validDocType,
+        docTypeLabel: ocrResult.docTypeLabel || DOC_TYPE_LABELS[validDocType],
+        issuer: ocrResult.issuer || null,
+        ownerName: ocrResult.ownerName || null,
+        assetName: ocrResult.assetName || null,
+        assetCode: ocrResult.assetCode || null,
+        amount: ocrResult.amount || null,
+        unit: ocrResult.unit || null,
+        referenceDate: ocrResult.referenceDate || null,
+        location: ocrResult.location || null,
+        area: ocrResult.area || null,
+        beneficiary: ocrResult.beneficiary || null,
+        additionalInfo: ocrResult.additionalInfo || null,
+        confidence: ocrResult.confidence || "medium",
+        imageKey: savedImageKey,
+        imageUrl: savedImageUrl,
+        estimatedValue: ocrResult.estimatedValue ? Number(ocrResult.estimatedValue) : null,
+        status: "done",
+        sortOrder: 0,
+      });
+
+      const newRows = await db.select().from(willAssetScans)
+        .where(eq(willAssetScans.userId, userId))
+        .orderBy(desc(willAssetScans.createdAt)).limit(1);
+
+      return { success: true, data: { id: newRows[0]?.id || 0, ...ocrResult, imageUrl: savedImageUrl } };
+    }),
+
+  /**
+   * 사용자의 자산증명서 스캔 목록 조회 (최신순)
+   */
+  listAssetScans: protectedProcedure
+    .query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      const userRows = await db.select().from(users).where(eq(users.openId, ctx.user.openId)).limit(1);
+      if (userRows.length === 0) throw new TRPCError({ code: "UNAUTHORIZED", message: "사용자를 찾을 수 없습니다." });
+      const scans = await db.select().from(willAssetScans)
+        .where(eq(willAssetScans.userId, userRows[0].id))
+        .orderBy(desc(willAssetScans.createdAt));
+      return { success: true, scans };
+    }),
+
+  /**
+   * 자산증명서 스캔 삭제
+   */
+  deleteAssetScan: protectedProcedure
+    .input(z.object({ scanId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      const userRows = await db.select().from(users).where(eq(users.openId, ctx.user.openId)).limit(1);
+      if (userRows.length === 0) throw new TRPCError({ code: "UNAUTHORIZED", message: "사용자를 찾을 수 없습니다." });
+      const scanRows = await db.select().from(willAssetScans).where(eq(willAssetScans.id, input.scanId)).limit(1);
+      if (scanRows.length === 0 || scanRows[0].userId !== userRows[0].id)
+        throw new TRPCError({ code: "FORBIDDEN", message: "삭제 권한이 없습니다." });
+      await db.delete(willAssetScans).where(eq(willAssetScans.id, input.scanId));
+      return { success: true };
+    }),
+
+  /**
+   * 자산증명서 메모 및 추정가치 수정
+   */
+  updateAssetScanMemo: protectedProcedure
+    .input(z.object({
+      scanId: z.number(),
+      userMemo: z.string().optional(),
+      estimatedValue: z.number().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      const userRows = await db.select().from(users).where(eq(users.openId, ctx.user.openId)).limit(1);
+      if (userRows.length === 0) throw new TRPCError({ code: "UNAUTHORIZED", message: "사용자를 찾을 수 없습니다." });
+      const scanRows = await db.select().from(willAssetScans).where(eq(willAssetScans.id, input.scanId)).limit(1);
+      if (scanRows.length === 0 || scanRows[0].userId !== userRows[0].id)
+        throw new TRPCError({ code: "FORBIDDEN", message: "수정 권한이 없습니다." });
+      await db.update(willAssetScans)
+        .set({
+          userMemo: input.userMemo ?? scanRows[0].userMemo,
+          estimatedValue: input.estimatedValue ?? scanRows[0].estimatedValue,
+        })
+        .where(eq(willAssetScans.id, input.scanId));
+      return { success: true };
     }),
 
   /**

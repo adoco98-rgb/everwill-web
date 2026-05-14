@@ -627,3 +627,70 @@ export const charityDonations = mysqlTable("charityDonations", {
 });
 export type CharityDonation = typeof charityDonations.$inferSelect;
 export type InsertCharityDonation = typeof charityDonations.$inferInsert;
+
+/**
+ * 유언장 자산증명서 스캔 테이블 (AI OCR 결과 저장)
+ * 회원이 유언장 작성 시 업로드한 자산증명서 이미지와 AI OCR 인식 결과를 저장
+ * 부동산 등기부등본 여러 장, 은행잔액증명서, 주식보유증명서 등 무제한 등록 가능
+ * verificationId 없이 userId 직접 참조 (독립 테이블)
+ */
+export const willAssetScans = mysqlTable("willAssetScans", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 소유자 사용자 ID */
+  userId: int("userId").notNull(),
+  /** 서류 유형 (사용자 선택) */
+  docType: mysqlEnum("docType", [
+    "bank_balance",          // 은행 잔액증명서
+    "real_estate_registry",  // 부동산 등기부등본
+    "stock_certificate",     // 주식보유증명서
+    "insurance_policy",      // 보험증권
+    "bond_certificate",      // 채권증명서
+    "pension_statement",     // 연금 수급 확인서
+    "vehicle_registration",  // 자동차 등록증
+    "business_registration", // 사업자등록증 (사업체 자산)
+    "loan_statement",        // 대출 잔액 확인서 (부채)
+    "other",                 // 기타 자산 서류
+  ]).notNull().default("other"),
+  /** AI가 인식한 서류 유형 레이블 (한국어) */
+  docTypeLabel: varchar("docTypeLabel", { length: 64 }),
+  /** 발급 기관 (은행명, 법원, 증권사 등) */
+  issuer: varchar("issuer", { length: 128 }),
+  /** 소유자명 (AI 인식) */
+  ownerName: varchar("ownerName", { length: 64 }),
+  /** 자산명 (부동산 주소, 주식 종목명, 예금 계좌명 등) */
+  assetName: varchar("assetName", { length: 256 }),
+  /** 자산 코드 (계좌번호, 종목코드, 등기번호 등) */
+  assetCode: varchar("assetCode", { length: 128 }),
+  /** 금액/수량 (숫자만) */
+  amount: varchar("amount", { length: 64 }),
+  /** 단위 (원, 주, m² 등) */
+  unit: varchar("unit", { length: 32 }),
+  /** 기준일 (증명서 발급일 또는 기준일) */
+  referenceDate: varchar("referenceDate", { length: 32 }),
+  /** 소재지/주소 (부동산 등) */
+  location: text("location"),
+  /** 면적 (부동산 등) */
+  area: varchar("area", { length: 64 }),
+  /** 수익자/피보험자 (보험 등) */
+  beneficiary: varchar("beneficiary", { length: 128 }),
+  /** 추가 정보 (AI가 인식한 기타 중요 정보) */
+  additionalInfo: text("additionalInfo"),
+  /** AI 인식 신뢰도 (high/medium/low) */
+  confidence: varchar("confidence", { length: 16 }).default("medium"),
+  /** S3 저장 키 (원본 이미지) */
+  imageKey: varchar("imageKey", { length: 512 }),
+  /** S3 이미지 URL */
+  imageUrl: varchar("imageUrl", { length: 1024 }),
+  /** 사용자가 직접 입력한 메모 */
+  userMemo: text("userMemo"),
+  /** 자산 추정 가치 (사용자 입력 또는 AI 추정, 원) */
+  estimatedValue: bigint("estimatedValue", { mode: "number" }),
+  /** 처리 상태 (pending=처리중, done=완료, error=오류) */
+  status: mysqlEnum("status", ["pending", "done", "error"]).default("pending"),
+  /** 표시 순서 (사용자가 드래그로 재정렬 가능) */
+  sortOrder: int("sortOrder").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type WillAssetScan = typeof willAssetScans.$inferSelect;
+export type InsertWillAssetScan = typeof willAssetScans.$inferInsert;
