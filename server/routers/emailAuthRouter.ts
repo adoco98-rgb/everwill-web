@@ -437,7 +437,105 @@ export const emailAuthRouter = router({
 
       return { success: true, verifiedAt: new Date().toISOString() };
     }),
-
+  /**
+   * [이메일 재인증] 로그인된 사용자 이메일로 OTP 발송 (결제/인증 단계 이메일 인증용)
+   */
+  sendReauthEmailOtp: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
+      const userRows = await db.select().from(users).where(eq(users.openId, ctx.user.openId)).limit(1);
+      if (userRows.length === 0) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "사용자를 찾을 수 없습니다." });
+      }
+      const user = userRows[0];
+      if (!user.email) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "등록된 이메일이 없습니다. 프로필에서 이메일을 먼저 등록해주세요.",
+        });
+      }
+      const code = generateOtp();
+      const expiresAt = new Date(Date.now() + OTP_EXPIRES_MS);
+      // 기존 미사용 OTP 무효화
+      await db.update(emailOtps)
+        .set({ used: 1 })
+        .where(and(eq(emailOtps.email, user.email), eq(emailOtps.used, 0)));
+      // 새 OTP 저장
+      await db.insert(emailOtps).values({
+        email: user.email,
+        code,
+        expiresAt,
+        used: 0,
+        failCount: 0,
+      });
+      // Resend로 이메일 발송
+      const resend = new Resend(ENV.resendApiKey);
+      try {
+        await resend.emails.send({
+          from: "EverWill <noreply@everwill.co.kr>",
+          to: user.email,
+          subject: "[EverWill] 유언장 인증 코드",
+          html: `
+            <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #fafafa;">
+              <div style="background: #1F3864; padding: 20px; border-radius: 12px 12px 0 0; text-align: center;">
+                <h2 style="color: #C9A961; margin: 0; font-size: 22px;">EverWill</h2>
+                <p style="color: #fff; margin: 4px 0 0; font-size: 13px;">유언장 인증 코드</p>
+              </div>
+              <div style="background: #fff; padding: 32px; border-radius: 0 0 12px 12px; border: 1px solid #e5e7eb;">
+                <p style="font-size: 15px; color: #333; margin-top: 0;">안녕하세요, <strong>${user.name || '회원'}</strong>님.</p>
+                <p style="font-size: 15px; color: #333;">유언장 인증을 위한 이메일 인증 코드입니다.</p>
+                <div style="background: #f5f5f5; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
+                  <span style="font-size: 40px; font-weight: bold; letter-spacing: 8px; color: #1F3864;">${code}</span>
+                </div>
+                <p style="font-size: 13px; color: #888;">이 코드는 10분간 유효합니다. 본인이 요청하지 않은 경우 무시해주세요.</p>
+              </div>
+            </div>
+          `,
+        });
+      } catch (err) {
+        console.error("[Email] 재인증 OTP 발송 실패:", err);
+      }
+      // 이메일 마스킹
+      const [localPart, domain] = user.email.split("@");
+      const maskedEmail = localPart.slice(0, 2) + "*".repeat(Math.max(0, localPart.length - 2)) + "@" + domain;
+      return { success: true, maskedEmail };
+    }),
+  /**
+   * [이메일 재인증] OTP 검증 (결제/인증 단계 이메일 인증용)
+   */
+  verifyReauthEmailOtp: protectedProcedure
+    .input(z.object({
+      code: z.string().length(6, "6자리 코드를 입력해주세요"),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
+      const userRows = await db.select().from(users).where(eq(users.openId, ctx.user.openId)).limit(1);
+      if (userRows.length === 0) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "사용자를 찾을 수 없습니다." });
+      }
+      const user = userRows[0];
+      if (!user.email) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "등록된 이메일이 없습니다." });
+      }
+      const now = new Date();
+      const otpRows = await db.select().from(emailOtps).where(
+        and(eq(emailOtps.email, user.email), eq(emailOtps.used, 0), gt(emailOtps.expiresAt, now))
+      ).orderBy(sql`${emailOtps.createdAt} DESC`).limit(1);
+      if (otpRows.length === 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "인증 코드가 만료되었거나 존재하지 않습니다." });
+      }
+      const otp = otpRows[0];
+      if (otp.code !== input.code) {
+        await db.update(emailOtps)
+          .set({ failCount: sql`${emailOtps.failCount} + 1` })
+          .where(eq(emailOtps.id, otp.id));
+        throw new TRPCError({ code: "BAD_REQUEST", message: "인증 코드가 올바르지 않습니다." });
+      }
+      await db.update(emailOtps).set({ used: 1 }).where(eq(emailOtps.id, otp.id));
+      return { success: true, verifiedAt: new Date().toISOString() };
+    }),
   /**
    * 회원가입 후 추가 정보 저장 (기존 방식 유지)
    */

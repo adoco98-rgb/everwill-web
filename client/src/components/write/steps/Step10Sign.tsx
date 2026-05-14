@@ -4,7 +4,7 @@
  * 1단계: 신분증 스캔 (AI OCR 자동인식)
  * 2단계: 자산 정보 입력 (부동산/금융/기타)
  * 3단계: 관련 서류 파일 업로드
- * 4단계: SMS OTP 재인증 (등록 휴대폰으로 재발송)
+ * 4단계: 이중 본인 재인증 (이메일 OTP + SMS OTP 동시 인증)
  * 5단계: 손글씨 전자서명
  * 6단계: 결제
  */
@@ -12,15 +12,16 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, CheckCircle2, Clock, Hash, CreditCard, FileDown, Lock, Pen, Trash2,
-  RotateCcw, ScanLine, Upload, Camera, X, Loader2, IdCard, Building2,
-  Banknote, Package, Plus, ChevronRight, Phone, KeyRound, FileText, AlertCircle
+  RotateCcw, Upload, Camera, X, Loader2, IdCard, Building2,
+  Banknote, Package, Plus, ChevronRight, Phone, KeyRound, FileText, AlertCircle,
+  Mail, Smartphone
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import type { StepProps } from "./StepProps";
 
 // ─── 타입 정의 ───────────────────────────────────────────────
-type SignStep = "id_scan" | "assets" | "documents" | "sms_reauth" | "signature" | "payment";
+type SignStep = "id_scan" | "assets" | "documents" | "dual_reauth" | "signature" | "payment";
 
 interface AssetItem {
   id: string;
@@ -39,15 +40,15 @@ interface UploadedDoc {
 
 // ─── 단계 메타 데이터 ─────────────────────────────────────────
 const STEPS: { key: SignStep; label: string; icon: React.ReactNode }[] = [
-  { key: "id_scan",    label: "신분증 인증",  icon: <IdCard className="w-3.5 h-3.5" /> },
-  { key: "assets",     label: "자산 입력",    icon: <Banknote className="w-3.5 h-3.5" /> },
-  { key: "documents",  label: "서류 업로드",  icon: <FileText className="w-3.5 h-3.5" /> },
-  { key: "sms_reauth", label: "본인 재인증",  icon: <Phone className="w-3.5 h-3.5" /> },
-  { key: "signature",  label: "전자서명",     icon: <Pen className="w-3.5 h-3.5" /> },
-  { key: "payment",    label: "결제",         icon: <CreditCard className="w-3.5 h-3.5" /> },
+  { key: "id_scan",     label: "신분증 인증",  icon: <IdCard className="w-3.5 h-3.5" /> },
+  { key: "assets",      label: "자산 입력",    icon: <Banknote className="w-3.5 h-3.5" /> },
+  { key: "documents",   label: "서류 업로드",  icon: <FileText className="w-3.5 h-3.5" /> },
+  { key: "dual_reauth", label: "본인 재인증",  icon: <Shield className="w-3.5 h-3.5" /> },
+  { key: "signature",   label: "전자서명",     icon: <Pen className="w-3.5 h-3.5" /> },
+  { key: "payment",     label: "결제",         icon: <CreditCard className="w-3.5 h-3.5" /> },
 ];
 
-const STEP_ORDER: SignStep[] = ["id_scan", "assets", "documents", "sms_reauth", "signature", "payment"];
+const STEP_ORDER: SignStep[] = ["id_scan", "assets", "documents", "dual_reauth", "signature", "payment"];
 
 // ─── 서명 캔버스 컴포넌트 ─────────────────────────────────────
 function SignatureCanvas({ onSigned, onClear, isSigned }: {
@@ -175,7 +176,6 @@ export default function Step10Sign({ will }: StepProps) {
   const completedSteps = useRef<Set<SignStep>>(new Set());
 
   // ── 1단계: 신분증 스캔 상태 ──
-  const [showIdScan, setShowIdScan] = useState(false);
   const [idScanPreview, setIdScanPreview] = useState<string | null>(null);
   const [idScanResult, setIdScanResult] = useState<{
     name: string | null;
@@ -202,12 +202,23 @@ export default function Step10Sign({ will }: StepProps) {
   const [uploadedDocs, setUploadedDocs] = useState<UploadedDoc[]>([]);
   const docFileInputRef = useRef<HTMLInputElement>(null);
 
-  // ── 4단계: SMS 재인증 상태 ──
-  const [reauthOtpSent, setReauthOtpSent] = useState(false);
-  const [reauthMaskedPhone, setReauthMaskedPhone] = useState("");
-  const [reauthCode, setReauthCode] = useState("");
-  const [reauthVerified, setReauthVerified] = useState(false);
-  const [reauthResendTimer, setReauthResendTimer] = useState(0);
+  // ── 4단계: 이중 본인 재인증 상태 ──
+  // 이메일 인증
+  const [emailOtpSent, setEmailOtpSent] = useState(false);
+  const [maskedEmail, setMaskedEmail] = useState("");
+  const [emailCode, setEmailCode] = useState("");
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [emailResendTimer, setEmailResendTimer] = useState(0);
+
+  // SMS 인증
+  const [smsOtpSent, setSmsOtpSent] = useState(false);
+  const [maskedPhone, setMaskedPhone] = useState("");
+  const [smsCode, setSmsCode] = useState("");
+  const [smsVerified, setSmsVerified] = useState(false);
+  const [smsResendTimer, setSmsResendTimer] = useState(0);
+
+  // 이중 인증 완료 여부
+  const dualReauthVerified = emailVerified && smsVerified;
 
   // ── 5단계: 전자서명 상태 ──
   const [signatureDataUrl, setSignatureDataUrl] = useState<string>("");
@@ -231,35 +242,72 @@ export default function Step10Sign({ will }: StepProps) {
     },
   });
 
-  const sendReauthOtpMutation = trpc.auth.email.sendReauthOtp.useMutation({
+  // 이메일 OTP 발송
+  const sendEmailOtpMutation = trpc.auth.email.sendReauthEmailOtp.useMutation({
     onSuccess: (data) => {
-      setReauthOtpSent(true);
-      setReauthMaskedPhone(data.maskedPhone);
-      setReauthResendTimer(60);
-      toast.success(`인증번호가 ${data.maskedPhone}으로 발송되었습니다.`);
+      setEmailOtpSent(true);
+      setMaskedEmail(data.maskedEmail);
+      setEmailResendTimer(60);
+      toast.success(`인증 코드가 ${data.maskedEmail}으로 발송되었습니다.`);
     },
     onError: (err) => {
-      toast.error(err.message || "SMS 발송에 실패했습니다.");
+      toast.error(err.message || "이메일 발송에 실패했습니다.");
     },
   });
 
-  const verifyReauthOtpMutation = trpc.auth.email.verifyReauthOtp.useMutation({
+  // 이메일 OTP 검증
+  const verifyEmailOtpMutation = trpc.auth.email.verifyReauthEmailOtp.useMutation({
     onSuccess: () => {
-      setReauthVerified(true);
-      completedSteps.current.add("sms_reauth");
-      toast.success("본인 재인증 완료!");
+      setEmailVerified(true);
+      toast.success("이메일 인증 완료!");
+    },
+    onError: (err) => {
+      toast.error(err.message || "이메일 인증 코드가 올바르지 않습니다.");
+    },
+  });
+
+  // SMS OTP 발송
+  const sendSmsOtpMutation = trpc.auth.email.sendReauthOtp.useMutation({
+    onSuccess: (data) => {
+      setSmsOtpSent(true);
+      setMaskedPhone(data.maskedPhone);
+      setSmsResendTimer(60);
+      toast.success(`인증번호가 ${data.maskedPhone}으로 발송되었습니다.`);
+    },
+    onError: (err) => {
+      // 전화번호 미등록 시 안내
+      if (err.message?.includes("등록된 휴대폰")) {
+        toast.error("등록된 휴대폰 번호가 없습니다. 이메일 인증만으로 진행합니다.");
+        setSmsVerified(true); // 전화번호 없으면 SMS 인증 건너뜀
+      } else {
+        toast.error(err.message || "SMS 발송에 실패했습니다.");
+      }
+    },
+  });
+
+  // SMS OTP 검증
+  const verifySmsOtpMutation = trpc.auth.email.verifyReauthOtp.useMutation({
+    onSuccess: () => {
+      setSmsVerified(true);
+      toast.success("휴대폰 인증 완료!");
     },
     onError: (err) => {
       toast.error(err.message || "인증 코드가 올바르지 않습니다.");
     },
   });
 
-  // ── 재발송 타이머 ──
+  // ── 타이머 ──
   useEffect(() => {
-    if (reauthResendTimer <= 0) return;
-    const timer = setTimeout(() => setReauthResendTimer(t => t - 1), 1000);
+    if (emailResendTimer <= 0) return;
+    const timer = setTimeout(() => setEmailResendTimer(t => t - 1), 1000);
     return () => clearTimeout(timer);
-  }, [reauthResendTimer]);
+  }, [emailResendTimer]);
+
+  useEffect(() => {
+    if (smsResendTimer <= 0) return;
+    const timer = setTimeout(() => setSmsResendTimer(t => t - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [smsResendTimer]);
 
   // ── 단계 이동 헬퍼 ──
   const goToStep = (step: SignStep) => {
@@ -325,7 +373,7 @@ export default function Step10Sign({ will }: StepProps) {
         <Lock className="w-5 h-5 text-[#1F3864]" />
         <div>
           <p className="font-semibold text-[#1F3864] text-sm">전자 인증 및 결제</p>
-          <p className="text-gray-400 text-xs">신분증 인증 → 자산 입력 → 서류 업로드 → SMS 재인증 → 전자서명 → 결제</p>
+          <p className="text-gray-400 text-xs">신분증 인증 → 자산 입력 → 서류 업로드 → 이중 본인 재인증 → 전자서명 → 결제</p>
         </div>
       </div>
 
@@ -499,42 +547,33 @@ export default function Step10Sign({ will }: StepProps) {
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { value: "real_estate", label: "부동산", icon: <Building2 className="w-4 h-4" /> },
-                  { value: "financial", label: "금융자산", icon: <Banknote className="w-4 h-4" /> },
+                  { value: "financial", label: "금융", icon: <Banknote className="w-4 h-4" /> },
                   { value: "other", label: "기타", icon: <Package className="w-4 h-4" /> },
                 ].map(cat => (
                   <button key={cat.value} onClick={() => setNewAsset(p => ({ ...p, category: cat.value as AssetItem["category"] }))}
-                    className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold border-2 transition-all ${
-                      newAsset.category === cat.value ? 'border-[#1F3864] bg-[#1F3864] text-white' : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                    className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+                      newAsset.category === cat.value ? "bg-[#1F3864] text-white" : "bg-white border border-gray-200 text-gray-600 hover:border-[#1F3864]"
                     }`}>
                     {cat.icon}{cat.label}
                   </button>
                 ))}
               </div>
-              <input type="text" placeholder="자산 설명 (예: 서울 강남구 아파트, 국민은행 예금)" value={newAsset.description}
-                onChange={(e) => setNewAsset(p => ({ ...p, description: e.target.value }))}
+              <input type="text" value={newAsset.description} onChange={e => setNewAsset(p => ({ ...p, description: e.target.value }))}
+                placeholder="자산 설명 (예: 서울 강남구 아파트, 국민은행 예금 등)"
                 className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#1F3864]" />
               <div className="grid grid-cols-2 gap-2">
-                <input type="text" placeholder="예상 가액 (예: ₩500,000,000)" value={newAsset.estimatedValue}
-                  onChange={(e) => setNewAsset(p => ({ ...p, estimatedValue: e.target.value }))}
+                <input type="text" value={newAsset.estimatedValue} onChange={e => setNewAsset(p => ({ ...p, estimatedValue: e.target.value }))}
+                  placeholder="추정 가치 (선택)"
                   className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#1F3864]" />
-                <select value={newAsset.country} onChange={(e) => setNewAsset(p => ({ ...p, country: e.target.value }))}
-                  className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#1F3864] bg-white">
-                  <option value="KR">🇰🇷 한국</option>
-                  <option value="JP">🇯🇵 일본</option>
-                  <option value="US">🇺🇸 미국</option>
-                  <option value="CN">🇨🇳 중국</option>
-                  <option value="GB">🇬🇧 영국</option>
-                  <option value="DE">🇩🇪 독일</option>
-                  <option value="FR">🇫🇷 프랑스</option>
-                  <option value="AU">🇦🇺 호주</option>
-                  <option value="CA">🇨🇦 캐나다</option>
-                  <option value="SG">🇸🇬 싱가포르</option>
-                  <option value="AE">🇦🇪 UAE</option>
-                  <option value="OTHER">🌍 기타</option>
+                <select value={newAsset.country} onChange={e => setNewAsset(p => ({ ...p, country: e.target.value }))}
+                  className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#1F3864]">
+                  {[["KR","🇰🇷 한국"],["US","🇺🇸 미국"],["JP","🇯🇵 일본"],["CN","🇨🇳 중국"],["DE","🇩🇪 독일"],["GB","🇬🇧 영국"],["OTHER","기타"]].map(([v,l]) => (
+                    <option key={v} value={v}>{l}</option>
+                  ))}
                 </select>
               </div>
               <button onClick={handleAddAsset}
-                className="w-full py-2.5 rounded-lg border-2 border-dashed border-[#C9A961] text-[#C9A961] font-semibold text-sm flex items-center justify-center gap-2 hover:bg-[#C9A961]/5 transition-all">
+                className="w-full py-2.5 rounded-lg bg-[#1F3864] hover:bg-[#162a4e] text-white text-sm font-semibold flex items-center justify-center gap-2 transition-all">
                 <Plus className="w-4 h-4" />
                 자산 추가
               </button>
@@ -611,7 +650,7 @@ export default function Step10Sign({ will }: StepProps) {
               <button onClick={() => setSignStep("assets")} className="px-4 py-4 rounded-xl border-2 border-gray-200 text-gray-500 text-sm font-semibold hover:border-gray-400 transition-all">
                 이전
               </button>
-              <button onClick={() => goToStep("sms_reauth")}
+              <button onClick={() => goToStep("dual_reauth")}
                 className="flex-1 btn-gold py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
                 <ChevronRight className="w-4 h-4" />
                 {uploadedDocs.length > 0 ? `서류 ${uploadedDocs.length}개 업로드 완료 — 본인 재인증으로` : "건너뛰기 — 본인 재인증으로"}
@@ -620,90 +659,166 @@ export default function Step10Sign({ will }: StepProps) {
           </motion.div>
         )}
 
-        {/* ─── 4단계: SMS OTP 재인증 ─── */}
-        {signStep === "sms_reauth" && (
-          <motion.div key="sms_reauth" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
+        {/* ─── 4단계: 이중 본인 재인증 ─── */}
+        {signStep === "dual_reauth" && (
+          <motion.div key="dual_reauth" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
             <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
               <Shield className="w-6 h-6 text-red-600 flex-shrink-0" />
               <div>
-                <p className="font-bold text-red-800 text-sm">본인 재인증 (필수)</p>
-                <p className="text-xs text-red-600">유언장은 법적 효력이 있는 중요 문서입니다. 등록된 휴대폰으로 인증번호를 받아 본인을 재확인합니다.</p>
+                <p className="font-bold text-red-800 text-sm">이중 본인 재인증 (필수)</p>
+                <p className="text-xs text-red-600">유언장은 법적 효력이 있는 중요 문서입니다. 이메일 + 휴대폰 이중 인증으로 본인을 확인합니다.</p>
               </div>
             </div>
 
-            {!reauthVerified ? (
-              <div className="space-y-4">
-                {!reauthOtpSent ? (
-                  <div className="space-y-4">
-                    <div className="bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-3">
-                      <Phone className="w-5 h-5 text-[#1F3864]" />
-                      <div>
-                        <p className="text-sm font-semibold text-[#1F3864]">등록된 휴대폰으로 인증번호 발송</p>
-                        <p className="text-xs text-gray-400">프로필에 등록된 휴대폰 번호로 6자리 인증번호가 발송됩니다.</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => sendReauthOtpMutation.mutate()}
-                      disabled={sendReauthOtpMutation.isPending}
-                      className="w-full btn-gold py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
-                      {sendReauthOtpMutation.isPending ? (
-                        <><Loader2 className="w-4 h-4 animate-spin" />발송 중...</>
-                      ) : (
-                        <><Phone className="w-4 h-4" />인증번호 발송</>
-                      )}
-                    </button>
-                  </div>
+            {/* 인증 진행 상황 */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                emailVerified ? "border-green-300 bg-green-50" : "border-gray-200 bg-white"
+              }`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  emailVerified ? "bg-green-100" : "bg-[#1F3864]/10"
+                }`}>
+                  {emailVerified ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <Mail className="w-4 h-4 text-[#1F3864]" />}
+                </div>
+                <div>
+                  <p className={`text-xs font-bold ${emailVerified ? "text-green-700" : "text-[#1F3864]"}`}>이메일 인증</p>
+                  <p className={`text-xs ${emailVerified ? "text-green-600" : "text-gray-400"}`}>{emailVerified ? "완료" : "대기 중"}</p>
+                </div>
+              </div>
+              <div className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                smsVerified ? "border-green-300 bg-green-50" : "border-gray-200 bg-white"
+              }`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  smsVerified ? "bg-green-100" : "bg-[#1F3864]/10"
+                }`}>
+                  {smsVerified ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <Smartphone className="w-4 h-4 text-[#1F3864]" />}
+                </div>
+                <div>
+                  <p className={`text-xs font-bold ${smsVerified ? "text-green-700" : "text-[#1F3864]"}`}>휴대폰 인증</p>
+                  <p className={`text-xs ${smsVerified ? "text-green-600" : "text-gray-400"}`}>{smsVerified ? "완료" : "대기 중"}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 이메일 인증 블록 */}
+            {!emailVerified && (
+              <div className="bg-white border border-gray-100 rounded-xl p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-[#1F3864]" />
+                  <p className="text-sm font-semibold text-[#1F3864]">1단계: 이메일 인증</p>
+                </div>
+                {!emailOtpSent ? (
+                  <button
+                    onClick={() => sendEmailOtpMutation.mutate()}
+                    disabled={sendEmailOtpMutation.isPending}
+                    className="w-full btn-gold py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                    {sendEmailOtpMutation.isPending ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" />발송 중...</>
+                    ) : (
+                      <><Mail className="w-4 h-4" />이메일로 인증 코드 발송</>
+                    )}
+                  </button>
                 ) : (
-                  <div className="space-y-4">
-                    <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                      <p className="text-sm font-semibold text-green-800">📱 {reauthMaskedPhone}으로 인증번호가 발송되었습니다.</p>
-                      <p className="text-xs text-green-600 mt-1">6자리 인증번호를 입력해주세요.</p>
+                  <div className="space-y-3">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="text-sm font-semibold text-blue-800">📧 {maskedEmail}으로 인증 코드가 발송되었습니다.</p>
+                      <p className="text-xs text-blue-600 mt-1">6자리 인증 코드를 입력해주세요. (10분 유효)</p>
                     </div>
-                    <div>
-                      <label className="text-xs text-gray-500 mb-1.5 block font-semibold">인증번호 6자리</label>
+                    <div className="flex gap-2">
                       <input
-                        type="tel" maxLength={6} value={reauthCode}
-                        onChange={(e) => setReauthCode(e.target.value.replace(/\D/g, ""))}
+                        type="tel" maxLength={6} value={emailCode}
+                        onChange={(e) => setEmailCode(e.target.value.replace(/\D/g, ""))}
                         placeholder="000000"
-                        className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-center text-2xl font-mono tracking-widest focus:outline-none focus:border-[#1F3864]"
+                        className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3 text-center text-xl font-mono tracking-widest focus:outline-none focus:border-[#1F3864]"
                       />
-                    </div>
-                    <button
-                      onClick={() => verifyReauthOtpMutation.mutate({ code: reauthCode })}
-                      disabled={reauthCode.length !== 6 || verifyReauthOtpMutation.isPending}
-                      className={`w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
-                        reauthCode.length === 6 && !verifyReauthOtpMutation.isPending ? "btn-gold" : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      }`}>
-                      {verifyReauthOtpMutation.isPending ? (
-                        <><Loader2 className="w-4 h-4 animate-spin" />인증 중...</>
-                      ) : (
-                        <><KeyRound className="w-4 h-4" />인증 확인</>
-                      )}
-                    </button>
-                    <div className="flex items-center justify-center gap-2">
                       <button
-                        onClick={() => { setReauthOtpSent(false); setReauthCode(""); }}
-                        disabled={reauthResendTimer > 0}
-                        className={`text-xs ${reauthResendTimer > 0 ? "text-gray-300" : "text-[#1F3864] hover:underline"}`}>
-                        {reauthResendTimer > 0 ? `재발송 (${reauthResendTimer}초 후)` : "인증번호 재발송"}
+                        onClick={() => verifyEmailOtpMutation.mutate({ code: emailCode })}
+                        disabled={emailCode.length !== 6 || verifyEmailOtpMutation.isPending}
+                        className={`px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-2 transition-all ${
+                          emailCode.length === 6 ? "bg-[#1F3864] text-white hover:bg-[#162a4e]" : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        }`}>
+                        {verifyEmailOtpMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
+                        확인
                       </button>
                     </div>
+                    <button
+                      onClick={() => { setEmailOtpSent(false); setEmailCode(""); }}
+                      disabled={emailResendTimer > 0}
+                      className={`text-xs ${emailResendTimer > 0 ? "text-gray-300" : "text-[#1F3864] hover:underline"}`}>
+                      {emailResendTimer > 0 ? `재발송 (${emailResendTimer}초 후)` : "인증 코드 재발송"}
+                    </button>
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="bg-green-50 border border-green-200 rounded-2xl p-5 text-center">
-                <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto mb-3" />
-                <p className="font-bold text-green-800 text-lg">본인 재인증 완료!</p>
-                <p className="text-green-600 text-sm mt-1">신원이 확인되었습니다. 전자서명을 진행해주세요.</p>
+            )}
+
+            {/* SMS 인증 블록 */}
+            {!smsVerified && (
+              <div className="bg-white border border-gray-100 rounded-xl p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="w-4 h-4 text-[#1F3864]" />
+                  <p className="text-sm font-semibold text-[#1F3864]">2단계: 휴대폰 SMS 인증</p>
+                </div>
+                {!smsOtpSent ? (
+                  <button
+                    onClick={() => sendSmsOtpMutation.mutate()}
+                    disabled={sendSmsOtpMutation.isPending}
+                    className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 border-2 border-[#1F3864] text-[#1F3864] hover:bg-[#1F3864]/5 transition-all">
+                    {sendSmsOtpMutation.isPending ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" />발송 중...</>
+                    ) : (
+                      <><Phone className="w-4 h-4" />등록된 휴대폰으로 인증번호 발송</>
+                    )}
+                  </button>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <p className="text-sm font-semibold text-green-800">📱 {maskedPhone}으로 인증번호가 발송되었습니다.</p>
+                      <p className="text-xs text-green-600 mt-1">6자리 인증번호를 입력해주세요.</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="tel" maxLength={6} value={smsCode}
+                        onChange={(e) => setSmsCode(e.target.value.replace(/\D/g, ""))}
+                        placeholder="000000"
+                        className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3 text-center text-xl font-mono tracking-widest focus:outline-none focus:border-[#1F3864]"
+                      />
+                      <button
+                        onClick={() => verifySmsOtpMutation.mutate({ code: smsCode })}
+                        disabled={smsCode.length !== 6 || verifySmsOtpMutation.isPending}
+                        className={`px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-2 transition-all ${
+                          smsCode.length === 6 ? "bg-[#1F3864] text-white hover:bg-[#162a4e]" : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        }`}>
+                        {verifySmsOtpMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
+                        확인
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => { setSmsOtpSent(false); setSmsCode(""); }}
+                      disabled={smsResendTimer > 0}
+                      className={`text-xs ${smsResendTimer > 0 ? "text-gray-300" : "text-[#1F3864] hover:underline"}`}>
+                      {smsResendTimer > 0 ? `재발송 (${smsResendTimer}초 후)` : "인증번호 재발송"}
+                    </button>
+                  </div>
+                )}
               </div>
+            )}
+
+            {/* 이중 인증 완료 */}
+            {dualReauthVerified && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                className="bg-green-50 border border-green-200 rounded-2xl p-5 text-center">
+                <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto mb-3" />
+                <p className="font-bold text-green-800 text-lg">이중 본인 재인증 완료!</p>
+                <p className="text-green-600 text-sm mt-1">이메일 + 휴대폰 인증이 모두 확인되었습니다. 전자서명을 진행해주세요.</p>
+              </motion.div>
             )}
 
             <div className="flex gap-3">
               <button onClick={() => setSignStep("documents")} className="px-4 py-4 rounded-xl border-2 border-gray-200 text-gray-500 text-sm font-semibold hover:border-gray-400 transition-all">
                 이전
               </button>
-              {reauthVerified && (
+              {dualReauthVerified && (
                 <button onClick={() => goToStep("signature")}
                   className="flex-1 btn-gold py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
                   <ChevronRight className="w-4 h-4" />
@@ -753,7 +868,7 @@ export default function Step10Sign({ will }: StepProps) {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setSignStep("sms_reauth")} className="px-4 py-4 rounded-xl border-2 border-gray-200 text-gray-500 text-sm font-semibold hover:border-gray-400 transition-all">
+              <button onClick={() => setSignStep("dual_reauth")} className="px-4 py-4 rounded-xl border-2 border-gray-200 text-gray-500 text-sm font-semibold hover:border-gray-400 transition-all">
                 이전
               </button>
               <button onClick={() => { if (!isSigned) { toast.error("먼저 서명을 완료해주세요."); return; } goToStep("payment"); }}
@@ -806,7 +921,8 @@ export default function Step10Sign({ will }: StepProps) {
                     { label: "신분증 인증", done: !!idScanResult },
                     { label: `자산 등록 (${assets.length}개)`, done: assets.length > 0 },
                     { label: `서류 업로드 (${uploadedDocs.length}개)`, done: uploadedDocs.length > 0 },
-                    { label: "SMS 본인 재인증", done: reauthVerified },
+                    { label: "이메일 본인 재인증", done: emailVerified },
+                    { label: "휴대폰 SMS 재인증", done: smsVerified },
                     { label: "전자서명", done: isSigned },
                   ].map(item => (
                     <div key={item.label} className="flex items-center gap-2 text-xs">
