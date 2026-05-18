@@ -30,8 +30,9 @@ export const ko = {
     ctaJoin: "무료 가입하기",
     trust1: "법적 효력 보장 — 전자서명법 기반",
     trust2: "11개 언어 지원",
-    trust3: "17분 완성",
+    trust3: "작성 무료 · 인증 ₩49,000",
     trust4: "은행급 보안",
+    pricingNote: "유언장 작성은 무료 · 법적 효력 인증은 ₩49,000",
   },
 
   // Trust Section

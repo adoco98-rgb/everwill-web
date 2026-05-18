@@ -27,8 +27,9 @@ export const zh = {
     ctaJoin: "免费注册",
     trust1: "电子认证完成",
     trust2: "7国支持",
-    trust3: "17分钟完成",
+    trust3: "免费撰写 · 认证¥278",
     trust4: "银行级安全",
+    pricingNote: "免费撰写 · 法律认证 ¥278",
   },
   trust: {
     title: "选择EverWill的6大理由",

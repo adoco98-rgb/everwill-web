@@ -113,6 +113,16 @@ export default function HeroSection() {
           </button>
         </motion.div>
 
+        {/* 가격 투명성 부연 문구 */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.7, delay: 0.55 }}
+          className="text-white/50 text-sm mt-1 text-center"
+        >
+          {t.hero.pricingNote}
+        </motion.p>
+
         {/* 신뢰 지표 */}
         <motion.div
           initial={{ opacity: 0 }}

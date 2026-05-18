@@ -27,8 +27,9 @@ export const ja = {
     ctaJoin: "無料で登録",
     trust1: "電子認証完了",
     trust2: "11言語対応",
-    trust3: "17分で完成",
+    trust3: "作成無料 · 認証¥5,500",
     trust4: "銀行級セキュリティ",
+    pricingNote: "作成無料 · 法的認証 ¥5,500",
   },
   trust: {
     title: "EverWillを選ぶ6つの理由",

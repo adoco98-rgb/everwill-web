@@ -27,8 +27,9 @@ export const en = {
     ctaJoin: "Join for Free",
     trust1: "Legally Valid — ESIGN Act · UEWA",
     trust2: "11 Languages",
-    trust3: "17 Min Setup",
+    trust3: "Free to Write · $39 to Certify",
     trust4: "Bank-Level Security",
+    pricingNote: "Free to write · Legal certification ₩49,000 / $39",
   },
   trust: {
     title: "6 Reasons to Choose EverWill",

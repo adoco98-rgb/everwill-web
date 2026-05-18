@@ -98,7 +98,10 @@ export default function Step8Addons({ will, update }: StepProps) {
             </div>
             <div>
               <p className="font-bold text-[#1F3864] text-sm">{isKo ? "전자 인증 프리미엄" : "Premium Certification"}</p>
-              <p className="text-xs text-gray-400">{isKo ? "영상 + 자필 모두 포함" : "Video + Handwritten included"}</p>
+              <div className="flex items-center gap-1.5">
+            <p className="text-xs text-gray-400">{isKo ? "영상 + 자필 모두 포함" : "Video + Handwritten included"}</p>
+            <span className="text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-300 px-1.5 py-0.5 rounded-full">{isKo ? "준비 중" : "Soon"}</span>
+          </div>
             </div>
           </div>
           <div className="flex items-baseline gap-2 mb-1">
@@ -140,15 +143,13 @@ export default function Step8Addons({ will, update }: StepProps) {
         <div className="flex-1 h-px bg-gray-200" />
       </div>
 
-      {/* 영상 유언장 (개별) */}
+      {/* 영상 유언장 (개별) - 준비 중 */}
       <div
-        onClick={() => update({ hasVideoWill: !will.hasVideoWill })}
-        className={`cursor-pointer rounded-2xl border-2 p-5 transition-all ${
-          will.hasVideoWill
-            ? "border-[#1F3864] bg-[#1F3864]/4"
-            : "border-gray-200 bg-white hover:border-[#1F3864]/30"
-        }`}
+        className="cursor-not-allowed rounded-2xl border-2 p-5 transition-all opacity-60 border-gray-200 bg-gray-50 relative"
       >
+        <span className="absolute -top-2.5 left-4 bg-amber-500 text-white text-xs font-bold px-3 py-0.5 rounded-full">
+          {isKo ? "준비 중" : "Coming Soon"}
+        </span>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">

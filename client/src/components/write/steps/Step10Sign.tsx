@@ -223,8 +223,10 @@ function SignatureCanvas({ onSigned, onClear, isSigned }: {
   );
 }
 
-// ─── 메인 컴포넌트 ────────────────────────────────────────────
+// ─── 메인 컴포넌트 ─────────────────────────────────────────────────────────────
 export default function Step10Sign({ will }: StepProps) {
+  // eKYC 사전 안내 화면 (최초 진입 시 true)
+  const [showKycGuide, setShowKycGuide] = useState(true);
   const [signStep, setSignStep] = useState<SignStep>("id_scan");
   const completedSteps = useRef<Set<SignStep>>(new Set());
 
@@ -504,6 +506,72 @@ export default function Step10Sign({ will }: StepProps) {
   // ─────────────────────────────────────────────────────────────
   // 렌더링
   // ─────────────────────────────────────────────────────────────
+
+  // ── eKYC 사전 안내 화면 ──
+  if (showKycGuide) {
+    return (
+      <div className="space-y-5">
+        {/* 안내 헤더 */}
+        <div className="flex items-center gap-3 p-4 bg-[#1F3864]/5 rounded-xl">
+          <Shield className="w-5 h-5 text-[#1F3864]" />
+          <div>
+            <p className="font-semibold text-[#1F3864] text-sm">본인인증 절차 안내</p>
+            <p className="text-gray-400 text-xs">시작 전 아래 내용을 확인해 주세요</p>
+          </div>
+        </div>
+        {/* 총 소요 시간 */}
+        <div className="text-center py-2">
+          <div className="inline-flex items-center gap-2 bg-[#C9A961]/10 border border-[#C9A961]/30 rounded-full px-5 py-2">
+            <Clock className="w-4 h-4 text-[#C9A961]" />
+            <span className="text-[#1F3864] font-bold text-sm">총 소요 시간: 약 2분</span>
+          </div>
+        </div>
+        {/* 3단계 안내 */}
+        <div className="space-y-3">
+          {([
+            { step: 1, icon: IdCard, title: "신분증 준비", desc: "주민등록증 또는 운전면허증을 미리 준비해 주세요.", time: "약 1분" },
+            { step: 2, icon: Camera, title: "얼굴 촬영", desc: "카메라로 정면 얼굴 사진을 촬영합니다. 밝은 곳에서 진행해 주세요.", time: "약 30초" },
+            { step: 3, icon: Smartphone, title: "음성 의사 확인", desc: "마이크로 유언 의사를 음성으로 확인합니다. 조용한 환경을 권장합니다.", time: "약 30초" },
+          ] as const).map(({ step, icon: Icon, title, desc, time }) => (
+            <div key={step} className="flex items-start gap-4 p-4 bg-white border border-gray-100 rounded-xl shadow-sm">
+              <div className="flex-shrink-0 w-9 h-9 rounded-full bg-[#1F3864] text-white flex items-center justify-center font-bold text-sm">{step}</div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Icon className="w-4 h-4 text-[#1F3864]" />
+                    <span className="font-semibold text-[#1F3864] text-sm">{title}</span>
+                  </div>
+                  <span className="text-xs text-[#C9A961] font-medium whitespace-nowrap">{time}</span>
+                </div>
+                <p className="text-gray-500 text-xs mt-1 leading-relaxed">{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* 안심 문구 */}
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+            <span className="text-green-800 text-xs font-semibold">개인정보는 암호화 저장되며 제3자에게 절대 공유되지 않습니다.</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+            <span className="text-green-800 text-xs font-semibold">은행 수준 보안 (E2E 암호화 · ISMS 인증 목표)</span>
+          </div>
+        </div>
+        {/* 시작 버튼 */}
+        <button
+          onClick={() => setShowKycGuide(false)}
+          className="w-full py-4 rounded-xl bg-[#1F3864] text-white font-bold text-base hover:bg-[#1F3864]/90 transition-colors flex items-center justify-center gap-2"
+        >
+          <Shield className="w-5 h-5" />
+          eKYC 인증 시작하기
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* 헤더 */}

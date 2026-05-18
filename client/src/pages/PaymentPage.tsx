@@ -21,7 +21,7 @@ type ProductKey =
   | "card_silver"
   | "card_gold"
   | "card_platinum"
-  | "card_platinum";
+  | "card_diamond";
 
 interface CartItem {
   key: ProductKey;
@@ -43,7 +43,7 @@ const PRODUCTS: { key: ProductKey; name: string; desc: string; amount: number; c
   { key: "card_silver", name: "Card Silver", desc: "스테인레스 카드형 · QR + NFC", amount: 49000, category: "Card" },
   { key: "card_gold", name: "Card Gold", desc: "티타늄 팔찌형 · QR + NFC", amount: 79000, category: "Card" },
   { key: "card_platinum", name: "Card Platinum", desc: "로즈골드 목걸이형 · QR + NFC", amount: 99000, category: "Card" },
-  { key: "card_platinum", name: "Card Platinum", desc: "티타늄·플래티넘 · QR + NFC", amount: 299000, category: "Card" },
+  { key: "card_diamond", name: "Card Diamond", desc: "티타늄·플래티넘 · QR + NFC", amount: 299000, category: "Card", badge: "VIP" },
 ];
 
 const CATEGORIES = ["인증", "부가서비스", "보관", "Card"];

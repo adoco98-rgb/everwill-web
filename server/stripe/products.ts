@@ -96,13 +96,13 @@ export const SARAM_PRODUCTS = {
     key: "card_platinum",
   },
   BADGE_PREMIUM: {
-    name: "SARAM Card Platinum",
+    name: "SARAM Card Diamond",
     description: "티타늄·플래티넘 · QR + NFC",
     amount: 299000,
     currency: "krw",
-    key: "card_platinum",
+    key: "card_diamond",
   },
 } as const;
 
 export type ProductKey = keyof typeof SARAM_PRODUCTS;
-export type ProductKeyStr = "certification" | "certification_premium" | "video_will" | "handwritten_scan" | "storage_1y" | "storage_3y" | "storage_5y" | "storage_10y" | "storage_lifetime" | "card_silver" | "card_gold" | "card_platinum" | "card_platinum";
+export type ProductKeyStr = "certification" | "certification_premium" | "video_will" | "handwritten_scan" | "storage_1y" | "storage_3y" | "storage_5y" | "storage_10y" | "storage_lifetime" | "card_silver" | "card_gold" | "card_platinum" | "card_diamond";

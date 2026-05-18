@@ -27,8 +27,9 @@ export const pt = {
     ctaJoin: "Entrar de graça",
     trust1: "Validade jurídica",
     trust2: "11 idiomas",
-    trust3: "17 min",
+    trust3: "Grátis escrever · $39 certificar",
     trust4: "Segurança bancária",
+    pricingNote: "Grátis escrever · Certificação legal $39",
   },
   trust: {
     title: "6 razões para escolher o EverWill",
