@@ -5,11 +5,11 @@ export const ko = {
   // Navbar
   nav: {
     services: "서비스",
-    badge: "멤버십 인증 카드",
+    badge: "인증 카드",
     pricing: "가격",
-    global: "글로벌 서비스",
-    lawyers: "원스톱 서비스",
-    taxCalc: "상속 서비스",
+    global: "글로벌",
+    lawyers: "원스톱",
+    taxCalc: "상속",
     manager: "EverWill 매니저",
     letter: "사회기부",
     startFree: "무료로 시작하기",

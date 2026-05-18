@@ -110,17 +110,15 @@ export default function Navbar() {
     ? t.nav.manager
     : user?.name?.split(" ")[0] || t.nav.myPage;
 
+  // 네비게이션 메뉴 — 한 줄에 들어오도록 7개로 유지 (중복/불필요 항목 제거)
   const navLinks = [
     { label: t.nav.services, href: "#services" },
     { label: t.nav.badge, href: "#badge" },
-    { label: t.nav.pricing, href: "#pricing" },
     { label: t.nav.global, href: "#global" },
     { label: t.nav.lawyers, href: "#lawyers" },
     { label: t.nav.taxCalc, href: "/tax", isPage: true },
-    { label: t.nav.letter ?? "사회기부", href: "/charity", isPage: true },
     { label: "FAQ", href: "/faq", isPage: true },
-    { label: "가격 안내", href: "/pricing", isPage: true },
-    { label: "유언장 포맷", href: "/will-formats", isPage: true },
+    { label: t.nav.pricing, href: "#pricing" },
   ];
 
   return (
@@ -147,13 +145,13 @@ export default function Navbar() {
             />
           </a>
 
-          {/* 데스크탑 메뉴 */}
-          <div className="hidden lg:flex items-center gap-8">
+          {/* 데스크탑 메뉴 — whitespace-nowrap으로 2줄 깨짐 방지 */}
+          <div className="hidden lg:flex items-center gap-4 xl:gap-6">
             {navLinks.map((link) => (
               <button
                 key={link.href}
                 onClick={() => link.isPage ? navigate(link.href) : handleNavClick(link.href)}
-                className={`text-white/80 hover:text-[#C9A961] text-sm font-medium transition-colors duration-200 relative group ${
+                className={`whitespace-nowrap text-white/80 hover:text-[#C9A961] text-xs xl:text-sm font-medium transition-colors duration-200 relative group ${
                   link.href === "/tax" ? "text-[#C9A961]/80" : ""
                 }`}
               >
@@ -237,7 +235,7 @@ export default function Navbar() {
                 const el = document.querySelector("#pricing");
                 if (el) el.scrollIntoView({ behavior: "smooth" });
               }}
-              className="btn-gold px-5 py-2 rounded-full text-sm font-semibold"
+              className="btn-gold px-4 py-2 rounded-full text-xs xl:text-sm font-semibold whitespace-nowrap"
             >
               {t.nav.startFree}
             </button>
