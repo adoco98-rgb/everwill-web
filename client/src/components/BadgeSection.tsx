@@ -56,7 +56,7 @@ export default function BadgeSection() {
       textAccent: "text-slate-300",
       bgCard: "bg-gradient-to-br from-slate-700 to-slate-900",
       price: getPrice("$49", "₩49,000", "¥7,595", "¥353"),
-      material: isKo ? "스테인레스 스틸" : "Stainless Steel",
+      material: isKo ? "실버 컬러" : "Silver Color",
       features: isKo
         ? ["QR 신원 인증", "NFC 태그", "유언 인증 번호", "1년 무료 보관"]
         : ["QR Identity", "NFC Tag", "Will Certificate", "1yr Free Storage"],
@@ -71,7 +71,7 @@ export default function BadgeSection() {
       textAccent: "text-[#C9A961]",
       bgCard: "bg-gradient-to-br from-[#1a2f5a] to-[#0d1f3c]",
       price: getPrice("$99", "₩99,000", "¥15,345", "¥713"),
-      material: isKo ? "24K 골드 도금" : "24K Gold Plated",
+      material: isKo ? "골드 컬러" : "Gold Color",
       features: isKo
         ? ["QR 신원 인증", "NFC 태그", "유언 인증 번호", "3년 무료 보관", "사망 트리거 우선 처리"]
         : ["QR Identity", "NFC Tag", "Will Certificate", "3yr Free Storage", "Priority Death Trigger"],
@@ -86,7 +86,7 @@ export default function BadgeSection() {
       textAccent: "text-purple-300",
       bgCard: "bg-gradient-to-br from-purple-900 to-slate-900",
       price: getPrice("$199", "₩199,000", "¥30,845", "¥1,433"),
-      material: isKo ? "티타늄 + 플래티넘 코팅" : "Titanium + Platinum Coating",
+      material: isKo ? "플래티넘 컬러" : "Platinum Color",
       features: isKo
         ? ["QR 신원 인증", "NFC 태그", "유언 인증 번호", "영구 무료 보관", "사망 트리거 우선 처리", "VIP 변호사 연결", "전담 상속 매니저"]
         : ["QR Identity", "NFC Tag", "Will Certificate", "Lifetime Storage", "Priority Death Trigger", "VIP Attorney Access", "Dedicated Estate Manager"],
