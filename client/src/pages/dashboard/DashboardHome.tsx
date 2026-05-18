@@ -299,7 +299,7 @@ export default function DashboardHome() {
             { icon: FileText, label: "유언장", value: "작성 중", sub: "마지막 저장: 오늘", status: "draft", href: "/write" },
             { icon: Shield, label: "인증 상태", value: "미인증", sub: "전자인증 ₩49,000", status: "pending", href: "/payment" },
             { icon: CreditCard, label: "결제 내역", value: "0건", sub: "결제 내역 없음", status: "none", href: "/dashboard/payments" },
-            { icon: Award, label: "Badge", value: "미신청", sub: "Essential ₩49,000~", status: "none", href: "/payment" },
+            { icon: Award, label: "EverWill 카드", value: "미신청", sub: "실버 ₩49,000~", status: "none", href: "/payment" },
           ].map((card, i) => (
             <motion.div
               key={card.label}

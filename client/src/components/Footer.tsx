@@ -12,7 +12,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 export default function Footer() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const scrollToPricing = () => {
     const el = document.querySelector("#pricing");
@@ -58,7 +58,7 @@ export default function Footer() {
           >
             <div className="inline-flex items-center gap-2 bg-[#C9A961]/15 border border-[#C9A961]/30 rounded-full px-4 py-1.5 mb-8">
               <Shield className="w-4 h-4 text-[#C9A961]" />
-              <span className="text-[#C9A961] text-sm font-medium">{t.pricing.free} · {t.pricing.certTitle} ₩49,000</span>
+              <span className="text-[#C9A961] text-sm font-medium">{t.pricing.free} · {t.pricing.certTitle} {language === 'ko' ? '₩49,000' : '$39'}</span>
             </div>
 
             <h2 className="text-4xl lg:text-6xl font-bold text-white mb-6 leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>

@@ -1,45 +1,98 @@
 /**
- * EverWill Badge 섹션
- * 멤버십 골드 카드 제공 안내
- * 네이비 배경 + 골드 강조
+ * EverWill 카드 섹션
+ * 실버 / 골드 / 플래티넘 3종 카드 라인업
+ * 네이비 배경 + 카드별 컬러 강조
  */
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
-import { QrCode, Heart, FileCheck, Megaphone, Gift, Clock, CreditCard, Star } from "lucide-react";
+import { QrCode, FileCheck, Wifi, ShieldCheck, Star, Sparkles, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const BADGE_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/everwill-gold-card-oH5UXq9tRPBYWHV9uVM6ME.webp";
-
-/* 멤버십 골드 카드 혜택 */
-const membershipCardBenefits = [
-  { icon: CreditCard, title: "멤버십 골드 카드", desc: "유언장 인증 완료 시 실물 골드 카드 발급" },
-  { icon: QrCode, title: "QR 신원 인증", desc: "응급 상황 시 QR 스캔으로 가족 연락처 즉시 확인" },
-  { icon: FileCheck, title: "유언 인증 번호", desc: "법원·은행에서 일련번호로 유언 인증서 확인" },
-  { icon: Star, title: "평생 보관 증명", desc: "카드 소지만으로 EverWill 회원임을 증명" },
+/* 카드 3종 공통 기능 */
+const CARD_FEATURES = [
+  { icon: QrCode, labelKo: "QR 신원 인증", labelEn: "QR Identity", descKo: "응급 시 QR 스캔 → 가족 연락처 즉시 확인", descEn: "Emergency QR scan → instant family contact" },
+  { icon: Wifi, labelKo: "NFC 태그", labelEn: "NFC Tag", descKo: "스마트폰 태그 → 의료정보 자동 표시", descEn: "Tap phone → medical info displayed" },
+  { icon: FileCheck, labelKo: "유언 인증 번호", labelEn: "Will Certificate", descKo: "법원·은행에서 일련번호로 유언 확인", descEn: "Court & bank will verification by serial number" },
+  { icon: ShieldCheck, labelKo: "사망 트리거", labelEn: "Death Trigger", descKo: "카드 발견 시 자동 사망 알림 발송", descEn: "Auto death notification when card is found" },
 ];
+
+type CardTier = {
+  tier: string;
+  tierLabel: string;
+  color: string;
+  borderColor: string;
+  textAccent: string;
+  bgCard: string;
+  price: string;
+  material: string;
+  features: string[];
+  popular: boolean;
+  icon: React.ElementType;
+};
 
 export default function BadgeSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
-  const { t, language } = useLanguage();
-  const isKo = language === 'ko';
+  const { language } = useLanguage();
+  const isKo = language === "ko";
+  const isJa = language === "ja";
+  const isZh = language === "zh";
 
-  const badgeRoles = [
-    { icon: Heart, title: t.badge.role1, description: t.badge.role1Desc, color: "text-red-400" },
-    { icon: QrCode, title: t.badge.role2, description: t.badge.role2Desc, color: "text-blue-400" },
-    { icon: FileCheck, title: t.badge.role3, description: t.badge.role3Desc, color: "text-green-400" },
-    { icon: Megaphone, title: t.badge.role4, description: t.badge.role4Desc, color: "text-yellow-400" },
-  ];
+  const getPrice = (usd: string, krw: string, jpy: string, cny: string) => {
+    if (isKo) return krw;
+    if (isJa) return jpy;
+    if (isZh) return cny;
+    return usd;
+  };
 
-  /* 멤버십 플랜별 카드 혜택 */
-  const membershipTiers = [
-    { name: "Basic", plan: "유언장 인증 (₩49,000)", card: "스테인레스 골드 카드 + 1년 무료 보관", color: "border-gray-400/30 bg-white/5" },
-    { name: "3년 플랜", plan: "₩73,900", card: "스테인레스 골드 카드 + 3년 보관", color: "border-blue-400/30 bg-blue-500/5" },
-    { name: "5년 플랜", plan: "₩88,000", card: "티타늄 골드 카드 + 5년 보관", color: "border-[#C9A961]/40 bg-[#C9A961]/5", popular: true },
-    { name: "10년 플랜", plan: "₩128,000", card: "티타늄 골드 카드 + 10년 보관", color: "border-purple-400/30 bg-purple-500/5" },
-    { name: "영구 플랜", plan: "₩248,000", card: "플래티넘 골드 카드 + 영구 보관", color: "border-[#C9A961]/60 bg-[#C9A961]/10" },
+  const cards: CardTier[] = [
+    {
+      tier: "Silver",
+      tierLabel: isKo ? "실버 카드" : "Silver Card",
+      color: "from-slate-400 to-slate-600",
+      borderColor: "border-slate-400/40",
+      textAccent: "text-slate-300",
+      bgCard: "bg-gradient-to-br from-slate-700 to-slate-900",
+      price: getPrice("$49", "₩49,000", "¥7,595", "¥353"),
+      material: isKo ? "스테인레스 스틸" : "Stainless Steel",
+      features: isKo
+        ? ["QR 신원 인증", "NFC 태그", "유언 인증 번호", "1년 무료 보관"]
+        : ["QR Identity", "NFC Tag", "Will Certificate", "1yr Free Storage"],
+      popular: false,
+      icon: CreditCard,
+    },
+    {
+      tier: "Gold",
+      tierLabel: isKo ? "골드 카드" : "Gold Card",
+      color: "from-[#C9A961] to-[#a07c3a]",
+      borderColor: "border-[#C9A961]/50",
+      textAccent: "text-[#C9A961]",
+      bgCard: "bg-gradient-to-br from-[#1a2f5a] to-[#0d1f3c]",
+      price: getPrice("$99", "₩99,000", "¥15,345", "¥713"),
+      material: isKo ? "24K 골드 도금" : "24K Gold Plated",
+      features: isKo
+        ? ["QR 신원 인증", "NFC 태그", "유언 인증 번호", "3년 무료 보관", "사망 트리거 우선 처리"]
+        : ["QR Identity", "NFC Tag", "Will Certificate", "3yr Free Storage", "Priority Death Trigger"],
+      popular: true,
+      icon: Star,
+    },
+    {
+      tier: "Platinum",
+      tierLabel: isKo ? "플래티넘 카드" : "Platinum Card",
+      color: "from-purple-300 to-purple-600",
+      borderColor: "border-purple-400/40",
+      textAccent: "text-purple-300",
+      bgCard: "bg-gradient-to-br from-purple-900 to-slate-900",
+      price: getPrice("$199", "₩199,000", "¥30,845", "¥1,433"),
+      material: isKo ? "티타늄 + 플래티넘 코팅" : "Titanium + Platinum Coating",
+      features: isKo
+        ? ["QR 신원 인증", "NFC 태그", "유언 인증 번호", "영구 무료 보관", "사망 트리거 우선 처리", "VIP 변호사 연결", "전담 상속 매니저"]
+        : ["QR Identity", "NFC Tag", "Will Certificate", "Lifetime Storage", "Priority Death Trigger", "VIP Attorney Access", "Dedicated Estate Manager"],
+      popular: false,
+      icon: Sparkles,
+    },
   ];
 
   return (
@@ -48,9 +101,11 @@ export default function BadgeSection() {
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-0 w-96 h-96 rounded-full bg-[#C9A961]/5 blur-3xl -translate-x-1/2 -translate-y-1/2" />
         <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-[#C9A961]/8 blur-3xl translate-x-1/2 translate-y-1/2" />
+        <div className="absolute top-1/2 left-1/2 w-[600px] h-[600px] rounded-full bg-[#C9A961]/3 blur-3xl -translate-x-1/2 -translate-y-1/2" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
         {/* 섹션 헤더 */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -58,132 +113,146 @@ export default function BadgeSection() {
           transition={{ duration: 0.7 }}
           className="text-center mb-16"
         >
-          <div className="inline-flex items-center gap-2 bg-[#C9A961]/15 border border-[#C9A961]/30 rounded-full px-4 py-1.5 mb-6">
-            <span className="text-[#C9A961] text-sm font-medium">{t.badge.tag}</span>
+          <div className="inline-flex items-center gap-2 bg-[#C9A961]/20 border border-[#C9A961]/30 rounded-full px-4 py-1.5 mb-6">
+            <CreditCard className="w-4 h-4 text-[#C9A961]" />
+            <span className="text-sm text-[#C9A961] font-medium">
+              {isKo ? "멤버십 인증 카드" : "Membership Card"}
+            </span>
           </div>
-          <h2 className="text-3xl lg:text-5xl font-bold text-white mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
-            {t.badge.title}
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
+            {isKo ? "EverWill 카드" : "EverWill Card"}
           </h2>
-          <p className="text-white/60 text-lg max-w-2xl mx-auto">
-            {t.badge.subtitle}
-            <br />
-            {t.badge.desc}
+          <p className="text-xl text-white/80 mb-3">
+            {isKo
+              ? "지갑 속 한 장으로 — 신원 확인, 유언 인증, 사망 트리거까지"
+              : "One card in your wallet — identity, will authentication, death trigger"}
+          </p>
+          <p className="text-white/50 max-w-2xl mx-auto text-sm leading-relaxed">
+            {isKo
+              ? "MedicAlert + AirTag + Trust&Will을 하나의 카드로. 전 세계 어떤 유언 플랫폼도 시도하지 않은 혁신."
+              : "MedicAlert + AirTag + Trust&Will in a single card. Innovation no other will platform has attempted."}
           </p>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center mb-16">
-          {/* 좌측: Badge 이미지 */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.7, delay: 0.1 }}
-            className="relative"
-          >
-            <div className="relative rounded-2xl overflow-hidden">
-              <img
-                src={BADGE_IMAGE}
-                alt="EverWill Badge - 프리미엄 스테인레스 카드와 티타늄 팔찌"
-                className="w-full h-auto object-cover"
-                style={{ maxHeight: "400px", objectFit: "cover" }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#1F3864]/60 to-transparent" />
-            </div>
-
-            {/* 플로팅 통계 */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={isInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 0.5, delay: 0.6 }}
-              className="absolute bottom-4 left-4 right-4 bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20"
-            >
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-[#C9A961] font-bold text-lg">4</div>
-                  <div className="text-white/70 text-xs">{t.badge.role1}</div>
-                </div>
-                <div>
-                  <div className="text-[#C9A961] font-bold text-lg">5</div>
-                  <div className="text-white/70 text-xs">{t.badge.lineup}</div>
-                </div>
-                <div>
-                  <div className="text-[#C9A961] font-bold text-lg">∞</div>
-                  <div className="text-white/70 text-xs">{t.badge.tag}</div>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-
-          {/* 우측: 4가지 역할 */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            className="space-y-5"
-          >
-            {badgeRoles.map((role, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: 20 }}
-                animate={isInView ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.5, delay: 0.3 + i * 0.1 }}
-                className="flex items-start gap-4 bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-colors"
-              >
-                <div className={`w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0 ${role.color}`}>
-                  <role.icon className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-white font-semibold mb-1">{role.title}</h3>
-                  <p className="text-white/60 text-sm leading-relaxed">{role.description}</p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-
-        {/* 무료 증정 배너 */}
+        {/* 카드 기능 4가지 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mb-8"
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16"
         >
-          <div className="bg-gradient-to-r from-[#C9A961]/20 to-[#C9A961]/10 border border-[#C9A961]/40 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-            <div className="w-12 h-12 rounded-xl bg-[#C9A961]/20 flex items-center justify-center flex-shrink-0">
-              <Gift className="w-6 h-6 text-[#C9A961]" />
-            </div>
-            <div className="flex-1">
-              <div className="text-[#C9A961] font-bold text-base mb-1">
-                {t.badge.cardIncluded}
+          {CARD_FEATURES.map((feat, i) => (
+            <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4 text-center hover:bg-white/10 transition-colors">
+              <div className="inline-flex items-center justify-center w-10 h-10 bg-[#C9A961]/20 rounded-full mb-3">
+                <feat.icon className="w-5 h-5 text-[#C9A961]" />
               </div>
-              <p className="text-white/60 text-sm">
-                {t.badge.wearable} · {t.badge.necklace} · {t.badge.premium} · {t.badge.custom}
+              <p className="text-white font-semibold text-sm mb-1">
+                {isKo ? feat.labelKo : feat.labelEn}
+              </p>
+              <p className="text-white/50 text-xs leading-relaxed">
+                {isKo ? feat.descKo : feat.descEn}
               </p>
             </div>
-            <div className="flex-shrink-0 bg-[#C9A961] text-[#1F3864] font-black text-sm px-4 py-2 rounded-full whitespace-nowrap">
-              ₩49,000 {t.badge.cardIncluded}
-            </div>
-          </div>
+          ))}
         </motion.div>
 
-        {/* 바로 시작하기 CTA */}
+        {/* 카드 3종 라인업 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {cards.map((card, i) => (
+            <motion.div
+              key={card.tier}
+              initial={{ opacity: 0, y: 40 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.3 + i * 0.15 }}
+              className={`relative rounded-2xl border ${card.borderColor} ${card.bgCard} p-6 shadow-xl hover:-translate-y-1 transition-transform duration-300 ${card.popular ? "ring-2 ring-[#C9A961]/50" : ""}`}
+            >
+              {/* 인기 배지 */}
+              {card.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="bg-[#C9A961] text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
+                    {isKo ? "인기" : "Popular"}
+                  </span>
+                </div>
+              )}
+
+              {/* 카드 상단 */}
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <p className={`text-xs font-semibold uppercase tracking-widest ${card.textAccent} mb-1`}>
+                    {card.tier}
+                  </p>
+                  <h3 className="text-white font-bold text-lg">{card.tierLabel}</h3>
+                  <p className="text-white/40 text-xs mt-0.5">{card.material}</p>
+                </div>
+                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${card.color} flex items-center justify-center shadow-lg`}>
+                  <card.icon className="w-6 h-6 text-white" />
+                </div>
+              </div>
+
+              {/* 카드 시각화 */}
+              <div className={`relative h-32 rounded-xl bg-gradient-to-br ${card.color} mb-5 overflow-hidden shadow-inner`}>
+                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
+                <div className="absolute top-3 left-4">
+                  <p className="text-white font-bold text-sm tracking-wider">EverWill</p>
+                  <p className="text-white/70 text-xs font-medium">{card.tier.toUpperCase()}</p>
+                </div>
+                <div className="absolute top-3 right-4">
+                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                    <Wifi className="w-4 h-4 text-white/80" />
+                  </div>
+                </div>
+                <div className="absolute bottom-3 left-4">
+                  <p className="text-white/60 text-xs font-mono tracking-widest">**** **** **** ****</p>
+                </div>
+              </div>
+
+              {/* 가격 */}
+              <div className="mb-5">
+                <span className={`text-3xl font-bold ${card.textAccent}`}>{card.price}</span>
+                <span className="text-white/40 text-sm ml-1">{isKo ? "/ 1회" : "/ once"}</span>
+              </div>
+
+              {/* 포함 기능 목록 */}
+              <ul className="space-y-2 mb-6">
+                {card.features.map((feat, fi) => (
+                  <li key={fi} className="flex items-center gap-2 text-sm text-white/70">
+                    <div className={`w-4 h-4 rounded-full bg-gradient-to-br ${card.color} flex items-center justify-center flex-shrink-0`}>
+                      <span className="text-white text-[8px] font-bold">✓</span>
+                    </div>
+                    {feat}
+                  </li>
+                ))}
+              </ul>
+
+              {/* 주문 버튼 */}
+              <button
+                onClick={() => toast.info(isKo ? "카드 주문 기능은 곧 오픈됩니다!" : "Card ordering coming soon!")}
+                className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 bg-gradient-to-r ${card.color} text-white hover:opacity-90 hover:shadow-lg`}
+              >
+                {isKo ? "지금 주문하기" : "Order Now"}
+              </button>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* 하단 안내 */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-8 text-center"
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="text-center"
         >
-          <button
-            onClick={() => { window.location.href = '/login'; }}
-            className="btn-gold px-10 py-4 rounded-full text-lg font-black inline-flex items-center gap-3 shadow-lg hover:shadow-xl transition-all"
-          >
-            <Gift className="w-5 h-5" />
-            {isKo ? '지금 바로 시작하기 →' : 'Get Started Now →'}
-          </button>
-          <p className="text-white/40 text-sm mt-3">
-            {isKo ? 'AI 유언장 작성 무료 · 전자인증 ₩49,000' : 'AI Will Writing Free · E-Certification ₩49,000'}
+          <p className="text-white/40 text-sm">
+            {isKo
+              ? "* 카드는 유언장 인증 완료 후 신청 가능합니다. 제작 기간 약 2-3주 소요."
+              : "* Card available after will certification. Production takes approx. 2-3 weeks."}
+          </p>
+          <p className="text-white/30 text-xs mt-1">
+            {isKo
+              ? "AI 유언장 작성 무료 · 전자인증 ₩49,000 · 카드는 별도 선택 사항"
+              : "AI Will Writing Free · E-Certification $39 · Card is optional add-on"}
           </p>
         </motion.div>
-
       </div>
     </section>
   );
