@@ -156,7 +156,7 @@ export default function TermsPage() {
           <div className="mt-4 text-sm text-gray-500 space-y-1">
             <p><strong>회사명:</strong> 주식회사 사람</p>
             <p><strong>서비스명:</strong> EverWill</p>
-            <p><strong>문의:</strong> support@everwill.co.kr</p>
+            <p><strong>문의:</strong> adoco98@gmail.com</p>
           </div>
         </section>
 

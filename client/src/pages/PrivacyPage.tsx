@@ -161,7 +161,7 @@ export default function PrivacyPage() {
               <li>삭제 요구</li>
               <li>처리 정지 요구</li>
             </ul>
-            <p>② 권리 행사는 서비스 내 마이페이지 또는 이메일(support@everwill.co.kr)을 통해 요청하실 수 있습니다.</p>
+            <p>② 권리 행사는 서비스 내 마이페이지 또는 이메일(adoco98@gmail.com)을 통해 요청하실 수 있습니다.</p>
           </div>
         </section>
 
@@ -181,7 +181,7 @@ export default function PrivacyPage() {
             <p className="font-semibold text-[#1F3864]">개인정보 보호책임자</p>
             <p><strong>성명:</strong> 라수환</p>
             <p><strong>직책:</strong> 대표이사</p>
-            <p><strong>이메일:</strong> privacy@everwill.co.kr</p>
+            <p><strong>이메일:</strong> adoco98@gmail.com</p>
             <p className="pt-2 text-gray-500 text-xs">정보 주체는 서비스를 이용하면서 발생한 모든 개인정보 보호 관련 문의, 불만 처리, 피해 구제 등에 관한 사항을 개인정보 보호책임자에게 문의하실 수 있습니다.</p>
           </div>
         </section>
@@ -206,9 +206,9 @@ export default function PrivacyPage() {
           <p className="text-sm text-gray-600">이 개인정보처리방침은 2025년 8월 1일부터 시행합니다.</p>
           <div className="mt-4 text-sm text-gray-500 space-y-1">
             <p><strong>회사명:</strong> 주식회사 사람</p>
-            <p><strong>사업자등록번호:</strong> 추후 기재</p>
-            <p><strong>주소:</strong> 대한민국 서울특별시</p>
-            <p><strong>문의:</strong> privacy@everwill.co.kr</p>
+            <p><strong>사업자등록번호:</strong> 621-81-61690</p>
+            <p><strong>주소:</strong> 경기도 안성시</p>
+            <p><strong>문의:</strong> adoco98@gmail.com</p>
           </div>
         </section>
 
