@@ -137,6 +137,14 @@ export const wills = mysqlTable("wills", {
   storageExpiresAt: timestamp("storageExpiresAt"),
   /** 결제 ID 참조 */
   paymentId: int("paymentId"),
+  /** PDF 파일 S3 키 */
+  pdfKey: varchar("pdfKey", { length: 512 }),
+  /** PDF 파일 URL */
+  pdfUrl: varchar("pdfUrl", { length: 1024 }),
+  /** 블록체인 해시값 (SHA-256) */
+  blockchainHash: varchar("blockchainHash", { length: 128 }),
+  /** 유언장 고유 인증 번호 (EW-YYYYMMDD-XXXXXX) */
+  certNumber: varchar("certNumber", { length: 32 }).unique(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

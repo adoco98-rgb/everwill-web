@@ -569,3 +569,16 @@
 - [ ] Step10Sign UI 전면 개편: 신분증스캔→자산증명서스캔→자동완성→유언장미리보기→공인인증서명 흐름
 - [ ] 공인인증서/개인인증서 최종 서명 단계 UI (PASS/카카오/네이버 인증 연동 안내 포함)
 - [ ] 유언장 최종본 PDF 미리보기 (서명 전 전체 내용 확인)
+
+## 7월 오픈 MVP 완성 작업
+
+- [x] willRouter에 saveWill / updateWill / getMyWills / getWillById / certifyWill API 추가
+- [ ] WritePage 완료 시 trpc.will.saveWill 호출하여 DB 저장
+- [x] 대시보드 사이드바에 "내 유언장" 메뉴 추가 (/dashboard/wills)
+- [x] 대시보드 내 유언장 목록 페이지 생성 (상태/날짜/수정 버튼)
+- [x] 유언장 PDF 생성 API (서버사이드, html-pdf-node + chromium)
+- [ ] 결제 완료 후 wills.status = certified 자동 업데이트
+- [ ] 결제 완료 이메일 발송 (영수증 + PDF 다운로드 링크)
+- [x] 인증 완료 이메일 발송 (Resend 연동, 비동기 발송)
+- [x] 회원가입 환영 이메일 함수 추가 (sendWelcomeEmail)
+- [ ] 토스페이먼츠 연동 (API 키 수령 후 진행)

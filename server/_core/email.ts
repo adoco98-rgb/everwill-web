@@ -248,3 +248,257 @@ export async function sendInquiryReplyEmail(params: {
     return false;
   }
 }
+
+/**
+ * 유언장 인증 완료 이메일 - 사용자에게 발송
+ */
+export async function sendWillCertifiedEmail(params: {
+  toEmail: string;
+  toName: string;
+  certNumber: string;
+  willTitle: string;
+  certifiedAt: string;
+  pdfUrl?: string;
+}): Promise<boolean> {
+  try {
+    const { error } = await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: params.toEmail,
+      subject: `[EverWill] 유언장 인증이 완료됐습니다 - ${params.certNumber}`,
+      html: `
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EverWill 유언장 인증 완료</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:'Apple SD Gothic Neo',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+          <!-- 헤더 -->
+          <tr>
+            <td style="background:#1F3864;padding:32px 40px;text-align:center;">
+              <div style="font-size:24px;font-weight:bold;color:#C9A961;letter-spacing:2px;">EverWill</div>
+              <div style="font-size:11px;color:#ffffff99;margin-top:4px;letter-spacing:3px;">DIGITAL WILL OS</div>
+            </td>
+          </tr>
+          <!-- 인증 완료 배너 -->
+          <tr>
+            <td style="background:#ECFDF5;padding:24px 40px;border-bottom:1px solid #D1FAE5;text-align:center;">
+              <div style="font-size:36px;margin-bottom:8px;">✅</div>
+              <div style="font-size:20px;font-weight:700;color:#065F46;">유언장 인증이 완료됐습니다</div>
+            </td>
+          </tr>
+          <!-- 본문 -->
+          <tr>
+            <td style="padding:40px;">
+              <p style="margin:0 0 24px;color:#6B7280;font-size:15px;">
+                안녕하세요, <strong>${params.toName}</strong>님.<br/>
+                유언장이 성공적으로 인증됐습니다. 소중한 의사를 안전하게 보관해 드리겠습니다.
+              </p>
+
+              <!-- 인증 정보 박스 -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#F0FDF4;border-radius:8px;border:1.5px solid #86EFAC;margin-bottom:28px;">
+                <tr>
+                  <td style="padding:20px 24px;">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding:6px 0;font-size:13px;color:#6B7280;width:110px;">인증 번호</td>
+                        <td style="padding:6px 0;font-size:14px;color:#065F46;font-weight:700;font-family:monospace;letter-spacing:1px;">${params.certNumber}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:6px 0;font-size:13px;color:#6B7280;">유언장 제목</td>
+                        <td style="padding:6px 0;font-size:13px;color:#1A1A1A;font-weight:500;">${params.willTitle}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:6px 0;font-size:13px;color:#6B7280;">인증 완료일</td>
+                        <td style="padding:6px 0;font-size:13px;color:#1A1A1A;">${params.certifiedAt}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              ${params.pdfUrl ? `
+              <!-- PDF 다운로드 버튼 -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                <tr>
+                  <td align="center">
+                    <a href="${params.pdfUrl}" target="_blank"
+                      style="display:inline-block;background:#1F3864;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:600;letter-spacing:0.5px;">
+                      📄 유언장 PDF 다운로드
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              ` : ""}
+
+              <!-- 안내 박스 -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFF7ED;border-radius:8px;border:1px solid #FED7AA;margin-bottom:24px;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <div style="font-size:13px;font-weight:600;color:#9A3412;margin-bottom:8px;">⚠️ 중요 안내</div>
+                    <ul style="margin:0;padding-left:16px;font-size:13px;color:#7C2D12;line-height:1.8;">
+                      <li>인증된 유언장은 수정 또는 삭제가 불가능합니다.</li>
+                      <li>내용 변경 시 재인증(₩15,000)이 필요합니다.</li>
+                      <li>인증 번호는 법원·금융기관 제출 시 사용됩니다.</li>
+                      <li>유언장은 EverWill 분산 암호화 보관 시스템에 저장됩니다.</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0;color:#6B7280;font-size:14px;">
+                문의 사항이 있으시면 <a href="mailto:${ADMIN_EMAIL}" style="color:#1F3864;font-weight:600;">${ADMIN_EMAIL}</a>로 연락 주세요.
+              </p>
+            </td>
+          </tr>
+          <!-- 푸터 -->
+          <tr>
+            <td style="background:#f8f9fa;padding:20px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#9CA3AF;">
+                © 2025 EverWill (주식회사 사람) · 세계 최초 디지털 유언 OS<br/>
+                본 이메일은 유언장 인증 완료 알림을 위해 자동 발송됩니다.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+      `,
+    });
+
+    if (error) {
+      console.error("[Email] 유언장 인증 완료 이메일 발송 실패:", error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("[Email] 유언장 인증 완료 이메일 발송 오류:", err);
+    return false;
+  }
+}
+
+/**
+ * 회원가입 환영 이메일 - 사용자에게 발송
+ */
+export async function sendWelcomeEmail(params: {
+  toEmail: string;
+  toName: string;
+}): Promise<boolean> {
+  try {
+    const { error } = await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: params.toEmail,
+      subject: `[EverWill] 가입을 환영합니다, ${params.toName}님`,
+      html: `
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EverWill 환영 이메일</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:'Apple SD Gothic Neo',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+          <!-- 헤더 -->
+          <tr>
+            <td style="background:#1F3864;padding:40px;text-align:center;">
+              <div style="font-size:28px;font-weight:bold;color:#C9A961;letter-spacing:3px;">EverWill</div>
+              <div style="font-size:12px;color:#ffffff99;margin-top:6px;letter-spacing:3px;">DIGITAL WILL OS</div>
+            </td>
+          </tr>
+          <!-- 본문 -->
+          <tr>
+            <td style="padding:40px;">
+              <h2 style="margin:0 0 8px;font-size:22px;color:#1F3864;">환영합니다, ${params.toName}님! 🎉</h2>
+              <p style="margin:0 0 28px;color:#6B7280;font-size:15px;line-height:1.7;">
+                EverWill에 가입해 주셔서 감사합니다.<br/>
+                이제 소중한 의사를 안전하게 남길 준비가 됐습니다.
+              </p>
+
+              <!-- 시작 가이드 -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+                <tr>
+                  <td style="padding:0 0 16px;">
+                    <div style="font-size:16px;font-weight:700;color:#1F3864;margin-bottom:16px;">지금 바로 시작하세요</div>
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding:12px 16px;background:#F8FAFC;border-radius:8px;margin-bottom:8px;border-left:3px solid #C9A961;">
+                          <div style="font-size:14px;font-weight:600;color:#1A1A1A;">1단계: 유언장 작성</div>
+                          <div style="font-size:13px;color:#6B7280;margin-top:4px;">AI 가이드를 따라 17분 만에 완성</div>
+                        </td>
+                      </tr>
+                      <tr><td style="height:8px;"></td></tr>
+                      <tr>
+                        <td style="padding:12px 16px;background:#F8FAFC;border-radius:8px;border-left:3px solid #C9A961;">
+                          <div style="font-size:14px;font-weight:600;color:#1A1A1A;">2단계: 전자 인증</div>
+                          <div style="font-size:13px;color:#6B7280;margin-top:4px;">₩49,000 · 법적 효력 보장</div>
+                        </td>
+                      </tr>
+                      <tr><td style="height:8px;"></td></tr>
+                      <tr>
+                        <td style="padding:12px 16px;background:#F8FAFC;border-radius:8px;border-left:3px solid #C9A961;">
+                          <div style="font-size:14px;font-weight:600;color:#1A1A1A;">3단계: 상속자 등록</div>
+                          <div style="font-size:13px;color:#6B7280;margin-top:4px;">사망 시 자동 알림 발송</div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- CTA 버튼 -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                <tr>
+                  <td align="center">
+                    <a href="https://everwill.co.kr/write"
+                      style="display:inline-block;background:#1F3864;color:#ffffff;text-decoration:none;padding:16px 40px;border-radius:8px;font-size:16px;font-weight:700;letter-spacing:0.5px;">
+                      유언장 작성 시작하기 →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0;color:#6B7280;font-size:13px;text-align:center;">
+                작성은 무료입니다. 인증 시에만 비용이 발생합니다.
+              </p>
+            </td>
+          </tr>
+          <!-- 푸터 -->
+          <tr>
+            <td style="background:#f8f9fa;padding:20px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#9CA3AF;">
+                © 2025 EverWill (주식회사 사람) · 세계 최초 디지털 유언 OS<br/>
+                본 이메일은 회원가입 환영 안내를 위해 자동 발송됩니다.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+      `,
+    });
+
+    if (error) {
+      console.error("[Email] 환영 이메일 발송 실패:", error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("[Email] 환영 이메일 발송 오류:", err);
+    return false;
+  }
+}

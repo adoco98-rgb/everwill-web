@@ -39,6 +39,7 @@ import PublicProfilePage from "./pages/PublicProfilePage";
 import MembershipCardPage from "./pages/dashboard/MembershipCardPage";
 import AssetVerifyPage from "./pages/dashboard/AssetVerifyPage";
 import HeirsPage from "./pages/dashboard/HeirsPage";
+import WillsPage from "./pages/dashboard/WillsPage";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -69,6 +70,8 @@ function Router() {
       <Route path={"/dashboard/asset-verify"} component={() => <SaramDashboardLayout><AssetVerifyPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/inquiries"} component={() => <SaramDashboardLayout><InquiriesPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/heirs"} component={() => <SaramDashboardLayout><HeirsPage /></SaramDashboardLayout>} />
+      {/* 내 유언장 목록 */}
+      <Route path={"/dashboard/wills"} component={() => <SaramDashboardLayout><WillsPage /></SaramDashboardLayout>} />
       {/* 상속세 계산기 */}
       <Route path={"/tax"} component={TaxCalculatorPage} />
       <Route path={"/tax/report"} component={TaxReportPage} />

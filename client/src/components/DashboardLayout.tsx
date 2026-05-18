@@ -22,15 +22,21 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, FileText, Users, Shield, CreditCard, Mail, User, QrCode } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Page 1", path: "/" },
-  { icon: Users, label: "Page 2", path: "/some-path" },
+  { icon: LayoutDashboard, label: "대시보드", path: "/dashboard" },
+  { icon: FileText, label: "내 유언장", path: "/dashboard/wills" },
+  { icon: Users, label: "상속자 등록", path: "/dashboard/heirs" },
+  { icon: Shield, label: "자산 인증", path: "/dashboard/asset-verify" },
+  { icon: QrCode, label: "멤버십 카드", path: "/dashboard/membership" },
+  { icon: Mail, label: "나의 편지", path: "/letter" },
+  { icon: CreditCard, label: "결제 내역", path: "/dashboard/payments" },
+  { icon: User, label: "내 정보", path: "/dashboard/profile" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";

@@ -7,6 +7,11 @@
 import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { invokeLLM } from "../_core/llm";
+import { getDb } from "../db";
+import { wills } from "../../drizzle/schema";
+import { eq, and, desc } from "drizzle-orm";
+import crypto from "crypto";
+import { sendWillCertifiedEmail } from "../_core/email";
 
 // 상속인 스키마
 const HeirSchema = z.object({
@@ -303,5 +308,161 @@ ${input.currentData ? JSON.stringify(input.currentData, null, 2) : "없음"}
         success: true,
         reply,
       };
+    }),
+
+  // ===== 유언장 CRUD API =====
+
+  /**
+   * 유언장 저장 (신규 생성 또는 기존 업데이트)
+   */
+  saveWill: protectedProcedure
+    .input(z.object({
+      willId: z.number().optional(),
+      title: z.string().optional(),
+      data: z.string(),
+      mode: z.enum(["ai", "direct"]).default("ai"),
+      status: z.enum(["draft", "certified", "expired"]).default("draft"),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB 연결 실패");
+
+      const userId = ctx.user.id;
+      const title = input.title || `유언장 ${new Date().toLocaleDateString("ko-KR")}`;
+
+      if (input.willId) {
+        const existing = await db.select().from(wills)
+          .where(and(eq(wills.id, input.willId), eq(wills.userId, userId)))
+          .limit(1);
+        if (!existing.length) throw new Error("유언장을 찾을 수 없습니다");
+
+        await db.update(wills)
+          .set({ title, data: input.data, mode: input.mode, status: input.status })
+          .where(eq(wills.id, input.willId));
+
+        return { success: true, willId: input.willId, isNew: false };
+      } else {
+        const result = await db.insert(wills).values({
+          userId,
+          title,
+          data: input.data,
+          mode: input.mode,
+          status: input.status,
+        });
+        const willId = (result as any)[0]?.insertId ?? (result as any).insertId;
+        return { success: true, willId, isNew: true };
+      }
+    }),
+
+  /**
+   * 내 유언장 목록 조회
+   */
+  getMyWills: protectedProcedure
+    .query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+
+      return await db.select({
+        id: wills.id,
+        title: wills.title,
+        mode: wills.mode,
+        status: wills.status,
+        isCertified: wills.isCertified,
+        certifiedAt: wills.certifiedAt,
+        certNumber: wills.certNumber,
+        pdfUrl: wills.pdfUrl,
+        createdAt: wills.createdAt,
+        updatedAt: wills.updatedAt,
+      }).from(wills)
+        .where(eq(wills.userId, ctx.user.id))
+        .orderBy(desc(wills.updatedAt));
+    }),
+
+  /**
+   * 유언장 상세 조회 (본인 소유만)
+   */
+  getWillById: protectedProcedure
+    .input(z.object({ willId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB 연결 실패");
+
+      const result = await db.select().from(wills)
+        .where(and(eq(wills.id, input.willId), eq(wills.userId, ctx.user.id)))
+        .limit(1);
+
+      if (!result.length) throw new Error("유언장을 찾을 수 없습니다");
+      return result[0];
+    }),
+
+  /**
+   * 유언장 삭제 (초안 상태만 가능)
+   */
+  deleteWill: protectedProcedure
+    .input(z.object({ willId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB 연결 실패");
+
+      const existing = await db.select().from(wills)
+        .where(and(eq(wills.id, input.willId), eq(wills.userId, ctx.user.id)))
+        .limit(1);
+
+      if (!existing.length) throw new Error("유언장을 찾을 수 없습니다");
+      if (existing[0].status === "certified") throw new Error("인증된 유언장은 삭제할 수 없습니다");
+
+      await db.delete(wills).where(eq(wills.id, input.willId));
+      return { success: true };
+    }),
+
+  /**
+   * 유언장 인증 처리 (결제 완료 후 호출)
+   */
+  certifyWill: protectedProcedure
+    .input(z.object({
+      willId: z.number(),
+      paymentId: z.number().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB 연결 실패");
+
+      const existing = await db.select().from(wills)
+        .where(and(eq(wills.id, input.willId), eq(wills.userId, ctx.user.id)))
+        .limit(1);
+
+      if (!existing.length) throw new Error("유언장을 찾을 수 없습니다");
+      if (existing[0].isCertified) throw new Error("이미 인증된 유언장입니다");
+
+      const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      const suffix = Math.random().toString(36).toUpperCase().slice(2, 8);
+      const certNumber = `EW-${today}-${suffix}`;
+
+      const hashInput = `${input.willId}-${ctx.user.id}-${certNumber}-${existing[0].data}`;
+      const blockchainHash = crypto.createHash("sha256").update(hashInput).digest("hex");
+
+      await db.update(wills).set({
+        status: "certified",
+        isCertified: 1,
+        certifiedAt: new Date(),
+        certNumber,
+        blockchainHash,
+        paymentId: input.paymentId,
+      }).where(eq(wills.id, input.willId));
+
+      // 인증 완료 이메일 발송 (비동기 - 실패해도 인증은 성공으로 처리)
+      if (ctx.user.email) {
+        sendWillCertifiedEmail({
+          toEmail: ctx.user.email,
+          toName: ctx.user.name || "유언자",
+          certNumber,
+          willTitle: existing[0].title || "유언장",
+          certifiedAt: new Date().toLocaleDateString("ko-KR", {
+            year: "numeric", month: "long", day: "numeric",
+          }),
+        }).catch(err => console.error("[Email] 인증 완료 이메일 실패:", err));
+      }
+
+      return { success: true, certNumber, blockchainHash };
     }),
 });
