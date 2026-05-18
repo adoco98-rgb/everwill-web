@@ -167,6 +167,8 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    // 크로스브라우저 대응: Safari 14+, 삼성 인터넷 14+, Chrome 90+ (TC-B01~B07)
+    target: ["es2020", "safari14", "chrome90", "firefox90"],
   },
   server: {
     host: true,

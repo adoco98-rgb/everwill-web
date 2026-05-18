@@ -13,6 +13,7 @@ import AIGuide from "../AIGuide";
 import GlobalAddressSearch from "../GlobalAddressSearch";
 import PhoneInput from "../PhoneInput";
 import { PHONE_CODE_TO_ISO } from "@/lib/formatUtils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const RELATIONS = ["배우자", "장남", "장녀", "차남", "차녀", "부모(부)", "부모(모)", "형제", "자매", "손자녀", "기타"];
 
@@ -36,6 +37,7 @@ const COUNTRIES = [
 ];
 
 export default function Step3Heirs({ will, update }: StepProps) {
+  const { language } = useLanguage();
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState<Partial<Heir>>({});
   const [heirCountry, setHeirCountry] = useState<string>("KR");
@@ -96,6 +98,35 @@ export default function Step3Heirs({ will, update }: StepProps) {
         warning="상속인 연락정보가 잘못되면 사망 후 알림이 전달되지 않을 수 있습니다."
       />
 
+      {/* 언어별 법률 경고 (TC-LA01~LA04) */}
+      {language === "ko" && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+          <strong>🇰🇷 한국 민법 제1112조 — 유류분 경고</strong><br />
+          배우자·자녀는 법정 상속분의 <strong>1/2</strong>, 직계존속·형제자매는 <strong>1/3</strong>이 최소 보장됩니다.
+          이를 침해하면 유언이 일부 무효가 될 수 있습니다.
+        </div>
+      )}
+      {language === "ja" && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+          <strong>🇯🇵 日本民法 第1042条 — 遺留分の警告</strong><br />
+          配偶者・子は法定相続分の<strong>1/2</strong>、直系尊属のみの場合は<strong>1/3</strong>が最低限保障されます。
+          これを侵害すると遺言が一部無効になる場合があります。
+        </div>
+      )}
+      {language === "de" && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+          <strong>🇩🇪 BGB §2303 — Pflichtteil-Warnung</strong><br />
+          Kinder, Ehegatte und Eltern haben Anspruch auf den <strong>Pflichtteil</strong> (1/2 des gesetzlichen Erbteils).
+          Eine vollständige Enterbung ist nicht möglich — der Pflichtteil bleibt immer bestehen.
+        </div>
+      )}
+      {language === "ar" && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800" dir="rtl">
+          <strong>🕌 الشريعة الإسلامية — تحذير الوصية</strong><br />
+          لا يجوز الوصية بأكثر من <strong>ثلث (1/3)</strong> من التركة للأجانب عن الورثة.
+          الباقي يُوزَّع وفق الفرائض الشرعية. تجاوز الثلث قد يُبطل الوصية جزئياً.
+        </div>
+      )}
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-700">
         <strong>민법 제1000조</strong> — 상속인 순위: 1순위 직계비속, 2순위 직계존속, 3순위 형제자매.
         배우자는 1·2순위와 공동상속합니다.

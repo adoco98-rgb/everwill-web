@@ -257,3 +257,50 @@ html {
 :lang(ar) {
   font-family: 'Cairo', 'Tajawal', sans-serif;
 }
+
+/* ══════════════════════════════════════════
+   iPhone Safe Area 지원 (TC-M01)
+   노치 / 다이나믹 아일랜드 / 홈 인디케이터 영역 보호
+══════════════════════════════════════════ */
+body {
+  /* 상단 노치/다이나믹 아일랜드 */
+  padding-top: env(safe-area-inset-top, 0px);
+  /* 하단 홈 인디케이터 */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* 좌우 (가로 모드) */
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+/* 고정 헤더/네비게이션 Safe Area 보정 */
+header, nav, .fixed-top {
+  padding-top: max(env(safe-area-inset-top, 0px), 0px);
+}
+/* 하단 고정 버튼 Safe Area 보정 */
+.fixed-bottom, .sticky-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
+}
+
+/* ══════════════════════════════════════════
+   크로스브라우저 CSS 폴백 (TC-B01~B07)
+   Safari 14+, 삼성 인터넷 14+, Firefox 90+
+══════════════════════════════════════════ */
+/* Safari gap 폴백 (flex gap 미지원 구형 Safari) */
+@supports not (gap: 1rem) {
+  .flex > * + * { margin-left: 0.5rem; }
+  .flex-col > * + * { margin-top: 0.5rem; }
+}
+/* Safari backdrop-blur 폴백 */
+@supports not (backdrop-filter: blur(1px)) {
+  .backdrop-blur-sm { background-color: rgba(255,255,255,0.9) !important; }
+  .backdrop-blur { background-color: rgba(255,255,255,0.85) !important; }
+}
+/* 삼성 인터넷 / 구형 WebKit: -webkit-fill-available 높이 */
+.min-h-screen {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+/* 구형 브라우저 aspect-ratio 폴백 */
+@supports not (aspect-ratio: 1) {
+  .aspect-square { width: 100%; padding-top: 100%; position: relative; }
+  .aspect-video { width: 100%; padding-top: 56.25%; position: relative; }
+}

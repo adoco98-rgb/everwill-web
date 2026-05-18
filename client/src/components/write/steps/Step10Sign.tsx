@@ -284,6 +284,9 @@ export default function Step10Sign({ will }: StepProps) {
   const [timestamp, setTimestamp] = useState("");
   const [secureHash, setSecureHash] = useState("");
   const [paymentDone, setPaymentDone] = useState(false);
+  // eKYC 실패 횟수 카운터 (TC-K06: 5회 초과 시 안내)
+  const [kycFailCount, setKycFailCount] = useState(0);
+  const [kycErrorDetail, setKycErrorDetail] = useState<string | null>(null);
 
   // 프리미엄 플랜(영상+자필 모두 선택) 시 69,000원 묶음 할인 적용
   const isPremiumPlan = will.hasVideoWill && will.hasHandwrittenScan;
@@ -298,7 +301,28 @@ export default function Step10Sign({ will }: StepProps) {
       toast.success("신분증 자동 인식 완료!");
     },
     onError: (err) => {
-      toast.error(err.message || "신분증 인식에 실패했습니다.");
+      const newCount = kycFailCount + 1;
+      setKycFailCount(newCount);
+      // 실패 원인별 상세 안내 (TC-K01~K05)
+      const msg = err.message || "";
+      let detail = "";
+      if (msg.includes("blur") || msg.includes("focus")) {
+        detail = "흔릴림: 휴대폰을 단단히 고정하고 다시 촬영해 주세요.";
+      } else if (msg.includes("glare") || msg.includes("light")) {
+        detail = "역광/반사: 조명을 조절하거나 각도를 바꾼 후 다시 시도해 주세요.";
+      } else if (msg.includes("crop") || msg.includes("partial")) {
+        detail = "일부 잘림: 신분증 전체가 프레임 안에 들어오도록 케 주세요.";
+      } else if (msg.includes("expired") || msg.includes("만료")) {
+        detail = "만료된 신분증: 유효한 신분증을 사용해 주세요.";
+      } else {
+        detail = "신분증을 밝은 곳에서 수평으로 놓고 다시 촬영해 주세요.";
+      }
+      setKycErrorDetail(detail);
+      if (newCount >= 5) {
+        toast.error("신분증 인식 5회 실패. 고객센터(1588-0000)로 문의해 주세요.");
+      } else {
+        toast.error(`신분증 인식 실패 (${newCount}/5회). ${detail}`);
+      }
     },
   });
 
@@ -661,6 +685,19 @@ export default function Step10Sign({ will }: StepProps) {
                   onChange={(e) => e.target.files?.[0] && handleIdImageSelect(e.target.files[0])} />
                 <input ref={idCameraInputRef} type="file" accept="image/*" capture="environment" className="hidden"
                   onChange={(e) => e.target.files?.[0] && handleIdImageSelect(e.target.files[0])} />
+                {/* eKYC 실패 안내 (TC-K01~K06) */}
+                {kycFailCount >= 5 && (
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
+                    <strong>⚠️ 신분증 인식 5회 실패</strong><br />
+                    고객센터 <strong>1588-0000</strong>으로 문의하시면 직접 지원드립니다.
+                  </div>
+                )}
+                {kycFailCount > 0 && kycFailCount < 5 && kycErrorDetail && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm text-amber-800">
+                    <strong>📸 재시도 팁:</strong> {kycErrorDetail}
+                    <span className="ml-2 text-xs text-amber-600">({kycFailCount}/5회)</span>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-4">

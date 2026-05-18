@@ -582,3 +582,17 @@
 - [x] 인증 완료 이메일 발송 (Resend 연동, 비동기 발송)
 - [x] 회원가입 환영 이메일 함수 추가 (sendWelcomeEmail)
 - [ ] 토스페이먼츠 연동 (API 키 수령 후 진행)
+
+## QA 테스트케이스(2) 수정 작업
+
+- [ ] iPhone Safe Area 적용 (viewport-fit=cover + env(safe-area-inset))
+- [ ] 독일어 버튼 오버플로우 수정 (HeroSection CTA whitespace-nowrap)
+- [ ] AR 샤리아 1/3 경고 (Step3Heirs + DirectForm 언어별 분기)
+- [ ] JA 일본 민법 1042조 경고 추가
+- [ ] DE Pflichtteil 경고 추가
+- [ ] eKYC 오류 UX 개선 (안경/마스크/역광/타임아웃/재시도 안내)
+- [ ] eKYC 5회 실패 잠금 처리 (TC-K06)
+- [ ] eKYC 인증 완료 후 결제 실패 시 재인증 불필요 처리 (TC-K22)
+- [ ] Safari MediaRecorder 미지원 안내 (TC-B02)
+- [ ] IE11 폴백 안내 페이지 (TC-B07)
+- [ ] 크로스브라우저 콘솔 에러 0건 확인 (TC-B01)
