@@ -49,18 +49,15 @@ export default function TrustSection() {
           {/* 섹션 헤더 */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-[#C9A961] text-xs font-semibold tracking-widest uppercase mb-1">GLOBAL NEWS</p>
+              <p className="text-[#C9A961] text-xs font-semibold tracking-widest uppercase mb-1">MEDIA & PARTNERS</p>
               <h3 className="text-xl font-bold text-[#1F3864]" style={{ fontFamily: "'Playfair Display', serif" }}>
-                {language === 'ko' ? '글로벌 주요 언론 소개' :
-                 language === 'ja' ? 'グローバルメディア紹介' :
-                 language === 'zh' ? '全球主要媒体介绍' :
-                 language === 'ar' ? 'تغطية إعلامية عالمية' :
-                 'Global Media Coverage'}
+                {language === 'ko' ? '미디어 & 파트너' :
+                 language === 'ja' ? 'メディア & パートナー' :
+                 language === 'zh' ? '媒体 & 合作伙伴' :
+                 language === 'ar' ? 'الإعلام والشركاء' :
+                 'Media & Partners'}
               </h3>
             </div>
-            <span className="text-xs text-gray-400 bg-gray-50 border border-gray-200 rounded-full px-3 py-1">
-              {newsItems?.length ?? 0} {language === 'ko' ? '개 언론사' : language === 'ja' ? '社' : language === 'zh' ? '家媒体' : 'outlets'}
-            </span>
           </div>
 
                     {/* 뉴스 카드 그리드 */}
@@ -81,17 +78,7 @@ export default function TrustSection() {
                 </div>
               ))}
             </div>
-          ) : !newsItems || newsItems.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
-              <Newspaper className="w-10 h-10 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">
-                {language === 'ko' ? '등록된 뉴스가 없습니다' :
-                 language === 'ja' ? 'ニュースがありません' :
-                 language === 'zh' ? '暂无新闻' :
-                 'No news available'}
-              </p>
-            </div>
-          ) : (
+          ) : !newsItems || newsItems.length === 0 ? null : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {newsItems.map((item, i) => (
                 <motion.a
