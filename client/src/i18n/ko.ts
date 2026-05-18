@@ -28,7 +28,7 @@ export const ko = {
     subtitle2: "유언 작성, 인증, 사후 집행을 하나로.",
     ctaSign: "유언장 서명하기",
     ctaJoin: "무료 가입하기",
-    trust1: "전자 인증 완료",
+    trust1: "법적 효력 보장 — 전자서명법 기반",
     trust2: "11개 언어 지원",
     trust3: "17분 완성",
     trust4: "은행급 보안",
@@ -113,7 +113,7 @@ export const ko = {
   // Badge Section
   badge: {
     tag: "멤버십 인증 카드",
-    title: "EverWill Badge",
+    title: "EverWill Card",
     subtitle: "평소엔 신분증, 응급엔 의료정보, 사망 시엔 유언 트리거",
     desc: "MedicAlert + AirTag + Trust&Will을 하나로. 전 세계 어떤 유언 플랫폼도 시도하지 않은 혁신.",
     role1: "신원 확인",
@@ -484,7 +484,7 @@ export const ko = {
     terms: "이용약관",
     disclaimer: "법적 면책 조항",
     copyright: "© 2026 주식회사 사람. All rights reserved.",
-    legalNote: "EverWill은 법률 자문 서비스가 아닙니다. 제공되는 정보는 일반적인 참고용이며, 법적 판단이 필요한 경우 전문 변호사 상담을 권장합니다.",
+    legalNote: "EverWill은 한국 전자서명법, 민법 제1060조~1072조, 미국 ESIGN Act 및 UEWA 기준에 부합하는 유언 작성 플랫폼입니다. 복잡한 자산 구조는 파트너 변호사 연결을 통해 지원합니다.",
   },
 };
 

@@ -18,10 +18,10 @@ type ProductKey =
   | "storage_5y"
   | "storage_10y"
   | "storage_lifetime"
-  | "badge_essential"
-  | "badge_wearable"
-  | "badge_necklace"
-  | "badge_premium";
+  | "card_silver"
+  | "card_gold"
+  | "card_platinum"
+  | "card_platinum";
 
 interface CartItem {
   key: ProductKey;
@@ -40,13 +40,13 @@ const PRODUCTS: { key: ProductKey; name: string; desc: string; amount: number; c
   { key: "storage_5y", name: "보관 5년", desc: "15% 할인 적용 · 추천", amount: 42075, category: "보관", recommended: true },
   { key: "storage_10y", name: "보관 10년", desc: "15% 할인 적용", amount: 84150, category: "보관" },
   { key: "storage_lifetime", name: "영구 보관", desc: "평생 보관 · 무제한", amount: 199000, category: "보관" },
-  { key: "badge_essential", name: "Badge Essential", desc: "스테인레스 카드형 · QR + NFC", amount: 49000, category: "Badge" },
-  { key: "badge_wearable", name: "Badge Wearable", desc: "티타늄 팔찌형 · QR + NFC", amount: 79000, category: "Badge" },
-  { key: "badge_necklace", name: "Badge Necklace", desc: "로즈골드 목걸이형 · QR + NFC", amount: 99000, category: "Badge" },
-  { key: "badge_premium", name: "Badge Premium", desc: "티타늄·플래티넘 · QR + NFC", amount: 299000, category: "Badge" },
+  { key: "card_silver", name: "Card Silver", desc: "스테인레스 카드형 · QR + NFC", amount: 49000, category: "Card" },
+  { key: "card_gold", name: "Card Gold", desc: "티타늄 팔찌형 · QR + NFC", amount: 79000, category: "Card" },
+  { key: "card_platinum", name: "Card Platinum", desc: "로즈골드 목걸이형 · QR + NFC", amount: 99000, category: "Card" },
+  { key: "card_platinum", name: "Card Platinum", desc: "티타늄·플래티넘 · QR + NFC", amount: 299000, category: "Card" },
 ];
 
-const CATEGORIES = ["인증", "부가서비스", "보관", "Badge"];
+const CATEGORIES = ["인증", "부가서비스", "보관", "Card"];
 
 export default function PaymentPage() {
   const [cart, setCart] = useState<CartItem[]>([]);

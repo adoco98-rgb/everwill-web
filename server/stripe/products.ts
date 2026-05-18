@@ -75,34 +75,34 @@ export const SARAM_PRODUCTS = {
   },
   /** Badge */
   BADGE_ESSENTIAL: {
-    name: "SARAM Badge Essential",
+    name: "SARAM Card Silver",
     description: "스테인레스 카드형 · QR + NFC",
     amount: 49000,
     currency: "krw",
-    key: "badge_essential",
+    key: "card_silver",
   },
   BADGE_WEARABLE: {
-    name: "SARAM Badge Wearable",
+    name: "SARAM Card Gold",
     description: "실리콘·티타늄 팔찌형 · QR + NFC",
     amount: 79000,
     currency: "krw",
-    key: "badge_wearable",
+    key: "card_gold",
   },
   BADGE_NECKLACE: {
-    name: "SARAM Badge Necklace",
+    name: "SARAM Card Platinum",
     description: "스테인레스·로즈골드 목걸이형 · QR + NFC",
     amount: 99000,
     currency: "krw",
-    key: "badge_necklace",
+    key: "card_platinum",
   },
   BADGE_PREMIUM: {
-    name: "SARAM Badge Premium",
+    name: "SARAM Card Platinum",
     description: "티타늄·플래티넘 · QR + NFC",
     amount: 299000,
     currency: "krw",
-    key: "badge_premium",
+    key: "card_platinum",
   },
 } as const;
 
 export type ProductKey = keyof typeof SARAM_PRODUCTS;
-export type ProductKeyStr = "certification" | "certification_premium" | "video_will" | "handwritten_scan" | "storage_1y" | "storage_3y" | "storage_5y" | "storage_10y" | "storage_lifetime" | "badge_essential" | "badge_wearable" | "badge_necklace" | "badge_premium";
+export type ProductKeyStr = "certification" | "certification_premium" | "video_will" | "handwritten_scan" | "storage_1y" | "storage_3y" | "storage_5y" | "storage_10y" | "storage_lifetime" | "card_silver" | "card_gold" | "card_platinum" | "card_platinum";

@@ -250,7 +250,7 @@ export default function BadgeSection() {
           <p className="text-white/50 text-sm mt-2 font-medium">
             {isKo
               ? "전자인증 ₩49,000에 실버 카드 무료 포함 · 골드/플래티넘 카드는 업그레이드 선택"
-              : "Badge card included FREE with $39 e-certification · Gold/Platinum cards available as upgrade"}
+              : "EverWill Card included FREE with $39 e-certification · Gold/Platinum cards available as upgrade"}
           </p>
         </motion.div>
       </div>

@@ -25,7 +25,7 @@ export const en = {
     subtitle2: "Write, certify, and execute your will — all in one place.",
     ctaSign: "Sign My Will",
     ctaJoin: "Join for Free",
-    trust1: "Legally Valid",
+    trust1: "Legally Valid — ESIGN Act · UEWA",
     trust2: "11 Languages",
     trust3: "17 Min Setup",
     trust4: "Bank-Level Security",
@@ -104,7 +104,7 @@ export const en = {
   },
   badge: {
     tag: "Membership Certification Card",
-    title: "EverWill Badge",
+    title: "EverWill Card",
     subtitle: "ID card in daily life, medical info in emergencies, will trigger at death",
     desc: "MedicAlert + AirTag + Trust&Will in one. An innovation no will platform has attempted.",
     role1: "Identity",
@@ -434,7 +434,7 @@ export const en = {
     terms: "Terms of Service",
     disclaimer: "Legal Disclaimer",
     copyright: "© 2026 EverWill Inc. All rights reserved.",
-    legalNote: "EverWill is not a legal advice service. Information provided is for general reference only. We recommend consulting a licensed attorney for complex legal matters.",
+    legalNote: "EverWill is built on Korea's Electronic Signature Act, Civil Code §1060–1072, the US ESIGN Act, and UEWA standards. For complex estates, our partner attorneys are ready to assist.",
   },
   // Contact section
   contact: {

@@ -104,7 +104,7 @@ export const de = {
   },
   badge: {
     tag: "Mitgliedschaftszertifizierungskarte",
-    title: "EverWill Badge",
+    title: "EverWill Card",
     subtitle: "Im Alltag Ausweis, im Notfall Medizininfo, beim Tod Testament-Auslöser",
     desc: "MedicAlert + AirTag + Trust&Will in einem. Eine Innovation, die kein Testament-Anbieter je versucht hat.",
     role1: "Identität",
