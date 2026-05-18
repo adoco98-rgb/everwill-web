@@ -135,6 +135,9 @@ export default function CharityStatsSection() {
   const byCategory = data?.byCategory ?? [];
   const maxCategoryAmount = Math.max(...byCategory.map((c) => c.totalKrw), 1);
 
+  // 데이터가 모두 0이면 섹션 전체 숨김 (실제 기부 데이터 생기면 자동 표시)
+  if (totalKrw === 0 && donorCount === 0 && byCountry.length === 0) return null;
+
   return (
     <section className="py-20 bg-gradient-to-b from-[#0d1f3c] to-[#1F3864] text-white relative overflow-hidden">
       {/* 배경 장식 */}

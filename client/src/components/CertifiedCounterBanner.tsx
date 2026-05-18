@@ -50,6 +50,9 @@ export default function CertifiedCounterBanner() {
   const count = data?.count ?? 0;
   const animated = useCountUp(count);
 
+  // count가 0이면 숨김 처리 (관리자는 항상 표시)
+  if (count === 0 && !isAdmin) return null;
+
   function handleSave() {
     const n = parseInt(inputVal.replace(/[^0-9]/g, ""), 10);
     if (isNaN(n) || n < 0) return;
