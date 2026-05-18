@@ -387,6 +387,13 @@ export default function Step10Sign({ will }: StepProps) {
     onError: (err) => toast.error(err.message || "인증 코드가 올바르지 않습니다."),
   });
 
+  // ── 유언장 DB 저장 뮤테이션 ──
+  const saveWillMutation = trpc.will.saveWill.useMutation({
+    onError: () => {
+      // 저장 실패는 조용히 처리 (결제 완료 UX 방해 안 함)
+    },
+  });
+
   // ── 타이머 ──
   useEffect(() => {
     if (emailResendTimer <= 0) return;
@@ -501,6 +508,16 @@ export default function Step10Sign({ will }: StepProps) {
     setSecureHash(hash);
     setPaymentDone(true);
     toast.success("결제 완료! 유언장 인증이 완료되었습니다.");
+    // 유언장 DB 저장 (certified 상태로)
+    const willTitle = will.testatorName
+      ? `${will.testatorName}의 유언장 ${new Date().toLocaleDateString("ko-KR")}`
+      : `유언장 ${new Date().toLocaleDateString("ko-KR")}`;
+    saveWillMutation.mutate({
+      title: willTitle,
+      data: JSON.stringify(will),
+      mode: (will.mode as "ai" | "direct") ?? "ai",
+      status: "certified",
+    });
   }
 
   // ─────────────────────────────────────────────────────────────

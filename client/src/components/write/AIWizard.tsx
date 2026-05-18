@@ -147,12 +147,26 @@ export default function AIWizard({ onBack }: Props) {
     setStep(11);
   };
 
-  // 임시 저장 (72시간 유효)
+  // 임시 저장 (localStorage + 로그인 시 DB 동시)
+  const saveDraftMutation = trpc.will.saveWill.useMutation();
   const handleSaveDraft = () => {
     const expiry = Date.now() + 72 * 60 * 60 * 1000; // 72시간
     const saved = { ...will, isDraft: true, lastSaved: new Date().toISOString(), expiry };
     localStorage.setItem("saram_will_draft", JSON.stringify(saved));
-    toast.success("임시 저장 완료 (72시간 보관)");
+    if (isAuthenticated) {
+      const willTitle = will.testatorName
+        ? `${will.testatorName}의 유언장 (임시저장)`
+        : `유언장 임시저장 ${new Date().toLocaleDateString("ko-KR")}`;
+      saveDraftMutation.mutate(
+        { title: willTitle, data: JSON.stringify(will), mode: (will.mode as "ai" | "direct") ?? "ai", status: "draft" },
+        {
+          onSuccess: () => toast.success("임시 저장 완료 (72시간 보관)"),
+          onError: () => toast.success("임시 저장 완료 (로컈 보관)"),
+        }
+      );
+    } else {
+      toast.success("임시 저장 완료 (72시간 보관)");
+    }
   };
 
   const stepProps = { will, update, onNext: next, onPrev: prev };

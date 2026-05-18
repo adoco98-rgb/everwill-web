@@ -573,7 +573,7 @@
 ## 7월 오픈 MVP 완성 작업
 
 - [x] willRouter에 saveWill / updateWill / getMyWills / getWillById / certifyWill API 추가
-- [ ] WritePage 완료 시 trpc.will.saveWill 호출하여 DB 저장
+- [x] WritePage 완료 시 trpc.will.saveWill 호출하여 DB 저장 (Step10Sign 결제 완료 시 certified, 임시저장 시 draft)
 - [x] 대시보드 사이드바에 "내 유언장" 메뉴 추가 (/dashboard/wills)
 - [x] 대시보드 내 유언장 목록 페이지 생성 (상태/날짜/수정 버튼)
 - [x] 유언장 PDF 생성 API (서버사이드, html-pdf-node + chromium)
