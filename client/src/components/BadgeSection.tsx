@@ -58,8 +58,8 @@ export default function BadgeSection() {
       price: getPrice("$49", "₩49,000", "¥7,595", "¥353"),
       material: isKo ? "실버 컬러" : "Silver Color",
       features: isKo
-        ? ["QR 신원 인증", "NFC 태그", "유언 인증 번호", "1년 무료 보관"]
-        : ["QR Identity", "NFC Tag", "Will Certificate", "1yr Free Storage"],
+        ? ["QR 신원 인증", "NFC 태그", "유언 인증 번호", "1년 무료 보관", "전자인증 ₩49,000에 무료 포함"]
+        : ["QR Identity", "NFC Tag", "Will Certificate", "1yr Free Storage", "FREE with $39 e-certification"],
       popular: false,
       icon: CreditCard,
     },
@@ -247,10 +247,10 @@ export default function BadgeSection() {
               ? "* 카드는 유언장 인증 완료 후 신청 가능합니다. 제작 기간 약 2-3주 소요."
               : "* Card available after will certification. Production takes approx. 2-3 weeks."}
           </p>
-          <p className="text-white/30 text-xs mt-1">
+          <p className="text-white/50 text-sm mt-2 font-medium">
             {isKo
-              ? "AI 유언장 작성 무료 · 전자인증 ₩49,000 · 카드는 별도 선택 사항"
-              : "AI Will Writing Free · E-Certification $39 · Card is optional add-on"}
+              ? "전자인증 ₩49,000에 실버 카드 무료 포함 · 골드/플래티넘 카드는 업그레이드 선택"
+              : "Badge card included FREE with $39 e-certification · Gold/Platinum cards available as upgrade"}
           </p>
         </motion.div>
       </div>
