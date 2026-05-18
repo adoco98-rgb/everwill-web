@@ -196,7 +196,7 @@ export const pt = {
     phase1Title: "Consultoria pré-morte (Opcional)",
     phase1Desc: "Consultoria de advogado apenas para ativos complexos. Taxa de correspondência a partir de R$150.",
     phase2Title: "Execução pós-morte (Obrigatório)",
-    phase2Desc: "Validação do testamento · Declaração de herança · Transferência de propriedade. Taxa 15-25%.",
+    phase2Desc: "Validação do testamento · Declaração de herança · Transferência de propriedade. Os honorários são negociados diretamente entre cliente e advogado.",
     title: "Após a morte, o EverWill cuida de tudo",
     subtitle: "Quando sua família estiver de luto, cuidamos do complexo processo de herança.",
     currentTitle: "Serviço atual — Processo de execução automática pós-morte",

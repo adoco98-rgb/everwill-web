@@ -118,6 +118,9 @@ export default function Navbar() {
     { label: t.nav.lawyers, href: "#lawyers" },
     { label: t.nav.taxCalc, href: "/tax", isPage: true },
     { label: t.nav.letter ?? "사회기부", href: "/charity", isPage: true },
+    { label: "FAQ", href: "/faq", isPage: true },
+    { label: "가격 안내", href: "/pricing", isPage: true },
+    { label: "유언장 포맷", href: "/will-formats", isPage: true },
   ];
 
   return (

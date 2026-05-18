@@ -196,7 +196,7 @@ export const en = {
     phase1Title: "Pre-Death Consultation (Optional)",
     phase1Desc: "Attorney consultation for complex assets only. Matching fee from $30.",
     phase2Title: "Post-Death Execution (Required)",
-    phase2Desc: "Will validation · Estate tax filing · Property transfer. Fee 15-25%.",
+    phase2Desc: "Will validation · Estate tax filing · Property transfer. Attorney fees negotiated directly between client and attorney.",
     title: "After Death, EverWill Handles Everything",
     subtitle: "When your family is grieving, we handle the complex inheritance process.\nCurrently via contracted attorneys; in the future, AI will auto-process court documents.",
     currentTitle: "Current Service — Post-Death Auto-Execution Process",

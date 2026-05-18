@@ -370,6 +370,56 @@ export default function CharityPage() {
         </div>
       </section>
 
+      {/* ── 법적 안전장치 안내 ── */}
+      <section className="py-12 bg-amber-50 border-y border-amber-200">
+        <div className="max-w-3xl mx-auto px-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <Shield className="w-5 h-5 text-amber-600" />
+            </div>
+            <h2 className="text-lg font-bold text-amber-800">유언 기부 전 반드시 확인하세요</h2>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-4">
+            <div className="bg-white rounded-xl p-5 border border-amber-100">
+              <div className="flex items-center gap-2 mb-3">
+                <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                <h3 className="text-sm font-bold text-red-600">유류분 침해 주의</h3>
+              </div>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                배우자·자녀 등 법정 상속인은 <strong>유류분</strong>을 청구할 수 있습니다.
+                전 재산을 기부하더라도 유류분 비율만큼는 상속인에게 돌아갑니다.
+                EverWill이 유언 작성 시 자동으로 유류분을 계산해 경고합니다.
+              </p>
+            </div>
+            <div className="bg-white rounded-xl p-5 border border-amber-100">
+              <div className="flex items-center gap-2 mb-3">
+                <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                <h3 className="text-sm font-bold text-green-700">EverWill은 기부금 직접 수령 안 함</h3>
+              </div>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                EverWill은 기부금을 <strong>직접 수령하지 않습니다.</strong>
+                유언자의 뜻을 지정된 공익법인에 연결만 하며,
+                실제 자산 이동은 사후 유언 집행자를 통해 공익법인으로 직접 이루어집니다.
+              </p>
+            </div>
+            <div className="bg-white rounded-xl p-5 border border-amber-100">
+              <div className="flex items-center gap-2 mb-3">
+                <Building2 className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                <h3 className="text-sm font-bold text-blue-700">적격 공익법인만 선택 가능</h3>
+              </div>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                기부 단체는 <strong>국세청 등록 지정기부금단체</strong>만 제공됩니다.
+                임의 단체 직접 입력 시 상속세 혜택이 적용되지 않을 수 있으니
+                반드시 목록에서 선택하세요.
+              </p>
+            </div>
+          </div>
+          <p className="mt-4 text-xs text-amber-700 text-center">
+            * 본 내용은 법률 자문이 아닌 일반 정보 제공입니다. 복잡한 자산 구조는 전문 변호사와 상담하세요.
+          </p>
+        </div>
+      </section>
+
       {/* ── 기부 단체 후원 신청 ── */}
       <section className="py-16 bg-white">
         <div className="max-w-2xl mx-auto px-6 text-center">

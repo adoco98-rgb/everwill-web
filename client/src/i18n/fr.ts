@@ -196,7 +196,7 @@ export const fr = {
     phase1Title: "Consultation pré-décès (Optionnel)",
     phase1Desc: "Consultation avocat pour actifs complexes uniquement. Frais de mise en relation à partir de €30.",
     phase2Title: "Exécution post-décès (Requis)",
-    phase2Desc: "Validation du testament · Déclaration de succession · Transfert de propriété. Frais 15-25%.",
+    phase2Desc: "Validation du testament · Déclaration de succession · Transfert de propriété. Les honoraires sont négociés directement entre le client et l'avocat.",
     title: "Après le décès, EverWill gère tout",
     subtitle: "Quand votre famille est en deuil, nous gérons le processus complexe de succession.",
     currentTitle: "Service actuel — Processus d'exécution automatique post-décès",

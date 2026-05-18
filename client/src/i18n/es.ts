@@ -196,7 +196,7 @@ export const es = {
     phase1Title: "Consulta en Vida (Opcional)",
     phase1Desc: "Consulta de abogado solo para estructuras de activos complejas. Tarifa de emparejamiento desde $30.",
     phase2Title: "Ejecución Post-Mortem (Requerida)",
-    phase2Desc: "Validación del testamento · Declaración de herencia · Transferencia de propiedad. Tarifa 15-25%.",
+    phase2Desc: "Validación del testamento · Declaración de herencia · Transferencia de propiedad. Los honorarios del abogado se negocian directamente.",
     title: "Tras el Fallecimiento, EverWill lo Gestiona Todo",
     subtitle: "Mientras su familia está de luto, nosotros nos encargamos del complejo proceso sucesorio.\nActualmente mediante abogados contratados; en el futuro, la IA procesará automáticamente los documentos judiciales.",
     currentTitle: "Servicio Actual — Proceso de Ejecución Post-Mortem Automático",

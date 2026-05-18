@@ -2,15 +2,22 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <!-- maximum-scale=1 제거: 모바일 핀치 줌 허용 (WCAG 2.1 / 5060 고령자 접근성) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EverWill - 세계 최초 디지털 유언 OS | Digital Will OS</title>
-    <meta name="description" content="누구나 한번은 꼭 해야할, 나의 마지막 서명. AI 유언장 작성 무료, 전자인증 ₩49,000. 글로벌 11개국 지원 | EverWill" />
+
+    <!-- SEO 메타 태그 -->
+    <meta name="description" content="누구나 한번은 꼭 해야할, 나의 마지막 서명. AI 유언장 무료 작성, 전자인증 ₩49,000. 세계 최초 디지털 유언 OS | EverWill" />
+    <meta name="keywords" content="유언장 작성, 디지털 유언, 전자 유언, 상속, 유언 인증, EverWill, 에버윌, 유언장, 상속 플랫폼, AI 유언" />
+    <meta name="author" content="EverWill" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://everwill.co.kr" />
 
     <!-- Open Graph (카카오톡·Facebook·LinkedIn 공유 미리보기) -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="EverWill" />
     <meta property="og:title" content="EverWill - 세계 최초 디지털 유언 OS" />
-    <meta property="og:description" content="누구나 한번은 꼭 해야할, 나의 마지막 서명. AI 유언장 작성 무료, 전자인증 ₩49,000. 글로벌 11개국 지원." />
+    <meta property="og:description" content="누구나 한번은 꼭 해야할, 나의 마지막 서명. AI 유언장 무료 작성, 전자인증 ₩49,000. 세계 최초 디지털 유언 OS." />
     <meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/hero-global-elders-v2-DB4mTEuKjbV7DYjdv5fYBA.webp" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -21,14 +28,76 @@
     <!-- Twitter Card (X 공유 미리보기) -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="EverWill - 세계 최초 디지털 유언 OS" />
-    <meta name="twitter:description" content="누구나 한번은 꼭 해야할, 나의 마지막 서명. AI 유언장 작성 무료, 전자인증 ₩49,000." />
+    <meta name="twitter:description" content="누구나 한번은 꼭 해야할, 나의 마지막 서명. AI 유언장 무료 작성, 전자인증 ₩49,000." />
     <meta name="twitter:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/hero-global-elders-v2-DB4mTEuKjbV7DYjdv5fYBA.webp" />
     <meta name="twitter:image:alt" content="EverWill - 세계 최초 디지털 유언 OS" />
+
+    <!-- Schema.org 구조화 데이터 (구글 리치 스니펫) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://everwill.co.kr/#website",
+          "name": "EverWill",
+          "alternateName": "에버윌",
+          "url": "https://everwill.co.kr",
+          "description": "세계 최초 디지털 유언 OS. AI 유언장 무료 작성, 전자인증 ₩49,000.",
+          "inLanguage": "ko-KR"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://everwill.co.kr/#organization",
+          "name": "EverWill",
+          "alternateName": "에버윌",
+          "url": "https://everwill.co.kr",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://everwill.co.kr/logo.png",
+            "width": 200,
+            "height": 60
+          },
+          "description": "세계 최초 디지털 유언 OS — 유언 작성부터 사후 자동 집행까지",
+          "foundingDate": "2026",
+          "areaServed": "KR",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer service",
+            "availableLanguage": ["Korean", "English", "Japanese"]
+          }
+        },
+        {
+          "@type": "Service",
+          "@id": "https://everwill.co.kr/#service",
+          "name": "EverWill 디지털 유언 서비스",
+          "provider": { "@id": "https://everwill.co.kr/#organization" },
+          "description": "AI 기반 유언장 작성, 전자 인증, 상속인 자동 알림, 사후 집행 지원",
+          "offers": [
+            {
+              "@type": "Offer",
+              "name": "AI 유언장 작성",
+              "price": "0",
+              "priceCurrency": "KRW",
+              "description": "AI 기반 유언장 무료 작성"
+            },
+            {
+              "@type": "Offer",
+              "name": "전자 인증 (최초)",
+              "price": "49000",
+              "priceCurrency": "KRW",
+              "description": "최초 전자 인증 1회"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
 
     <!-- Pretendard -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" />
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
-    <!-- Playfair Display -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&family=Cairo:wght@400;500;600;700&family=Tajawal:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />

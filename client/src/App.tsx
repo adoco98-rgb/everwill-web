@@ -32,6 +32,9 @@ import CharityPage from "./pages/CharityPage";
 import Feedback from "./pages/Feedback";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
+import FaqPage from "./pages/FaqPage";
+import PricingPage from "./pages/PricingPage";
+import WillFormatsPage from "./pages/WillFormatsPage";
 import PublicProfilePage from "./pages/PublicProfilePage";
 import MembershipCardPage from "./pages/dashboard/MembershipCardPage";
 import AssetVerifyPage from "./pages/dashboard/AssetVerifyPage";
@@ -51,6 +54,10 @@ function Router() {
       {/* 약관 페이지 */}
       <Route path={"/terms"} component={TermsPage} />
       <Route path={"/privacy"} component={PrivacyPage} />
+      {/* 정보 페이지 */}
+      <Route path={"/faq"} component={FaqPage} />
+      <Route path={"/pricing"} component={PricingPage} />
+      <Route path={"/will-formats"} component={WillFormatsPage} />
       {/* QR 코드 공개 프로필 페이지 */}
       <Route path={"/profile/:qrCode"} component={PublicProfilePage} />
       <Route path={"/will/scan"} component={ScanVerifyPage} />

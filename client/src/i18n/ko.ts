@@ -209,9 +209,9 @@ export const ko = {
   lawyers: {
     sectionTag: "원스톱 서비스",
     phase1Title: "생전 자문 (선택)",
-    phase1Desc: "복잡한 자산 구조만 변호사 상담. 매칭 수수료 ₩30,000~",
+    phase1Desc: "복잡한 자산 구조 전문 변호사 정보 제공. 변호사·의뢰인 직접 계약 (EverWill은 광고 플랫폼)",
     phase2Title: "사후 집행 (필수)",
-    phase2Desc: "유언 효력 확인 · 상속세 신고 · 부동산 이전. 수수료 15-25%",
+    phase2Desc: "유언 효력 확인 · 상속세 신고 · 부동산 이전. 변호사 보수는 의뢰인과 직접 협의",
     title: "사망 후, EverWill이 모든 것을 처리합니다",
     subtitle: "유족이 슬픔에 잠긴 순간, 복잡한 상속 절차를 대신합니다.\n현재는 계약 변호사가, 미래에는 AI가 법원 서류를 자동으로 처리합니다.",
     currentTitle: "현재 서비스 — 사후 자동 집행 프로세스",

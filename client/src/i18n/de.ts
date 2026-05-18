@@ -196,7 +196,7 @@ export const de = {
     phase1Title: "Lebzeitige Beratung (Optional)",
     phase1Desc: "Anwaltsberatung nur für komplexe Vermögensstrukturen. Vermittlungsgebühr ab $30.",
     phase2Title: "Nachlassvollstreckung (Erforderlich)",
-    phase2Desc: "Testamentsprüfung · Erbschaftsteuer · Eigentumsübertragung. Gebühr 15-25%.",
+    phase2Desc: "Testamentsprüfung · Erbschaftsteuer · Eigentumsübertragung. Anwaltsgebühren werden direkt zwischen Mandant und Anwalt vereinbart.",
     title: "Nach dem Tod erledigt EverWill alles",
     subtitle: "Während Ihre Familie trauert, übernehmen wir die komplexen Erbschaftsverfahren.\nDerzeit durch Vertragsanwälte; in Zukunft erstellt KI Gerichtsdokumente automatisch.",
     currentTitle: "Aktueller Service — Automatischer Nachlassvollstreckungsprozess",
