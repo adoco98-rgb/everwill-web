@@ -42,9 +42,9 @@ export default function PricingSection() {
     ? `🔐 전자 인증(${certPriceStr}) 후 법적 효력 · 72시간 임시 저장`
     : `🔐 Certification required for validity (${certPriceStr}) · 72hr temp save`;
 
-  // 인증 플랜 할인 배지 텍스트
-  const certBadge = isKo ? "59% 할인" : "59% OFF";
-  const certSubBadge = isKo ? "★ 1년 무료 보관 포함" : "★ 1yr free storage";
+  // 인증 플랜 배지 텍스트
+  const certBadge = isKo ? "실버 카드 포함" : "Silver Card Included";
+  const certSubBadge = isKo ? "★ 1년 보관(₩15,000) 포함" : "★ 1yr storage included";
 
   // 플랜 이름/설명 다국어 처리
   const planLabels = {
@@ -60,56 +60,61 @@ export default function PricingSection() {
       cta: isKo ? "무료로 시작하기" : "Start Free",
     },
     cert: {
-      name: t.pricing.certTitle || (isKo ? "유언장 인증" : "Will Certification"),
-      description: t.pricing.certDesc || (isKo ? "전자 인증 유언장 + 사후 자동 집행" : "Certified will + auto execution"),
+      name: isKo ? "전자 인증" : "Will Certification",
+      description: isKo ? "전자 인증 + 1년 보관 + 실버 카드" : "Certification + 1yr storage + Silver Card",
       features: [
-        isKo ? "무료 시작" : "Free Start",
         isKo ? "eKYC 전자 인증 완료" : "eKYC Certified",
+        isKo ? "1년 보관 (₩15,000 포함)" : "1-Year Storage (included)",
+        isKo ? "실버 카드 발급" : "Silver Card Issued",
         isKo ? "은행급 보안" : "Bank-Level Security",
-        isKo ? "사후 자동 집행" : "Auto Post-Death Execution",
+        isKo ? "1년 후 연장: ₩15,000/년" : "Renewal: $15/yr after 1yr",
       ],
-      cta: t.pricing.certStart || (isKo ? "지금 인증 시작하기" : "Start Certification"),
+      cta: isKo ? "지금 인증 시작하기" : "Start Certification",
     },
     plan3y: {
-      name: t.pricing.plan3y || (isKo ? "3년 플랜" : "3-Year Plan"),
-      description: t.pricing.plan3yStorage || (isKo ? "3년 보관" : "3-year storage"),
+      name: isKo ? "3년 플랜" : "3-Year Plan",
+      description: isKo ? "3년 보관 + 골드 카드" : "3-year storage + Gold Card",
       features: [
         isKo ? "eKYC 전자 인증 완료" : "eKYC Certified",
-        isKo ? "은행급 보안" : "Bank-Level Security",
-        isKo ? "3년 보관" : "3-Year Storage",
+        isKo ? "3년 보관 포함" : "3-Year Storage Included",
+        isKo ? "골드 카드 발급" : "Gold Card Issued",
         isKo ? "유족 자동 알림" : "Auto Family Notification",
       ],
-      cta: t.pricing.startBtn || (isKo ? "시작하기" : "Get Started"),
+      cta: isKo ? "시작하기" : "Get Started",
     },
     plan5y: {
-      name: t.pricing.plan5y || (isKo ? "5년 플랜" : "5-Year Plan"),
-      description: t.pricing.plan5yStorage || (isKo ? "5년 보관" : "5-year storage"),
+      name: isKo ? "5년 플랜" : "5-Year Plan",
+      description: isKo ? "5년 보관 + 자필·영상 유언 포함 + 플래티넘 카드" : "5yr storage + Handwritten & Video will + Platinum Card",
       features: [
         isKo ? "eKYC 전자 인증 완료" : "eKYC Certified",
-        isKo ? "은행급 보안" : "Bank-Level Security",
-        isKo ? "5년 보관" : "5-Year Storage",
+        isKo ? "5년 보관 포함" : "5-Year Storage Included",
+        isKo ? "자필 유언 스캔 인증 포함" : "Handwritten Scan Included",
+        isKo ? "영상 유언 포함" : "Video Will Included",
+        isKo ? "플래티넘 카드 발급" : "Platinum Card Issued",
         isKo ? "유족 자동 알림" : "Auto Family Notification",
       ],
-      cta: t.pricing.startNow || (isKo ? "지금 시작하기" : "Start Now"),
+      cta: isKo ? "지금 시작하기" : "Start Now",
     },
     planLife: {
-      name: t.pricing.planPerm || (isKo ? "영구 플랜" : "Lifetime Plan"),
-      description: t.pricing.planPermStorage || (isKo ? "영구 보관" : "Lifetime storage"),
+      name: isKo ? "영구 플랜" : "Lifetime Plan",
+      description: isKo ? "영구 보관 + 자필·영상 유언 포함 + VIP" : "Lifetime storage + All features + VIP",
       features: [
         isKo ? "eKYC 전자 인증 완료" : "eKYC Certified",
-        isKo ? "은행급 보안" : "Bank-Level Security",
         isKo ? "영구 보관" : "Lifetime Storage",
+        isKo ? "자필 유언 스캔 인증 포함" : "Handwritten Scan Included",
+        isKo ? "영상 유언 포함" : "Video Will Included",
+        isKo ? "VIP 카드 발급" : "VIP Card Issued",
         isKo ? "유족 자동 알림" : "Auto Family Notification",
       ],
-      cta: t.pricing.permanentStart || (isKo ? "영구 보관 시작" : "Start Lifetime"),
+      cta: isKo ? "영구 보관 시작" : "Start Lifetime",
     },
   };
 
   // 가격 세분화 레이블
-  const baseFeeLabel = t.pricing.certFee || (isKo ? "기본 인증비" : "Base fee");
-  const storageFeeLabel = t.pricing.storageFee || (isKo ? "보관비 (정가)" : "Storage");
-  const discountLabel = t.pricing.discount || (isKo ? "할인" : "Discount");
-  const totalLabel = t.pricing.total || (isKo ? "합계" : "Total");
+  const baseFeeLabel = isKo ? "전자 인증" : "Certification";
+  const storageFeeLabel = isKo ? "보관료" : "Storage";
+  const discountLabel = isKo ? "할인" : "Discount";
+  const totalLabel = isKo ? "합계" : "Total";
 
   const plans = [
     {
@@ -143,6 +148,7 @@ export default function PricingSection() {
       badge: certBadge,
       subBadge: certSubBadge,
       highlight: true,
+      cardTier: isKo ? "실버" : "Silver",
       accent: "border-[#1F3864] bg-[#1F3864]",
       iconBg: "bg-white/15",
       iconColor: "text-[#C9A961]",
@@ -159,14 +165,14 @@ export default function PricingSection() {
       storageFeeKrw: PLAN_KRW_PRICES.plan3y.storageFee,
       discountKrw: PLAN_KRW_PRICES.plan3y.discount,
       totalKrw: PLAN_KRW_PRICES.plan3y.total,
-      badge: null as string | null,
+      badge: isKo ? "골드 카드" : "Gold Card",
       highlight: false,
-      accent: "border-blue-100 bg-blue-50/40",
-      iconBg: "bg-blue-100",
-      iconColor: "text-blue-500",
+      accent: "border-[#C9A961]/50 bg-amber-50/30",
+      iconBg: "bg-amber-100",
+      iconColor: "text-[#C9A961]",
       features: planLabels.plan3y.features,
       cta: planLabels.plan3y.cta,
-      ctaClass: "bg-[#1F3864] text-white hover:bg-[#1F3864]/90",
+      ctaClass: "bg-[#C9A961] text-[#1F3864] font-bold hover:bg-[#d4b870]",
     },
     {
       id: "5y",
@@ -177,7 +183,7 @@ export default function PricingSection() {
       storageFeeKrw: PLAN_KRW_PRICES.plan5y.storageFee,
       discountKrw: PLAN_KRW_PRICES.plan5y.discount,
       totalKrw: PLAN_KRW_PRICES.plan5y.total,
-      badge: t.pricing.lowestUnit || (isKo ? "최저 단가" : "Best Value"),
+      badge: isKo ? "플래티넘 카드" : "Platinum Card",
       highlight: false,
       accent: "border-[#C9A961]/50 bg-amber-50/40",
       iconBg: "bg-amber-100",
@@ -195,7 +201,7 @@ export default function PricingSection() {
       storageFeeKrw: PLAN_KRW_PRICES.planLife.storageFee,
       discountKrw: PLAN_KRW_PRICES.planLife.discount,
       totalKrw: PLAN_KRW_PRICES.planLife.total,
-      badge: t.pricing.permanent || (isKo ? "영구 보관" : "Lifetime"),
+      badge: isKo ? "VIP · 영구" : "VIP · Lifetime",
       highlight: false,
       accent: "border-[#C9A961]/40 bg-gradient-to-r from-amber-50/60 to-[#FAFAF8]",
       iconBg: "bg-amber-100",

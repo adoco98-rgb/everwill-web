@@ -56,10 +56,10 @@ export default function BadgeSection() {
       textAccent: "text-slate-300",
       bgCard: "bg-gradient-to-br from-slate-700 to-slate-900",
       price: getPrice("$49", "₩49,000", "¥7,595", "¥353"),
-      material: isKo ? "실버 컬러" : "Silver Color",
+      material: isKo ? "실버 콜러" : "Silver Color",
       features: isKo
-        ? ["QR 신원 인증", "NFC 태그", "유언 인증 번호", "1년 무료 보관", "전자인증 ₩49,000에 무료 포함"]
-        : ["QR Identity", "NFC Tag", "Will Certificate", "1yr Free Storage", "FREE with $39 e-certification"],
+        ? ["QR 신원 인증", "NFC 태그", "유언 인증 번호", "1년 보관 포함", "전자인증 ₩49,000에 무료 포함"]
+        : ["QR Identity", "NFC Tag", "Will Certificate", "1yr Storage Included", "FREE with $49 e-certification"],
       popular: false,
       icon: CreditCard,
     },
@@ -70,11 +70,11 @@ export default function BadgeSection() {
       borderColor: "border-[#C9A961]/50",
       textAccent: "text-[#C9A961]",
       bgCard: "bg-gradient-to-br from-[#1a2f5a] to-[#0d1f3c]",
-      price: getPrice("$99", "₩99,000", "¥15,345", "¥713"),
-      material: isKo ? "골드 컬러" : "Gold Color",
+      price: getPrice("$79", "₩79,000", "¥12,245", "¥569"),
+      material: isKo ? "골드 콜러" : "Gold Color",
       features: isKo
-        ? ["QR 신원 인증", "NFC 태그", "유언 인증 번호", "3년 무료 보관", "사망 트리거 우선 처리"]
-        : ["QR Identity", "NFC Tag", "Will Certificate", "3yr Free Storage", "Priority Death Trigger"],
+        ? ["QR 신원 인증", "NFC 태그", "유언 인증 번호", "3년 보관 포함", "사망 트리거 우선 처리"]
+        : ["QR Identity", "NFC Tag", "Will Certificate", "3yr Storage Included", "Priority Death Trigger"],
       popular: true,
       icon: Star,
     },
@@ -85,11 +85,11 @@ export default function BadgeSection() {
       borderColor: "border-purple-400/40",
       textAccent: "text-purple-300",
       bgCard: "bg-gradient-to-br from-purple-900 to-slate-900",
-      price: getPrice("$199", "₩199,000", "¥30,845", "¥1,433"),
-      material: isKo ? "플래티넘 컬러" : "Platinum Color",
+      price: getPrice("$99", "₩99,000", "¥15,345", "¥713"),
+      material: isKo ? "플래티넘 콜러" : "Platinum Color",
       features: isKo
-        ? ["QR 신원 인증", "NFC 태그", "유언 인증 번호", "영구 무료 보관", "사망 트리거 우선 처리", "VIP 변호사 연결", "전담 상속 매니저"]
-        : ["QR Identity", "NFC Tag", "Will Certificate", "Lifetime Storage", "Priority Death Trigger", "VIP Attorney Access", "Dedicated Estate Manager"],
+        ? ["QR 신원 인증", "NFC 태그", "유언 인증 번호", "5년 보관 포함", "자필·영상 유언 포함", "사망 트리거 우선 처리", "VIP 변호사 연결"]
+        : ["QR Identity", "NFC Tag", "Will Certificate", "5yr Storage Included", "Handwritten & Video Will", "Priority Death Trigger", "VIP Attorney Access"],
       popular: false,
       icon: Sparkles,
     },
@@ -249,8 +249,8 @@ export default function BadgeSection() {
           </p>
           <p className="text-white/50 text-sm mt-2 font-medium">
             {isKo
-              ? "전자인증 ₩49,000에 실버 카드 무료 포함 · 골드/플래티넘 카드는 업그레이드 선택"
-              : "EverWill Card included FREE with $39 e-certification · Gold/Platinum cards available as upgrade"}
+              ? "실버 카드: 전자인증 ₩49,000에 무료 포함 · 골드 카드: 3년 플랜(₩79,000) · 플래티넘 카드: 5년 플랜(₩99,000)"
+              : "Silver Card: FREE with $49 certification · Gold Card: 3-Year Plan ($79) · Platinum Card: 5-Year Plan ($99)"}
           </p>
         </motion.div>
       </div>
