@@ -259,6 +259,7 @@ export async function sendWillCertifiedEmail(params: {
   willTitle: string;
   certifiedAt: string;
   pdfUrl?: string;
+  digitalCardUrl?: string; // 디지털 카드 URL (S3 또는 대시보드 링크)
 }): Promise<boolean> {
   try {
     const { error } = await resend.emails.send({
@@ -322,9 +323,18 @@ export async function sendWillCertifiedEmail(params: {
                 </tr>
               </table>
 
-              ${params.pdfUrl ? `
-              <!-- PDF 다운로드 버튼 -->
+              <!-- 버튼 그룹 -->
               <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                <tr>
+                  <td align="center" style="padding-bottom:12px;">
+                    <!-- 디지털 카드 다운로드 버튼 (항상 표시) -->
+                    <a href="https://everwill.co.kr/dashboard/wills" target="_blank"
+                      style="display:inline-block;background:linear-gradient(135deg,#C9A961,#e8c97a);color:#1F3864;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:700;letter-spacing:0.5px;margin-bottom:12px;">
+                      🪪 디지털 카드 다운로드
+                    </a>
+                  </td>
+                </tr>
+                ${params.pdfUrl ? `
                 <tr>
                   <td align="center">
                     <a href="${params.pdfUrl}" target="_blank"
@@ -333,8 +343,23 @@ export async function sendWillCertifiedEmail(params: {
                     </a>
                   </td>
                 </tr>
+                ` : ""}
               </table>
-              ` : ""}
+
+              <!-- 디지털 카드 안내 -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFFBEB;border-radius:8px;border:1px solid #FDE68A;margin-bottom:24px;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <div style="font-size:13px;font-weight:600;color:#92400E;margin-bottom:8px;">🪪 디지털 카드 사용법</div>
+                    <ul style="margin:0;padding-left:16px;font-size:13px;color:#78350F;line-height:1.8;">
+                      <li><strong>갤럭시:</strong> 다운로드 후 잠금화면 배경으로 설정</li>
+                      <li><strong>아이폰:</strong> 사진 앱에서 잠금화면 배경으로 설정</li>
+                      <li>응급 상황 시 QR 스캔으로 가족에게 즉시 연락</li>
+                      <li>인증번호로 법원·금융기관에서 유언 효력 확인 가능</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
 
               <!-- 안내 박스 -->
               <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFF7ED;border-radius:8px;border:1px solid #FED7AA;margin-bottom:24px;">

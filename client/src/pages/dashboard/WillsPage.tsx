@@ -22,6 +22,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
+  CreditCard,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -54,6 +55,7 @@ function StatusBadge({ status, isCertified }: { status: string; isCertified: num
 export default function WillsPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [generatingPdfId, setGeneratingPdfId] = useState<number | null>(null);
+  const [generatingCardId, setGeneratingCardId] = useState<number | null>(null);
 
   // 내 유언장 목록 조회
   const { data: wills, isLoading, refetch } = trpc.will.getMyWills.useQuery();
@@ -90,6 +92,33 @@ export default function WillsPage() {
     setDeletingId(willId);
     deleteWill.mutate({ willId });
     setDeletingId(null);
+  };
+
+  // 디지털 카드 생성
+  const generateCard = trpc.pdf.generateDigitalCard.useMutation({
+    onSuccess: (data) => {
+      if (data.cardUrl) {
+        // SVG 파일 다운로드
+        const a = document.createElement("a");
+        a.href = data.cardUrl;
+        a.download = `EverWill-디지털카드-${data.certNumber}.svg`;
+        a.target = "_blank";
+        a.click();
+        toast.success("디지털 카드가 다운로드되었습니다. 갤럭시/아이폰 잠금화면에 설정하세요.");
+      }
+      setGeneratingCardId(null);
+    },
+    onError: (err) => {
+      toast.error(`카드 생성 실패: ${err.message}`);
+      setGeneratingCardId(null);
+    },
+  });
+
+  const handleDownloadCard = (willId: number, status: string) => {
+    setGeneratingCardId(willId);
+    // 인증 완료면 골드, 아니면 실버
+    const tier = (status === "certified") ? "gold" : "silver";
+    generateCard.mutate({ willId, tier });
   };
 
   const handleDownloadPdf = (willId: number, pdfUrl: string | null | undefined) => {
@@ -219,6 +248,23 @@ export default function WillsPage() {
                       <Download className="w-3 h-3" />
                     )}
                     {will.pdfUrl ? "PDF 다운로드" : "PDF 생성"}
+                  </Button>
+
+                  {/* 디지털 카드 다운로드 */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 text-xs border-[#C9A961] text-[#C9A961] hover:bg-[#C9A961] hover:text-white"
+                    onClick={() => handleDownloadCard(will.id, will.status)}
+                    disabled={generatingCardId === will.id}
+                    title="갤럭시/아이폰 잠금화면에 설정 가능한 디지털 카드"
+                  >
+                    {generatingCardId === will.id ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <CreditCard className="w-3 h-3" />
+                    )}
+                    디지털 카드
                   </Button>
 
                   {/* 수정 (초안만 가능) */}
