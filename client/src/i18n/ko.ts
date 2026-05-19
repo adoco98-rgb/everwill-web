@@ -28,11 +28,11 @@ export const ko = {
     subtitle2: "유언 작성, 인증, 사후 집행을 하나로.",
     ctaSign: "유언장 서명하기",
     ctaJoin: "무료 가입하기",
-    trust1: "법적 효력 보장 — 전자서명법 기반",
+    trust1: "전자서명법 기반 인증 — 전자문서 보관",
     trust2: "11개 언어 지원",
     trust3: "작성 무료 · 인증 ₩49,000",
     trust4: "은행급 보안",
-    pricingNote: "유언장 작성은 무료 · 법적 효력 인증은 ₩49,000",
+    pricingNote: "유언장 작성은 무료 · 전자 인증 ₩49,000",
   },
 
   // Trust Section

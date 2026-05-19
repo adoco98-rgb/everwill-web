@@ -25,11 +25,11 @@ export const en = {
     subtitle2: "Write, certify, and execute your will — all in one place.",
     ctaSign: "Sign My Will",
     ctaJoin: "Join for Free",
-    trust1: "Legally Valid — ESIGN Act · UEWA",
+    trust1: "ESIGN Act Certified — Secure Digital Storage",
     trust2: "11 Languages",
     trust3: "Free to Write · $39 to Certify",
     trust4: "Bank-Level Security",
-    pricingNote: "Free to write · Legal certification ₩49,000 / $39",
+    pricingNote: "Free to write · Electronic certification $39",
   },
   trust: {
     title: "6 Reasons to Choose EverWill",
