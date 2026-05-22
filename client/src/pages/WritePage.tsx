@@ -2,11 +2,12 @@
  * EverWill 유언장 작성 페이지 (/write)
  * 디자인: 네이비 + 골드, 깔끔한 스텝 UI
  * 모드: AI 가이드 (10단계 마법사) / 직접 작성 (법적 양식)
+ * willId 파라미터: 기존 유언장 불러와 이어쓰기
  */
-import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { useState, useEffect } from "react";
+import { Link, useLocation, useSearch } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Bot, PenLine, Shield, Clock, CheckCircle2, MessageSquare, ScanLine, Building2, ChevronRight } from "lucide-react";
+import { ArrowLeft, Shield, Clock, CheckCircle2, MessageSquare, ScanLine, Building2, ChevronRight, Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import AIWizard from "@/components/write/AIWizard";
@@ -15,6 +16,38 @@ import type { WillMode } from "@/lib/willTypes";
 
 export default function WritePage() {
   const [mode, setMode] = useState<WillMode>(null);
+  const search = useSearch();
+  const { isAuthenticated } = useAuth();
+
+  // URL 파라미터 파싱
+  const params = new URLSearchParams(search);
+  const willIdParam = params.get("willId");
+  const willId = willIdParam ? parseInt(willIdParam, 10) : null;
+
+  // willId가 있으면 DB에서 불러오기
+  const { data: existingWill, isLoading: loadingWill } = trpc.will.getWillById.useQuery(
+    { willId: willId! },
+    { enabled: !!willId && willId > 0 && isAuthenticated, retry: false }
+  );
+
+  // 기존 유언장 로드 완료 시 모드 자동 설정
+  useEffect(() => {
+    if (existingWill && mode === null) {
+      setMode((existingWill.mode as WillMode) ?? "ai");
+    }
+  }, [existingWill]);
+
+  // willId가 있는데 로딩 중이면 스피너 표시
+  if (willId && loadingWill) {
+    return (
+      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-10 h-10 animate-spin text-[#1F3864] mx-auto mb-3" />
+          <p className="text-gray-500 text-sm">유언장을 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
@@ -29,7 +62,9 @@ export default function WritePage() {
             <div className="w-6 h-6 rounded bg-gradient-to-br from-[#C9A961] to-[#a88840] flex items-center justify-center">
               <span className="text-white font-bold text-xs">S</span>
             </div>
-            <span className="font-bold text-[#1F3864] text-sm">EverWill 유언장 작성</span>
+            <span className="font-bold text-[#1F3864] text-sm">
+              {existingWill ? "유언장 수정" : "EverWill 유언장 작성"}
+            </span>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-gray-400">
             <Shield className="w-3.5 h-3.5 text-green-500" />
@@ -58,7 +93,10 @@ export default function WritePage() {
             exit={{ opacity: 0, x: -40 }}
             transition={{ duration: 0.4 }}
           >
-            <AIWizard onBack={() => setMode(null)} />
+            <AIWizard
+              onBack={() => setMode(null)}
+              existingWill={existingWill ?? undefined}
+            />
           </motion.div>
         )}
         {mode === "direct" && (
@@ -69,7 +107,10 @@ export default function WritePage() {
             exit={{ opacity: 0, x: -40 }}
             transition={{ duration: 0.4 }}
           >
-            <DirectForm onBack={() => setMode(null)} />
+            <DirectForm
+              onBack={() => setMode(null)}
+              existingWill={existingWill ?? undefined}
+            />
           </motion.div>
         )}
       </AnimatePresence>

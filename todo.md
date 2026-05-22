@@ -619,6 +619,6 @@
 
 ### 개선 항목
 - [x] [개선] 회원가입 완료 후 자동 로그인 미구현 → register 성공 시 loginStep1 자동 호출 또는 세션 직접 발급 (register 성공 후 loginStep1 자동 호출로 구현)
-- [ ] [개선] WillsPage에 유언장 상세 페이지(/dashboard/wills/:id) 없음 → 목록 클릭 시 상세 조회 라우트 추가
+- [x] [개선] WillsPage에 유언장 상세 페이지(/dashboard/wills/:id) 없음 → 목록 클릭 시 상세 조회 라우트 추가
 - [x] [개선] certifyWill API에 paymentId 연동 없음 (결제 시스템 미완성이므로 현재는 허용, 결제 연동 시 반드시 검증 추가)
-- [ ] [개선] 회원가입 시 phone 필드가 optional이지만 로그인 2단계 OTP는 phone 필수 → 가입 시 phone 없으면 이메일 OTP fallback 안내 명확화
+- [x] [개선] 회원가입 시 phone 필드가 optional이지만 로그인 2단계 OTP는 phone 필수 → 가입 시 phone 없으면 이메일 OTP fallback 안내 명확화

@@ -699,7 +699,18 @@ export default function LoginPage() {
                       </div>
                     )}
 
-                    {/* 전화번호 인증은 유언장 인증/결제(Step10) 단계에서 진행 */}
+                    {/* 이메일 가입 시 OTP 발송 채널 안내 */}
+                    {loginMethod === "email" && (
+                      <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                        <span className="text-blue-500 text-sm mt-0.5 shrink-0">ℹ️</span>
+                        <p className="text-xs text-blue-700 leading-relaxed">
+                          <strong>로그인 인증 방식 안내</strong><br />
+                          가입 후 로그인 시 6자리 OTP가 발송됩니다.<br />
+                          · 휴대폰 번호를 등록하면 <strong>SMS</strong>로 발송<br />
+                          · 번호 미등록 시 <strong>이메일</strong>로 발송 (스팸함 확인)
+                        </p>
+                      </div>
+                    )}
 
                     <button type="submit"
                       className="w-full py-3.5 bg-[#1F3864] hover:bg-[#162a4e] text-white font-bold rounded-xl transition flex items-center justify-center gap-2">

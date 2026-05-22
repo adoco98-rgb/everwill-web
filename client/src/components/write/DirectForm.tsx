@@ -10,10 +10,6 @@ import Step10Sign from "./steps/Step10Sign";
 import { initialWillData } from "@/lib/willTypes";
 import type { WillData } from "@/lib/willTypes";
 
-interface Props {
-  onBack: () => void;
-}
-
 const SECTIONS = [
   { id: 1, title: "유언자 정보", law: "민법 제1066조", icon: "👤" },
   { id: 2, title: "유언 전문", law: "민법 제1065조", icon: "📜" },
@@ -24,8 +20,27 @@ const SECTIONS = [
   { id: 7, title: "서명 및 날인", law: "민법 제1066조", icon: "✍️" },
 ];
 
-export default function DirectForm({ onBack }: Props) {
-  const [will, setWill] = useState<WillData>({ ...initialWillData, mode: "direct" });
+interface Props {
+  onBack: () => void;
+  existingWill?: {
+    id: number;
+    title: string | null;
+    data: string | null;
+    mode: "ai" | "direct" | null;
+    status: string;
+  };
+}
+
+export default function DirectForm({ onBack, existingWill }: Props) {
+  const [will, setWill] = useState<WillData>(() => {
+    if (existingWill?.data) {
+      try {
+        const parsed = JSON.parse(existingWill.data);
+        return { ...initialWillData, ...parsed, mode: "direct" };
+      } catch {}
+    }
+    return { ...initialWillData, mode: "direct" };
+  });
   const [openSection, setOpenSection] = useState<number>(1);
   const [showPreview, setShowPreview] = useState(false);
   const [showSign, setShowSign] = useState(false);

@@ -281,6 +281,18 @@ export default function WillsPage() {
                     </Link>
                   )}
 
+                  {/* 상세보기 */}
+                  <Link href={`/dashboard/wills/${will.id}`}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 text-xs border-[#1F3864]/30 text-[#1F3864] hover:bg-[#1F3864] hover:text-white"
+                    >
+                      <FileText className="w-3 h-3" />
+                      상세보기
+                    </Button>
+                  </Link>
+
                   {/* 삭제 (초안만 가능) */}
                   {will.status === "draft" && (
                     <Button

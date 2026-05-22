@@ -130,7 +130,10 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
         {/* 메뉴 */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {menuItems.map((item) => {
-            const isActive = location === item.path;
+            // /dashboard는 정확 매칭, 나머지는 prefix 매칭 (하위 경로도 활성화)
+            const isActive = item.path === "/dashboard"
+              ? location === item.path
+              : location.startsWith(item.path);
             return (
               <Link key={item.path} href={item.path}>
                 <a

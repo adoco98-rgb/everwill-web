@@ -26,11 +26,35 @@ import Step10Sign from "./steps/Step10Sign";
 
 interface Props {
   onBack: () => void;
+  existingWill?: {
+    id: number;
+    title: string | null;
+    data: string | null;
+    mode: "ai" | "direct" | null;
+    status: string;
+  };
 }
 
-export default function AIWizard({ onBack }: Props) {
-  const [step, setStep] = useState(1);
-  const [will, setWill] = useState<WillData>({ ...initialWillData, mode: "ai" });
+export default function AIWizard({ onBack, existingWill }: Props) {
+  // 기존 유언장이 있으면 해당 데이터로 초기화, 없으면 기본값
+  const [step, setStep] = useState(() => {
+    if (existingWill?.data) {
+      try {
+        const parsed = JSON.parse(existingWill.data);
+        return parsed.currentStep ?? 1;
+      } catch { return 1; }
+    }
+    return 1;
+  });
+  const [will, setWill] = useState<WillData>(() => {
+    if (existingWill?.data) {
+      try {
+        const parsed = JSON.parse(existingWill.data);
+        return { ...initialWillData, ...parsed, mode: "ai" };
+      } catch {}
+    }
+    return { ...initialWillData, mode: "ai" };
+  });
   const [autoLoaded, setAutoLoaded] = useState(false);
   // 페이월 모달 상태
   const [showPaywall, setShowPaywall] = useState(false);
@@ -133,11 +157,11 @@ export default function AIWizard({ onBack }: Props) {
       setShowPaywall(true);
       return;
     }
-    if (step < 11) setStep((s) => s + 1);
+    if (step < 11) setStep((s: number) => s + 1);
   };
 
   const prev = () => {
-    if (step > 1) setStep((s) => s - 1);
+    if (step > 1) setStep((s: number) => s - 1);
     else onBack();
   };
 
@@ -157,8 +181,10 @@ export default function AIWizard({ onBack }: Props) {
       const willTitle = will.testatorName
         ? `${will.testatorName}의 유언장 (임시저장)`
         : `유언장 임시저장 ${new Date().toLocaleDateString("ko-KR")}`;
+      // currentStep을 will 데이터에 포함하여 이어쓰기 지점 보존
+      const willWithStep = { ...will, currentStep: step };
       saveDraftMutation.mutate(
-        { title: willTitle, data: JSON.stringify(will), mode: (will.mode as "ai" | "direct") ?? "ai", status: "draft" },
+        { willId: existingWill?.id, title: willTitle, data: JSON.stringify(willWithStep), mode: (will.mode as "ai" | "direct") ?? "ai", status: "draft" },
         {
           onSuccess: () => toast.success("임시 저장 완료 (72시간 보관)"),
           onError: () => toast.success("임시 저장 완료 (로컬 보관)"),
@@ -169,7 +195,7 @@ export default function AIWizard({ onBack }: Props) {
     }
   };
 
-  const stepProps = { will, update, onNext: next, onPrev: prev };
+  const stepProps = { will, update, onNext: next, onPrev: prev, existingWillId: existingWill?.id };
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
