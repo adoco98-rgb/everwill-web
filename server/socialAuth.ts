@@ -20,13 +20,18 @@ import { sdk } from "./_core/sdk";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { COOKIE_NAME, ONE_YEAR_MS } from "../shared/const";
 
-// ─── 헬퍼: 항상 https로 redirect_uri 생성 (프록시 환경 대응) ──────
+// ─── 헬퍼: redirect_uri 생성 (프로덕션 환경에서는 고정 URL 사용) ──────
 function getBaseUrl(req: Request): string {
+  // 환경변수로 고정된 공개 URL이 있으면 우선 사용
+  if (process.env.APP_PUBLIC_URL) {
+    return process.env.APP_PUBLIC_URL.replace(/\/+$/, "");
+  }
   const host = req.get("host") || "";
-  // 로컬 개발 환경은 http, 그 외 항상 https
+  // 로컬 개발 환경은 http
   const isLocal = host.includes("localhost") || host.includes("127.0.0.1");
-  const protocol = isLocal ? "http" : "https";
-  return `${protocol}://${host}`;
+  if (isLocal) return `http://${host}`;
+  // 프로덕션 환경: 도메인이 everwill.co.kr 또는 manus.space이면 https 사용
+  return `https://everwill.co.kr`;
 }
 
 // ─── 환경변수 ─────────────────────────────────────────────────

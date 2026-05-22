@@ -12,4 +12,6 @@ export const ENV = {
   twilioAccountSid: process.env.TWILIO_ACCOUNT_SID ?? "",
   twilioAuthToken: process.env.TWILIO_AUTH_TOKEN ?? "",
   twilioVerifyServiceSid: process.env.TWILIO_VERIFY_SERVICE_SID ?? "",
+  // 소셜 로그인 redirect_uri 고정 URL (배포 환경에서 필수)
+  appPublicUrl: process.env.APP_PUBLIC_URL ?? "",
 };
