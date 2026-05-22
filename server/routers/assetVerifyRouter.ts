@@ -289,6 +289,8 @@ export const assetVerifyRouter = router({
         submittedAt: assetVerifications.submittedAt,
         reviewedAt: assetVerifications.reviewedAt,
         reviewNote: assetVerifications.reviewNote,
+        idPhotoUrl: assetVerifications.idPhotoUrl,
+        selfieUrl: assetVerifications.selfieUrl,
         userName: users.name,
         userEmail: users.email,
       })
@@ -296,7 +298,18 @@ export const assetVerifyRouter = router({
       .leftJoin(users, eq(assetVerifications.userId, users.id))
       .orderBy(desc(assetVerifications.submittedAt));
 
-    return verifications;
+    // 각 인증 건의 문서 목록도 함께 조회
+    const result = await Promise.all(
+      verifications.map(async (v) => {
+        const docs = await db
+          .select()
+          .from(assetDocuments)
+          .where(eq(assetDocuments.verificationId, v.id));
+        return { ...v, documents: docs };
+      })
+    );
+
+    return result;
   }),
 
   /**

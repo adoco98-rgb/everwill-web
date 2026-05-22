@@ -14,10 +14,11 @@ import {
   Users, CreditCard, FileText, MessageSquare,
   BarChart3, Search, ChevronLeft, ChevronRight,
   TrendingUp, Shield, Clock, CheckCircle,
-  Newspaper, Plus, Trash2, Eye, EyeOff, ExternalLink, Pencil, KeyRound
+  Newspaper, Plus, Trash2, Eye, EyeOff, ExternalLink, Pencil, KeyRound,
+  ShieldCheck, XCircle, AlertTriangle, ImageIcon
 } from "lucide-react";
 
-type Tab = "stats" | "users" | "payments" | "wills" | "inquiries" | "news";
+type Tab = "stats" | "users" | "payments" | "wills" | "inquiries" | "news" | "assetVerify";
 
 function formatKRW(amount: number) {
   if (amount >= 100_000_000) return `${(amount / 100_000_000).toFixed(1)}억원`;
@@ -707,6 +708,201 @@ function NewsTab() {
   );
 }
 
+/** 자산 인증 검토 탭 */
+const DOC_TYPE_LABELS: Record<string, string> = {
+  real_estate_registry: "부동산등기부등본",
+  bank_statement: "은행잔액증명서",
+  asset_list: "자산내역서",
+  insurance_policy: "보험증권",
+  stock_statement: "주식잔고증명서",
+  other: "기타 서류",
+};
+
+const STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  pending: { label: "미제출", color: "bg-gray-100 text-gray-500" },
+  submitted: { label: "검토 대기", color: "bg-amber-100 text-amber-700" },
+  reviewing: { label: "검토 중", color: "bg-blue-100 text-blue-700" },
+  approved: { label: "승인 완료", color: "bg-green-100 text-green-700" },
+  rejected: { label: "반려", color: "bg-red-100 text-red-600" },
+};
+
+function AssetVerifyTab() {
+  const { data: list, isLoading, refetch } = trpc.assetVerify.adminList.useQuery();
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [noteInputs, setNoteInputs] = useState<Record<number, string>>({});
+
+  const reviewMutation = trpc.assetVerify.adminReview.useMutation({
+    onSuccess: () => { refetch(); toast.success("처리 완료"); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  if (isLoading) return <div className="text-center py-16 text-gray-400">로딩 중...</div>;
+  if (!list || list.length === 0) {
+    return (
+      <div className="text-center py-16 text-gray-400">
+        <ShieldCheck className="w-10 h-10 mx-auto mb-3 opacity-30" />
+        <p>자산 인증 신청 내역이 없습니다</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold text-[#1F3864]">자산 인증 검토</h2>
+        <span className="text-sm text-gray-500">총 {list.length}건</span>
+      </div>
+
+      {list.map((item) => {
+        const statusInfo = STATUS_LABELS[item.status ?? "pending"] ?? STATUS_LABELS.pending;
+        const isExpanded = expandedId === item.id;
+        const noteVal = noteInputs[item.id] ?? item.reviewNote ?? "";
+
+        return (
+          <div key={item.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+            {/* 헤더 */}
+            <div
+              className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-50 transition-colors"
+              onClick={() => setExpandedId(isExpanded ? null : item.id)}
+            >
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="w-5 h-5 text-[#1F3864]/40" />
+                <div>
+                  <p className="font-semibold text-[#1F3864] text-sm">{item.userName || "(이름 없음)"}</p>
+                  <p className="text-xs text-gray-400">{item.userEmail}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${statusInfo.color}`}>
+                  {statusInfo.label}
+                </span>
+                <span className="text-xs text-gray-400">
+                  {item.submittedAt ? formatDate(item.submittedAt) : "-"}
+                </span>
+                <span className="text-gray-400 text-xs">{isExpanded ? "▲" : "▼"}</span>
+              </div>
+            </div>
+
+            {/* 상세 패널 */}
+            {isExpanded && (
+              <div className="border-t border-gray-100 px-5 py-5 space-y-5">
+                {/* 신분증 / 셀피 */}
+                <div>
+                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">신분증 &amp; 얼굴 사진</h4>
+                  <div className="flex gap-4">
+                    {item.idPhotoUrl ? (
+                      <a href={item.idPhotoUrl} target="_blank" rel="noopener noreferrer" className="group">
+                        <div className="w-32 h-20 bg-gray-100 rounded-xl overflow-hidden border border-gray-200 hover:border-[#1F3864]/40 transition-colors flex items-center justify-center">
+                          <img src={item.idPhotoUrl} alt="신분증" className="w-full h-full object-cover" />
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1 text-center">신분증</p>
+                      </a>
+                    ) : (
+                      <div className="w-32 h-20 bg-gray-50 rounded-xl border border-dashed border-gray-200 flex items-center justify-center">
+                        <ImageIcon className="w-6 h-6 text-gray-300" />
+                      </div>
+                    )}
+                    {item.selfieUrl ? (
+                      <a href={item.selfieUrl} target="_blank" rel="noopener noreferrer">
+                        <div className="w-32 h-20 bg-gray-100 rounded-xl overflow-hidden border border-gray-200 hover:border-[#1F3864]/40 transition-colors">
+                          <img src={item.selfieUrl} alt="셀피" className="w-full h-full object-cover" />
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1 text-center">얼굴 사진</p>
+                      </a>
+                    ) : (
+                      <div className="w-32 h-20 bg-gray-50 rounded-xl border border-dashed border-gray-200 flex items-center justify-center">
+                        <ImageIcon className="w-6 h-6 text-gray-300" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 자산 서류 */}
+                {item.documents && item.documents.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">자산 서류 ({item.documents.length}건)</h4>
+                    <div className="space-y-2">
+                      {item.documents.map((doc) => (
+                        <div key={doc.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <FileText className="w-4 h-4 text-[#1F3864]/50" />
+                            <div>
+                              <p className="text-sm font-medium text-[#1F3864]">{DOC_TYPE_LABELS[doc.type] ?? doc.type}</p>
+                              {doc.label && <p className="text-xs text-gray-400">{doc.label}</p>}
+                            </div>
+                          </div>
+                          <a
+                            href={doc.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-xs text-[#1F3864] hover:text-[#C9A961] transition-colors font-medium"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            보기
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 검토 메모 + 승인/반려 버튼 */}
+                {(item.status === "submitted" || item.status === "reviewing") && (
+                  <div className="border-t border-gray-100 pt-4">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">검토 메모 (선택)</h4>
+                    <textarea
+                      value={noteVal}
+                      onChange={(e) => setNoteInputs(prev => ({ ...prev, [item.id]: e.target.value }))}
+                      placeholder="반려 사유 또는 검토 메모를 입력하세요"
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none h-20 focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20"
+                    />
+                    <div className="flex gap-3 mt-3">
+                      <button
+                        onClick={() => reviewMutation.mutate({ verificationId: item.id, action: "approve", note: noteVal })}
+                        disabled={reviewMutation.isPending}
+                        className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        승인
+                      </button>
+                      <button
+                        onClick={() => reviewMutation.mutate({ verificationId: item.id, action: "reject", note: noteVal })}
+                        disabled={reviewMutation.isPending}
+                        className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+                      >
+                        <XCircle className="w-4 h-4" />
+                        반려
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 이미 처리된 경우 결과 표시 */}
+                {(item.status === "approved" || item.status === "rejected") && (
+                  <div className={`border-t border-gray-100 pt-4 flex items-start gap-3 p-3 rounded-xl ${
+                    item.status === "approved" ? "bg-green-50" : "bg-red-50"
+                  }`}>
+                    {item.status === "approved"
+                      ? <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                      : <XCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />}
+                    <div>
+                      <p className={`text-sm font-semibold ${item.status === "approved" ? "text-green-700" : "text-red-700"}`}>
+                        {item.status === "approved" ? "승인 완료" : "반려"}
+                      </p>
+                      {item.reviewNote && <p className="text-xs text-gray-500 mt-0.5">{item.reviewNote}</p>}
+                      {item.reviewedAt && <p className="text-xs text-gray-400 mt-0.5">{formatDate(item.reviewedAt)}</p>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 /** 메인 관리자 페이지 */
 export default function AdminPage() {
   const { user, loading } = useAuth();
@@ -734,6 +930,7 @@ export default function AdminPage() {
     { id: "wills", label: "자료 관리", icon: FileText },
     { id: "inquiries", label: "문의 관리", icon: MessageSquare },
     { id: "news", label: "뉴스 관리", icon: Newspaper },
+    { id: "assetVerify", label: "자산 인증 검토", icon: ShieldCheck },
   ];
 
   return (
@@ -778,6 +975,7 @@ export default function AdminPage() {
         {activeTab === "wills" && <WillsTab />}
         {activeTab === "inquiries" && <InquiriesTab />}
         {activeTab === "news" && <NewsTab />}
+        {activeTab === "assetVerify" && <AssetVerifyTab />}
       </div>
     </div>
   );

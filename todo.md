@@ -89,13 +89,13 @@
 
 ## 진행 중
 - [ ] DB 스키마 설계 (users, payments 테이블)
-- [ ] 회원가입/로그인 백엔드 API (이메일+비밀번호, 소셜 로그인)
-- [ ] 회원가입 페이지 (/signup)
-- [ ] 로그인 페이지 (/login)
-- [ ] 사용자 대시보드 (/dashboard)
+- [x] 회원가입/로그인 백엔드 API (이메일+비밀번호, 소셜 로그인)
+- [x] 회원가입 페이지 (/signup)
+- [x] 로그인 페이지 (/login)
+- [x] 사용자 대시보드 (/dashboard)
 - [ ] 결제 내역 페이지 (/dashboard/payments)
 - [ ] Stripe Webhook 결제-계정 연결 로직
-- [ ] Navbar 로그인 상태 반영
+- [x] Navbar 로그인 상태 반영
 
 ## 예정
 - [ ] /investor 투자유치 랜딩페이지 - 7개국어 지원, 네비게이션 미노출
@@ -241,8 +241,8 @@
 - [x] [P2] applyReferral publicProcedure → protectedProcedure로 변경 (타인 이메일 조작 방지)
 - [x] [P3] Rate Limiting 미들웨어 추가 (express-rate-limit): OTP 발송 5회/15분, 문의 접수 10회/시간, 회원가입 추적 200회/시간
 - [ ] [P3] sendOtp(이메일/휴대폰) 동일 이메일/번호 재발송 1분 쿨다운 서버 적용
-- [ ] [P4] 관리자 전용 프로시저(inquiryRouter 등)에서 inline role 체크 → adminProcedure로 통일
-- [ ] [P4] 세션 쿠키 SameSite=lax로 변경 (현재 none → CSRF 위험)
+- [x] [P4] 관리자 전용 프로시저(inquiryRouter 등)에서 inline role 체크 → adminProcedure로 통일
+- [x] [P4] 세션 쿠키 SameSite=lax로 변경 (현재 none → CSRF 위험)
 
 ## 텍스트/UX 개선
 - [x] "나의 유서" → "나의 편지"로 전체 변경 (LetterDashboard, LetterWrite, Navbar 메뉴 등)
@@ -270,9 +270,9 @@
 - [x] 회원가입 시 수집한 정보 → 유언장 작성 자동 채움 (AIWizard 연동 완료)
 
 ### [CRITICAL] 유언장 저장 및 관리
-- [ ] 완성된 유언장 PDF 생성 및 다운로드 (현재 "준비 중" 더미)
-- [ ] 대시보드에서 내 유언장 목록 조회 및 수정 진입
-- [ ] 유언장 임시저장 → localStorage 아닌 DB 저장으로 전환
+- [x] 완성된 유언장 PDF 생성 및 다운로드 (html-pdf-node 기반 API + 대시보드 UI 연결)
+- [x] 대시보드에서 내 유언장 목록 조회 및 수정 진입
+- [x] 유언장 임시저장 → localStorage 아닌 DB 저장으로 전환
 
 ### [HIGH] 주소 자동완성
 - [ ] 한국 주소: 카카오 우편번호 API (현재 구현됨) - 유지
@@ -367,7 +367,7 @@
 - [x] 기존 OTP 전용 가입자: 인증코드 방식으로 로그인 링크 제공 (이메일 탭 내 전환 버튼)
 
 ## 로그아웃 버튼
-- [ ] 대시보드/네비게이션에 로그아웃 버튼 추가
+- [x] 대시보드/네비게이션에 로그아웃 버튼 추가
 
 ## ProfilePage 개선
 - [x] 휴대폰 번호 옆에 인증 완료 배지(초록 체크) 표시 (OTP/SMS로 인증된 번호)
@@ -377,7 +377,7 @@
 - [x] 사이드바에 관리자 패널 메뉴 추가 (admin 계정에게만 표시, /799805 이동)
 
 ## 관리자 UX 개선
-- [ ] 관리자 계정에게는 대시보드의 "자산을 먼저 등록해주세요" 배너 및 자산 등록 관련 CTA 숨김
+- [x] 관리자 계정에게는 대시보드의 "자산을 먼저 등록해주세요" 배너 및 자산 등록 관련 CTA 숨김
 
 ## 관리자 대시보드 종합 개편 (/799805)
 - [x] 통계 탭: 총 회원수, 오늘 가입자, 총 매출, 이번달 매출, 유언장 수, 문의 수
@@ -385,7 +385,7 @@
 - [x] 결제/매출 탭: 전체 결제 내역, 월별 매출 차트, 상태 필터
 - [x] 자료 관리 탭: 유언장 목록 (작성자, 상태, 날짜)
 - [x] 문의 관리 탭: 1:1 문의 목록, 답변 상태, 답변 기능
-- [ ] 관리자 계정에게는 대시보드의 자산등록 배너/CTA 숨김
+- [x] 관리자 계정에게는 대시보드의 자산등록 배너/CTA 숨김
 
 ## 상속자 등록 시스템
 - [x] DB: heirs 테이블 생성 (userId, priority, name, phone, address, relationship, shareType(percent/amount), shareValue, smsConsent, createdAt)
@@ -518,13 +518,13 @@
 - [x] Home.tsx에 CharityStatsSection 삽입 (ReferralSection 이후)
 - [x] 11개 언어 i18n charityStats 섹션 추가
 - [x] 카운트업 애니메이션 적용
-- [ ] TypeScript 오류 0건 확인
+- [x] TypeScript 오류 0건 확인
 
 ## 로그인/회원가입 플로우 개편
-- [ ] 신규가입 Step1: 이메일 또는 휴대폰 입력
-- [ ] 신규가입 Step2: 기본정보(이름/생년월일/국가) + 비밀번호 설정 + 자산 등록(은행/채권/부동산/기타 가액)
-- [ ] 신규가입 Step3: 가입 완료 화면
-- [ ] 재방문 로그인: 이메일/휴대폰 + 비밀번호 입력 → OTP 자동발송 → OTP 입력 → 로그인 완료
+- [x] 신규가입 Step1: 이메일 또는 휴대폰 입력
+- [x] 신규가입 Step2: 기본정보(이름/생년월일/국가) + 비밀번호 설정 + 자산 등록(은행/채권/부동산/기타 가액)
+- [x] 신규가입 Step3: 가입 완료 화면
+- [x] 재방문 로그인: 이메일/휴대폰 + 비밀번호 입력 → OTP 자동발송 → OTP 입력 → 로그인 완료
 
 ## 로그인/회원가입 플로우 개편
 - [x] 신규가입: Step1(이메일/휴대폰 선택) → Step2(정보+비번+자산등록) → Step3(완료)
@@ -535,14 +535,14 @@
 - [x] 왼쪽 브랜드 패널 (데스크탑)
 
 ## 유언장 법적 문서 형식 구현
-- [ ] WillDocumentPreview.tsx - 한국 민법 기준 법적 유언장 문서 실시간 렌더링 컴포넌트
-- [ ] AIWizard.tsx 레이아웃 개편 - 왼쪽 입력폼 + 오른쪽 실시간 문서 미리보기 (데스크탑)
-- [ ] 각 단계별 입력 시 문서에 자동 채움 (실시간 반영)
-- [ ] 문서 내 미입력 항목은 ___ 점선으로 표시
-- [ ] 법적 조항 순서 명확히 표시 (제1조, 제2조...)
-- [ ] willRouter.ts save/get/list 프로시저 추가 (DB 저장)
-- [ ] 단계별 자동저장 (로그인 회원 → DB, 비로그인 → localStorage)
-- [ ] 미리보기 단계(Step10)에서 완성된 법적 문서 전문 표시
+- [x] WillDocumentPreview.tsx - 한국 민법 기준 법적 유언장 문서 실시간 렌더링 컴포넌트
+- [x] AIWizard.tsx 레이아웃 개편 - 왼쪽 입력폼 + 오른쪽 실시간 문서 미리보기 (데스크탑)
+- [x] 각 단계별 입력 시 문서에 자동 채움 (실시간 반영)
+- [x] 문서 내 미입력 항목은 ___ 점선으로 표시
+- [x] 법적 조항 순서 명확히 표시 (제1조, 제2조...)
+- [x] willRouter.ts save/get/list 프로시저 추가 (DB 저장)
+- [x] 단계별 자동저장 (로그인 회원 → DB, 비로그인 → localStorage)
+- [x] 미리보기 단계(Step10)에서 완성된 법적 문서 전문 표시
 
 ## 전체 플로우 점검 및 일괄 수정 (2026-05-13)
 - [x] Step1Testator - 거주 국가 선택 + GlobalAddressSearch + PhoneInput 적용
@@ -589,11 +589,11 @@
 
 ## QA 테스트케이스(2) 수정 작업
 
-- [ ] iPhone Safe Area 적용 (viewport-fit=cover + env(safe-area-inset))
-- [ ] 독일어 버튼 오버플로우 수정 (HeroSection CTA whitespace-nowrap)
-- [ ] AR 샤리아 1/3 경고 (Step3Heirs + DirectForm 언어별 분기)
-- [ ] JA 일본 민법 1042조 경고 추가
-- [ ] DE Pflichtteil 경고 추가
+- [x] iPhone Safe Area 적용 (viewport-fit=cover + env(safe-area-inset))
+- [x] 독일어 버튼 오버플로우 수정 (HeroSection CTA whitespace-nowrap)
+- [x] AR 샤리아 1/3 경고 (Step3Heirs + DirectForm 언어별 분기)
+- [x] JA 일본 민법 1042조 경고 추가
+- [x] DE Pflichtteil 경고 추가
 - [ ] eKYC 오류 UX 개선 (안경/마스크/역광/타임아웃/재시도 안내)
 - [ ] eKYC 5회 실패 잠금 처리 (TC-K06)
 - [ ] eKYC 인증 완료 후 결제 실패 시 재인증 불필요 처리 (TC-K22)
