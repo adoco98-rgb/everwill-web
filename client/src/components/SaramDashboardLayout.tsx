@@ -135,19 +135,19 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
               ? location === item.path
               : location.startsWith(item.path);
             return (
-              <Link key={item.path} href={item.path}>
-                <a
-                  onClick={() => setMobileOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                    isActive
-                      ? "bg-white/15 text-white"
-                      : "text-white/60 hover:text-white hover:bg-white/10"
-                  }`}
-                >
-                  <item.icon className="w-4 h-4 shrink-0" />
-                  <span>{item.label}</span>
-                  {isActive && <ChevronRight className="w-3.5 h-3.5 ml-auto" />}
-                </a>
+              <Link
+                key={item.path}
+                href={item.path}
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  isActive
+                    ? "bg-white/15 text-white"
+                    : "text-white/60 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                <item.icon className="w-4 h-4 shrink-0" />
+                <span>{item.label}</span>
+                {isActive && <ChevronRight className="w-3.5 h-3.5 ml-auto" />}
               </Link>
             );
           })}
@@ -155,19 +155,18 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
           {/* 관리자 전용 메뉴 */}
           {user.role === "admin" && (
             <div className="pt-2 mt-2 border-t border-white/10">
-              <Link href="/799805">
-                <a
-                  onClick={() => setMobileOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                    location === "/799805"
-                      ? "bg-[#C9A961]/20 text-[#C9A961]"
-                      : "text-[#C9A961]/70 hover:text-[#C9A961] hover:bg-[#C9A961]/10"
-                  }`}
-                >
-                  <Settings2 className="w-4 h-4 shrink-0" />
-                  <span>관리자 패널</span>
-                  {location === "/799805" && <ChevronRight className="w-3.5 h-3.5 ml-auto" />}
-                </a>
+              <Link
+                href="/799805"
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  location === "/799805"
+                    ? "bg-[#C9A961]/20 text-[#C9A961]"
+                    : "text-[#C9A961]/70 hover:text-[#C9A961] hover:bg-[#C9A961]/10"
+                }`}
+              >
+                <Settings2 className="w-4 h-4 shrink-0" />
+                <span>관리자 패널</span>
+                {location === "/799805" && <ChevronRight className="w-3.5 h-3.5 ml-auto" />}
               </Link>
             </div>
           )}
