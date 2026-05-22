@@ -24,6 +24,7 @@ import { COOKIE_NAME, ONE_YEAR_MS } from "../shared/const";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
 const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID || "";
+const KAKAO_CLIENT_SECRET = process.env.KAKAO_CLIENT_SECRET || "";
 const NAVER_CLIENT_ID = process.env.NAVER_CLIENT_ID || "";
 const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET || "";
 const LINE_CHANNEL_ID = process.env.LINE_CHANNEL_ID || "";
@@ -177,7 +178,8 @@ function registerKakaoRoutes(app: Express) {
           client_id: KAKAO_CLIENT_ID,
           redirect_uri: redirectUri,
           code,
-        }),
+          ...(KAKAO_CLIENT_SECRET ? { client_secret: KAKAO_CLIENT_SECRET } : {}),
+        } as Record<string, string>),
         { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
       );
       const { access_token } = tokenRes.data;
