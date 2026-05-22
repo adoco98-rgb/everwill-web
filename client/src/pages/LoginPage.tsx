@@ -542,14 +542,7 @@ export default function LoginPage() {
                   </svg>
                   {pageMode === "login" ? "네이버로 계속하기" : "네이버로 가입하기"}
                 </a>
-                {/* LINE */}
-                <a href="/api/auth/line"
-                  className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-[#00B900] bg-[#00B900] hover:bg-[#009900] transition text-sm font-medium text-white shadow-sm min-h-[44px]">
-                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="white">
-                    <path d="M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
-                  </svg>
-                  {pageMode === "login" ? "LINE으로 계속하기" : "LINE으로 가입하기"}
-                </a>
+
               </div>
               {/* 구분선 */}
               <div className="relative my-4">

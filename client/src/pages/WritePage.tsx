@@ -17,12 +17,21 @@ import type { WillMode } from "@/lib/willTypes";
 export default function WritePage() {
   const [mode, setMode] = useState<WillMode>(null);
   const search = useSearch();
-  const { isAuthenticated } = useAuth();
+  const [, navigate] = useLocation();
+  // redirectOnUnauthenticated: true + redirectPath: /login → 비로그인 시 자동으로 /login으로 리다이렉트
+  const { isAuthenticated, loading } = useAuth({ redirectOnUnauthenticated: true, redirectPath: "/login" });
 
   // URL 파라미터 파싱
   const params = new URLSearchParams(search);
   const willIdParam = params.get("willId");
   const willId = willIdParam ? parseInt(willIdParam, 10) : null;
+
+  // 비로그인 사용자 → 로그인 페이지로 리다이렉트
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate("/login?returnTo=/write" + (search ? "&" + search : ""));
+    }
+  }, [loading, isAuthenticated]);
 
   // willId가 있으면 DB에서 불러오기
   const { data: existingWill, isLoading: loadingWill } = trpc.will.getWillById.useQuery(
@@ -36,6 +45,24 @@ export default function WritePage() {
       setMode((existingWill.mode as WillMode) ?? "ai");
     }
   }, [existingWill]);
+
+  // 인증 로딩 중 또는 비로그인 상태 \uc2a4피너 표시
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-10 h-10 animate-spin text-[#1F3864] mx-auto mb-3" />
+          <p className="text-gray-500 text-sm">로그인 상태 확인 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 비로그인 사용자 → 로그인 페이지로 즉시 리다이렉트
+  if (!isAuthenticated) {
+    navigate("/login?returnTo=/write");
+    return null;
+  }
 
   // willId가 있는데 로딩 중이면 스피너 표시
   if (willId && loadingWill) {
