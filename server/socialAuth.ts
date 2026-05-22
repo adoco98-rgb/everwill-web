@@ -20,6 +20,15 @@ import { sdk } from "./_core/sdk";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { COOKIE_NAME, ONE_YEAR_MS } from "../shared/const";
 
+// ─── 헬퍼: 항상 https로 redirect_uri 생성 (프록시 환경 대응) ──────
+function getBaseUrl(req: Request): string {
+  const host = req.get("host") || "";
+  // 로컬 개발 환경은 http, 그 외 항상 https
+  const isLocal = host.includes("localhost") || host.includes("127.0.0.1");
+  const protocol = isLocal ? "http" : "https";
+  return `${protocol}://${host}`;
+}
+
 // ─── 환경변수 ─────────────────────────────────────────────────
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
@@ -98,7 +107,7 @@ function registerGoogleRoutes(app: Express) {
     if (!GOOGLE_CLIENT_ID) {
       return redirectError(res, "Google", "GOOGLE_CLIENT_ID 미설정");
     }
-    const redirectUri = `${req.protocol}://${req.get("host")}/api/auth/google/callback`;
+    const redirectUri = `${getBaseUrl(req)}/api/auth/google/callback`;
     const state = Buffer.from(redirectUri).toString("base64");
     const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
     url.searchParams.set("client_id", GOOGLE_CLIENT_ID);
@@ -117,7 +126,7 @@ function registerGoogleRoutes(app: Express) {
     if (!code) return redirectError(res, "Google", "code 없음");
 
     try {
-      const redirectUri = `${req.protocol}://${req.get("host")}/api/auth/google/callback`;
+      const redirectUri = `${getBaseUrl(req)}/api/auth/google/callback`;
 
       // 액세스 토큰 교환
       const tokenRes = await axios.post("https://oauth2.googleapis.com/token", {
@@ -154,7 +163,7 @@ function registerKakaoRoutes(app: Express) {
     if (!KAKAO_CLIENT_ID) {
       return redirectError(res, "Kakao", "KAKAO_CLIENT_ID 미설정");
     }
-    const redirectUri = `${req.protocol}://${req.get("host")}/api/auth/kakao/callback`;
+    const redirectUri = `${getBaseUrl(req)}/api/auth/kakao/callback`;
     const url = new URL("https://kauth.kakao.com/oauth/authorize");
     url.searchParams.set("client_id", KAKAO_CLIENT_ID);
     url.searchParams.set("redirect_uri", redirectUri);
@@ -168,7 +177,7 @@ function registerKakaoRoutes(app: Express) {
     if (!code) return redirectError(res, "Kakao", "code 없음");
 
     try {
-      const redirectUri = `${req.protocol}://${req.get("host")}/api/auth/kakao/callback`;
+      const redirectUri = `${getBaseUrl(req)}/api/auth/kakao/callback`;
 
       // 액세스 토큰 교환
       const tokenRes = await axios.post(
@@ -210,7 +219,7 @@ function registerNaverRoutes(app: Express) {
     if (!NAVER_CLIENT_ID) {
       return redirectError(res, "Naver", "NAVER_CLIENT_ID 미설정");
     }
-    const redirectUri = `${req.protocol}://${req.get("host")}/api/auth/naver/callback`;
+    const redirectUri = `${getBaseUrl(req)}/api/auth/naver/callback`;
     const state = Math.random().toString(36).substring(2);
     const url = new URL("https://nid.naver.com/oauth2.0/authorize");
     url.searchParams.set("client_id", NAVER_CLIENT_ID);
@@ -225,7 +234,7 @@ function registerNaverRoutes(app: Express) {
     if (!code) return redirectError(res, "Naver", "code 없음");
 
     try {
-      const redirectUri = `${req.protocol}://${req.get("host")}/api/auth/naver/callback`;
+      const redirectUri = `${getBaseUrl(req)}/api/auth/naver/callback`;
 
       // 액세스 토큰 교환
       const tokenRes = await axios.get("https://nid.naver.com/oauth2.0/token", {
@@ -264,7 +273,7 @@ function registerLineRoutes(app: Express) {
     if (!LINE_CHANNEL_ID) {
       return redirectError(res, "LINE", "LINE_CHANNEL_ID 미설정");
     }
-    const redirectUri = `${req.protocol}://${req.get("host")}/api/auth/line/callback`;
+    const redirectUri = `${getBaseUrl(req)}/api/auth/line/callback`;
     const state = Math.random().toString(36).substring(2);
     const url = new URL("https://access.line.me/oauth2/v2.1/authorize");
     url.searchParams.set("response_type", "code");
@@ -280,7 +289,7 @@ function registerLineRoutes(app: Express) {
     if (!code) return redirectError(res, "LINE", "code 없음");
 
     try {
-      const redirectUri = `${req.protocol}://${req.get("host")}/api/auth/line/callback`;
+      const redirectUri = `${getBaseUrl(req)}/api/auth/line/callback`;
 
       // 액세스 토큰 교환
       const tokenRes = await axios.post(
