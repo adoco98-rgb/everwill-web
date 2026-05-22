@@ -14,7 +14,7 @@ import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
 import { assetVerifications, assetDocuments, users } from "../../drizzle/schema";
 import { getDb } from "../db";
-import { protectedProcedure, router } from "../_core/trpc";
+import { protectedProcedure, adminProcedure, router } from "../_core/trpc";
 import { storagePut } from "../storage";
 
 export const assetVerifyRouter = router({
@@ -277,10 +277,7 @@ export const assetVerifyRouter = router({
   /**
    * 관리자: 자산 인증 목록 조회
    */
-  adminList: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.user.role !== "admin") {
-      throw new TRPCError({ code: "FORBIDDEN", message: "관리자만 접근 가능합니다." });
-    }
+  adminList: adminProcedure.query(async ({ ctx }) => {
     const db = await getDb();
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
 
@@ -305,16 +302,13 @@ export const assetVerifyRouter = router({
   /**
    * 관리자: 인증 승인/반려 처리
    */
-  adminReview: protectedProcedure
+  adminReview: adminProcedure
     .input(z.object({
       verificationId: z.number(),
       action: z.enum(["approve", "reject"]),
       note: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      if (ctx.user.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "관리자만 접근 가능합니다." });
-      }
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
 

@@ -1,17 +1,9 @@
 import { z } from "zod";
-import { router, publicProcedure, protectedProcedure } from "../_core/trpc";
+import { router, publicProcedure, adminProcedure } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
 import { newsPosts } from "../../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
-
-// 관리자 전용 미들웨어
-const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== "admin") {
-    throw new TRPCError({ code: "FORBIDDEN", message: "관리자만 접근 가능합니다" });
-  }
-  return next({ ctx });
-});
 
 export const newsRouter = router({
   // ─── 공개 뉴스 목록 (홈페이지용) ───────────────────────────────────────────

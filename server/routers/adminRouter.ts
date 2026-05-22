@@ -8,23 +8,16 @@
  */
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { protectedProcedure, router } from "../_core/trpc";
+import { adminProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { users, payments, wills, inquiries } from "../../drizzle/schema";
 import type { Will } from "../../drizzle/schema";
 import { desc, eq, like, or, sql, and, gte } from "drizzle-orm";
 
-/** 관리자 권한 확인 미들웨어 */
-function requireAdmin(role: string) {
-  if (role !== "admin") {
-    throw new TRPCError({ code: "FORBIDDEN", message: "관리자만 접근 가능합니다." });
-  }
-}
-
 export const adminRouter = router({
   /** 종합 통계 */
-  stats: protectedProcedure.query(async ({ ctx }) => {
-    requireAdmin(ctx.user.role);
+  stats: adminProcedure.query(async ({ ctx }) => {
+    
     const db = await getDb();
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
     const now = new Date();
@@ -47,7 +40,7 @@ export const adminRouter = router({
   }),
 
   /** 회원 목록 조회 */
-  getUsers: protectedProcedure
+  getUsers: adminProcedure
     .input(z.object({
       page: z.number().default(1),
       limit: z.number().default(20),
@@ -55,7 +48,7 @@ export const adminRouter = router({
       role: z.enum(["all", "user", "admin"]).default("all"),
     }))
     .query(async ({ ctx, input }) => {
-      requireAdmin(ctx.user.role);
+      
       const offset = (input.page - 1) * input.limit;
       const conditions = [];
       if (input.search) {
@@ -97,13 +90,13 @@ export const adminRouter = router({
     }),
 
   /** 회원 비밀번호 초기화 (관리자 전용) */
-  resetUserPassword: protectedProcedure
+  resetUserPassword: adminProcedure
     .input(z.object({
       userId: z.number(),
       newPassword: z.string().min(8),
     }))
     .mutation(async ({ ctx, input }) => {
-      requireAdmin(ctx.user.role);
+      
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
       const bcrypt = await import("bcryptjs");
@@ -115,13 +108,13 @@ export const adminRouter = router({
     }),
 
   /** 회원 등급 수동 변경 (관리자 전용) */
-  updateUserGrade: protectedProcedure
+  updateUserGrade: adminProcedure
     .input(z.object({
       userId: z.number(),
       grade: z.enum(["general", "silver", "gold", "platinum", "vip"]),
     }))
     .mutation(async ({ ctx, input }) => {
-      requireAdmin(ctx.user.role);
+      
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
       await db.update(users)
@@ -131,13 +124,13 @@ export const adminRouter = router({
     }),
 
   /** 회원 역할 변경 */
-  updateUserRole: protectedProcedure
+  updateUserRole: adminProcedure
     .input(z.object({
       userId: z.number(),
       role: z.enum(["user", "admin"]),
     }))
     .mutation(async ({ ctx, input }) => {
-      requireAdmin(ctx.user.role);
+      
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
       await db.update(users)
@@ -147,14 +140,14 @@ export const adminRouter = router({
     }),
 
   /** 결제 내역 조회 */
-  getPayments: protectedProcedure
+  getPayments: adminProcedure
     .input(z.object({
       page: z.number().default(1),
       limit: z.number().default(20),
       search: z.string().optional(),
     }))
     .query(async ({ ctx, input }) => {
-      requireAdmin(ctx.user.role);
+      
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
       const offset = (input.page - 1) * input.limit;
@@ -191,14 +184,14 @@ export const adminRouter = router({
     }),
 
   /** 유언장 목록 조회 */
-  getWills: protectedProcedure
+  getWills: adminProcedure
     .input(z.object({
       page: z.number().default(1),
       limit: z.number().default(20),
       search: z.string().optional(),
     }))
     .query(async ({ ctx, input }) => {
-      requireAdmin(ctx.user.role);
+      
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
       const offset = (input.page - 1) * input.limit;
@@ -234,14 +227,14 @@ export const adminRouter = router({
     }),
 
   /** 문의 목록 조회 */
-  getInquiries: protectedProcedure
+  getInquiries: adminProcedure
     .input(z.object({
       page: z.number().default(1),
       limit: z.number().default(20),
       status: z.enum(["all", "pending", "answered"]).default("all"),
     }))
     .query(async ({ ctx, input }) => {
-      requireAdmin(ctx.user.role);
+      
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
       const offset = (input.page - 1) * input.limit;
@@ -276,13 +269,13 @@ export const adminRouter = router({
     }),
 
   /** 문의 답변 */
-  replyInquiry: protectedProcedure
+  replyInquiry: adminProcedure
     .input(z.object({
       inquiryId: z.number(),
       reply: z.string().min(1),
     }))
     .mutation(async ({ ctx, input }) => {
-      requireAdmin(ctx.user.role);
+      
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
       await db.update(inquiries)

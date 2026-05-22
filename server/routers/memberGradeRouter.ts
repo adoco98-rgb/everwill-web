@@ -13,7 +13,7 @@ import { eq, sum, and, gte } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db";
 import { users, assets, payments } from "../../drizzle/schema";
-import { protectedProcedure, publicProcedure } from "../_core/trpc";
+import { protectedProcedure, publicProcedure, adminProcedure } from "../_core/trpc";
 import { router } from "../_core/trpc";
 
 /** 등급 한국어 라벨 */
@@ -195,7 +195,7 @@ export const memberGradeRouter = router({
   /**
    * [관리자] 전체 회원 목록 + 등급 조회
    */
-  adminListMembers: protectedProcedure
+  adminListMembers: adminProcedure
     .input(
       z.object({
         page: z.number().min(1).default(1),
@@ -205,9 +205,6 @@ export const memberGradeRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      if (ctx.user.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "관리자만 접근 가능합니다." });
-      }
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
@@ -258,7 +255,7 @@ export const memberGradeRouter = router({
   /**
    * [관리자] 회원 등급 수동 변경
    */
-  adminSetGrade: protectedProcedure
+  adminSetGrade: adminProcedure
     .input(
       z.object({
         userId: z.number(),
@@ -267,9 +264,6 @@ export const memberGradeRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if (ctx.user.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "관리자만 접근 가능합니다." });
-      }
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
@@ -284,12 +278,9 @@ export const memberGradeRouter = router({
   /**
    * [관리자] 회원 비밀번호 초기화 (임시 비밀번호 이메일 발송)
    */
-  adminResetPassword: protectedProcedure
+  adminResetPassword: adminProcedure
     .input(z.object({ userId: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      if (ctx.user.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "관리자만 접근 가능합니다." });
-      }
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
@@ -339,10 +330,7 @@ export const memberGradeRouter = router({
   /**
    * [관리자] 회원 등급 일괄 재계산
    */
-  adminRecalculateAll: protectedProcedure.mutation(async ({ ctx }) => {
-    if (ctx.user.role !== "admin") {
-      throw new TRPCError({ code: "FORBIDDEN" });
-    }
+  adminRecalculateAll: adminProcedure.mutation(async ({ ctx }) => {
     const db = await getDb();
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 

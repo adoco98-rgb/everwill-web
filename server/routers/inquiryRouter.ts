@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
+import { publicProcedure, protectedProcedure, adminProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { inquiries } from "../../drizzle/schema";
 import { eq, desc, gte, isNotNull, sql } from "drizzle-orm";
@@ -78,10 +78,7 @@ export const inquiryRouter = router({
   /**
    * 관리자: 전체 문의 목록 조회
    */
-  adminList: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.user.role !== "admin") {
-      throw new TRPCError({ code: "FORBIDDEN" });
-    }
+  adminList: adminProcedure.query(async ({ ctx }) => {
     const db = await getDb();
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
     const list = await db
@@ -94,7 +91,7 @@ export const inquiryRouter = router({
   /**
    * 관리자: 문의 답변 처리
    */
-  reply: protectedProcedure
+  reply: adminProcedure
     .input(
       z.object({
         inquiryId: z.number(),
@@ -102,9 +99,6 @@ export const inquiryRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if (ctx.user.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN" });
-      }
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
 
@@ -150,10 +144,7 @@ export const inquiryRouter = router({
   /**
    * 관리자: 우수 답변 목록 조회 (만족도 4~5점 + 답변 완료)
    */
-  adminFeaturedList: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.user.role !== "admin") {
-      throw new TRPCError({ code: "FORBIDDEN" });
-    }
+  adminFeaturedList: adminProcedure.query(async ({ ctx }) => {
     const db = await getDb();
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
     // 만족도 4~5점 + 답변 완료된 문의만 선정 (핀 고정 포함)
@@ -168,12 +159,9 @@ export const inquiryRouter = router({
   /**
    * 관리자: 우수 답변 핀 고정/해제
    */
-  adminToggleFeatured: protectedProcedure
+  adminToggleFeatured: adminProcedure
     .input(z.object({ inquiryId: z.number(), isFeatured: z.boolean() }))
     .mutation(async ({ ctx, input }) => {
-      if (ctx.user.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN" });
-      }
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
       await db
@@ -186,10 +174,7 @@ export const inquiryRouter = router({
   /**
    * 관리자: 만족도 통계 조회
    */
-  adminSatisfactionStats: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.user.role !== "admin") {
-      throw new TRPCError({ code: "FORBIDDEN" });
-    }
+  adminSatisfactionStats: adminProcedure.query(async ({ ctx }) => {
     const db = await getDb();
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
 

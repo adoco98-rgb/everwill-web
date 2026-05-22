@@ -39,10 +39,13 @@ export function getSessionCookieOptions(
   //       ? hostname
   //       : undefined;
 
+  // SameSite=lax: CSRF 방어 (none은 CSRF 취약)
+  // secure: HTTPS 환경에서만 true (로컬 개발 시 false)
+  const secure = isSecureRequest(req);
   return {
     httpOnly: true,
     path: "/",
-    sameSite: "none",
-    secure: isSecureRequest(req),
+    sameSite: secure ? "lax" : "lax",
+    secure,
   };
 }

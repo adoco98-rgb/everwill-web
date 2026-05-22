@@ -120,6 +120,16 @@ export default function DashboardHome() {
   // 총 자산 가치 계산
   const totalValue = assetList.reduce((sum, a) => sum + (a.estimatedValue ?? 0), 0);
 
+  // 유언장 목록 조회 (현황 카드용)
+  const { data: willsData } = trpc.will.getMyWills.useQuery();
+  const wills = willsData ?? [];
+  const latestWill = wills[0];
+  const certifiedWill = wills.find(w => w.status === "certified");
+
+  // 자산 인증 상태 조회
+  const { data: assetVerifyData } = trpc.assetVerify.getStatus.useQuery();
+  const assetVerifyStatus = assetVerifyData?.status ?? null;
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* 인사 */}
@@ -132,8 +142,8 @@ export default function DashboardHome() {
         </p>
       </motion.div>
 
-      {/* 자산 등록 현황 배너 */}
-      {!isLoading && assetList.length === 0 && (
+      {/* 자산 등록 현황 배너 - 관리자에게는 숨김 */}
+      {!isLoading && assetList.length === 0 && user?.role !== "admin" && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -296,8 +306,22 @@ export default function DashboardHome() {
         <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">내 현황</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { icon: FileText, label: "유언장", value: "작성 중", sub: "마지막 저장: 오늘", status: "draft", href: "/write" },
-            { icon: Shield, label: "인증 상태", value: "미인증", sub: "전자인증 ₩49,000", status: "pending", href: "/payment" },
+            {
+              icon: FileText,
+              label: "유언장",
+              value: wills.length === 0 ? "없음" : certifiedWill ? "인증 완료" : latestWill?.status === "draft" ? "작성 중" : "완성",
+              sub: wills.length === 0 ? "아직 작성된 유언장이 없습니다" : `총 ${wills.length}건 · 최근: ${latestWill ? new Date(latestWill.createdAt).toLocaleDateString("ko-KR") : "-"}`,
+              status: certifiedWill ? "done" : latestWill ? "draft" : "none",
+              href: wills.length > 0 ? "/dashboard/wills" : "/write",
+            },
+            {
+              icon: Shield,
+              label: "인증 상태",
+              value: certifiedWill ? "인증 완료" : assetVerifyStatus === "approved" ? "자산 인증 완료" : assetVerifyStatus === "submitted" ? "검토 중" : "미인증",
+              sub: certifiedWill ? `인증번호: ${certifiedWill.certNumber ?? "-"}` : assetVerifyStatus === "approved" ? "자산 인증이 완료되었습니다" : assetVerifyStatus === "submitted" ? "관리자 검토 중입니다" : "전자인증 ₩49,000",
+              status: certifiedWill || assetVerifyStatus === "approved" ? "done" : assetVerifyStatus === "submitted" ? "draft" : "pending",
+              href: certifiedWill ? "/dashboard/wills" : "/dashboard/asset-verify",
+            },
             { icon: CreditCard, label: "결제 내역", value: "0건", sub: "결제 내역 없음", status: "none", href: "/dashboard/payments" },
             { icon: Award, label: "EverWill 카드", value: "미신청", sub: "실버 ₩49,000~", status: "none", href: "/payment" },
           ].map((card, i) => (
@@ -336,21 +360,25 @@ export default function DashboardHome() {
         className="bg-gradient-to-r from-[#1F3864] to-[#2d4f8a] rounded-2xl p-6 text-white"
       >
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="font-bold text-base mb-1">
-              {assetList.length > 0 ? "유언장 작성을 시작해보세요" : "자산을 등록하고 유언장을 작성하세요"}
-            </h3>
-            <p className="text-white/60 text-sm">
-              {assetList.length > 0
+        <div>
+          <h3 className="font-bold text-base mb-1">
+            {user?.role === "admin"
+              ? "관리자 대시보드"
+              : assetList.length > 0 ? "유언장 작성을 시작해보세요" : "자산을 등록하고 유언장을 작성하세요"}
+          </h3>
+          <p className="text-white/60 text-sm">
+            {user?.role === "admin"
+              ? "회원 관리, 결제 현황, 문의 관리 등 운영 도구를 사용하세요."
+              : assetList.length > 0
                 ? "등록된 자산이 자동으로 불러와집니다. AI 가이드 모드로 17분이면 완성됩니다."
                 : "자산 등록 → 상속자 등록 → 유언장 작성 순서로 진행하면 가장 쉽습니다."}
-            </p>
-          </div>
-          <Link href={assetList.length > 0 ? "/write" : "/assets"}>
-            <a className="shrink-0 bg-[#C9A961] hover:bg-[#b8944f] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap">
-              {assetList.length > 0 ? "유언장 작성 →" : "자산 등록 →"}
-            </a>
-          </Link>
+          </p>
+        </div>
+        <Link href={user?.role === "admin" ? "/799805" : assetList.length > 0 ? "/write" : "/assets"}>
+          <a className="shrink-0 bg-[#C9A961] hover:bg-[#b8944f] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap">
+            {user?.role === "admin" ? "관리자 패널 →" : assetList.length > 0 ? "유언장 작성 →" : "자산 등록 →"}
+          </a>
+        </Link>
         </div>
       </motion.div>
     </div>

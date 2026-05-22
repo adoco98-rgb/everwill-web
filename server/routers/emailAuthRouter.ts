@@ -35,6 +35,29 @@ export const emailAuthRouter = router({
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
+
+      // 1분 재발송 쿨다운 체크
+      const recentOtp = await db.select({ createdAt: emailOtps.createdAt })
+        .from(emailOtps)
+        .where(and(
+          eq(emailOtps.email, input.email),
+          eq(emailOtps.used, 0),
+          gt(emailOtps.expiresAt, new Date())
+        ))
+        .orderBy(sql`${emailOtps.createdAt} DESC`)
+        .limit(1);
+      if (recentOtp.length > 0) {
+        const lastSentAt = new Date(recentOtp[0].createdAt).getTime();
+        const elapsed = Date.now() - lastSentAt;
+        if (elapsed < 60_000) {
+          const remaining = Math.ceil((60_000 - elapsed) / 1000);
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: `재발송은 ${remaining}초 후에 가능합니다`,
+          });
+        }
+      }
+
       const code = generateOtp();
       const expiresAt = new Date(Date.now() + OTP_EXPIRES_MS);
       // 기존 미사용 OTP 무효화 (같은 이메일)

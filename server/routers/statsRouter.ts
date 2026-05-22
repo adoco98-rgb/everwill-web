@@ -7,7 +7,7 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { getDb } from "../db";
 import { siteStats } from "../../drizzle/schema";
-import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
+import { publicProcedure, protectedProcedure, adminProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 
 const CERTIFIED_KEY = "certified_members";
@@ -36,12 +36,9 @@ export const statsRouter = router({
   }),
 
   /** 관리자 전용 - 인증회원 수 직접 설정 */
-  setCertifiedCount: protectedProcedure
+  setCertifiedCount: adminProcedure
     .input(z.object({ count: z.number().int().min(0) }))
     .mutation(async ({ ctx, input }) => {
-      if (ctx.user.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "관리자만 수정 가능합니다." });
-      }
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       await db
@@ -52,12 +49,9 @@ export const statsRouter = router({
     }),
 
   /** 관리자 전용 - 인증회원 수 증가 */
-  incrementCertifiedCount: protectedProcedure
+  incrementCertifiedCount: adminProcedure
     .input(z.object({ by: z.number().int().min(1).default(1) }))
     .mutation(async ({ ctx, input }) => {
-      if (ctx.user.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "관리자만 수정 가능합니다." });
-      }
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       const rows = await db

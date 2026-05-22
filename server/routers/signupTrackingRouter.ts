@@ -5,7 +5,7 @@
  * - adminDropoffList: 이탈 사용자 목록 조회 (admin)
  */
 import { z } from "zod";
-import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
+import { publicProcedure, protectedProcedure, adminProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { signupEvents } from "../../drizzle/schema";
 import { eq, desc, gte, and, sql, count } from "drizzle-orm";
@@ -80,7 +80,7 @@ export const signupTrackingRouter = router({
   /**
    * 관리자: 단계별 통계 + 이탈률
    */
-  adminStats: protectedProcedure
+  adminStats: adminProcedure
     .input(
       z.object({
         /** 기간 필터: today | 7d | 30d | all */
@@ -88,7 +88,6 @@ export const signupTrackingRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
@@ -214,7 +213,7 @@ export const signupTrackingRouter = router({
   /**
    * 관리자: 이탈 사용자 목록 (leave 이벤트 기준)
    */
-  adminDropoffList: protectedProcedure
+  adminDropoffList: adminProcedure
     .input(
       z.object({
         period: z.enum(["today", "7d", "30d", "all"]).default("7d"),
@@ -224,7 +223,6 @@ export const signupTrackingRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
