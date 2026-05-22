@@ -87,6 +87,14 @@
 - [x] 기본 가입비 포함 내용 박스 UI 추가 (₩199,000 포함 항목 체크리스트)
 - [x] 변호사 선임 서비스 섹션 UI 추가 (착수금 ₩990,000 + 성공 보수 1% + 선임하기 버튼)
 
+## 소셜 로그인 구현
+- [x] Google OAuth 클라이언트 ID/Secret 발급 및 환경변수 등록
+- [x] server/socialAuth.ts - Google/Kakao/Naver/LINE OAuth 라우트 구현
+- [x] LoginPage.tsx - 소셜 로그인/가입 버튼 UI 추가 (Google/Kakao/Naver/LINE)
+- [ ] Kakao 앱 키 발급 및 환경변수 등록 (KAKAO_CLIENT_ID)
+- [ ] Naver 앱 키 발급 및 환경변수 등록 (NAVER_CLIENT_ID, NAVER_CLIENT_SECRET)
+- [ ] LINE 채널 키 발급 및 환경변수 등록 (LINE_CHANNEL_ID, LINE_CHANNEL_SECRET)
+
 ## 진행 중
 - [ ] DB 스키마 설계 (users, payments 테이블)
 - [x] 회원가입/로그인 백엔드 API (이메일+비밀번호, 소셜 로그인)
@@ -622,3 +630,25 @@
 - [x] [개선] WillsPage에 유언장 상세 페이지(/dashboard/wills/:id) 없음 → 목록 클릭 시 상세 조회 라우트 추가
 - [x] [개선] certifyWill API에 paymentId 연동 없음 (결제 시스템 미완성이므로 현재는 허용, 결제 연동 시 반드시 검증 추가)
 - [x] [개선] 회원가입 시 phone 필드가 optional이지만 로그인 2단계 OTP는 phone 필수 → 가입 시 phone 없으면 이메일 OTP fallback 안내 명확화
+
+## 소셜 간편 로그인 (2026-05-22)
+- [ ] Google OAuth 서버 라우트 (/api/auth/google, /api/auth/google/callback)
+- [ ] Kakao OAuth 서버 라우트 (/api/auth/kakao, /api/auth/kakao/callback)
+- [ ] Naver OAuth 서버 라우트 (/api/auth/naver, /api/auth/naver/callback)
+- [ ] 소셜 로그인 후 세션 발급 및 DB users 테이블 upsert
+- [ ] LoginPage.tsx에 Google/Kakao/Naver 버튼 추가
+- [ ] 소셜 로그인 성공 시 대시보드 자동 이동
+- [ ] 소셜 로그인 사용자 추가 정보 입력 화면 (이름/생년월일 없을 경우)
+
+## 소셜 간편 로그인 구현 (한국·미국·일본) - 2026-05-22
+- [ ] Google OAuth 서버 라우트 (/api/auth/google → /api/auth/google/callback)
+- [ ] Kakao OAuth 서버 라우트 (/api/auth/kakao → /api/auth/kakao/callback)
+- [ ] Naver OAuth 서버 라우트 (/api/auth/naver → /api/auth/naver/callback)
+- [ ] LINE OAuth 서버 라우트 (/api/auth/line → /api/auth/line/callback)
+- [ ] 소셜 로그인 콜백: 이름/이메일/프로필 자동 저장 (DB upsert)
+- [ ] 소셜 로그인 성공 시 세션 쿠키 발급 → 대시보드 이동
+- [ ] LoginPage.tsx 소셜 로그인 버튼 UI (Google/Kakao/Naver/LINE)
+- [ ] 환경변수: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+- [ ] 환경변수: KAKAO_CLIENT_ID
+- [ ] 환경변수: NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
+- [ ] 환경변수: LINE_CHANNEL_ID, LINE_CHANNEL_SECRET
