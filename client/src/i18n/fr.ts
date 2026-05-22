@@ -416,7 +416,7 @@ export const fr = {
     subtitle: "Promesses de dons sociaux des membres EverWill dans leurs testaments",
     totalLabel: "Montant Total Promis",
     donorLabel: "Donateurs",
-    donorUnit: "",
+    donorUnit: "personnes",
     countryTitle: "Par Pays",
     categoryTitle: "Par Catégorie",
     noData: "Pas encore de données",

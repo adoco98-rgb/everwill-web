@@ -270,7 +270,32 @@ export default function LoginPage() {
   });
 
   const emailRegister = trpc.auth.email.register.useMutation({
-    onSuccess: () => setSignupStep("done"),
+    onSuccess: (_data, variables) => {
+      // 가입 완료 후 자동 로그인 시도
+      setSignupStep("done");
+      emailLoginStep1.mutate(
+        { email: variables.email, password: variables.password },
+        {
+          onSuccess: (loginData) => {
+            if (loginData.isAdmin) {
+              window.location.href = returnTo;
+              return;
+            }
+            const contact = loginData.maskedContact ?? "";
+            setLoginMaskedContact(contact);
+            setLoginStep("otp");
+            setOtpTimer(600);
+            const channel = loginData.otpChannel === "sms" ? "SMS" : "이메일";
+            toast.info(`가입 완료! 인증 코드가 ${channel}(${contact})으로 발송되었습니다`);
+            setPageMode("login");
+          },
+          onError: () => {
+            // 자동 로그인 실패 시 수동 로그인 안내
+            toast.success("가입 완료! 로그인해 주세요.");
+          },
+        }
+      );
+    },
     onError: (e: { message: string }) => toast.error(e.message),
   });
 

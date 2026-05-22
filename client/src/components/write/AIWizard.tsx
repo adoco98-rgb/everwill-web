@@ -161,7 +161,7 @@ export default function AIWizard({ onBack }: Props) {
         { title: willTitle, data: JSON.stringify(will), mode: (will.mode as "ai" | "direct") ?? "ai", status: "draft" },
         {
           onSuccess: () => toast.success("임시 저장 완료 (72시간 보관)"),
-          onError: () => toast.success("임시 저장 완료 (로컈 보관)"),
+          onError: () => toast.success("임시 저장 완료 (로컬 보관)"),
         }
       );
     } else {

@@ -416,7 +416,7 @@ export const de = {
     subtitle: "Soziale Spendenversprechen von EverWill-Mitgliedern in ihren Testamenten",
     totalLabel: "Gesamter Spendenbetrag",
     donorLabel: "Spender",
-    donorUnit: "",
+    donorUnit: "Personen",
     countryTitle: "Nach Land",
     categoryTitle: "Nach Kategorie",
     noData: "Noch keine Daten",

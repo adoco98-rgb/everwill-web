@@ -418,6 +418,17 @@ export default function Step10Sign({ will }: StepProps) {
     },
   });
 
+  // ── 유언장 인증 뮤테이션 (certNumber, blockchainHash, certifiedAt DB 저장) ──
+  const certifyWillMutation = trpc.will.certifyWill.useMutation({
+    onSuccess: (data) => {
+      setSecureHash(data.blockchainHash);
+      toast.success(`인증 완료! 인증번호: ${data.certNumber}`);
+    },
+    onError: () => {
+      // 인증 실패는 조용히 처리 (결제 완료 UX 방해 안 함)
+    },
+  });
+
   // ── 타이머 ──
   useEffect(() => {
     if (emailResendTimer <= 0) return;
@@ -527,21 +538,29 @@ export default function Step10Sign({ will }: StepProps) {
   // ── 결제 처리 ──
   function handlePayment() {
     const ts = new Date().toISOString();
-    const hash = "0x" + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
     setTimestamp(ts);
-    setSecureHash(hash);
     setPaymentDone(true);
     toast.success("결제 완료! 유언장 인증이 완료되었습니다.");
-    // 유언장 DB 저장 (certified 상태로)
+    // 1단계: 유언장 DB 저장 (draft 상태로 먼저 저장하여 willId 확보)
     const willTitle = will.testatorName
       ? `${will.testatorName}의 유언장 ${new Date().toLocaleDateString("ko-KR")}`
       : `유언장 ${new Date().toLocaleDateString("ko-KR")}`;
-    saveWillMutation.mutate({
-      title: willTitle,
-      data: JSON.stringify(will),
-      mode: (will.mode as "ai" | "direct") ?? "ai",
-      status: "certified",
-    });
+    saveWillMutation.mutate(
+      {
+        title: willTitle,
+        data: JSON.stringify(will),
+        mode: (will.mode as "ai" | "direct") ?? "ai",
+        status: "draft",
+      },
+      {
+        onSuccess: (savedData) => {
+          // 2단계: willId로 certifyWill 호출 → certNumber, blockchainHash, certifiedAt DB 저장
+          if (savedData.willId) {
+            certifyWillMutation.mutate({ willId: savedData.willId });
+          }
+        },
+      }
+    );
   }
 
   // ─────────────────────────────────────────────────────────────

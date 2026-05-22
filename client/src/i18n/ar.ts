@@ -416,7 +416,7 @@ export const ar = {
     subtitle: "تعهدات التبرع الاجتماعي لأعضاء EverWill في وصاياهم",
     totalLabel: "إجمالي مبلغ التبرع المخطط",
     donorLabel: "المتبرعون",
-    donorUnit: "",
+    donorUnit: "أشخاص",
     countryTitle: "حسب الدولة",
     categoryTitle: "حسب الفئة",
     noData: "لا توجد بيانات بعد",

@@ -608,3 +608,17 @@
 - [x] 1년 후 연장 보관 ₩15,000/년 안내 문구 추가
 - [x] BadgeSection 카드 가격 플랜과 통일 (실버₩49,000/골드₩79,000/플래티넘₩99,000)
 - [x] ko.ts pricing.note 새 정책으로 업데이트
+
+## 플로우 점검 결과 (2026-05-22)
+
+### 버그 수정
+- [x] [BUG] verifyOtp isNewUser 항상 false: insert 후 select 시 이미 row 존재 → isNewUser 판단 로직 수정 (insert 전에 select로 존재 여부 확인)
+- [x] [BUG] handlePayment에서 hash를 Math.random()으로 생성 (가짜 해시) → certifyWill API 호출로 교체 (서버에서 SHA-256 + DB 저장)
+- [x] [BUG] AIWizard 임시저장 오류 메시지 오타: "로컈 보관" → "로컬 보관"
+- [x] [BUG] Step10Sign 결제 완료 후 saveWill(status:"certified") 호출하지만 certifyWill API는 호출 안 함 → certifiedAt, certNumber, blockchainHash DB 미저장
+
+### 개선 항목
+- [x] [개선] 회원가입 완료 후 자동 로그인 미구현 → register 성공 시 loginStep1 자동 호출 또는 세션 직접 발급 (register 성공 후 loginStep1 자동 호출로 구현)
+- [ ] [개선] WillsPage에 유언장 상세 페이지(/dashboard/wills/:id) 없음 → 목록 클릭 시 상세 조회 라우트 추가
+- [x] [개선] certifyWill API에 paymentId 연동 없음 (결제 시스템 미완성이므로 현재는 허용, 결제 연동 시 반드시 검증 추가)
+- [ ] [개선] 회원가입 시 phone 필드가 optional이지만 로그인 2단계 OTP는 phone 필수 → 가입 시 phone 없으면 이메일 OTP fallback 안내 명확화

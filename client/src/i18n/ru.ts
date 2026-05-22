@@ -416,7 +416,7 @@ export const ru = {
     subtitle: "Обещания социальных пожертвований членов EverWill в их завещаниях",
     totalLabel: "Общая Сумма Пожертвований",
     donorLabel: "Жертвователей",
-    donorUnit: "",
+    donorUnit: "человек",
     countryTitle: "По Странам",
     categoryTitle: "По Категориям",
     noData: "Данных пока нет",

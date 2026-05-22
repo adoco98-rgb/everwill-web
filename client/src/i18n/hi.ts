@@ -416,7 +416,7 @@ export const hi = {
     subtitle: "EverWill सदस्यों द्वारा वसीयत में किए गए सामाजिक दान के वादे",
     totalLabel: "कुल दान राशि",
     donorLabel: "दाताओं",
-    donorUnit: "",
+    donorUnit: "लोग",
     countryTitle: "देश के अनुसार",
     categoryTitle: "श्रेणी के अनुसार",
     noData: "अभी तक कोई डेटा नहीं",

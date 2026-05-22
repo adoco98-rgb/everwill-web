@@ -122,6 +122,9 @@ export const emailAuthRouter = router({
       const openId = `email:${input.email}`;
       const name = input.email.split("@")[0];
       const newQrCode = randomUUID();
+      // isNewUser 판단: insert 전에 존재 여부 먼저 확인 (insert 후 select 시 항상 false 반환되는 버그 수정)
+      const existingUsers = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+      const isNewUser = existingUsers.length === 0;
       await db.insert(users).values({
         openId,
         email: input.email,
@@ -132,8 +135,6 @@ export const emailAuthRouter = router({
       }).onDuplicateKeyUpdate({
         set: { lastSignedIn: new Date() },
       });
-      const existingUsers = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-      const isNewUser = existingUsers.length === 0;
       const token = await sdk.createSessionToken(openId, { name });
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.cookie(COOKIE_NAME, token, {
@@ -153,7 +154,7 @@ export const emailAuthRouter = router({
       email: z.string().email("올바른 이메일 주소를 입력해주세요"),
       password: z.string().min(8, "비밀번호는 8자 이상이어야 합니다").max(100),
       name: z.string().min(1, "이름을 입력해주세요").max(50),
-      phone: z.string().min(7, "전화번호를 입력해주세요").max(20),
+      phone: z.string().min(7, "전화번호를 입력해주세요").max(20).optional().or(z.literal("")),
       country: z.string().min(2).max(3).default("KR"),
       address: z.string().optional(),
     }))
@@ -177,7 +178,7 @@ export const emailAuthRouter = router({
         openId,
         email: input.email,
         name: input.name,
-        phone: input.phone,
+        phone: input.phone || null,
         country: input.country,
         address: input.address || null,
         loginMethod: "email_password",

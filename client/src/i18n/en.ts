@@ -416,7 +416,7 @@ export const en = {
     subtitle: "Charitable pledges made by EverWill members in their wills",
     totalLabel: "Total Pledged Amount",
     donorLabel: "Donors",
-    donorUnit: "",
+    donorUnit: "people",
     countryTitle: "By Country",
     categoryTitle: "By Category",
     noData: "No data yet",
