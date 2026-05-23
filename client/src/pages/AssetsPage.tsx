@@ -16,6 +16,56 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 
+// ─── 국가별 화폐 단위 매핑 ───
+const COUNTRY_CURRENCY: Record<string, { code: string; symbol: string; locale: string; name: string }> = {
+  KR: { code: "KRW", symbol: "₩", locale: "ko-KR", name: "원" },
+  US: { code: "USD", symbol: "$", locale: "en-US", name: "USD" },
+  JP: { code: "JPY", symbol: "¥", locale: "ja-JP", name: "엔" },
+  CN: { code: "CNY", symbol: "¥", locale: "zh-CN", name: "위안" },
+  DE: { code: "EUR", symbol: "€", locale: "de-DE", name: "유로" },
+  FR: { code: "EUR", symbol: "€", locale: "fr-FR", name: "유로" },
+  GB: { code: "GBP", symbol: "£", locale: "en-GB", name: "파운드" },
+  AU: { code: "AUD", symbol: "A$", locale: "en-AU", name: "호주달러" },
+  CA: { code: "CAD", symbol: "C$", locale: "en-CA", name: "캐나다달러" },
+  SG: { code: "SGD", symbol: "S$", locale: "en-SG", name: "싱가포르달러" },
+  HK: { code: "HKD", symbol: "HK$", locale: "zh-HK", name: "홍콩달러" },
+  TW: { code: "TWD", symbol: "NT$", locale: "zh-TW", name: "대만달러" },
+  SA: { code: "SAR", symbol: "﷼", locale: "ar-SA", name: "사우디리얄" },
+  AE: { code: "AED", symbol: "د.إ", locale: "ar-AE", name: "UAE디르함" },
+  IN: { code: "INR", symbol: "₹", locale: "hi-IN", name: "루피" },
+  BR: { code: "BRL", symbol: "R$", locale: "pt-BR", name: "헤알" },
+  MX: { code: "MXN", symbol: "$", locale: "es-MX", name: "페소" },
+  RU: { code: "RUB", symbol: "₽", locale: "ru-RU", name: "루블" },
+  OTHER: { code: "USD", symbol: "$", locale: "en-US", name: "USD" },
+};
+
+// 숫자를 각국 화폐 형식으로 포맷 (콤마 포함)
+function formatCurrency(value: number | null | undefined, countryCode: string): string {
+  if (!value) return "";
+  const curr = COUNTRY_CURRENCY[countryCode] ?? COUNTRY_CURRENCY.OTHER;
+  try {
+    return new Intl.NumberFormat(curr.locale, {
+      style: "currency",
+      currency: curr.code,
+      maximumFractionDigits: 0,
+    }).format(value);
+  } catch {
+    return `${curr.symbol}${value.toLocaleString()}`;
+  }
+}
+
+// 입력 문자열에서 숫자만 추출 후 콤마 포함 문자열 반환
+function toCommaString(raw: string): string {
+  const num = raw.replace(/[^0-9]/g, "");
+  if (!num) return "";
+  return Number(num).toLocaleString();
+}
+
+// 콤마 문자열 → 순수 숫자 문자열
+function fromCommaString(val: string): string {
+  return val.replace(/[^0-9]/g, "");
+}
+
 // ─── 자산 유형 메타 ───
 const ASSET_TYPE_META = {
   real_estate: { label: "부동산", icon: Building2, color: "bg-blue-50 text-blue-600 border-blue-200", desc: "아파트, 토지, 상가, 건물" },
@@ -43,7 +93,8 @@ const emptyAssetForm = {
   type: "bank" as AssetType,
   name: "",
   description: "",
-  estimatedValue: "",
+  estimatedValue: "",       // 켄마 포함 표시용 (UI)
+  estimatedValueRaw: "",   // 순수 숫자 (DB 저장용)
   currency: "KRW",
   country: "KR",
 };
@@ -258,28 +309,56 @@ export default function AssetsPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-gray-600 mb-1 block">예상 가치 (원)</label>
-                    <input
-                      type="number"
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
-                      placeholder="예: 500000000"
-                      value={assetForm.estimatedValue}
-                      onChange={e => setAssetForm(f => ({ ...f, estimatedValue: e.target.value }))}
-                    />
-                  </div>
-                  <div>
                     <label className="text-sm font-semibold text-gray-600 mb-1 block">국가</label>
                     <select
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
                       value={assetForm.country}
-                      onChange={e => setAssetForm(f => ({ ...f, country: e.target.value }))}
+                      onChange={e => {
+                        const newCountry = e.target.value;
+                        const newCurrency = (COUNTRY_CURRENCY[newCountry] ?? COUNTRY_CURRENCY.OTHER).code;
+                        setAssetForm(f => ({ ...f, country: newCountry, currency: newCurrency }));
+                      }}
                     >
-                      <option value="KR">🇰🇷 한국</option>
-                      <option value="US">🇺🇸 미국</option>
-                      <option value="JP">🇯🇵 일본</option>
-                      <option value="CN">🇨🇳 중국</option>
+                      <option value="KR">🇰🇷 한국 (₩ 원)</option>
+                      <option value="US">🇺🇸 미국 ($ USD)</option>
+                      <option value="JP">🇯🇵 일본 (¥ 엔)</option>
+                      <option value="CN">🇨🇳 중국 (¥ 위안)</option>
+                      <option value="DE">🇩🇪 독일/유럽 (€ 유로)</option>
+                      <option value="GB">🇬🇧 영국 (£ 파운드)</option>
+                      <option value="AU">🇦🇺 호주 (A$ 호주달러)</option>
+                      <option value="CA">🇨🇦 캐나다 (C$ 캐나다달러)</option>
+                      <option value="SG">🇸🇬 싱가포르 (S$ SGD)</option>
+                      <option value="HK">🇭🇰 홍콩 (HK$ HKD)</option>
+                      <option value="TW">🇹🇼 대만 (NT$ TWD)</option>
+                      <option value="SA">🇸🇦 사우디 (﷼ SAR)</option>
+                      <option value="AE">🇦🇪 UAE (د.إ AED)</option>
+                      <option value="IN">🇮🇳 인도 (₹ 루피)</option>
+                      <option value="BR">🇧🇷 브라질 (R$ 헤알)</option>
+                      <option value="RU">🇷🇺 러시아 (₽ 루블)</option>
                       <option value="OTHER">기타</option>
                     </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-600 mb-1 block">
+                      예상 가치 ({(COUNTRY_CURRENCY[assetForm.country] ?? COUNTRY_CURRENCY.OTHER).name})
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-semibold">
+                        {(COUNTRY_CURRENCY[assetForm.country] ?? COUNTRY_CURRENCY.OTHER).symbol}
+                      </span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        className="w-full border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
+                        placeholder="예: 500,000,000"
+                        value={assetForm.estimatedValue}
+                        onChange={e => {
+                          const comma = toCommaString(e.target.value);
+                          const raw = fromCommaString(e.target.value);
+                          setAssetForm(f => ({ ...f, estimatedValue: comma, estimatedValueRaw: raw }));
+                        }}
+                      />
+                    </div>
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-gray-600 mb-1 block">메모</label>
@@ -298,7 +377,7 @@ export default function AssetsPage() {
                       type: assetForm.type,
                       name: assetForm.name,
                       description: assetForm.description || undefined,
-                      estimatedValue: assetForm.estimatedValue ? Number(assetForm.estimatedValue) : undefined,
+                      estimatedValue: assetForm.estimatedValueRaw ? Number(assetForm.estimatedValueRaw) : undefined,
                       currency: assetForm.currency,
                       country: assetForm.country,
                     })}
@@ -346,9 +425,7 @@ export default function AssetsPage() {
                       <div className="text-right flex-shrink-0">
                         {asset.estimatedValue ? (
                           <div className="font-bold text-[#C9A961] text-sm">
-                            {asset.estimatedValue >= 100000000
-                              ? `${(asset.estimatedValue / 100000000).toFixed(1)}억`
-                              : `${(asset.estimatedValue / 10000).toFixed(0)}만원`}
+                            {formatCurrency(asset.estimatedValue, asset.country || "KR")}
                           </div>
                         ) : (
                           <div className="text-xs text-gray-300">가치 미입력</div>
