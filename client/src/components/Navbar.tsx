@@ -117,7 +117,7 @@ export default function Navbar() {
     { label: t.nav.global, href: "#global" },
     { label: t.nav.lawyers, href: "#lawyers" },
     { label: t.nav.taxCalc, href: "/tax", isPage: true },
-    { label: "FAQ", href: "/faq", isPage: true },
+    { label: t.nav.letter ?? "사회기부", href: "/charity", isPage: true },
     { label: t.nav.pricing, href: "#pricing" },
   ];
 

@@ -104,6 +104,14 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Pretendard', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* 시니어 접근성: 모바일에서 기본 폰트 16px 이상 보장 (iOS 자동 확대 방지) */
+    font-size: 16px;
+  }
+  /* 모바일: 입력 필드 16px 이상 유지 (iOS 자동 줄 확대 방지) */
+  @media (max-width: 640px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
   }
   h1, h2, h3 {
     font-family: 'Playfair Display', 'Pretendard', serif;

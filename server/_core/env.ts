@@ -14,4 +14,16 @@ export const ENV = {
   twilioVerifyServiceSid: process.env.TWILIO_VERIFY_SERVICE_SID ?? "",
   // 소셜 로그인 redirect_uri 고정 URL (배포 환경에서 필수)
   appPublicUrl: process.env.APP_PUBLIC_URL ?? "",
+  // Google OAuth
+  googleClientId: process.env.GOOGLE_CLIENT_ID ?? "",
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+  // Kakao OAuth
+  kakaoClientId: process.env.KAKAO_CLIENT_ID ?? "",
+  kakaoClientSecret: process.env.KAKAO_CLIENT_SECRET ?? "",
+  // Naver OAuth
+  naverClientId: process.env.NAVER_CLIENT_ID ?? "",
+  naverClientSecret: process.env.NAVER_CLIENT_SECRET ?? "",
+  // LINE OAuth
+  lineChannelId: process.env.LINE_CHANNEL_ID ?? "",
+  lineChannelSecret: process.env.LINE_CHANNEL_SECRET ?? "",
 };

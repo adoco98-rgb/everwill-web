@@ -1282,6 +1282,23 @@ export default function Step10Sign({ will }: StepProps) {
               </div>
             </div>
 
+            {/* 전자서명법 준수 고지 배너 */}
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-amber-800">전자서명법 준수 안내</p>
+                  <p className="text-xs text-amber-700 leading-relaxed">
+                    본 서비스의 전자서명은 「전자서명법」 및 「전자문서 및 전자거래 기본법」에 따라 제공됩니다.
+                    단, 현행 한국 민법상 유언의 방식(자필증서 유언, 공정증서 유언 등)에 전자 유언이 포함되지 않아
+                    <strong> 법적 효력에 제한이 있습니다.</strong> EverWill의 전자 인증은 유언 의사 확인 및 보관 목적이며,
+                    법적 효력을 위해서는 반드시 자필증서 유언 또는 공정증서 유언으로 보완하시기 바랍니다.
+                  </p>
+                  <p className="text-xs text-amber-600">→ 관련 법령: 전자서명법 제2조, 민법 제1060조~제1072조</p>
+                </div>
+              </div>
+            </div>
+
             {!certDone ? (
               <>
                 {/* 인증 방법 선택 */}
