@@ -211,6 +211,62 @@ export const emailAuthRouter = router({
         profileCompleted: 1,
       });
 
+      // 회원가입 환영 이메일 발송
+      const resendWelcome = new Resend(ENV.resendApiKey);
+      try {
+        await resendWelcome.emails.send({
+          from: "EverWill <noreply@everwill.co.kr>",
+          to: input.email,
+          subject: "[EverWill] 가입을 환영합니다! 🎉",
+          html: `
+            <div style="font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; max-width: 560px; margin: 0 auto; background: #fff;">
+              <!-- 헤더 -->
+              <div style="background: #1F3864; padding: 32px 40px; text-align: center;">
+                <h1 style="color: #C9A961; font-size: 28px; margin: 0; letter-spacing: 2px;">EverWill</h1>
+                <p style="color: #fff; font-size: 13px; margin: 6px 0 0; opacity: 0.8;">세계 최초 디지털 유언 OS</p>
+              </div>
+              <!-- 본문 -->
+              <div style="padding: 40px;">
+                <h2 style="color: #1F3864; font-size: 22px; margin: 0 0 16px;">환영합니다, ${input.name}님! 🎉</h2>
+                <p style="color: #444; font-size: 16px; line-height: 1.7; margin: 0 0 24px;">
+                  EverWill 회원이 되어주셔서 감사합니다.<br>
+                  이제 언제 어디서나 안전하게 유언장을 작성하고 보관할 수 있습니다.
+                </p>
+                <!-- 시작하기 버튼 -->
+                <div style="text-align: center; margin: 32px 0;">
+                  <a href="https://everwill.co.kr/dashboard" style="display: inline-block; background: #C9A961; color: #1F3864; padding: 14px 36px; border-radius: 50px; font-size: 16px; font-weight: bold; text-decoration: none;">대시보드 바로가기</a>
+                </div>
+                <!-- 주요 기능 안내 -->
+                <div style="background: #f8f9fa; border-radius: 12px; padding: 24px; margin: 24px 0;">
+                  <h3 style="color: #1F3864; font-size: 16px; margin: 0 0 16px;">EverWill로 할 수 있는 것</h3>
+                  <ul style="color: #555; font-size: 14px; line-height: 2; padding-left: 20px; margin: 0;">
+                    <li>AI 기반 유언장 작성 (무료, 17분 완성)</li>
+                    <li>영상 유언장 녹화 및 보관</li>
+                    <li>상속자 직접 등록 및 관리</li>
+                    <li>EverWill Badge로 긴급 신원 확인</li>
+                    <li>11개 언어 지원, 글로벌 자산 관리</li>
+                  </ul>
+                </div>
+                <!-- 법적 안내 -->
+                <div style="border-left: 3px solid #C9A961; padding-left: 16px; margin: 24px 0;">
+                  <p style="color: #888; font-size: 13px; line-height: 1.6; margin: 0;">
+                    EverWill은 유언 작성을 도와드리는 정보 제공 서비스입니다.<br>
+                    법적 효력을 위해서는 전문 변호사의 검토를 권장합니다.
+                  </p>
+                </div>
+              </div>
+              <!-- 푸터 -->
+              <div style="background: #f5f5f5; padding: 20px 40px; text-align: center; border-top: 1px solid #eee;">
+                <p style="color: #999; font-size: 12px; margin: 0;">© 2026 EverWill (주식회사 사람) | <a href="https://everwill.co.kr/privacy" style="color: #999;">개인정보처리방침</a> | <a href="https://everwill.co.kr/terms" style="color: #999;">이용약관</a></p>
+              </div>
+            </div>
+          `,
+        });
+      } catch (emailErr) {
+        console.error("[Email] 환영 이메일 발송 실패:", emailErr);
+        // 이메일 발송 실패해도 가입은 성공으로 처리
+      }
+
       return { success: true };
     }),
 

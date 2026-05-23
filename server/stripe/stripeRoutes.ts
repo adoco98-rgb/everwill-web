@@ -8,10 +8,12 @@
 import type { Express, Request, Response } from "express";
 import Stripe from "stripe";
 import { eq } from "drizzle-orm";
+import { Resend } from "resend";
 import { SARAM_PRODUCTS, type ProductKey } from "./products";
 import { getDb } from "../db";
 import { payments, users } from "../../drizzle/schema";
 import { sdk } from "../_core/sdk";
+import { ENV } from "../_core/env";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-03-25.dahlia",
@@ -147,6 +149,61 @@ export function registerStripeRoutes(app: Express) {
               });
 
               console.log(`[Webhook] 결제 DB 저장 완료: ${session.id}`);
+
+              // 결제 완료 이메일 영수증 발송
+              const receiptEmail = session.customer_email || session.metadata?.customer_email;
+              const customerName = session.metadata?.customer_name || "고객";
+              const itemNames = session.metadata?.items?.split(",").map((k: string) => {
+                const p = SARAM_PRODUCTS[k as ProductKey];
+                return p ? p.name : k;
+              }).join(", ") || "EverWill 서비스";
+              const amountFormatted = session.amount_total
+                ? (session.currency === "krw"
+                  ? `₩${session.amount_total.toLocaleString()}`
+                  : `$${(session.amount_total / 100).toFixed(2)}`)
+                : "";
+
+              if (receiptEmail) {
+                const resendReceipt = new Resend(ENV.resendApiKey);
+                try {
+                  await resendReceipt.emails.send({
+                    from: "EverWill <noreply@everwill.co.kr>",
+                    to: receiptEmail,
+                    subject: "[EverWill] 결제가 완료되었습니다 ✅",
+                    html: `
+                      <div style="font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; max-width: 560px; margin: 0 auto; background: #fff;">
+                        <div style="background: #1F3864; padding: 32px 40px; text-align: center;">
+                          <h1 style="color: #C9A961; font-size: 28px; margin: 0; letter-spacing: 2px;">EverWill</h1>
+                          <p style="color: #fff; font-size: 13px; margin: 6px 0 0; opacity: 0.8;">결제 영수증</p>
+                        </div>
+                        <div style="padding: 40px;">
+                          <h2 style="color: #1F3864; font-size: 20px; margin: 0 0 8px;">결제가 완료되었습니다 ✅</h2>
+                          <p style="color: #555; font-size: 15px; margin: 0 0 32px;">${customerName}님, 결제해 주셔서 감사합니다.</p>
+                          <div style="background: #f8f9fa; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                              <tr><td style="padding: 8px 0; color: #888; font-size: 14px;">주문 번호</td><td style="padding: 8px 0; color: #333; font-size: 14px; text-align: right; font-family: monospace;">${session.id.slice(-12)}</td></tr>
+                              <tr><td style="padding: 8px 0; color: #888; font-size: 14px;">결제 상품</td><td style="padding: 8px 0; color: #333; font-size: 14px; text-align: right;">${itemNames}</td></tr>
+                              <tr style="border-top: 1px solid #eee;"><td style="padding: 12px 0 0; color: #1F3864; font-size: 16px; font-weight: bold;">결제 금액</td><td style="padding: 12px 0 0; color: #C9A961; font-size: 18px; font-weight: bold; text-align: right;">${amountFormatted}</td></tr>
+                            </table>
+                          </div>
+                          <div style="text-align: center; margin: 32px 0;">
+                            <a href="https://everwill.co.kr/dashboard" style="display: inline-block; background: #C9A961; color: #1F3864; padding: 14px 36px; border-radius: 50px; font-size: 16px; font-weight: bold; text-decoration: none;">대시보드에서 확인하기</a>
+                          </div>
+                          <div style="border-left: 3px solid #C9A961; padding-left: 16px;">
+                            <p style="color: #888; font-size: 13px; line-height: 1.6; margin: 0;">문의사항이 있으시면 <a href="https://everwill.co.kr" style="color: #1F3864;">고객센터</a>로 연락해 주세요.</p>
+                          </div>
+                        </div>
+                        <div style="background: #f5f5f5; padding: 20px 40px; text-align: center; border-top: 1px solid #eee;">
+                          <p style="color: #999; font-size: 12px; margin: 0;">© 2026 EverWill (주식회사 사람) | <a href="https://everwill.co.kr/privacy" style="color: #999;">개인정보처리방침</a></p>
+                        </div>
+                      </div>
+                    `,
+                  });
+                  console.log(`[Webhook] 결제 영수증 이메일 발송 완료: ${receiptEmail}`);
+                } catch (emailErr) {
+                  console.error("[Webhook] 결제 영수증 이메일 발송 실패:", emailErr);
+                }
+              }
             }
           } catch (dbErr) {
             console.error("[Webhook] DB 저장 실패:", dbErr);

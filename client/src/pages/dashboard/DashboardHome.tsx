@@ -142,6 +142,77 @@ export default function DashboardHome() {
         </p>
       </motion.div>
 
+      {/* 자산 인증 완료 배지 배너 */}
+      {assetVerifyStatus === "approved" && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-green-700 to-green-600 rounded-2xl p-5 flex items-center gap-4"
+        >
+          <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-white font-bold text-sm">자산 인증 승인 완료</span>
+              <span className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full font-medium">VERIFIED</span>
+            </div>
+            <p className="text-white/70 text-xs">자산 서류 검토가 완료되었습니다. 유언장 인증으로 진행하세요.</p>
+          </div>
+          <Link href="/dashboard/asset-verify">
+            <a className="shrink-0 bg-white hover:bg-gray-100 text-green-700 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap">
+              인증 확인 →
+            </a>
+          </Link>
+        </motion.div>
+      )}
+
+      {/* 자산 인증 검토 중 배너 */}
+      {assetVerifyStatus === "submitted" && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-center gap-4"
+        >
+          <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
+            <Clock className="w-6 h-6 text-amber-600" />
+          </div>
+          <div className="flex-1">
+            <p className="font-bold text-amber-800 text-sm">자산 인증 검토 중</p>
+            <p className="text-amber-600 text-xs mt-0.5">관리자가 서류를 검토하고 있습니다. 1-3 영업일 내 완료됩니다.</p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* 유언장 인증 완료 배지 배너 */}
+      {certifiedWill && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-[#1F3864] to-[#2d4f8a] rounded-2xl p-5 flex items-center gap-4"
+        >
+          <div className="w-12 h-12 bg-[#C9A961]/20 rounded-full flex items-center justify-center shrink-0">
+            <ShieldCheck className="w-6 h-6 text-[#C9A961]" />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[#C9A961] font-bold text-sm">유언장 전자 인증 완료</span>
+              <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">CERTIFIED</span>
+            </div>
+            <p className="text-white/70 text-xs">
+              인증번호: <span className="font-mono text-white/90">{certifiedWill.certNumber ?? "-"}</span>
+              {" · "}
+              인증일: {new Date(certifiedWill.updatedAt ?? certifiedWill.createdAt).toLocaleDateString("ko-KR")}
+            </p>
+          </div>
+          <Link href="/dashboard/wills">
+            <a className="shrink-0 bg-[#C9A961] hover:bg-[#b8944f] text-[#1F3864] px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap">
+              유언장 보기 →
+            </a>
+          </Link>
+        </motion.div>
+      )}
+
       {/* 자산 등록 현황 배너 - 관리자에게는 숨김 */}
       {!isLoading && assetList.length === 0 && user?.role !== "admin" && (
         <motion.div

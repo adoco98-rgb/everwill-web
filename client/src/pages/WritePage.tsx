@@ -210,7 +210,7 @@ function ModeSelect({ onSelect }: { onSelect: (m: WillMode) => void }) {
           선택해 주세요
         </h1>
         <p className="text-gray-500 text-lg">
-          어떤 방식을 선택하든 법적 효력은 동일합니다.
+          AI가 유언장 초안 작성을 도와드립니다.
         </p>
       </div>
 
@@ -235,7 +235,7 @@ function ModeSelect({ onSelect }: { onSelect: (m: WillMode) => void }) {
             법률 지식이 없어도 17분이면 충분합니다.
           </p>
           <ul className="space-y-2">
-            {["10단계 체크박스 마법사", "AI 법률 문장 자동 변환", "유류분 실시간 검증", "상속세 자동 계산"].map((f) => (
+            {["10단계 체크박스 마법사", "AI 유언 초안 자동 생성", "유류분 참고 계산", "상속세 참고 계산"].map((f) => (
               <li key={f} className="flex items-center gap-2 text-white/70 text-sm">
                 <CheckCircle2 className="w-4 h-4 text-[#C9A961] flex-shrink-0" />
                 {f}
@@ -328,17 +328,22 @@ function ModeSelect({ onSelect }: { onSelect: (m: WillMode) => void }) {
         </motion.button>
       </div>
 
-      {/* 하단 안내 */}
-      <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 flex items-start gap-3">
-        <span className="text-xl flex-shrink-0">⚖️</span>
+      {/* 하단 법적 면책 고지 (강화) */}
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 flex items-start gap-3">
+        <span className="text-2xl flex-shrink-0">⚖️</span>
         <div>
-          <div className="font-semibold text-amber-800 text-sm mb-1">법적 고지</div>
-          <p className="text-amber-700 text-xs leading-relaxed">
-            EverWill은 법률 정보를 제공하는 플랫폼으로, 법률 자문 서비스가 아닙니다.
-            AI가 생성한 유언장은 변호사의 법률 자문을 대체하지 않습니다.
-            복잡한 법적 상황은 반드시 전문 변호사와 상담하시기 바랍니다.
-            유언장의 법적 효력은 전자 인증(₩49,000) 완료 후 발생합니다.
-          </p>
+          <div className="font-bold text-amber-800 text-sm mb-2">중요 법적 고지 (변호사법 제109조 준수)</div>
+          <div className="space-y-1.5">
+            <p className="text-amber-700 text-xs leading-relaxed">
+              <strong>EverWill은 법률 정보 제공 서비스입니다.</strong> AI가 생성한 유언장 초안은 법률 자문이 아니며, 변호사의 법률 서비스를 대체하지 않습니다.
+            </p>
+            <p className="text-amber-700 text-xs leading-relaxed">
+              유류분·상속세 계산 결과는 참고용이며, 특별수익·기여분 등 개별 상황에 따라 달라질 수 있습니다. 복잡한 상속 문제는 반드시 전문 변호사와 상담하시기 바랍니다.
+            </p>
+            <p className="text-amber-700 text-xs leading-relaxed">
+              현행 한국법상 전자 유언장은 법적 효력이 인정되지 않습니다. EverWill의 전자 인증은 유언 의사 기록 및 보존을 위한 서비스입니다.
+            </p>
+          </div>
         </div>
       </div>
     </div>
