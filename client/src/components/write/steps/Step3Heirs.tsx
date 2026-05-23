@@ -101,9 +101,15 @@ export default function Step3Heirs({ will, update }: StepProps) {
       {/* 언어별 법률 경고 (TC-LA01~LA04) */}
       {language === "ko" && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
-          <strong>🇰🇷 한국 민법 제1112조 — 유류분 경고</strong><br />
-          배우자·자녀는 법정 상속분의 <strong>1/2</strong>, 직계존속·형제자매는 <strong>1/3</strong>이 최소 보장됩니다.
-          이를 침해하면 유언이 일부 무효가 될 수 있습니다.
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <strong>🇰🇷 한국 민법 제1112조 — 유류분 경고</strong><br />
+              배우자·자녀는 법정 상속분의 <strong>1/2</strong>, 직계존속·형제자매는 <strong>1/3</strong>이 최소 보장됩니다.
+              이를 침해하면 유언이 일부 무효가 될 수 있습니다.
+            </div>
+            <span className="shrink-0 bg-amber-200 text-amber-900 text-xs font-bold px-2 py-0.5 rounded-full whitespace-nowrap">참고용</span>
+          </div>
+          <p className="mt-2 text-xs text-amber-600">⚠️ 이 계산은 참고용입니다. 특별수익·기여분 등 개별 사정에 따라 실제 유류분이 달라질 수 있습니다. 반드시 변호사와 확인하세요.</p>
         </div>
       )}
       {language === "ja" && (

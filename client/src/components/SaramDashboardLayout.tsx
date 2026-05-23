@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Settings2,
   Users,
+  Lock,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -183,12 +184,17 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
               <p className="text-white/50 text-xs truncate">{user.email || ""}</p>
             </div>
           </div>
+          {/* 암호화 안내 */}
+          <div className="flex items-center gap-1.5 mb-2 px-1">
+            <Lock className="w-3 h-3 text-green-400 shrink-0" />
+            <span className="text-white/40 text-xs">E2E 암호화 보안 저장</span>
+          </div>
           <button
             onClick={logout}
             className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/10 text-sm transition-all"
           >
             <LogOut className="w-4 h-4" />
-            <span>로그아웃</span>
+            <span>\ub85c\uadf8\uc544\uc6c3</span>
           </button>
         </div>
       </aside>

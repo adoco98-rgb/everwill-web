@@ -325,6 +325,41 @@ export default function WillsPage() {
           유언장은 EverWill 분산 암호화 보관 시스템에 안전하게 저장됩니다.
         </p>
       </div>
+
+      {/* 유언 검인 절차 안내 */}
+      <div className="mt-6 bg-[#1F3864]/5 rounded-2xl p-6 border border-[#1F3864]/10">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-lg">⚖️</span>
+          <h3 className="font-bold text-[#1F3864] text-sm">유언 검인 절차 안내 (민법 제1091조)</h3>
+          <span className="ml-auto bg-amber-100 text-amber-700 text-xs font-medium px-2 py-0.5 rounded-full">한국 전용</span>
+        </div>
+        <p className="text-xs text-gray-600 leading-6 mb-4">
+          현행 한국 민법상 유언장은 사망 후 <strong>가정법원 검인 절차</strong>를 거쳐야 법적 효력이 인정됩니다.
+          EverWill은 이 과정을 지원하는 변호사 매칭 서비스를 제공합니다.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          {[
+            { step: "1", title: "사망 확인", desc: "사망진단서 \n입수", color: "bg-gray-100 text-gray-600" },
+            { step: "2", title: "검인 신청", desc: "사망 후 3개월 이내 \n가정법원 제출", color: "bg-blue-100 text-blue-700" },
+            { step: "3", title: "검인 기일", desc: "상속인 전원 \n출석 또는 서면 동의", color: "bg-amber-100 text-amber-700" },
+            { step: "4", title: "집행 개시", desc: "유언 집행자 \n집행 시작", color: "bg-green-100 text-green-700" },
+          ].map((item) => (
+            <div key={item.step} className="flex flex-col items-center text-center">
+              <div className={`w-8 h-8 rounded-full ${item.color} flex items-center justify-center font-bold text-sm mb-2`}>
+                {item.step}
+              </div>
+              <p className="font-semibold text-[#1F3864] text-xs">{item.title}</p>
+              <p className="text-gray-400 text-xs mt-0.5 whitespace-pre-line">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 pt-4 border-t border-[#1F3864]/10 flex items-center justify-between gap-4">
+          <p className="text-xs text-gray-500">EverWill 변호사 매칭 서비스로 검인 절차를 간편하게 진행하세요.</p>
+          <a href="/lawyers" className="shrink-0 bg-[#1F3864] text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-[#162a4e] transition-all">
+            변호사 매칭 →
+          </a>
+        </div>
+      </div>
     </div>
   );
 }

@@ -188,7 +188,7 @@ export default function ComparisonSection() {
           icon: FileText,
           label: "遺言方式 & 法律",
           traditional: "3方式 (自筆証書・公正証書・秘密証書)",
-          traditionalSub: "民法第960条〜 · 2026年デジタル遺言法制化推進(2028年施行予定)",
+          traditionalSub: "民法第960条〜 · ✅ 2025年10月 公正証書デジタル化正式施行 · 遠隔公正証書遺言が合法化",
           everwill: "電子認証遺言",
           everwillSub: "eKYC + ブロックチェーンタイムスタンプ + RFC 3161",
           highlight: false,
