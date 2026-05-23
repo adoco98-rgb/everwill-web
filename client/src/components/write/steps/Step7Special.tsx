@@ -6,7 +6,7 @@
 import type { StepProps } from "./StepProps";
 import AIGuide from "../AIGuide";
 
-const FUNERAL_OPTIONS = ["화장 후 낙골당", "화장 후 자연장(수목장·산골)", "매장", "종교 의식에 따름", "가족에게 일임"];
+const FUNERAL_OPTIONS = ["화장 후 납골당", "화장 후 자연장(수목장·산골)", "매장", "종교 의식에 따름", "가족에게 일임"];
 
 export default function Step7Special({ will, update }: StepProps) {
   // 제1상속인 이름 (상속인 목록에서 첫 번째)
@@ -207,17 +207,7 @@ export default function Step7Special({ will, update }: StepProps) {
         />
       </div>
 
-      {/* 기부 내역 */}
-      <div>
-        <label className="block text-sm font-semibold text-[#1F3864] mb-1.5">기부 내역</label>
-        <textarea
-          value={will.donationDetails}
-          onChange={(e) => update({ donationDetails: e.target.value })}
-          placeholder="예: 재산의 10%를 대한적십자사에 기부한다."
-          rows={3}
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 resize-none"
-        />
-      </div>
+      {/* 기부 내역: 사회기부는 /charity 페이지에서 별도 관리 - 여기서는 제거 */}
 
       {/* 기타 특별 지시 */}
       <div>

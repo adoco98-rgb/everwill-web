@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus, Trash2, Home, Percent, DollarSign } from "lucide-react";
+import { useState, useRef } from "react";
+import { Plus, Trash2, Home, Percent, DollarSign, Paperclip, X } from "lucide-react";
 import { nanoid } from "nanoid";
 import type { StepProps } from "./StepProps";
 import type { RealEstate } from "@/lib/willTypes";
@@ -27,6 +27,8 @@ export default function Step4RealEstate({ will, update }: StepProps) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<Partial<RealEstate>>({ distributionMode: "percent" });
   const [reCountry, setReCountry] = useState<string>("KR");
+  const [docFiles, setDocFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const save = () => {
     if (!form.address) return;
@@ -249,6 +251,47 @@ export default function Step4RealEstate({ will, update }: StepProps) {
                 />
                 <p className="text-xs text-gray-400 mt-1">구체적인 금액을 입력하면 유언장에 그대로 반영됩니다</p>
               </div>
+            )}
+          </div>
+
+          {/* 인증서류 파일 업로드 */}
+          <div className="border-t border-gray-100 pt-4">
+            <label className="block text-xs font-semibold text-gray-500 mb-2">
+              인증서류 첨부 <span className="text-gray-400 font-normal">(선택 · 등기부등본, 토지대장 등 모든 형식)</span>
+            </label>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-1.5 px-3 py-2 border border-dashed border-gray-300 rounded-lg text-xs text-gray-500 hover:border-[#1F3864]/40 hover:text-[#1F3864] transition-all"
+              >
+                <Paperclip className="w-3.5 h-3.5" />
+                파일 첨부
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept=".pdf,.jpg,.jpeg,.png,.heic,.doc,.docx"
+                className="hidden"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  setDocFiles((prev) => [...prev, ...files]);
+                  e.target.value = "";
+                }}
+              />
+              {docFiles.map((f, i) => (
+                <span key={i} className="flex items-center gap-1 bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-full">
+                  <Paperclip className="w-3 h-3" />
+                  {f.name.length > 16 ? f.name.slice(0, 14) + "..." : f.name}
+                  <button type="button" onClick={() => setDocFiles((prev) => prev.filter((_, j) => j !== i))}>
+                    <X className="w-3 h-3 ml-0.5 text-blue-400 hover:text-red-500" />
+                  </button>
+                </span>
+              ))}
+            </div>
+            {docFiles.length > 0 && (
+              <p className="text-xs text-gray-400 mt-1.5">첨부 파일은 인증 완료 후 암호화 보관됩니다.</p>
             )}
           </div>
 

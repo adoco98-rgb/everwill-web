@@ -22,6 +22,7 @@ import {
   Settings2,
   Users,
   Lock,
+  Heart,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -37,6 +38,7 @@ const menuItems = [
   { icon: MessageSquare, label: "1:1 문의", path: "/dashboard/inquiries" },
   { icon: User, label: "프로필 설정", path: "/dashboard/profile" },
   { icon: Users, label: "상속자 등록", path: "/dashboard/heirs" },
+  { icon: Heart, label: "연명치료·기증", path: "/dashboard/medical-directive" },
 ];
 
 export default function SaramDashboardLayout({ children }: { children: React.ReactNode }) {

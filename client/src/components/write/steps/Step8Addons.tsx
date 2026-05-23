@@ -161,7 +161,6 @@ export default function Step8Addons({ will, update }: StepProps) {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-blue-600 font-bold">{isKo ? "+₩29,000" : "+$29"}</span>
             <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
               will.hasVideoWill ? "bg-[#1F3864] border-[#1F3864]" : "border-gray-300"
             }`}>
@@ -201,7 +200,6 @@ export default function Step8Addons({ will, update }: StepProps) {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-amber-600 font-bold">{isKo ? "+₩19,000" : "+$19"}</span>
             <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
               will.hasHandwrittenScan ? "bg-[#1F3864] border-[#1F3864]" : "border-gray-300"
             }`}>
