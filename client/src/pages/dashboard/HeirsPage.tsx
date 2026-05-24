@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import {
   Users, Plus, Trash2, Edit2, Save, X, Phone, MapPin,
   User, Crown, MessageSquare, ChevronDown, ChevronUp,
-  Heart, Building2
+  Heart, Building2, ShieldCheck, Banknote, Eye, EyeOff
 } from "lucide-react";
 
 /**
@@ -48,6 +48,10 @@ type Heir = {
   shareAmount: number | null;
   smsConsent: number | null;
   smsSent: number | null;
+  isExecutor: number;
+  accessLevel: string;
+  heirFee: number;
+  heirPaid: number;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -65,6 +69,8 @@ type HeirFormData = {
   sharePercent: number;
   shareAmount: number;
   smsConsent: number;
+  isExecutor: number;
+  accessLevel: "own_only" | "full";
 };
 
 const defaultForm: HeirFormData = {
@@ -80,6 +86,8 @@ const defaultForm: HeirFormData = {
   sharePercent: 0,
   shareAmount: 0,
   smsConsent: 0,
+  isExecutor: 0,
+  accessLevel: "own_only",
 };
 
 export default function HeirsPage() {
@@ -143,6 +151,8 @@ export default function HeirsPage() {
       sharePercent: heir.sharePercent ?? 0,
       shareAmount: heir.shareAmount ?? 0,
       smsConsent: heir.smsConsent ?? 0,
+      isExecutor: heir.isExecutor ?? 0,
+      accessLevel: (heir.accessLevel as "own_only" | "full") ?? "own_only",
     });
   };
 
@@ -214,22 +224,39 @@ export default function HeirsPage() {
           <Card key={heir.id} className="border border-gray-200 shadow-sm">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {heir.priority === 1 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  {heir.isExecutor === 1 ? (
+                    <ShieldCheck className="w-4 h-4 text-purple-600" />
+                  ) : heir.priority === 1 ? (
                     <Crown className="w-4 h-4 text-[#C9A961]" />
+                  ) : null}
+                  {heir.isExecutor === 1 ? (
+                    <Badge className="bg-purple-100 text-purple-700 border-purple-300 border text-xs">
+                      집행자
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className={heir.priority === 1 ? "border-[#C9A961] text-[#C9A961]" : "border-gray-300 text-gray-500"}
+                    >
+                      제{heir.priority}상속자
+                    </Badge>
                   )}
-                  <Badge
-                    variant="outline"
-                    className={heir.priority === 1 ? "border-[#C9A961] text-[#C9A961]" : "border-gray-300 text-gray-500"}
-                  >
-                    제{heir.priority}상속자
-                  </Badge>
                   <CardTitle className="text-base font-semibold text-[#1F3864]">
                     {heir.nameKo}
                     {heir.nameEn && <span className="text-gray-400 text-sm ml-1">({heir.nameEn})</span>}
                   </CardTitle>
                   <Badge variant="secondary" className="text-xs">
                     {RELATIONSHIP_LABELS[heir.relationship] ?? heir.relationship}
+                  </Badge>
+                  {/* 요금 배지 */}
+                  <Badge className="bg-[#C9A961]/10 text-[#C9A961] border border-[#C9A961]/30 text-xs">
+                    <Banknote className="w-3 h-3 mr-1" />
+                    {heir.isExecutor === 1 ? "₩149,000" : heir.priority === 1 ? "₩99,000" : "₩49,000"}
+                  </Badge>
+                  {/* 열람 권한 배지 */}
+                  <Badge variant="outline" className={`text-xs ${heir.accessLevel === "full" ? "border-green-400 text-green-600" : "border-gray-300 text-gray-500"}`}>
+                    {heir.accessLevel === "full" ? <><Eye className="w-3 h-3 mr-1" />전체 열람</> : <><EyeOff className="w-3 h-3 mr-1" />자기 몫만</>}
                   </Badge>
                 </div>
                 <div className="flex gap-2">
@@ -484,6 +511,28 @@ function HeirForm({
             />
           </div>
         )}
+      </div>
+
+      {/* 집행자 지정 토글 */}
+      <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-purple-800 flex items-center gap-1">
+              <ShieldCheck className="w-4 h-4" />
+              유언 집행자로 지정
+            </p>
+            <p className="text-xs text-purple-600 mt-0.5">
+              집행자는 사망 후 전체 유언 내용을 열람하고 집행을 진행합니다. (요금: ₩149,000)
+            </p>
+          </div>
+          <Switch
+            checked={form.isExecutor === 1}
+            onCheckedChange={(checked) => {
+              update("isExecutor", checked ? 1 : 0);
+              update("accessLevel", checked ? "full" : "own_only");
+            }}
+          />
+        </div>
       </div>
 
       {/* 제1상속자 SMS 동의 */}

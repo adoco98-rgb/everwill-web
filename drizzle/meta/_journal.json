@@ -169,6 +169,13 @@
       "when": 1779092634627,
       "tag": "0023_mysterious_iron_fist",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1779622287743,
+      "tag": "0024_naive_chat",
+      "breakpoints": true
     }
   ]
 }

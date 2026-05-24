@@ -238,12 +238,55 @@ export const heirs = mysqlTable("heirs", {
   smsConsent: int("smsConsent").default(0),
   /** SMS 알림 발송 여부 (0=미발송, 1=발송완료) */
   smsSent: int("smsSent").default(0),
+  /** 집행자 여부 (0=일반상속인, 1=집행자) */
+  isExecutor: int("isExecutor").default(0).notNull(),
+  /** 접근 권한 (own_only=자기 몫만, full=전체 열람) */
+  accessLevel: mysqlEnum("accessLevel", ["own_only", "full"]).default("own_only").notNull(),
+  /** 상속인 가입 요금 결제 여부 (0=미결제, 1=결제완료) */
+  heirPaid: int("heirPaid").default(0).notNull(),
+  /** 상속인 가입 요금 (원) */
+  heirFee: int("heirFee").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
 export type Heir = typeof heirs.$inferSelect;
 export type InsertHeir = typeof heirs.$inferInsert;
+
+/**
+ * 상속인 초대 테이블
+ * 사망 감지 후 상속인에게 발송되는 초대 토큰 관리
+ */
+export const heirInvitations = mysqlTable("heirInvitations", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 유언 ID */
+  willId: int("willId").notNull(),
+  /** 상속인 ID (heirs 테이블 참조) */
+  heirId: int("heirId").notNull(),
+  /** 유언자 사용자 ID */
+  userId: int("userId").notNull(),
+  /** 초대 토큰 (UUID) */
+  token: varchar("token", { length: 128 }).notNull().unique(),
+  /** 초대 이메일 발송 여부 */
+  emailSent: int("emailSent").default(0).notNull(),
+  /** 초대 SMS 발송 여부 */
+  smsSent: int("smsSent").default(0).notNull(),
+  /** 초대 수락 여부 */
+  accepted: int("accepted").default(0).notNull(),
+  /** 초대 수락 일시 */
+  acceptedAt: timestamp("acceptedAt"),
+  /** 상속인 가입 완료 여부 */
+  registered: int("registered").default(0).notNull(),
+  /** 토큰 만료일 (발송 후 30일) */
+  expiresAt: timestamp("expiresAt").notNull(),
+  /** 활성화 여부 (사망 감지 후 true) */
+  isActive: int("isActive").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type HeirInvitation = typeof heirInvitations.$inferSelect;
+export type InsertHeirInvitation = typeof heirInvitations.$inferInsert;
 
 /**
  * 이메일 OTP 테이블

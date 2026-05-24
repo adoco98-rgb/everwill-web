@@ -42,6 +42,7 @@ import HeirsPage from "./pages/dashboard/HeirsPage";
 import MedicalDirectivePage from "./pages/dashboard/MedicalDirectivePage";
 import WillsPage from "./pages/dashboard/WillsPage";
 import WillDetailPage from "./pages/dashboard/WillDetailPage";
+import HeirAcceptPage from "./pages/HeirAcceptPage";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -93,6 +94,8 @@ function Router() {
       <Route path={"/letter/write"} component={LetterWrite} />
       {/* 사회기부 소개 페이지 */}
       <Route path={"/charity"} component={CharityPage} />
+      {/* 상속인 초대 수락 페이지 */}
+      <Route path={"/heir/accept/:token"} component={HeirAcceptPage} />
       {/* 만족도 평가 페이지 (이메일 링크 클릭 시) */}
       <Route path={"/feedback"} component={Feedback} />
       {/* 관리자 대시보드 */}
