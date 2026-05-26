@@ -31,15 +31,15 @@ interface CartItem {
 }
 
 const PRODUCTS: { key: ProductKey; name: string; desc: string; amount: number; category: string; recommended?: boolean; badge?: string; includes?: string[] }[] = [
-  { key: "certification", name: "전자 인증 기본", desc: "유언장 전자 인증 · 블록체인 해시 기록 · 인증서 발급", amount: 49000, category: "인증" },
-  { key: "certification_premium", name: "전자 인증 프리미엄", desc: "전자 인증 + 영상 유언장 + 자필 유언장 스캔 인증 — 모든 인증 방식 포함", amount: 69000, category: "인증", recommended: true, badge: "할인 ₩29,000", includes: ["영상 유언장", "자필 유언장 스캔"] },
+  { key: "certification", name: "전자 인증 기본", desc: "유언장 전자 인증 · 블록체인 해시 기록 · 인증서 발급", amount: 49000, category: "인증", includes: ["무료 수정 1회", "추가 수정 ₩5,000/회"] },
+  { key: "certification_premium", name: "전자 인증 프리미엄", desc: "전자 인증 + 영상 유언장 + 자필 유언장 스캔 인증 — 모든 인증 방식 포함", amount: 69000, category: "인증", recommended: true, badge: "할인 ₩29,000", includes: ["영상 유언장", "자필 유언장 스캔", "무료 수정 2회", "추가 수정 ₩5,000/회"] },
   { key: "video_will", name: "영상 유언장", desc: "법적 녹음 유언 + 가족 감성 메시지 · 평생 보관", amount: 29000, category: "부가서비스" },
   { key: "handwritten_scan", name: "자필 유언장 스캔", desc: "자필 원본 업로드 · AI 형식 검증 · 분산 암호화 보안 기록", amount: 19000, category: "부가서비스" },
   { key: "storage_1y", name: "보관 1년", desc: "디지털 유언장 1년 보관 (2년차~)", amount: 9900, category: "보관" },
   { key: "storage_3y", name: "보관 3년", desc: "15% 할인 적용", amount: 25245, category: "보관" },
   { key: "storage_5y", name: "보관 5년", desc: "15% 할인 적용 · 추천", amount: 42075, category: "보관", recommended: true },
   { key: "storage_10y", name: "보관 10년", desc: "15% 할인 적용", amount: 84150, category: "보관" },
-  { key: "storage_lifetime", name: "영구 보관", desc: "평생 보관 · 무제한", amount: 199000, category: "보관" },
+  { key: "storage_lifetime", name: "영구 보관", desc: "평생 보관 · 유언장 수정 무제한 무료", amount: 199000, category: "보관", includes: ["수정 무제한 무료"] },
   { key: "card_silver", name: "Card Silver", desc: "스테인레스 카드형 · QR + NFC", amount: 49000, category: "Card" },
   { key: "card_gold", name: "Card Gold", desc: "티타늄 팔찌형 · QR + NFC", amount: 79000, category: "Card" },
   { key: "card_platinum", name: "Card Platinum", desc: "로즈골드 목걸이형 · QR + NFC", amount: 99000, category: "Card" },

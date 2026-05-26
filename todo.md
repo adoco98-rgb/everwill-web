@@ -730,3 +730,14 @@
 - [x] DashboardHome.tsx - OfficialDocumentCard 컴포넌트 추가 (인증+자산 완료 고객에게만 표시)
 - [x] 한글본/영문본 선택 모달 UI
 - [x] $1 결제 후 PDF 자동 생성 및 다운로드
+
+## 유언장 수정 정책 구현 (2026-05-27)
+- [x] DB: wills 테이블에 freeRevisionCount(무료 수정 횟수), usedFreeRevisions(사용한 무료 횟수) 필드 추가
+- [x] DB: will_revision_payments 테이블 추가 (willId, userId, stripePaymentId, amount, createdAt)
+- [x] 서버: 플랜별 무료 수정 횟수 상수 정의 (기본 1회, 프리미엄 2회, 영구보관 무제한)
+- [x] 서버: 유언장 수정 시 무료 횟수 체크 → 초과 시 Stripe $5 결제 요구 tRPC 프로시저
+- [x] 서버: 수정 결제 완료 webhook 처리 (usedFreeRevisions 차감 또는 유료 결제 기록)
+- [x] Stripe: WILL_REVISION 상품 추가 (₩5,000 / $5)
+- [x] PricingSection.tsx: 플랜별 수정 정책 안내 추가 (기본 1회, 프리미엄 2회, 영구보관 무제한)
+- [x] PaymentPage.tsx: 수정 정책 안내 문구 추가
+- [x] 유언장 수정 게이트 페이지 (/dashboard/wills/:id/revise): 남은 무료 수정 횟수 표시 + 초과 시 결제 게이트 UI

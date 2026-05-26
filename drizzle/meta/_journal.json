@@ -176,6 +176,13 @@
       "when": 1779622287743,
       "tag": "0024_naive_chat",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1779835175155,
+      "tag": "0025_worried_khan",
+      "breakpoints": true
     }
   ]
 }

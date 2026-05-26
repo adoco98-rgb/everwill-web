@@ -145,6 +145,10 @@ export const wills = mysqlTable("wills", {
   blockchainHash: varchar("blockchainHash", { length: 128 }),
   /** 유언장 고유 인증 번호 (EW-YYYYMMDD-XXXXXX) */
   certNumber: varchar("certNumber", { length: 32 }).unique(),
+  /** 플랜별 무료 수정 가능 횟수 (1=기본, 2=프리미엄, -1=영구보관 무제한) */
+  freeRevisionCount: int("freeRevisionCount").default(1).notNull(),
+  /** 사용한 무료 수정 횟수 */
+  usedFreeRevisions: int("usedFreeRevisions").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -745,3 +749,24 @@ export const willAssetScans = mysqlTable("willAssetScans", {
 });
 export type WillAssetScan = typeof willAssetScans.$inferSelect;
 export type InsertWillAssetScan = typeof willAssetScans.$inferInsert;
+
+/**
+ * 유언장 수정 유료 결제 내역 테이블
+ * 무료 수정 횟수 초과 시 ₩5,000 결제 기록
+ */
+export const willRevisionPayments = mysqlTable("willRevisionPayments", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 유언장 ID */
+  willId: int("willId").notNull(),
+  /** 결제한 사용자 ID */
+  userId: int("userId").notNull(),
+  /** Stripe Session ID */
+  stripeSessionId: varchar("stripeSessionId", { length: 128 }).unique(),
+  /** 결제 금액 (원화) */
+  amount: int("amount").default(5000).notNull(),
+  /** 결제 상태 */
+  status: mysqlEnum("status", ["pending", "completed", "failed"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type WillRevisionPayment = typeof willRevisionPayments.$inferSelect;
+export type InsertWillRevisionPayment = typeof willRevisionPayments.$inferInsert;

@@ -8,7 +8,7 @@ import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { invokeLLM } from "../_core/llm";
 import { getDb } from "../db";
-import { wills } from "../../drizzle/schema";
+import { wills, willRevisionPayments } from "../../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import crypto from "crypto";
 import { sendWillCertifiedEmail } from "../_core/email";
@@ -464,5 +464,107 @@ ${input.currentData ? JSON.stringify(input.currentData, null, 2) : "없음"}
       }
 
       return { success: true, certNumber, blockchainHash };
+    }),
+
+  /**
+   * 유언장 수정 가능 여부 확인
+   * - 인증된 유언장의 무료 수정 횟수 남은 횟수 반환
+   * - 무제한(-1) 또는 잔여 횟수 있으면 무료, 없으면 유료 결제 필요
+   */
+  checkRevisionStatus: protectedProcedure
+    .input(z.object({ willId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB 연결 실패");
+
+      const will = await db.select().from(wills)
+        .where(and(eq(wills.id, input.willId), eq(wills.userId, ctx.user.id)))
+        .limit(1);
+
+      if (!will.length) throw new Error("유언장을 찾을 수 없습니다");
+
+      const w = will[0];
+      const freeCount = w.freeRevisionCount; // -1 = 무제한
+      const usedCount = w.usedFreeRevisions;
+      const isUnlimited = freeCount === -1;
+      const remainingFree = isUnlimited ? 999 : Math.max(0, freeCount - usedCount);
+      const needsPayment = !isUnlimited && remainingFree === 0;
+
+      return {
+        willId: input.willId,
+        freeRevisionCount: freeCount,
+        usedFreeRevisions: usedCount,
+        remainingFree,
+        isUnlimited,
+        needsPayment,
+        planLabel: freeCount === -1 ? "영구보관 (무제한)" : freeCount === 2 ? "프리미엄 (2회)" : "기본 (1회)",
+      };
+    }),
+
+  /**
+   * 유언장 수정 실행 (무료 횟수 내 또는 결제 확인 후)
+   * - 무료 횟수 내: 수정 후 usedFreeRevisions +1
+   * - 초과 시: stripeSessionId 필수 (결제 완료 확인)
+   */
+  executeRevision: protectedProcedure
+    .input(z.object({
+      willId: z.number(),
+      title: z.string().optional(),
+      data: z.string(),
+      mode: z.enum(["ai", "direct"]).default("ai"),
+      stripeSessionId: z.string().optional(), // 유료 수정 시 필수
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB 연결 실패");
+
+      const will = await db.select().from(wills)
+        .where(and(eq(wills.id, input.willId), eq(wills.userId, ctx.user.id)))
+        .limit(1);
+
+      if (!will.length) throw new Error("유언장을 찾을 수 없습니다");
+
+      const w = will[0];
+      const isUnlimited = w.freeRevisionCount === -1;
+      const remainingFree = isUnlimited ? 999 : Math.max(0, w.freeRevisionCount - w.usedFreeRevisions);
+      const needsPayment = !isUnlimited && remainingFree === 0;
+
+      if (needsPayment && !input.stripeSessionId) {
+        throw new Error("무료 수정 횟수를 모두 사용하셨습니다. 수정하려면 ₩5,000이 결제됩니다.");
+      }
+
+      const title = input.title || w.title || `유언장 ${new Date().toLocaleDateString("ko-KR")}`;
+
+      // 유료 수정: 결제 내역 기록
+      if (needsPayment && input.stripeSessionId) {
+        await db.insert(willRevisionPayments).values({
+          willId: input.willId,
+          userId: ctx.user.id,
+          stripeSessionId: input.stripeSessionId,
+          amount: 5000,
+          status: "completed",
+        });
+      }
+
+      // 유언장 데이터 업데이트
+      await db.update(wills)
+        .set({
+          title,
+          data: input.data,
+          mode: input.mode,
+          // 무료 횟수 내 수정: usedFreeRevisions +1
+          ...((!needsPayment && !isUnlimited) ? { usedFreeRevisions: w.usedFreeRevisions + 1 } : {}),
+          // 인증 상태 다시 draft로 (수정 후 재인증 필요)
+          status: "draft",
+          isCertified: 0,
+        })
+        .where(eq(wills.id, input.willId));
+
+      return {
+        success: true,
+        willId: input.willId,
+        wasCharged: needsPayment,
+        remainingFree: isUnlimited ? 999 : Math.max(0, w.freeRevisionCount - w.usedFreeRevisions - (needsPayment ? 0 : 1)),
+      };
     }),
 });

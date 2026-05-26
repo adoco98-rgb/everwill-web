@@ -164,7 +164,7 @@ export default function BadgeSection() {
               initial={{ opacity: 0, y: 40 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: 0.3 + i * 0.15 }}
-              className={`relative rounded-2xl border ${card.borderColor} ${card.bgCard} p-6 shadow-xl hover:-translate-y-1 transition-transform duration-300 ${card.popular ? "ring-2 ring-[#C9A961]/50" : ""}`}
+              className={`relative rounded-2xl border ${card.borderColor} ${card.bgCard} p-6 shadow-xl hover:-translate-y-1 transition-transform duration-300 flex flex-col ${card.popular ? "ring-2 ring-[#C9A961]/50" : ""}`}
             >
               {/* 인기 배지 */}
               {card.popular && (
@@ -213,7 +213,7 @@ export default function BadgeSection() {
               </div>
 
               {/* 포함 기능 목록 */}
-              <ul className="space-y-2 mb-6">
+              <ul className="space-y-2 mb-6 flex-1">
                 {card.features.map((feat, fi) => (
                   <li key={fi} className="flex items-center gap-2 text-sm text-white/70">
                     <div className={`w-4 h-4 rounded-full bg-gradient-to-br ${card.color} flex items-center justify-center flex-shrink-0`}>
@@ -227,7 +227,7 @@ export default function BadgeSection() {
               {/* 주문 버튼 */}
               <button
                 onClick={() => toast.info(isKo ? "카드 주문 기능은 곧 오픈됩니다!" : "Card ordering coming soon!")}
-                className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 bg-gradient-to-r ${card.color} text-white hover:opacity-90 hover:shadow-lg`}
+                className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 bg-gradient-to-r ${card.color} text-white hover:opacity-90 hover:shadow-lg mt-auto`}
               >
                 {isKo ? "지금 주문하기" : "Order Now"}
               </button>
@@ -249,8 +249,8 @@ export default function BadgeSection() {
           </p>
           <p className="text-white/50 text-sm mt-2 font-medium">
             {isKo
-              ? "실버 카드: 전자인증 ₩49,000에 무료 포함 · 골드 카드: 3년 플랜(₩79,000) · 플래티넘 카드: 5년 플랜(₩99,000)"
-              : "Silver Card: FREE with $49 certification · Gold Card: 3-Year Plan ($79) · Platinum Card: 5-Year Plan ($99)"}
+              ? "실버 카드: 전자인증 ₩49,000에 무료 포함 · 골드 카드: 3년 플랜(₩79,000) · 플래티넘 카드: 5년 플랜(₩99,000) · 영구 보관: ₩199,000"
+              : "Silver Card: FREE with $49 certification · Gold Card: 3-Year Plan ($79) · Platinum Card: 5-Year Plan ($99) · Lifetime Storage: $199"}
           </p>
         </motion.div>
       </div>

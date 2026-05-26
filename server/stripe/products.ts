@@ -102,7 +102,23 @@ export const SARAM_PRODUCTS = {
     currency: "krw",
     key: "card_diamond",
   },
+  /** 유언장 수정 유료 결제 (무료 횟수 초과 시, 1회 ₩5,000) */
+  WILL_REVISION: {
+    name: "유언장 수정",
+    description: "유언장 수정 1회 · 무료 횟수 초과 시 적용",
+    amount: 5000,
+    currency: "krw",
+    key: "will_revision",
+  },
+  /** 공식 인증 통합 문서 발급 ($1 USD) */
+  DOCUMENT_DOWNLOAD: {
+    name: "공식 인증 통합 문서 발급",
+    description: "EverWill 공식 인증 통합 문서 PDF 발급 (한글/영문)",
+    amount: 100,
+    currency: "usd",
+    key: "document_download",
+  },
 } as const;
 
 export type ProductKey = keyof typeof SARAM_PRODUCTS;
-export type ProductKeyStr = "certification" | "certification_premium" | "video_will" | "handwritten_scan" | "storage_1y" | "storage_3y" | "storage_5y" | "storage_10y" | "storage_lifetime" | "card_silver" | "card_gold" | "card_platinum" | "card_diamond";
+export type ProductKeyStr = "certification" | "certification_premium" | "video_will" | "handwritten_scan" | "storage_1y" | "storage_3y" | "storage_5y" | "storage_10y" | "storage_lifetime" | "card_silver" | "card_gold" | "card_platinum" | "card_diamond" | "will_revision" | "document_download";

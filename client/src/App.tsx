@@ -42,6 +42,7 @@ import HeirsPage from "./pages/dashboard/HeirsPage";
 import MedicalDirectivePage from "./pages/dashboard/MedicalDirectivePage";
 import WillsPage from "./pages/dashboard/WillsPage";
 import WillDetailPage from "./pages/dashboard/WillDetailPage";
+import WillRevisionPage from "./pages/dashboard/WillRevisionPage";
 import HeirAcceptPage from "./pages/HeirAcceptPage";
 
 function Router() {
@@ -76,6 +77,8 @@ function Router() {
       <Route path={"/dashboard/medical-directive"} component={MedicalDirectivePage} />
       {/* 내 유언장 목록 */}
       <Route path={"/dashboard/wills"} component={() => <SaramDashboardLayout><WillsPage /></SaramDashboardLayout>} />
+      {/* 유언장 수정 게이트 */}
+      <Route path={"/dashboard/wills/:willId/revise"} component={() => <SaramDashboardLayout><WillRevisionPage /></SaramDashboardLayout>} />
       {/* 유언장 상세 */}
       <Route path={"/dashboard/wills/:id"} component={() => <SaramDashboardLayout><WillDetailPage /></SaramDashboardLayout>} />
       {/* 상속세 계산기 */}

@@ -267,8 +267,8 @@ export default function WillsPage() {
                     디지털 카드
                   </Button>
 
-                  {/* 수정 (초안만 가능) */}
-                  {will.status === "draft" && (
+                  {/* 수정 버튼 - 초안: 바로 수정, 인증완료: 수정 정책 안내 후 수정 */}
+                  {will.status === "draft" ? (
                     <Link href={`/write?willId=${will.id}`}>
                       <Button
                         variant="outline"
@@ -279,7 +279,18 @@ export default function WillsPage() {
                         수정
                       </Button>
                     </Link>
-                  )}
+                  ) : will.status === "certified" ? (
+                    <Link href={`/dashboard/wills/${will.id}/revise`}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5 text-xs border-amber-300 text-amber-700 hover:bg-amber-50"
+                      >
+                        <Edit className="w-3 h-3" />
+                        수정 (재인증)
+                      </Button>
+                    </Link>
+                  ) : null}
 
                   {/* 상세보기 */}
                   <Link href={`/dashboard/wills/${will.id}`}>
@@ -320,9 +331,9 @@ export default function WillsPage() {
       {/* 안내 문구 */}
       <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
         <p className="text-xs text-blue-700 leading-relaxed">
-          <strong>안내:</strong> 인증 완료된 유언장은 수정 및 삭제가 불가능합니다.
-          내용을 변경하려면 새 유언장을 작성하고 재인증(₩15,000)이 필요합니다.
-          유언장은 EverWill 분산 암호화 보관 시스템에 안전하게 저장됩니다.
+          <strong>수정 정책:</strong> 인증 완료된 유언장은 수정 시 재인증이 필요합니다.
+          • 전자 인증 기본: 무료 수정 1회 포함 • 전자 인증 프리미엄: 무료 수정 2회 포함 • 영구 보관: 무제한 무료 수정
+          무료 횟수 초과 시 수정 1회당 ₩5,000이 결제됩니다. 유언장은 EverWill 분산 암호화 보관 시스템에 안전하게 저장됩니다.
         </p>
       </div>
 
