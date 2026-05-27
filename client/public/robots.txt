@@ -1,13 +1,19 @@
 User-agent: *
 Allow: /
+Allow: /payment
+Allow: /investor
+Allow: /privacy
+Allow: /terms
+Allow: /login
 
-# 로그인 후 개인 페이지는 색인 차단
+# 로그인 후 개인 페이지 색인 차단
 Disallow: /dashboard
+Disallow: /dashboard/
 Disallow: /write
-Disallow: /assets
+Disallow: /letter
 Disallow: /profile
-Disallow: /payment
 Disallow: /api/
+Disallow: /799805
 
 # 사이트맵
 Sitemap: https://everwill.co.kr/sitemap.xml

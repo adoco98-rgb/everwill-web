@@ -741,3 +741,19 @@
 - [x] PricingSection.tsx: 플랜별 수정 정책 안내 추가 (기본 1회, 프리미엄 2회, 영구보관 무제한)
 - [x] PaymentPage.tsx: 수정 정책 안내 문구 추가
 - [x] 유언장 수정 게이트 페이지 (/dashboard/wills/:id/revise): 남은 무료 수정 횟수 표시 + 초과 시 결제 게이트 UI
+
+## 토스페이먼츠 연동 (2026-05-27)
+- [ ] 서버: 토스페이먼츠 결제 승인 API 엔드포인트 (/api/toss/confirm)
+- [ ] 서버: 결제 완료 후 wills.status=certified 업데이트 연동
+- [ ] 프론트: PaymentPage.tsx에 한국 결제 버튼 추가 (토스페이먼츠 결제창 호출)
+- [ ] 프론트: 결제 성공/실패 리다이렉트 페이지 (/toss/success, /toss/fail)
+- [ ] 테스트: 토스페이먼츠 API 키 유효성 검증 vitest
+
+## 한국 오픈 필수 항목 (2026-05-27)
+- [ ] 이용약관 페이지 (/terms) - 한국 전자상거래법 기준, 주)사람 정보 반영
+- [ ] 개인정보처리방침 페이지 (/privacy) - 개인정보보호법 기준, 수집항목/목적/보유기간
+- [ ] Footer에 약관/개인정보처리방침 링크 추가
+- [ ] SEO: index.html 한국어 메타태그 (title, description, keywords, og:*)
+- [ ] SEO: sitemap.xml 생성
+- [ ] SEO: robots.txt 설정
+- [ ] 모바일 반응형 점검 (홈, 결제, 유언장 작성, 대시보드)

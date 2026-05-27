@@ -200,6 +200,48 @@ export default function PrivacyPage() {
           </div>
         </section>
 
+        {/* 제9조 - 마케팅 수신 동의 */}
+        <section>
+          <h2 className="text-lg font-bold text-[#1F3864] mb-3 pb-2 border-b border-[#C9A961]/30">제9조 (마케팅 정보 수신 동의)</h2>
+          <div className="text-sm leading-7 text-gray-700 space-y-3">
+            <p>① 회사는 이용자의 별도 동의를 받은 경우에 한하여 다음과 같은 마케팅 정보를 발송합니다.</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="bg-[#1F3864] text-white">
+                    <th className="p-3 text-left font-semibold rounded-tl-lg">수신 채널</th>
+                    <th className="p-3 text-left font-semibold">발송 내용</th>
+                    <th className="p-3 text-left font-semibold rounded-tr-lg">동의 여부</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  <tr className="bg-white">
+                    <td className="p-3 text-gray-700">이메일</td>
+                    <td className="p-3 text-gray-600">신규 서비스 안내, 이벤트·할인 정보, 유언 관련 법률 정보</td>
+                    <td className="p-3 text-gray-600">선택 동의</td>
+                  </tr>
+                  <tr className="bg-gray-50">
+                    <td className="p-3 text-gray-700">SMS/카카오톡</td>
+                    <td className="p-3 text-gray-600">이벤트 알림, 서비스 업데이트 안내</td>
+                    <td className="p-3 text-gray-600">선택 동의</td>
+                  </tr>
+                  <tr className="bg-white">
+                    <td className="p-3 text-gray-700">앱 푸시</td>
+                    <td className="p-3 text-gray-600">유언장 업데이트 알림, 서비스 공지</td>
+                    <td className="p-3 text-gray-600">선택 동의</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p>② 마케팅 수신 동의는 회원가입 시 또는 마이페이지에서 언제든지 변경할 수 있습니다.</p>
+            <p>③ 마케팅 수신 동의를 철회하더라도 서비스 이용에는 불이익이 없습니다.</p>
+            <p>④ 마케팅 정보 수신에 동의한 경우, 수집된 이메일 및 휴대폰 번호는 마케팅 목적으로만 활용되며 제3자에게 제공되지 않습니다.</p>
+            <div className="bg-[#C9A961]/10 border border-[#C9A961]/30 rounded-lg p-4 mt-2">
+              <p className="text-xs text-gray-600"><strong>※ 정보통신망 이용촉진 및 정보보호 등에 관한 법률 제50조</strong>에 따라 수신 동의를 받은 경우에만 광고성 정보를 발송하며, 수신 거부 방법을 명시합니다. 수신 거부는 이메일 하단의 '수신 거부' 링크 또는 마이페이지 &gt; 알림 설정에서 처리할 수 있습니다.</p>
+            </div>
+          </div>
+        </section>
+
         {/* 부칙 */}
         <section className="bg-[#1F3864]/5 rounded-xl p-5">
           <h2 className="text-base font-bold text-[#1F3864] mb-2">부칙</h2>

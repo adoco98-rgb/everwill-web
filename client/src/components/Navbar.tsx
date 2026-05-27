@@ -369,6 +369,34 @@ export default function Navbar() {
                       내 대시보드
                     </button>
                     <button
+                      onClick={() => { setMobileOpen(false); navigate("/write"); }}
+                      className="w-full text-white/80 py-2.5 text-sm font-medium border border-white/20 rounded-lg flex items-center justify-center gap-2"
+                    >
+                      <FileText className="w-4 h-4" />
+                      유언장 작성
+                    </button>
+                    <button
+                      onClick={() => { setMobileOpen(false); navigate("/dashboard/wills"); }}
+                      className="w-full text-white/80 py-2.5 text-sm font-medium border border-white/20 rounded-lg flex items-center justify-center gap-2"
+                    >
+                      <ScrollText className="w-4 h-4" />
+                      내 유언장
+                    </button>
+                    <button
+                      onClick={() => { setMobileOpen(false); navigate("/dashboard/heirs"); }}
+                      className="w-full text-white/80 py-2.5 text-sm font-medium border border-white/20 rounded-lg flex items-center justify-center gap-2"
+                    >
+                      <Users className="w-4 h-4" />
+                      상속인 관리
+                    </button>
+                    <button
+                      onClick={() => { setMobileOpen(false); navigate("/payment"); }}
+                      className="w-full text-[#C9A961] py-2.5 text-sm font-medium border border-[#C9A961]/40 rounded-lg flex items-center justify-center gap-2"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      결제 / 인증
+                    </button>
+                    <button
                       onClick={() => { setMobileOpen(false); logout(); }}
                       className="w-full text-red-300 py-2.5 text-sm font-medium border border-red-400/30 rounded-lg flex items-center justify-center gap-2"
                     >

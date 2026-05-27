@@ -5,39 +5,54 @@
   <!-- 홈 -->
   <url>
     <loc>https://everwill.co.kr/</loc>
-    <lastmod>2026-05-18</lastmod>
+    <lastmod>2026-05-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://everwill.co.kr/?lang=ko"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://everwill.co.kr/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://everwill.co.kr/?lang=ja"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://everwill.co.kr/?lang=zh"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://everwill.co.kr/?lang=de"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://everwill.co.kr/?lang=es"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://everwill.co.kr/?lang=ar"/>
   </url>
 
-  <!-- 서비스 소개 -->
+  <!-- 결제/가격 -->
   <url>
-    <loc>https://everwill.co.kr/about</loc>
-    <lastmod>2026-05-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- 가격 안내 -->
-  <url>
-    <loc>https://everwill.co.kr/pricing</loc>
-    <lastmod>2026-05-18</lastmod>
+    <loc>https://everwill.co.kr/payment</loc>
+    <lastmod>2026-05-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
 
-  <!-- FAQ -->
+  <!-- 유언장 작성 -->
   <url>
-    <loc>https://everwill.co.kr/faq</loc>
-    <lastmod>2026-05-18</lastmod>
+    <loc>https://everwill.co.kr/write</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- 로그인 -->
+  <url>
+    <loc>https://everwill.co.kr/login</loc>
+    <lastmod>2026-05-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+  </url>
+
+  <!-- 투자자 페이지 -->
+  <url>
+    <loc>https://everwill.co.kr/investor</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
 
   <!-- 개인정보처리방침 -->
   <url>
     <loc>https://everwill.co.kr/privacy</loc>
-    <lastmod>2026-05-18</lastmod>
+    <lastmod>2026-05-27</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -45,7 +60,7 @@
   <!-- 이용약관 -->
   <url>
     <loc>https://everwill.co.kr/terms</loc>
-    <lastmod>2026-05-18</lastmod>
+    <lastmod>2026-05-27</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
