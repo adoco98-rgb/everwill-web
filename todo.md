@@ -757,3 +757,10 @@
 - [ ] SEO: sitemap.xml 생성
 - [ ] SEO: robots.txt 설정
 - [ ] 모바일 반응형 점검 (홈, 결제, 유언장 작성, 대시보드)
+
+## EverWill AI 챗봇 (2026-05-27)
+- [x] 서버: chatRouter.ts - EverWill 전문가 페르소나 시스템 프롬프트 작성
+- [x] 서버: 스트리밍 응답 tRPC 프로시저 (chat.sendMessage)
+- [x] 프론트: ChatbotWidget.tsx - 우측 하단 플로팅 버튼 + 대화창 UI
+- [x] 프론트: 모든 페이지(App.tsx)에 ChatbotWidget 전역 추가
+- [x] 챗봇 기능: 사이트 사용법 안내, 자산 등록 방법, 결제/인증 안내, 유언 작성 가이드

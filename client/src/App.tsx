@@ -44,6 +44,7 @@ import WillsPage from "./pages/dashboard/WillsPage";
 import WillDetailPage from "./pages/dashboard/WillDetailPage";
 import WillRevisionPage from "./pages/dashboard/WillRevisionPage";
 import HeirAcceptPage from "./pages/HeirAcceptPage";
+import { ChatbotWidget } from "./components/ChatbotWidget";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -127,6 +128,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <ChatbotWidget />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
