@@ -5,7 +5,7 @@
  */
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, User, ChevronDown, LayoutDashboard, Settings, LogOut } from "lucide-react";
+import { Menu, X, User, ChevronDown, LayoutDashboard, Settings, LogOut, FileText, ScrollText, Users, CreditCard } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { useLocation } from "wouter";
@@ -194,18 +194,46 @@ export default function Navbar() {
                       {/* 메뉴 항목 */}
                       <div className="py-1">
                         <button
-                          onClick={() => { setUserMenuOpen(false); navigate("/dashboard/profile"); }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#1F3864]/5 hover:text-[#1F3864] transition-colors"
-                        >
-                          <Settings className="w-4 h-4 text-gray-400" />
-                          내 정보 보기 / 수정
-                        </button>
-                        <button
                           onClick={() => { setUserMenuOpen(false); navigate("/dashboard"); }}
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#1F3864]/5 hover:text-[#1F3864] transition-colors"
                         >
                           <LayoutDashboard className="w-4 h-4 text-gray-400" />
                           내 대시보드
+                        </button>
+                        <button
+                          onClick={() => { setUserMenuOpen(false); navigate("/write"); }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#1F3864]/5 hover:text-[#1F3864] transition-colors"
+                        >
+                          <FileText className="w-4 h-4 text-gray-400" />
+                          유언장 작성
+                        </button>
+                        <button
+                          onClick={() => { setUserMenuOpen(false); navigate("/dashboard/wills"); }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#1F3864]/5 hover:text-[#1F3864] transition-colors"
+                        >
+                          <ScrollText className="w-4 h-4 text-gray-400" />
+                          내 유언장
+                        </button>
+                        <button
+                          onClick={() => { setUserMenuOpen(false); navigate("/dashboard/heirs"); }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#1F3864]/5 hover:text-[#1F3864] transition-colors"
+                        >
+                          <Users className="w-4 h-4 text-gray-400" />
+                          상속인 관리
+                        </button>
+                        <button
+                          onClick={() => { setUserMenuOpen(false); navigate("/payment"); }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#1F3864]/5 hover:text-[#1F3864] transition-colors"
+                        >
+                          <CreditCard className="w-4 h-4 text-gray-400" />
+                          결제 / 인증
+                        </button>
+                        <button
+                          onClick={() => { setUserMenuOpen(false); navigate("/dashboard/profile"); }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#1F3864]/5 hover:text-[#1F3864] transition-colors"
+                        >
+                          <Settings className="w-4 h-4 text-gray-400" />
+                          내 정보 수정
                         </button>
                       </div>
 

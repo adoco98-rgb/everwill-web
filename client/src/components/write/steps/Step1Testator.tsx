@@ -1,15 +1,18 @@
 /**
  * Step 1: 유언자 기본 정보
- * - 거주 국가 선택으로 주소 검색 방식 자동 전환 (한국: 카카오, 해외: Google Places)
+ * - 로그인 사용자 프로필 자동 채움
+ * - 거주 구가 선택으로 주소 검색 방식 자동 전환 (한국: 카카오, 해외: Google Places)
  * - 주민등록번호 자동 하이픈
  * - 전화번호 국가코드 선택
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { StepProps } from "./StepProps";
 import AIGuide from "../AIGuide";
 import GlobalAddressSearch from "../GlobalAddressSearch";
 import PhoneInput from "../PhoneInput";
 import { formatRRN, PHONE_CODE_TO_ISO } from "@/lib/formatUtils";
+import { trpc } from "@/lib/trpc";
+import { Sparkles } from "lucide-react";
 
 // 국가 목록 (ISO 코드 + 한국어 이름)
 const COUNTRIES = [
@@ -34,6 +37,47 @@ const COUNTRIES = [
 export default function Step1Testator({ will, update }: StepProps) {
   const [countryCode, setCountryCode] = useState<string>("KR");
   const [phoneCode, setPhoneCode] = useState<string>("+82");
+  const [autoFilled, setAutoFilled] = useState(false);
+
+  // 로그인 사용자 정보 가져오기
+  const { data: me } = trpc.auth.me.useQuery();
+
+  // 프로필 자동 채움: 유언자 이름이 비어있을 때만 실행
+  useEffect(() => {
+    if (!me || autoFilled) return;
+    if (will.testatorName && will.testatorName.trim() !== "") return; // 이미 입력된 경우 스킵
+
+    const updates: Partial<typeof will> = {};
+    let didFill = false;
+
+    if (me.name && !will.testatorName) {
+      updates.testatorName = me.name;
+      didFill = true;
+    }
+    if ((me as any).phone && !will.testatorPhone) {
+      updates.testatorPhone = (me as any).phone;
+      const matchedCode = Object.entries(PHONE_CODE_TO_ISO).find(([, iso]) => iso === ((me as any).country || "KR"));
+      if (matchedCode) setPhoneCode(matchedCode[0]);
+      didFill = true;
+    }
+    if ((me as any).address && !will.testatorAddress) {
+      updates.testatorAddress = (me as any).address;
+      didFill = true;
+    }
+    if ((me as any).country) {
+      setCountryCode((me as any).country);
+    }
+    // 작성일 자동 설정
+    if (!will.writtenDate) {
+      updates.writtenDate = new Date().toISOString().slice(0, 10);
+      didFill = true;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      update(updates);
+    }
+    if (didFill) setAutoFilled(true);
+  }, [me]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRRN = (val: string) => {
     update({ testatorRRN: formatRRN(val) });
@@ -45,6 +89,14 @@ export default function Step1Testator({ will, update }: StepProps) {
 
   return (
     <div className="space-y-5">
+      {/* 자동 채움 안내 배너 */}
+      {autoFilled && (
+        <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-center gap-2 text-green-700 text-sm">
+          <Sparkles className="w-4 h-4 flex-shrink-0" />
+          <span>회원님의 프로필 정보를 자동으로 채워드렸습니다. 확인 후 수정해 주세요.</span>
+        </div>
+      )}
+
       {/* AI 안내 말풍선 */}
       <AIGuide
         question="안녕하세요! 먼저 유언자 본인의 정보를 확인할게요. 성함과 주민등록번호를 입력해 주세요."

@@ -11,7 +11,7 @@ import { eq } from "drizzle-orm";
 import { Resend } from "resend";
 import { SARAM_PRODUCTS, type ProductKey } from "./products";
 import { getDb } from "../db";
-import { payments, users } from "../../drizzle/schema";
+import { payments, users, wills } from "../../drizzle/schema";
 import { sdk } from "../_core/sdk";
 import { ENV } from "../_core/env";
 
@@ -23,9 +23,10 @@ export function registerStripeRoutes(app: Express) {
   /* ─── 1. Checkout Session 생성 (로그인 필수) ─── */
   app.post("/api/stripe/checkout", async (req: Request, res: Response) => {
     try {
-      const { items, customerName } = req.body as {
+      const { items, customerName, willId } = req.body as {
         items: { key: ProductKey; quantity?: number }[];
         customerName?: string;
+        willId?: number; // 인증 결제 시 유언장 ID
       };
 
       if (!items || items.length === 0) {
@@ -78,6 +79,7 @@ export function registerStripeRoutes(app: Express) {
           customer_email: authenticatedEmail || "",
           customer_name: customerName || "",
           items: items.map((i) => i.key).join(","),
+          will_id: willId ? willId.toString() : "", // 인증 결제 시 유언장 ID
         },
         success_url: `${origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/payment/cancel`,
@@ -149,6 +151,52 @@ export function registerStripeRoutes(app: Express) {
               });
 
               console.log(`[Webhook] 결제 DB 저장 완료: ${session.id}`);
+
+              // ─── 인증 상품 결제 시 유언장 상태 자동 업데이트 ───
+              const purchasedItems = (session.metadata?.items || "").split(",");
+              const isCertPurchase = purchasedItems.some((k: string) =>
+                ["CERTIFICATION", "CERTIFICATION_PREMIUM", "STORAGE_LIFETIME"].includes(k)
+              );
+              const metaWillId = session.metadata?.will_id;
+
+              if (isCertPurchase && metaWillId && dbUserId) {
+                const willIdNum = parseInt(metaWillId);
+                if (!isNaN(willIdNum)) {
+                  // 인증 번호 생성: EW-YYYYMMDD-XXXXXX
+                  const now = new Date();
+                  const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
+                  const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
+                  const certNumber = `EW-${dateStr}-${randomSuffix}`;
+
+                  // 플랜별 무료 수정 횟수 설정
+                  let freeRevisionCount = 1; // 기본 전자인증
+                  if (purchasedItems.includes("CERTIFICATION_PREMIUM")) freeRevisionCount = 2;
+                  if (purchasedItems.includes("STORAGE_LIFETIME")) freeRevisionCount = -1; // 무제한
+
+                  // 보관 만료일 설정
+                  let storageExpiresAt: Date | null = null;
+                  if (purchasedItems.includes("CERTIFICATION")) {
+                    storageExpiresAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 1년
+                  } else if (purchasedItems.includes("CERTIFICATION_PREMIUM")) {
+                    storageExpiresAt = new Date(now.getTime() + 3 * 365 * 24 * 60 * 60 * 1000); // 3년
+                  }
+                  // STORAGE_LIFETIME: null = 영구
+
+                  await db.update(wills)
+                    .set({
+                      status: "certified",
+                      isCertified: 1,
+                      certifiedAt: now,
+                      certNumber,
+                      freeRevisionCount,
+                      storageExpiresAt,
+                      paymentId: dbUserId, // 결제 사용자 ID 연결
+                    })
+                    .where(eq(wills.id, willIdNum));
+
+                  console.log(`[Webhook] 유언장 인증 완료: willId=${willIdNum}, certNumber=${certNumber}`);
+                }
+              }
 
               // 결제 완료 이메일 영수증 발송
               const receiptEmail = session.customer_email || session.metadata?.customer_email;

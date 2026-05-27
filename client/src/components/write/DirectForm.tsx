@@ -312,10 +312,7 @@ function SectionContent({ id, will, update }: { id: number; will: WillData; upda
         <label className={labelCls}>장례 방식</label>
         <input value={will.funeralWish} onChange={(e) => update({ funeralWish: e.target.value })} placeholder="화장 후 납골당 안치" className={inputCls} />
       </div>
-      <div>
-        <label className={labelCls}>기부 내역</label>
-        <textarea value={will.donationDetails} onChange={(e) => update({ donationDetails: e.target.value })} placeholder="재산의 10%를 대한적십자사에 기부한다." rows={2} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 resize-none mt-1.5" />
-      </div>
+      {/* 기부 내역은 /charity 페이지에서 별도 관리 - 여기서 제거 */}
       <div>
         <label className={labelCls}>기타 특별 지시사항</label>
         <textarea value={will.specialInstructions} onChange={(e) => update({ specialInstructions: e.target.value })} placeholder="가족들이 화목하게 지내기를 바란다." rows={4} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 resize-none mt-1.5" />

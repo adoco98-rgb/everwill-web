@@ -85,7 +85,7 @@ export default function Step8Addons({ will, update }: StepProps) {
           }`}
         >
           <span className="absolute -top-2.5 left-4 bg-[#C9A961] text-white text-xs font-bold px-3 py-0.5 rounded-full">
-            {isKo ? "추천 · 할인 ₩29,000" : "Recommended · Save $29"}
+            {isKo ? "추천 · 묶음 할인" : "Recommended · Bundle"}
           </span>
           {isPremiumPlan && (
             <span className="absolute -top-2.5 right-4 bg-green-500 text-white text-xs font-bold px-3 py-0.5 rounded-full">
@@ -225,13 +225,13 @@ export default function Step8Addons({ will, update }: StepProps) {
       }`}>
         <div>
           <span className="text-white/80 text-sm">
-            {isKo ? "전자 인증 ₩49,000" : "Certification $39"}
-            {will.hasVideoWill && (isKo ? " + 영상 ₩29,000" : " + Video $29")}
-            {will.hasHandwrittenScan && (isKo ? " + 자필 ₩19,000" : " + Scan $19")}
+            {isKo ? "전자 인증" : "Certification"}
+            {will.hasVideoWill && (isKo ? " + 영상 유언" : " + Video Will")}
+            {will.hasHandwrittenScan && (isKo ? " + 자필 스캔" : " + Handwritten Scan")}
           </span>
           {isPremiumPlan && (
             <p className="text-white/70 text-xs mt-0.5">
-              {isKo ? "프리미엄 묶음 할인 적용 (₩29,000 절약)" : "Bundle discount applied (Save $29)"}
+              {isKo ? "프리미엄 묶음 할인 적용" : "Bundle discount applied"}
             </p>
           )}
         </div>

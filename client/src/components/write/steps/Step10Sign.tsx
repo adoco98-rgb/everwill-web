@@ -1422,7 +1422,7 @@ export default function Step10Sign({ will }: StepProps) {
                         </div>
                       </div>
                       <div className="bg-green-50 rounded-lg p-2 text-xs text-green-700">
-                        ✓ 영상 유언장 + 자필 유언장 스캔 인증 포함 (₩29,000 절약)
+                        ✓ 영상 유언장 + 자필 유언장 스캔 인증 포함
                       </div>
                     </>
                   ) : (
@@ -1433,14 +1433,14 @@ export default function Step10Sign({ will }: StepProps) {
                       </div>
                       {will.hasVideoWill && (
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">영상 유언</span>
-                          <span className="font-semibold">₩29,000</span>
+                          <span className="text-gray-500">영상 유언장</span>
+                          <span className="text-xs text-green-600 font-medium">포함</span>
                         </div>
                       )}
                       {will.hasHandwrittenScan && (
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-500">자필 스캔 인증</span>
-                          <span className="font-semibold">₩19,000</span>
+                          <span className="text-xs text-green-600 font-medium">포함</span>
                         </div>
                       )}
                     </>
