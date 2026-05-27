@@ -23,6 +23,7 @@ import {
   MapPin, RefreshCw, Check, X
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { HelpTooltip } from "@/components/HelpTooltip";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -786,20 +787,20 @@ export default function LoginPage() {
 
                     {/* 이름 */}
                     <div>
-                      <label className={labelCls}><User className="w-4 h-4 inline mr-1.5 text-gray-400" />이름 <span className="text-red-400 font-normal text-xs">(필수)</span></label>
+                      <label className={labelCls}><User className="w-4 h-4 inline mr-1.5 text-gray-400" />이름 <span className="text-red-400 font-normal text-xs">(필수)</span><HelpTooltip text="유언장에 기재될 실명을 입력해 주세요. 주민등록증·여권과 동일한 이름이어야 합니다." /></label>
                       <input type="text" value={signupName} onChange={e => setSignupName(e.target.value)}
                         placeholder="홍길동" required autoFocus className={inputCls} />
                     </div>
 
                     {/* 생년월일 */}
                     <div>
-                      <label className={labelCls}><Calendar className="w-4 h-4 inline mr-1.5 text-gray-400" />생년월일 <span className="text-gray-400 font-normal text-xs">(선택)</span></label>
+                      <label className={labelCls}><Calendar className="w-4 h-4 inline mr-1.5 text-gray-400" />생년월일 <span className="text-gray-400 font-normal text-xs">(선택)</span><HelpTooltip text="유언 작성 시 나이 확인에 사용됩니다. 만 17세 이상이어야 유언 능력이 인정됩니다(민법 제1061조)." /></label>
                       <input type="date" value={signupBirth} onChange={e => setSignupBirth(e.target.value)} className={inputCls} />
                     </div>
 
                     {/* 거주 국가 */}
                     <div>
-                      <label className={labelCls}><Globe className="w-4 h-4 inline mr-1.5 text-gray-400" />거주 국가</label>
+                      <label className={labelCls}><Globe className="w-4 h-4 inline mr-1.5 text-gray-400" />거주 국가<HelpTooltip text="현재 거주하고 있는 나라를 선택하세요. 국가에 따라 적용되는 상속 법률이 달라집니다." /></label>
                       <select value={signupCountry} onChange={e => setSignupCountry(e.target.value)} className={inputCls}>
                         {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
                       </select>
@@ -823,7 +824,7 @@ export default function LoginPage() {
                       </p>
                       <div className="space-y-3">
                         <div>
-                          <label className={labelCls}>비밀번호 <span className="text-red-400 font-normal text-xs">(필수 · 8자 이상)</span></label>
+                          <label className={labelCls}>비밀번호 <span className="text-red-400 font-normal text-xs">(필수 · 8자 이상)</span><HelpTooltip text="영문·숫자·특수문자 조합 8자 이상을 권장합니다. 로그인 시 OTP와 함께 사용됩니다." /></label>
                           <div className="relative">
                             <input type={showSignupPw ? "text" : "password"} value={signupPassword}
                               onChange={e => setSignupPassword(e.target.value)}
@@ -859,7 +860,7 @@ export default function LoginPage() {
                     {/* 자산 등록 */}
                     <div className="border-t border-gray-200 pt-4">
                       <p className="text-sm font-bold text-[#1F3864] mb-1 flex items-center gap-2">
-                        <Landmark className="w-4 h-4 text-[#C9A961]" /> 자산 등록 <span className="text-gray-400 font-normal text-xs">(선택 · 나중에도 추가 가능)</span>
+                        <Landmark className="w-4 h-4 text-[#C9A961]" /> 자산 등록 <span className="text-gray-400 font-normal text-xs">(선택 · 나중에도 추가 가능)</span><HelpTooltip text="지금 등록하지 않아도 돼습니다. 유언장 작성 시 자동으로 불러와 사용할 수 있습니다. 가능한 정확한 가액을 입력하면 상속세 계산에 도움이 됩니다." position="right" />
                       </p>
                       <p className="text-xs text-gray-400 mb-4">유언장 작성 시 자동으로 불러옵니다</p>
                       <div className="grid grid-cols-2 gap-2 mb-4">

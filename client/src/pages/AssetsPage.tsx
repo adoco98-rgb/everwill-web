@@ -15,6 +15,7 @@ import {
   ScanLine, FileText, Eye, Loader2,
 } from "lucide-react";
 import { Link } from "wouter";
+import { HelpTooltip } from "@/components/HelpTooltip";
 
 // ─── 국가별 화폐 단위 매핑 ───
 const COUNTRY_CURRENCY: Record<string, { code: string; symbol: string; locale: string; name: string }> = {
@@ -300,7 +301,7 @@ export default function AssetsPage() {
 
                 <div className="grid sm:grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label className="text-sm font-semibold text-gray-600 mb-1 block">자산명 *</label>
+                    <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center">자산명 <span className="text-red-400 ml-1">*</span><HelpTooltip text="자산을 식별할 수 있는 이름을 입력하세요.&#10;예) 신한은행 주식계좌, 서울 서초구 아파트, 삼성전자 주식" /></label>
                     <input
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
                       placeholder={`예: ${ASSET_TYPE_META[assetForm.type].desc}`}
@@ -309,7 +310,7 @@ export default function AssetsPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-gray-600 mb-1 block">국가</label>
+                    <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center">국가<HelpTooltip text="이 자산이 위치한 나라를 선택하세요. 선택한 국가에 따라 화폐 단위가 자동으로 바뀝니다." /></label>
                     <select
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
                       value={assetForm.country}
@@ -339,9 +340,8 @@ export default function AssetsPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-gray-600 mb-1 block">
-                      예상 가치 ({(COUNTRY_CURRENCY[assetForm.country] ?? COUNTRY_CURRENCY.OTHER).name})
-                    </label>
+                    <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center">
+                      예상 가치 ({(COUNTRY_CURRENCY[assetForm.country] ?? COUNTRY_CURRENCY.OTHER).name})<HelpTooltip text="현재 시점의 시세 기준 연산 가액을 입력하세요.&#10;· 부동산: 공시지가 기준&#10;· 금융자산: 현재 잔액&#10;· 주식: 현재 시세 기준&#10;상속세 계산에 활용됩니다." /></label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-semibold">
                         {(COUNTRY_CURRENCY[assetForm.country] ?? COUNTRY_CURRENCY.OTHER).symbol}
@@ -361,7 +361,7 @@ export default function AssetsPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-gray-600 mb-1 block">메모</label>
+                    <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center">메모<HelpTooltip text="자산에 대한 추가 정보를 입력하세요.&#10;예) 은행명, 계좌번호 일부, 집행자에게 알려야 할 사항" position="bottom" /></label>
                     <input
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
                       placeholder="은행명, 계좌 메모 등 (선택)"
