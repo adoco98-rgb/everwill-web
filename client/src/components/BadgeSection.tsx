@@ -93,6 +93,21 @@ export default function BadgeSection() {
       popular: false,
       icon: Sparkles,
     },
+    {
+      tier: "VIP",
+      tierLabel: isKo ? "VIP 프리미엄" : "VIP Premium",
+      color: "from-amber-300 via-yellow-400 to-amber-600",
+      borderColor: "border-amber-400/60",
+      textAccent: "text-amber-300",
+      bgCard: "bg-gradient-to-br from-amber-950 to-slate-900",
+      price: getPrice("$299", "₩299,000", "¥46,345", "¥2,153"),
+      material: isKo ? "티타님 · 플래티넘" : "Titanium · Platinum",
+      features: isKo
+        ? ["QR 신원 인증", "NFC 태그", "유언 인증 번호", "영구 보관 포함", "자필·영상 유언 포함", "사망 트리거 우선 처리", "VIP 전담 변호사 연결", "전담 콘시어지 서비스"]
+        : ["QR Identity", "NFC Tag", "Will Certificate", "Lifetime Storage Included", "Handwritten & Video Will", "Priority Death Trigger", "Dedicated VIP Attorney", "Dedicated Concierge Service"],
+      popular: false,
+      icon: Sparkles,
+    },
   ];
 
   return (
@@ -157,7 +172,7 @@ export default function BadgeSection() {
         </motion.div>
 
         {/* 카드 3종 라인업 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {cards.map((card, i) => (
             <motion.div
               key={card.tier}
@@ -229,7 +244,7 @@ export default function BadgeSection() {
                 onClick={() => toast.info(isKo ? "카드 주문 기능은 곧 오픈됩니다!" : "Card ordering coming soon!")}
                 className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 bg-gradient-to-r ${card.color} text-white hover:opacity-90 hover:shadow-lg mt-auto`}
               >
-                {isKo ? "지금 주문하기" : "Order Now"}
+                {isKo ? "지금 신청하기" : "Apply Now"}
               </button>
             </motion.div>
           ))}
@@ -249,8 +264,8 @@ export default function BadgeSection() {
           </p>
           <p className="text-white/50 text-sm mt-2 font-medium">
             {isKo
-              ? "실버 카드: 전자인증 ₩49,000에 무료 포함 · 골드 카드: 3년 플랜(₩79,000) · 플래티넘 카드: 5년 플랜(₩99,000) · 영구 보관: ₩199,000"
-              : "Silver Card: FREE with $49 certification · Gold Card: 3-Year Plan ($79) · Platinum Card: 5-Year Plan ($99) · Lifetime Storage: $199"}
+              ? "실버 ₩49,000 · 골드 ₩79,000 · 플래티넘 ₩99,000 · VIP 프리미엄 ₩299,000 · 영구 보관 ₩199,000"
+              : "Silver $49 · Gold $79 · Platinum $99 · VIP Premium $299 · Lifetime Storage $199"}
           </p>
         </motion.div>
       </div>
