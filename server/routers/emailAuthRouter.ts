@@ -17,6 +17,7 @@ import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { randomUUID } from "crypto";
 import { sendSmsOtp, verifySmsOtp } from "../_core/sms";
+import { generateMemberCode } from "../memberCode";
 
 /** 6자리 숫자 OTP 생성 */
 function generateOtp(): string {
@@ -148,6 +149,8 @@ export const emailAuthRouter = router({
       // isNewUser 판단: insert 전에 존재 여부 먼저 확인 (insert 후 select 시 항상 false 반환되는 버그 수정)
       const existingUsers = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
       const isNewUser = existingUsers.length === 0;
+      // 신규 가입 시 회원번호 자동 생성
+      const newMemberCode = isNewUser ? await generateMemberCode("KR") : undefined;
       await db.insert(users).values({
         openId,
         email: input.email,
@@ -155,6 +158,7 @@ export const emailAuthRouter = router({
         loginMethod: "email",
         lastSignedIn: new Date(),
         qrCode: newQrCode,
+        memberCode: newMemberCode,
       }).onDuplicateKeyUpdate({
         set: { lastSignedIn: new Date() },
       });
@@ -196,6 +200,8 @@ export const emailAuthRouter = router({
       // 비밀번호 해시
       const passwordHash = await bcrypt.hash(input.password, 12);
       const newQrCode = randomUUID();
+      // 신규 가입 시 회원번호 자동 생성
+      const newMemberCode = await generateMemberCode(input.country);
 
       await db.insert(users).values({
         openId,
@@ -209,6 +215,7 @@ export const emailAuthRouter = router({
         lastSignedIn: new Date(),
         qrCode: newQrCode,
         profileCompleted: 1,
+        memberCode: newMemberCode,
       });
 
       // 회원가입 환영 이메일 발송
@@ -643,6 +650,11 @@ export const emailAuthRouter = router({
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
       const openId = `email:${input.email}`;
+      // 회원번호 없는 경우 자동 생성 (이메일 OTP 방식 신규 가입자)
+      const existingUser = await db.select({ memberCode: users.memberCode }).from(users).where(eq(users.openId, openId)).limit(1);
+      const memberCodeToSet = (!existingUser[0]?.memberCode)
+        ? await generateMemberCode(input.country)
+        : undefined;
       await db.update(users)
         .set({
           name: input.name,
@@ -663,6 +675,7 @@ export const emailAuthRouter = router({
           agreeGdpr: input.agreeGdpr ?? 0,
           profileCompleted: 1,
           updatedAt: new Date(),
+          ...(memberCodeToSet ? { memberCode: memberCodeToSet } : {}),
         })
         .where(eq(users.openId, openId));
       return { success: true };

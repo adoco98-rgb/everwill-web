@@ -87,6 +87,12 @@ export const users = mysqlTable("users", {
   faceVerifiedAt: timestamp("faceVerifiedAt"),
   /** AI 얼굴 인증 결과 메시지 */
   faceVerifyResult: text("faceVerifyResult"),
+  /**
+   * 회원번호 (EV-[국가코드]-[YYMMDD]-[순번])
+   * 예: EV-KR-260529-00001
+   * 가입 완료 시 자동 생성
+   */
+  memberCode: varchar("memberCode", { length: 32 }).unique(),
 });
 
 export type User = typeof users.$inferSelect;

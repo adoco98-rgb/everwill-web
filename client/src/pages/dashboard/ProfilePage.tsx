@@ -552,6 +552,20 @@ export default function ProfilePage() {
         </div>
       </motion.div>
 
+      {/* 회원번호 */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.04 }}
+        className="bg-[#1F3864] rounded-2xl px-6 py-5"
+      >
+        <p className="text-white/50 text-xs mb-1 uppercase tracking-wider">회원번호 (EverWill Card 각인 번호)</p>
+        <p className="text-[#C9A961] font-mono font-bold text-2xl tracking-widest">
+          {(user as any)?.memberCode ?? "발급 중..."}
+        </p>
+        <p className="text-white/30 text-xs mt-1">EV-[국가코드]-[가입일]-[순번] 형식</p>
+      </motion.div>
+
       {/* 포인트 잔액 + 추천인 코드 */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}

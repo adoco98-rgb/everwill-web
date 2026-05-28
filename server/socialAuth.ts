@@ -16,6 +16,8 @@ import axios from "axios";
 import { getDb } from "./db";
 import { users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
+import { generateMemberCode } from "./memberCode";
+import { randomUUID } from "crypto";
 import { sdk } from "./_core/sdk";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { COOKIE_NAME, ONE_YEAR_MS } from "../shared/const";
@@ -63,6 +65,12 @@ async function loginSocialUser(
   const ADMIN_EMAILS = ["wadokdo@hanmail.net"];
   const isAdmin = params.email && ADMIN_EMAILS.includes(params.email);
 
+  // 신규 가입 여부 확인
+  const existingSocial = await db.select({ id: users.id, memberCode: users.memberCode }).from(users).where(eq(users.openId, params.openId)).limit(1);
+  const isNewSocialUser = existingSocial.length === 0;
+  const newMemberCode = isNewSocialUser ? await generateMemberCode("KR") : undefined;
+  const newQrCode = isNewSocialUser ? randomUUID() : undefined;
+
   // DB upsert (openId 기준)
   await db
     .insert(users)
@@ -73,6 +81,8 @@ async function loginSocialUser(
       loginMethod: params.loginMethod,
       role: isAdmin ? "admin" : "user",
       lastSignedIn: new Date(),
+      memberCode: newMemberCode,
+      qrCode: newQrCode,
     })
     .onDuplicateKeyUpdate({
       set: {
