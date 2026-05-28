@@ -810,4 +810,14 @@
 - [x] 대시보드 홈: 회원번호 카드 표시
 - [x] 프로필 페이지: 회원번호 표시
 - [x] 멤버십 카드 페이지: 회원번호 표시
+- [x] 체크포인트 저장
+
+
+## 국가별 유튜브/영상 섹션
+- [x] DB: siteSettings에 video_kr, video_us, video_jp, video_cn, video_de, video_es, video_ar 키 추가
+- [x] siteSettingsRouter에 getVideos(공개), updateVideos(관리자) 프로시저 추가
+- [x] 홈페이지 소개 슬라이더 아래에 CountryVideoSection 컴포넌트 추가
+- [x] 현재 선택 국가(언어)에 맞는 영상 자동 표시 (없으면 한국어 영상 fallback)
+- [x] 유튜브 URL → embed URL 자동 변환 (watch?v= → embed/)
+- [x] 관리자 페이지 "국가별 영상" 탭 신규 추가 (11개국 URL 등록 UI)
 - [ ] 체크포인트 저장

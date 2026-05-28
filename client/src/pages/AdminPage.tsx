@@ -19,7 +19,7 @@ import {
   UserCheck, Banknote, Star, Copy, Download
 } from "lucide-react";
 
-type Tab = "stats" | "users" | "payments" | "wills" | "inquiries" | "news" | "assetVerify" | "socialLinks" | "helpers";
+type Tab = "stats" | "users" | "payments" | "wills" | "inquiries" | "news" | "assetVerify" | "socialLinks" | "helpers" | "videos";
 
 function formatKRW(amount: number) {
   if (amount >= 100_000_000) return `${(amount / 100_000_000).toFixed(1)}억원`;
@@ -1317,6 +1317,95 @@ function SocialLinksTab() {
   );
 }
 
+/** 국가별 영상 관리 탭 */
+function VideosTab() {
+  const { data: rawVideos, refetch } = trpc.siteSettings.getVideosRaw.useQuery();
+  const [fields, setFields] = useState<Record<string, string>>({});
+  const [initialized, setInitialized] = useState(false);
+
+  if (rawVideos && !initialized) {
+    setFields(rawVideos);
+    setInitialized(true);
+  }
+
+  const updateMutation = trpc.siteSettings.updateVideos.useMutation({
+    onSuccess: () => { toast.success("영상 URL이 저장되었습니다."); refetch(); },
+    onError: (err) => toast.error(`저장 실패: ${err.message}`),
+  });
+
+  const videoFields = [
+    { key: "video_kr", flag: "🇰🇷", label: "한국" },
+    { key: "video_us", flag: "🇺🇸", label: "미국" },
+    { key: "video_jp", flag: "🇯🇵", label: "일본" },
+    { key: "video_cn", flag: "🇨🇳", label: "중국" },
+    { key: "video_de", flag: "🇩🇪", label: "독일" },
+    { key: "video_es", flag: "🇪🇸", label: "스페인" },
+    { key: "video_ar", flag: "🇸🇦", label: "아랍" },
+    { key: "video_fr", flag: "🇫🇷", label: "프랑스" },
+    { key: "video_ru", flag: "🇷🇺", label: "러시아" },
+    { key: "video_in", flag: "🇮🇳", label: "인도" },
+    { key: "video_br", flag: "🇧🇷", label: "브라질" },
+  ];
+
+  const handleSave = () => {
+    updateMutation.mutate(fields as Parameters<typeof updateMutation.mutate>[0]);
+  };
+
+  return (
+    <div className="max-w-3xl space-y-6">
+      <div>
+        <h2 className="text-lg font-bold text-[#1F3864]">국가별 영상 관리</h2>
+        <p className="text-sm text-gray-500 mt-1">
+          홈페이지 소개 섹션 아래에 표시될 국가별 유튜브/영상 URL을 설정하세요.
+        </p>
+      </div>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
+        <p className="font-semibold mb-1">💡 사용 방법</p>
+        <ul className="space-y-1 text-xs text-blue-700">
+          <li>• 유튜브 URL 예시: https://www.youtube.com/watch?v=NxSiwc7t4ao</li>
+          <li>• 방문자의 선택 국가에 맞는 영상이 자동으로 표시됩니다</li>
+          <li>• 해당 국가 영상이 없으면 한국 영상이 기본으로 표시됩니다</li>
+          <li>• 비워두면 해당 국가에서는 영상 섹션이 숨겨집니다</li>
+        </ul>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {videoFields.map((f) => (
+          <div key={f.key} className="bg-white border border-gray-200 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-2xl">{f.flag}</span>
+              <span className="font-semibold text-sm text-[#1F3864]">{f.label}</span>
+              {fields[f.key] && (
+                <a href={fields[f.key]} target="_blank" rel="noopener noreferrer"
+                  className="ml-auto text-xs text-blue-600 hover:underline flex items-center gap-1">
+                  <ExternalLink className="w-3 h-3" /> 확인
+                </a>
+              )}
+            </div>
+            <input
+              type="url"
+              value={fields[f.key] ?? ""}
+              onChange={(e) => setFields(prev => ({ ...prev, [f.key]: e.target.value }))}
+              placeholder="https://www.youtube.com/watch?v=..."
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864]"
+            />
+          </div>
+        ))}
+      </div>
+
+      <button
+        onClick={handleSave}
+        disabled={updateMutation.isPending}
+        className="flex items-center gap-2 px-6 py-3 bg-[#1F3864] text-white rounded-xl font-semibold text-sm hover:bg-[#1a3057] transition-colors disabled:opacity-50"
+      >
+        <Save className="w-4 h-4" />
+        {updateMutation.isPending ? "저장 중..." : "영상 URL 저장"}
+      </button>
+    </div>
+  );
+}
+
 /** 메인 관리자 페이지 */
 export default function AdminPage() {
   const { user, loading } = useAuth();
@@ -1346,6 +1435,7 @@ export default function AdminPage() {
     { id: "news", label: "뉴스 관리", icon: Newspaper },
     { id: "assetVerify", label: "자산 인증 검토", icon: ShieldCheck },
     { id: "socialLinks", label: "SNS 소셜 링크", icon: Link2 },
+    { id: "videos", label: "국가별 영상", icon: Youtube },
     { id: "helpers", label: "헬퍼 관리", icon: UserCheck },
   ];
 
@@ -1393,6 +1483,7 @@ export default function AdminPage() {
         {activeTab === "news" && <NewsTab />}
         {activeTab === "assetVerify" && <AssetVerifyTab />}
         {activeTab === "socialLinks" && <SocialLinksTab />}
+        {activeTab === "videos" && <VideosTab />}
         {activeTab === "helpers" && <HelpersTab />}
       </div>
     </div>
