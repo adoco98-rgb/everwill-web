@@ -773,4 +773,13 @@
 - [x] client/src/components/FaceVerification.tsx 생성 (신분증+셀피 업로드 UI)
 - [x] App.tsx: /dashboard/badge, /dashboard/certification 라우트 추가
 - [x] CertificationPage.tsx 생성 (인증 현황 페이지)
+- [x] 체크포인트 저장
+
+## 소셜 링크 관리 기능
+- [x] DB: site_settings 테이블에 소셜 링크 필드 추가 (youtube, instagram, kakao, line)
+- [x] pnpm db:push 실행
+- [x] server/routers/siteSettingsRouter.ts 생성 (getSocialLinks, updateSocialLinks)
+- [x] routers.ts에 siteSettingsRouter 등록
+- [x] 네비게이션 바에 소셜 아이콘 표시 (빈 동그라미 → 실제 아이콘)
+- [x] 관리자 페이지에 소셜 링크 설정 패널 추가
 - [ ] 체크포인트 저장

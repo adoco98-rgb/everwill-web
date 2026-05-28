@@ -780,3 +780,20 @@ export const willRevisionPayments = mysqlTable("willRevisionPayments", {
 });
 export type WillRevisionPayment = typeof willRevisionPayments.$inferSelect;
 export type InsertWillRevisionPayment = typeof willRevisionPayments.$inferInsert;
+
+/**
+ * 사이트 설정 테이블 (소셜 링크, 공지사항 등)
+ * key-value 방식으로 저장하여 확장성 확보
+ */
+export const siteSettings = mysqlTable("siteSettings", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 설정 키 (예: youtube_url, instagram_url, kakao_url, line_url) */
+  settingKey: varchar("settingKey", { length: 100 }).notNull().unique(),
+  /** 설정 값 */
+  settingValue: text("settingValue"),
+  /** 설명 */
+  description: varchar("description", { length: 255 }),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type SiteSetting = typeof siteSettings.$inferSelect;
+export type InsertSiteSetting = typeof siteSettings.$inferInsert;

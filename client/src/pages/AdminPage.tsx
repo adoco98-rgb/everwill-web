@@ -15,10 +15,10 @@ import {
   BarChart3, Search, ChevronLeft, ChevronRight,
   TrendingUp, Shield, Clock, CheckCircle,
   Newspaper, Plus, Trash2, Eye, EyeOff, ExternalLink, Pencil, KeyRound,
-  ShieldCheck, XCircle, AlertTriangle, ImageIcon
+  ShieldCheck, XCircle, AlertTriangle, ImageIcon, Link2, Save, Youtube, Instagram
 } from "lucide-react";
 
-type Tab = "stats" | "users" | "payments" | "wills" | "inquiries" | "news" | "assetVerify";
+type Tab = "stats" | "users" | "payments" | "wills" | "inquiries" | "news" | "assetVerify" | "socialLinks";
 
 function formatKRW(amount: number) {
   if (amount >= 100_000_000) return `${(amount / 100_000_000).toFixed(1)}억원`;
@@ -903,6 +903,152 @@ function AssetVerifyTab() {
   );
 }
 
+/** 소셜 링크 관리 탭 */
+function SocialLinksTab() {
+  const { data: current, refetch } = trpc.siteSettings.getSocialLinks.useQuery();
+  const [youtube, setYoutube] = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [kakao, setKakao] = useState("");
+  const [line, setLine] = useState("");
+  const [initialized, setInitialized] = useState(false);
+
+  // DB 값으로 초기화
+  if (current && !initialized) {
+    setYoutube(current.youtube ?? "");
+    setInstagram(current.instagram ?? "");
+    setKakao(current.kakao ?? "");
+    setLine(current.line ?? "");
+    setInitialized(true);
+  }
+
+  const updateMutation = trpc.siteSettings.updateSocialLinks.useMutation({
+    onSuccess: () => {
+      toast.success("소셜 링크가 저장되었습니다.");
+      refetch();
+    },
+    onError: (err) => toast.error(`저장 실패: ${err.message}`),
+  });
+
+  const handleSave = () => {
+    // URL 형식 검증 (비어있으면 허용)
+    const validateUrl = (url: string) => !url || url.startsWith("http://") || url.startsWith("https://");
+    if (!validateUrl(youtube)) return toast.error("유튜브 URL은 http:// 또는 https://로 시작해야 합니다.");
+    if (!validateUrl(instagram)) return toast.error("인스타 URL은 http:// 또는 https://로 시작해야 합니다.");
+    if (!validateUrl(kakao)) return toast.error("카카오 URL은 http:// 또는 https://로 시작해야 합니다.");
+    if (!validateUrl(line)) return toast.error("라인 URL은 http:// 또는 https://로 시작해야 합니다.");
+    updateMutation.mutate({ youtube, instagram, kakao, line });
+  };
+
+  const socialFields = [
+    {
+      key: "youtube",
+      label: "유튜브",
+      placeholder: "https://www.youtube.com/@유저네임",
+      value: youtube,
+      onChange: setYoutube,
+      color: "text-red-500",
+      bg: "bg-red-50",
+      border: "border-red-200",
+      icon: Youtube,
+      hint: "유튜브 체널 URL을 입력하세요",
+    },
+    {
+      key: "instagram",
+      label: "인스타그램",
+      placeholder: "https://www.instagram.com/아이디/",
+      value: instagram,
+      onChange: setInstagram,
+      color: "text-pink-500",
+      bg: "bg-pink-50",
+      border: "border-pink-200",
+      icon: Instagram,
+      hint: "인스타그램 계정 URL을 입력하세요",
+    },
+    {
+      key: "kakao",
+      label: "카카오톡 채널",
+      placeholder: "https://pf.kakao.com/_아이디/",
+      value: kakao,
+      onChange: setKakao,
+      color: "text-yellow-600",
+      bg: "bg-yellow-50",
+      border: "border-yellow-200",
+      icon: Link2,
+      hint: "카카오톡 연게 또는 카카오 체널 URL",
+    },
+    {
+      key: "line",
+      label: "라인 공식 계정",
+      placeholder: "https://line.me/R/ti/p/@아이디",
+      value: line,
+      onChange: setLine,
+      color: "text-green-600",
+      bg: "bg-green-50",
+      border: "border-green-200",
+      icon: Link2,
+      hint: "라인 공식 계정 URL을 입력하세요",
+    },
+  ];
+
+  return (
+    <div className="max-w-2xl space-y-6">
+      <div>
+        <h2 className="text-lg font-bold text-[#1F3864]">SNS 소셜 링크 관리</h2>
+        <p className="text-sm text-gray-500 mt-1">
+          네비게이션 바에 표시될 소셜 링크를 설정하세요. URL을 비워두면 해당 아이콘이 숨겨집니다.
+        </p>
+      </div>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
+        <p className="font-semibold mb-1">💡 사용 방법</p>
+        <ul className="space-y-1 text-xs text-blue-700">
+          <li>• URL을 입력하면 네비게이션 바에 아이콘이 자동으로 표시됩니다</li>
+          <li>• 비워두면 해당 소셜 아이콘이 숨겨집니다</li>
+          <li>• 모바일 메뉴에도 동일하게 적용됩니다</li>
+        </ul>
+      </div>
+
+      <div className="space-y-4">
+        {socialFields.map((field) => (
+          <div key={field.key} className={`rounded-xl border ${field.border} ${field.bg} p-4`}>
+            <div className="flex items-center gap-2 mb-3">
+              <field.icon className={`w-5 h-5 ${field.color}`} />
+              <span className={`font-semibold text-sm ${field.color}`}>{field.label}</span>
+              {field.value && (
+                <a
+                  href={field.value}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-auto text-xs text-blue-600 hover:underline flex items-center gap-1"
+                >
+                  <ExternalLink className="w-3 h-3" /> 확인
+                </a>
+              )}
+            </div>
+            <input
+              type="url"
+              value={field.value}
+              onChange={(e) => field.onChange(e.target.value)}
+              placeholder={field.placeholder}
+              className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864]"
+            />
+            <p className="text-xs text-gray-500 mt-1.5">{field.hint}</p>
+          </div>
+        ))}
+      </div>
+
+      <button
+        onClick={handleSave}
+        disabled={updateMutation.isPending}
+        className="flex items-center gap-2 px-6 py-3 bg-[#1F3864] text-white rounded-xl font-semibold text-sm hover:bg-[#1a3057] transition-colors disabled:opacity-50"
+      >
+        <Save className="w-4 h-4" />
+        {updateMutation.isPending ? "저장 중..." : "소셜 링크 저장"}
+      </button>
+    </div>
+  );
+}
+
 /** 메인 관리자 페이지 */
 export default function AdminPage() {
   const { user, loading } = useAuth();
@@ -931,6 +1077,7 @@ export default function AdminPage() {
     { id: "inquiries", label: "문의 관리", icon: MessageSquare },
     { id: "news", label: "뉴스 관리", icon: Newspaper },
     { id: "assetVerify", label: "자산 인증 검토", icon: ShieldCheck },
+    { id: "socialLinks", label: "SNS 소셜 링크", icon: Link2 },
   ];
 
   return (
@@ -976,6 +1123,7 @@ export default function AdminPage() {
         {activeTab === "inquiries" && <InquiriesTab />}
         {activeTab === "news" && <NewsTab />}
         {activeTab === "assetVerify" && <AssetVerifyTab />}
+        {activeTab === "socialLinks" && <SocialLinksTab />}
       </div>
     </div>
   );

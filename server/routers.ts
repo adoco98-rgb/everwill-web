@@ -24,6 +24,7 @@ import { willAutoRouter } from "./routers/willAutoRouter";
 import { pdfRouter } from "./routers/pdfRouter";
 import { chatRouter } from "./routers/chatRouter";
 import { verificationRouter } from "./routers/verificationRouter";
+import { siteSettingsRouter } from "./routers/siteSettingsRouter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -82,6 +83,8 @@ export const appRouter = router({
   chat: chatRouter,
   // 얼굴 인증 (KYC) 라우터
   verification: verificationRouter,
+  // 사이트 설정 (소셜 링크 등) 라우터
+  siteSettings: siteSettingsRouter,
 });
 
 export type AppRouter = typeof appRouter;

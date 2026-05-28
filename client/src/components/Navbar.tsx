@@ -2,6 +2,7 @@
  * EverWill 네비게이션 바
  * 11개 언어 국기 버튼 바 (네비게이션 바 하단에 항상 표시)
  * IP 기반 자동 언어 감지
+ * 소셜 링크 아이콘 (유튜브, 인스타, 카카오, 라인) - DB에서 관리자가 설정
  */
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,6 +12,7 @@ import { getLoginUrl } from "@/const";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Language } from "@/i18n";
+import { trpc } from "@/lib/trpc";
 
 // 11개 언어 국기 목록 (flagcdn 고화질 PNG)
 const languages: { code: Language; label: string; flagImg: string }[] = [
@@ -42,12 +44,48 @@ const countryToLanguage: Record<string, Language> = {
   BR: "pt", PT: "pt", AO: "pt", MZ: "pt",
 };
 
+// ─── 소셜 아이콘 SVG 컴포넌트 ───
+function YoutubeIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+    </svg>
+  );
+}
+
+function InstagramIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+    </svg>
+  );
+}
+
+function KakaoIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 3C6.477 3 2 6.477 2 10.5c0 2.607 1.563 4.9 3.938 6.3L5 21l4.5-2.813A11.8 11.8 0 0 0 12 18.5c5.523 0 10-3.477 10-7.75S17.523 3 12 3z"/>
+    </svg>
+  );
+}
+
+function LineIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+    </svg>
+  );
+}
+
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated, logout } = useAuth();
+
+  // 소셜 링크 조회
+  const { data: socialLinks } = trpc.siteSettings.getSocialLinks.useQuery();
 
   // 외부 클릭 시 드롭다운 닫기
   useEffect(() => {
@@ -110,7 +148,7 @@ export default function Navbar() {
     ? t.nav.manager
     : user?.name?.split(" ")[0] || t.nav.myPage;
 
-  // 네비게이션 메뉴 — 한 줄에 들어오도록 7개로 유지 (중복/불필요 항목 제거)
+  // 네비게이션 메뉴
   const navLinks = [
     { label: t.nav.services, href: "#services" },
     { label: t.nav.badge, href: "#badge" },
@@ -120,6 +158,14 @@ export default function Navbar() {
     { label: t.nav.letter ?? "사회기부", href: "/charity", isPage: true },
     { label: t.nav.pricing, href: "#pricing" },
   ];
+
+  // 소셜 링크 목록 (링크가 있는 것만 표시)
+  const socialItems = [
+    { key: "youtube", url: socialLinks?.youtube, icon: YoutubeIcon, label: "YouTube", hoverColor: "hover:text-red-500" },
+    { key: "instagram", url: socialLinks?.instagram, icon: InstagramIcon, label: "Instagram", hoverColor: "hover:text-pink-400" },
+    { key: "kakao", url: socialLinks?.kakao, icon: KakaoIcon, label: "KakaoTalk", hoverColor: "hover:text-yellow-400" },
+    { key: "line", url: socialLinks?.line, icon: LineIcon, label: "LINE", hoverColor: "hover:text-green-400" },
+  ].filter((item) => !!item.url);
 
   return (
     <motion.nav
@@ -145,7 +191,7 @@ export default function Navbar() {
             />
           </a>
 
-          {/* 데스크탑 메뉴 — whitespace-nowrap으로 2줄 깨짐 방지 */}
+          {/* 데스크탑 메뉴 */}
           <div className="hidden lg:flex items-center gap-4 xl:gap-6">
             {navLinks.map((link) => (
               <button
@@ -163,6 +209,26 @@ export default function Navbar() {
 
           {/* 우측 액션 */}
           <div className="hidden lg:flex items-center gap-3">
+            {/* 소셜 링크 아이콘 */}
+            {socialItems.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                {socialItems.map((item) => (
+                  <motion.a
+                    key={item.key}
+                    href={item.url!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={item.label}
+                    whileHover={{ scale: 1.15, y: -1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className={`w-8 h-8 flex items-center justify-center rounded-full bg-white/10 text-white/70 ${item.hoverColor} hover:bg-white/20 transition-all duration-200`}
+                  >
+                    <item.icon className="w-4 h-4" />
+                  </motion.a>
+                ))}
+              </div>
+            )}
+
             {isAuthenticated ? (
               <div className="relative" ref={userMenuRef}>
                 {/* 아이디 버튼 */}
@@ -237,7 +303,7 @@ export default function Navbar() {
                         </button>
                       </div>
 
-                      <div className="border-t border-gray-100 py-1">
+                      <div className="border-t border-gray-100">
                         <button
                           onClick={() => { setUserMenuOpen(false); logout(); }}
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
@@ -299,7 +365,6 @@ export default function Navbar() {
                     : "hover:bg-white/10"
                 }`}
               >
-                {/* 선택 시 발광 효과 */}
                 {language === lang.code && (
                   <motion.div
                     layoutId="activeLang"
@@ -319,7 +384,6 @@ export default function Navbar() {
                     }`}
                     style={{ width: 32, height: 22, objectFit: "cover", display: "block" }}
                   />
-                {/* 국기만 표시 — 코드 레이블 제거 */}
               </motion.button>
             ))}
           </div>
@@ -346,10 +410,29 @@ export default function Navbar() {
                 </button>
               ))}
 
+              {/* 모바일 소셜 링크 */}
+              {socialItems.length > 0 && (
+                <div className="flex items-center gap-3 py-3 px-2 border-b border-white/5">
+                  <span className="text-white/50 text-xs">팔로우</span>
+                  {socialItems.map((item) => (
+                    <a
+                      key={item.key}
+                      href={item.url!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={item.label}
+                      className={`w-9 h-9 flex items-center justify-center rounded-full bg-white/10 text-white/70 ${item.hoverColor} transition-colors`}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      <item.icon className="w-5 h-5" />
+                    </a>
+                  ))}
+                </div>
+              )}
+
               <div className="pt-3 flex flex-col gap-2">
                 {isAuthenticated ? (
                   <>
-                    {/* 모바일 사용자 정보 */}
                     <div className="bg-white/10 rounded-lg px-3 py-2 mb-1">
                       <p className="text-white/50 text-xs">로그인 중</p>
                       <p className="text-white text-sm font-semibold truncate">{user?.name || user?.email || displayName}</p>
