@@ -39,6 +39,7 @@ const menuItems = [
   { icon: User, label: "프로필 설정", path: "/dashboard/profile" },
   { icon: Users, label: "상속자 등록", path: "/dashboard/heirs" },
   { icon: Heart, label: "연명치료·기증", path: "/dashboard/medical-directive" },
+  { icon: Users, label: "헬퍼 활동", path: "/dashboard/helper" },
 ];
 
 export default function SaramDashboardLayout({ children }: { children: React.ReactNode }) {

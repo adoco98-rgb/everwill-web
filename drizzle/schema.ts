@@ -797,3 +797,135 @@ export const siteSettings = mysqlTable("siteSettings", {
 });
 export type SiteSetting = typeof siteSettings.$inferSelect;
 export type InsertSiteSetting = typeof siteSettings.$inferInsert;
+
+/**
+ * 헬퍼(셀러) 테이블
+ * 일반 회원이 헬퍼 신청 → 관리자 승인 → 판매 코드 발급
+ */
+export const helpers = mysqlTable("helpers", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 연결된 사용자 ID */
+  userId: int("userId").notNull().unique(),
+  /** 고유 판매 코드 (예: HELPER-A3K9) */
+  helperCode: varchar("helperCode", { length: 32 }).unique(),
+  /** 신청 상태 (pending=검토중, approved=승인, rejected=거절, suspended=정지) */
+  status: mysqlEnum("status", ["pending", "approved", "rejected", "suspended"]).default("pending").notNull(),
+  /** 현재 커미션율 (15/20/25/30) */
+  commissionRate: int("commissionRate").default(15).notNull(),
+  /** 누적 총 매출 (원, 커미션 등급 산정 기준) */
+  totalSales: bigint("totalSales", { mode: "number" }).default(0).notNull(),
+  /** 미지급 커미션 잔액 (원) */
+  pendingCommission: bigint("pendingCommission", { mode: "number" }).default(0).notNull(),
+  /** 총 지급된 커미션 (원) */
+  totalPaidCommission: bigint("totalPaidCommission", { mode: "number" }).default(0).notNull(),
+  /** 관리자 메모 (승인/거절 사유 등) */
+  adminNote: text("adminNote"),
+  /** 승인 처리 관리자 ID */
+  approvedBy: int("approvedBy"),
+  /** 승인 일시 */
+  approvedAt: timestamp("approvedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type Helper = typeof helpers.$inferSelect;
+export type InsertHelper = typeof helpers.$inferInsert;
+
+/**
+ * 헬퍼 제출 서류 테이블
+ * 주민등록등본, 신분증, 통장사본 + AI OCR 추출 데이터
+ */
+export const helperDocuments = mysqlTable("helperDocuments", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 연결된 헬퍼 ID */
+  helperId: int("helperId").notNull(),
+  /** 문서 종류 (resident=주민등록등본, id_card=신분증, bankbook=통장사본) */
+  docType: mysqlEnum("docType", ["resident", "id_card", "bankbook"]).notNull(),
+  /** S3 저장 키 */
+  fileKey: varchar("fileKey", { length: 512 }),
+  /** S3 URL */
+  fileUrl: varchar("fileUrl", { length: 1024 }),
+  /** OCR 추출: 이름 */
+  ocrName: varchar("ocrName", { length: 128 }),
+  /** OCR 추출: 생년월일 */
+  ocrBirthDate: varchar("ocrBirthDate", { length: 16 }),
+  /** OCR 추출: 주소 (주민등록등본) */
+  ocrAddress: text("ocrAddress"),
+  /** OCR 추출: 은행명 (통장사본) */
+  ocrBankName: varchar("ocrBankName", { length: 64 }),
+  /** OCR 추출: 계좌번호 (통장사본) */
+  ocrAccountNumber: varchar("ocrAccountNumber", { length: 64 }),
+  /** OCR 추출: 예금주 (통장사본) */
+  ocrAccountHolder: varchar("ocrAccountHolder", { length: 128 }),
+  /** OCR 전체 원문 (JSON 형태로 저장) */
+  ocrRawData: text("ocrRawData"),
+  /** OCR 처리 상태 (pending/done/error) */
+  ocrStatus: mysqlEnum("ocrStatus", ["pending", "done", "error"]).default("pending"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type HelperDocument = typeof helperDocuments.$inferSelect;
+export type InsertHelperDocument = typeof helperDocuments.$inferInsert;
+
+/**
+ * 헬퍼 커미션 내역 테이블
+ * 결제 완료 시 헬퍼 코드가 사용된 경우 자동 적립
+ */
+export const helperCommissions = mysqlTable("helperCommissions", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 헬퍼 ID */
+  helperId: int("helperId").notNull(),
+  /** 결제한 고객 사용자 ID */
+  customerId: int("customerId").notNull(),
+  /** Stripe 세션 ID (결제 연동) */
+  stripeSessionId: varchar("stripeSessionId", { length: 128 }),
+  /** 결제 상품명 */
+  productName: varchar("productName", { length: 256 }),
+  /** 결제 금액 (원) */
+  saleAmount: bigint("saleAmount", { mode: "number" }).notNull(),
+  /** 적용된 커미션율 (%) */
+  commissionRate: int("commissionRate").notNull(),
+  /** 커미션 금액 (원) = saleAmount × commissionRate / 100 */
+  commissionAmount: bigint("commissionAmount", { mode: "number" }).notNull(),
+  /** 정산 상태 (pending=미정산, paid=정산완료) */
+  payoutStatus: mysqlEnum("payoutStatus", ["pending", "paid"]).default("pending").notNull(),
+  /** 연결된 정산 ID */
+  payoutId: int("payoutId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type HelperCommission = typeof helperCommissions.$inferSelect;
+export type InsertHelperCommission = typeof helperCommissions.$inferInsert;
+
+/**
+ * 헬퍼 정산 내역 테이블
+ * 3.3% 원천징수 공제 후 실지급액 관리
+ */
+export const helperPayouts = mysqlTable("helperPayouts", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 헬퍼 ID */
+  helperId: int("helperId").notNull(),
+  /** 정산 대상 커미션 세전 합계 (원) */
+  grossAmount: bigint("grossAmount", { mode: "number" }).notNull(),
+  /** 원천징수 세율 (기본 3.3%) */
+  taxRate: int("taxRate").default(33).notNull(),
+  /** 공제 세금 = grossAmount × taxRate / 1000 */
+  taxAmount: bigint("taxAmount", { mode: "number" }).notNull(),
+  /** 실지급액 = grossAmount - taxAmount */
+  netAmount: bigint("netAmount", { mode: "number" }).notNull(),
+  /** 지급 은행명 */
+  bankName: varchar("bankName", { length: 64 }),
+  /** 지급 계좌번호 */
+  accountNumber: varchar("accountNumber", { length: 64 }),
+  /** 예금주 */
+  accountHolder: varchar("accountHolder", { length: 128 }),
+  /** 정산 상태 (pending=처리중, completed=지급완료, cancelled=취소) */
+  status: mysqlEnum("status", ["pending", "completed", "cancelled"]).default("pending").notNull(),
+  /** 지급 완료 일시 */
+  paidAt: timestamp("paidAt"),
+  /** 관리자 메모 */
+  adminNote: text("adminNote"),
+  /** 처리한 관리자 ID */
+  processedBy: int("processedBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type HelperPayout = typeof helperPayouts.$inferSelect;
+export type InsertHelperPayout = typeof helperPayouts.$inferInsert;

@@ -783,3 +783,18 @@
 - [x] 네비게이션 바에 소셜 아이콘 표시 (빈 동그라미 → 실제 아이콘)
 - [x] 관리자 페이지에 소셜 링크 설정 패널 추가
 - [x] 체크포인트 저장
+
+## 헬퍼(셀러) 시스템
+- [x] DB: helpers 테이블 (userId, code, status, commissionRate, totalSales, approvedAt)
+- [x] DB: helperDocuments 테이블 (주민등록등본/신분증/통장사본 키, OCR 추출 데이터)
+- [x] DB: helperCommissions 테이블 (헬퍼ID, 주문ID, 금액, 커미션율, 적립액)
+- [x] DB: helperPayouts 테이블 (헬퍼ID, 세전금액, 세율 3.3%, 실지급액, 상태)
+- [x] pnpm db:push 실행
+- [x] server/routers/helperRouter.ts 생성 (신청/승인/코드발급/커미션계산/정산)
+- [x] routers.ts에 helperRouter 등록
+- [x] 헬퍼 신청 페이지 (서류 3종 업로드 + AI OCR 추출)
+- [x] 헬퍼 대시보드 페이지 (판매코드, 커미션내역, 정산요청)
+- [x] 관리자 헬퍼 관리 탭 (신청목록, 서류열람, 승인/거절, 정산처리)
+- [x] 결제 화면에 헬퍼 코드 입력 필드 추가
+- [x] 커미션 자동 적립 연동 (결제 완료 시)
+- [ ] 체크포인트 저장

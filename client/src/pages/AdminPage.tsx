@@ -15,10 +15,11 @@ import {
   BarChart3, Search, ChevronLeft, ChevronRight,
   TrendingUp, Shield, Clock, CheckCircle,
   Newspaper, Plus, Trash2, Eye, EyeOff, ExternalLink, Pencil, KeyRound,
-  ShieldCheck, XCircle, AlertTriangle, ImageIcon, Link2, Save, Youtube, Instagram
+  ShieldCheck, XCircle, AlertTriangle, ImageIcon, Link2, Save, Youtube, Instagram,
+  UserCheck, Banknote, Star, Copy, Download
 } from "lucide-react";
 
-type Tab = "stats" | "users" | "payments" | "wills" | "inquiries" | "news" | "assetVerify" | "socialLinks";
+type Tab = "stats" | "users" | "payments" | "wills" | "inquiries" | "news" | "assetVerify" | "socialLinks" | "helpers";
 
 function formatKRW(amount: number) {
   if (amount >= 100_000_000) return `${(amount / 100_000_000).toFixed(1)}억원`;
@@ -903,7 +904,274 @@ function AssetVerifyTab() {
   );
 }
 
-/** 소셜 링크 관리 탭 */
+/** 헬퍼 관리 탭 */
+function HelpersTab() {
+  const [subTab, setSubTab] = useState<"applications" | "payouts">("applications");
+  const [selectedHelper, setSelectedHelper] = useState<number | null>(null);
+  const [rejectNote, setRejectNote] = useState("");
+  const [approveNote, setApproveNote] = useState("");
+  const [payoutNote, setPayoutNote] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "rejected" | "suspended" | "all">("pending");
+
+  const { data: helpers, refetch: refetchHelpers } = trpc.helper.adminListHelpers.useQuery({ status: statusFilter });
+  const { data: helperDocs } = trpc.helper.adminGetHelperDocs.useQuery(
+    { helperId: selectedHelper! },
+    { enabled: !!selectedHelper }
+  );
+  const { data: payouts, refetch: refetchPayouts } = trpc.helper.adminListPayouts.useQuery({ status: "all" });
+
+  const approveMutation = trpc.helper.adminApprove.useMutation({
+    onSuccess: (data) => {
+      toast.success(`승인 완료! 판매 코드: ${data.helperCode}`);
+      refetchHelpers();
+      setSelectedHelper(null);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const rejectMutation = trpc.helper.adminReject.useMutation({
+    onSuccess: () => {
+      toast.success("거절 처리되었습니다.");
+      refetchHelpers();
+      setSelectedHelper(null);
+      setRejectNote("");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const completePayout = trpc.helper.adminCompletePayout.useMutation({
+    onSuccess: () => {
+      toast.success("지급 완료 처리되었습니다.");
+      refetchPayouts();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  function formatKRW(n: number) {
+    if (n >= 10_000) return `${(n / 10_000).toFixed(0)}만원`;
+    return `${n.toLocaleString()}원`;
+  }
+
+  function formatDate(d: Date | string | null) {
+    if (!d) return "-";
+    return new Date(d).toLocaleDateString("ko-KR");
+  }
+
+  const statusLabel: Record<string, { label: string; color: string }> = {
+    pending: { label: "검토중", color: "text-yellow-600 bg-yellow-50" },
+    approved: { label: "승인", color: "text-green-600 bg-green-50" },
+    rejected: { label: "거절", color: "text-red-600 bg-red-50" },
+    suspended: { label: "정지", color: "text-gray-600 bg-gray-100" },
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold text-[#1F3864]">\ud5ec\ud37c \uad00\ub9ac</h2>
+        <div className="flex gap-2">
+          <button onClick={() => setSubTab("applications")} className={`px-4 py-2 rounded-lg text-sm font-medium ${subTab === "applications" ? "bg-[#1F3864] text-white" : "bg-gray-100 text-gray-600"}`}>
+            \uc2e0\uccad \ubaa9\ub85d
+          </button>
+          <button onClick={() => setSubTab("payouts")} className={`px-4 py-2 rounded-lg text-sm font-medium ${subTab === "payouts" ? "bg-[#1F3864] text-white" : "bg-gray-100 text-gray-600"}`}>
+            \uc815\uc0b0 \uad00\ub9ac
+          </button>
+        </div>
+      </div>
+
+      {subTab === "applications" && (
+        <div className="space-y-4">
+          {/* \uc0c1\ud0dc \ud544\ud130 */}
+          <div className="flex gap-2 flex-wrap">
+            {(["all", "pending", "approved", "rejected"] as const).map((s) => (
+              <button key={s} onClick={() => setStatusFilter(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium ${statusFilter === s ? "bg-[#1F3864] text-white" : "bg-gray-100 text-gray-600"}`}>
+                {s === "all" ? "\uc804\uccb4" : s === "pending" ? "\uac80\ud1a0\uc911" : s === "approved" ? "\uc2b9\uc778" : "\uac70\uc808"}
+              </button>
+            ))}
+          </div>
+
+          {/* \uc2e0\uccad \ubaa9\ub85d */}
+          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium">\uc2e0\uccad\uc790</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">\ud310\ub9e4 \ucf54\ub4dc</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium">\uc0c1\ud0dc</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">\ub204\uc801 \ub9e4\ucd9c</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">\uc2e0\uccad\uc77c</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium">\uc561\uc158</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {(helpers ?? []).map(({ helper, user }) => {
+                  const sl = statusLabel[helper.status];
+                  return (
+                    <tr key={helper.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-gray-800">{user.name || "-"}</div>
+                        <div className="text-xs text-gray-400">{user.email}</div>
+                      </td>
+                      <td className="px-4 py-3 hidden md:table-cell">
+                        <span className="font-mono text-xs text-[#1F3864] font-bold">{helper.helperCode || "-"}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${sl.color}`}>{sl.label}</span>
+                      </td>
+                      <td className="px-4 py-3 hidden lg:table-cell text-gray-600">{formatKRW(helper.totalSales)}</td>
+                      <td className="px-4 py-3 hidden lg:table-cell text-gray-400 text-xs">{formatDate(helper.createdAt)}</td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => setSelectedHelper(selectedHelper === helper.id ? null : helper.id)}
+                          className="text-xs px-3 py-1.5 bg-[#1F3864] text-white rounded-lg hover:bg-[#1a3057]"
+                        >
+                          {selectedHelper === helper.id ? "\ub2eb\uae30" : "\uc0c1\uc138"}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {(helpers ?? []).length === 0 && (
+              <div className="py-12 text-center text-gray-400 text-sm">\uc2e0\uccad \ub0b4\uc5ed\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.</div>
+            )}
+          </div>
+
+          {/* \uc0c1\uc138 \ud328\ub110 */}
+          {selectedHelper && (
+            <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+              <h3 className="font-bold text-gray-800">\uc11c\ub958 \ud655\uc778 \ubc0f \uc2b9\uc778/\uac70\uc808</h3>
+
+              {/* OCR \ucd94\ucd9c \ub370\uc774\ud130 */}
+              {helperDocs && helperDocs.length > 0 && (
+                <div className="space-y-3">
+                  {helperDocs.map((doc) => (
+                    <div key={doc.id} className="border border-gray-100 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-semibold text-sm text-gray-700">
+                          {doc.docType === "resident" ? "\uc8fc\ubbfc\ub4f1\ub85d\ub4f1\ubcf8" : doc.docType === "id_card" ? "\uc2e0\ubd84\uc99d" : "\ud1b5\uc7a5\uc0ac\ubcf8"}
+                        </span>
+                        {doc.fileUrl && (
+                          <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                            <ExternalLink className="w-3 h-3" /> \uc6d0\ubcf8 \ubcf4\uae30
+                          </a>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        {doc.ocrName && <div><span className="text-gray-400">\uc774\ub984:</span> <span className="font-medium">{doc.ocrName}</span></div>}
+                        {doc.ocrBirthDate && <div><span className="text-gray-400">\uc0dd\ub144\uc6d4\uc77c:</span> <span className="font-medium">{doc.ocrBirthDate}</span></div>}
+                        {doc.ocrAddress && <div className="col-span-2"><span className="text-gray-400">\uc8fc\uc18c:</span> <span className="font-medium">{doc.ocrAddress}</span></div>}
+                        {doc.ocrBankName && <div><span className="text-gray-400">\uc740\ud589:</span> <span className="font-medium">{doc.ocrBankName}</span></div>}
+                        {doc.ocrAccountNumber && <div><span className="text-gray-400">\uacc4\uc88c:</span> <span className="font-medium">{doc.ocrAccountNumber}</span></div>}
+                        {doc.ocrAccountHolder && <div><span className="text-gray-400">\uc608\uae08\uc8fc:</span> <span className="font-medium">{doc.ocrAccountHolder}</span></div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* \uc2b9\uc778 */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-gray-600">\uc2b9\uc778 \uba54\ubaa8 (\uc120\ud0dd)</label>
+                <input type="text" value={approveNote} onChange={(e) => setApproveNote(e.target.value)}
+                  placeholder="\uc2b9\uc778 \uc0ac\uc720 \ub610\ub294 \uba54\ubaa8"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
+                <button
+                  onClick={() => approveMutation.mutate({ helperId: selectedHelper, note: approveNote })}
+                  disabled={approveMutation.isPending}
+                  className="w-full py-3 bg-green-600 text-white rounded-xl font-bold text-sm hover:bg-green-700 disabled:opacity-50"
+                >
+                  {approveMutation.isPending ? "\ucc98\ub9ac \uc911..." : "\uc2b9\uc778 \ubc0f \ud310\ub9e4 \ucf54\ub4dc \ubc1c\uae09"}
+                </button>
+              </div>
+
+              {/* \uac70\uc808 */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-gray-600">\uac70\uc808 \uc0ac\uc720 (\ud544\uc218)</label>
+                <input type="text" value={rejectNote} onChange={(e) => setRejectNote(e.target.value)}
+                  placeholder="\uac70\uc808 \uc0ac\uc720\ub97c \uc785\ub825\ud558\uc138\uc694"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
+                <button
+                  onClick={() => {
+                    if (!rejectNote) return toast.error("\uac70\uc808 \uc0ac\uc720\ub97c \uc785\ub825\ud574 \uc8fc\uc138\uc694.");
+                    rejectMutation.mutate({ helperId: selectedHelper, note: rejectNote });
+                  }}
+                  disabled={rejectMutation.isPending}
+                  className="w-full py-3 bg-red-500 text-white rounded-xl font-bold text-sm hover:bg-red-600 disabled:opacity-50"
+                >
+                  {rejectMutation.isPending ? "\ucc98\ub9ac \uc911..." : "\uac70\uc808"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {subTab === "payouts" && (
+        <div className="space-y-4">
+          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium">\ud5ec\ud37c</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium">\uc138\uc804 \uae08\uc561</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium">3.3% \uacf5\uc81c</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium">\uc2e4\uc9c0\uae09\uc561</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">\uacc4\uc88c</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium">\uc0c1\ud0dc</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium">\uc561\uc158</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {(payouts ?? []).map(({ payout, helper, user }) => (
+                  <tr key={payout.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-gray-800">{user.name || "-"}</div>
+                      <div className="text-xs text-gray-400 font-mono">{helper.helperCode}</div>
+                    </td>
+                    <td className="px-4 py-3 font-semibold">{formatKRW(payout.grossAmount)}</td>
+                    <td className="px-4 py-3 text-red-500">-{formatKRW(payout.taxAmount)}</td>
+                    <td className="px-4 py-3 font-bold text-[#1F3864]">{formatKRW(payout.netAmount)}</td>
+                    <td className="px-4 py-3 hidden md:table-cell text-xs text-gray-600">
+                      <div>{payout.bankName} {payout.accountNumber}</div>
+                      <div className="text-gray-400">{payout.accountHolder}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        payout.status === "completed" ? "bg-green-50 text-green-600" :
+                        payout.status === "cancelled" ? "bg-red-50 text-red-500" :
+                        "bg-yellow-50 text-yellow-600"
+                      }`}>
+                        {payout.status === "completed" ? "\uc9c0\uae09\uc644\ub8cc" : payout.status === "cancelled" ? "\ucde8\uc18c" : "\ub300\uae30\uc911"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {payout.status === "pending" && (
+                        <button
+                          onClick={() => completePayout.mutate({ payoutId: payout.id })}
+                          disabled={completePayout.isPending}
+                          className="text-xs px-3 py-1.5 bg-[#C9A961] text-white rounded-lg hover:bg-[#b8943f] disabled:opacity-50"
+                        >
+                          \uc9c0\uae09\uc644\ub8cc
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {(payouts ?? []).length === 0 && (
+              <div className="py-12 text-center text-gray-400 text-sm">\uc815\uc0b0 \ub0b4\uc5ed\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** \uc18c\uc15c \ub9c1\ud06c \uad00\ub9ac \ud0ed */
 function SocialLinksTab() {
   const { data: current, refetch } = trpc.siteSettings.getSocialLinks.useQuery();
   const [youtube, setYoutube] = useState("");
@@ -1078,6 +1346,7 @@ export default function AdminPage() {
     { id: "news", label: "뉴스 관리", icon: Newspaper },
     { id: "assetVerify", label: "자산 인증 검토", icon: ShieldCheck },
     { id: "socialLinks", label: "SNS 소셜 링크", icon: Link2 },
+    { id: "helpers", label: "헬퍼 관리", icon: UserCheck },
   ];
 
   return (
@@ -1124,6 +1393,7 @@ export default function AdminPage() {
         {activeTab === "news" && <NewsTab />}
         {activeTab === "assetVerify" && <AssetVerifyTab />}
         {activeTab === "socialLinks" && <SocialLinksTab />}
+        {activeTab === "helpers" && <HelpersTab />}
       </div>
     </div>
   );

@@ -25,6 +25,7 @@ import { pdfRouter } from "./routers/pdfRouter";
 import { chatRouter } from "./routers/chatRouter";
 import { verificationRouter } from "./routers/verificationRouter";
 import { siteSettingsRouter } from "./routers/siteSettingsRouter";
+import { helperRouter } from "./routers/helperRouter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -85,6 +86,7 @@ export const appRouter = router({
   verification: verificationRouter,
   // 사이트 설정 (소셜 링크 등) 라우터
   siteSettings: siteSettingsRouter,
+  helper: helperRouter,
 });
 
 export type AppRouter = typeof appRouter;
