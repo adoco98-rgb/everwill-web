@@ -44,6 +44,8 @@ import WillsPage from "./pages/dashboard/WillsPage";
 import WillDetailPage from "./pages/dashboard/WillDetailPage";
 import WillRevisionPage from "./pages/dashboard/WillRevisionPage";
 import HeirAcceptPage from "./pages/HeirAcceptPage";
+import BadgePage from "./pages/dashboard/BadgePage";
+import CertificationPage from "./pages/dashboard/CertificationPage";
 import { ChatbotWidget } from "./components/ChatbotWidget";
 
 function Router() {
@@ -74,6 +76,10 @@ function Router() {
       <Route path={"/dashboard/asset-verify"} component={() => <SaramDashboardLayout><AssetVerifyPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/inquiries"} component={() => <SaramDashboardLayout><InquiriesPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/heirs"} component={() => <SaramDashboardLayout><HeirsPage /></SaramDashboardLayout>} />
+      {/* Badge 카드 관리 */}
+      <Route path={"/dashboard/badge"} component={() => <SaramDashboardLayout><BadgePage /></SaramDashboardLayout>} />
+      {/* 인증 현황 */}
+      <Route path={"/dashboard/certification"} component={() => <SaramDashboardLayout><CertificationPage /></SaramDashboardLayout>} />
       {/* 연명치료 거부·장기기증 */}
       <Route path={"/dashboard/medical-directive"} component={MedicalDirectivePage} />
       {/* 내 유언장 목록 */}

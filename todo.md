@@ -764,3 +764,13 @@
 - [x] 프론트: ChatbotWidget.tsx - 우측 하단 플로팅 버튼 + 대화창 UI
 - [x] 프론트: 모든 페이지(App.tsx)에 ChatbotWidget 전역 추가
 - [x] 챗봇 기능: 사이트 사용법 안내, 자산 등록 방법, 결제/인증 안내, 유언 작성 가이드
+
+## 얼굴 인증 (KYC) 기능
+- [x] DB: users 테이블에 faceVerified, idImageKey, selfieImageKey, faceVerifiedAt 필드 추가
+- [x] pnpm db:push 실행
+- [x] server/routers/verificationRouter.ts 생성 (submitFaceVerification mutation)
+- [x] routers.ts에 verificationRouter 등록
+- [x] client/src/components/FaceVerification.tsx 생성 (신분증+셀피 업로드 UI)
+- [x] App.tsx: /dashboard/badge, /dashboard/certification 라우트 추가
+- [x] CertificationPage.tsx 생성 (인증 현황 페이지)
+- [ ] 체크포인트 저장
