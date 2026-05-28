@@ -100,7 +100,7 @@ export default function BadgeSection() {
       borderColor: "border-amber-400/60",
       textAccent: "text-amber-300",
       bgCard: "bg-gradient-to-br from-amber-950 to-slate-900",
-      price: getPrice("$299", "₩299,000", "¥46,345", "¥2,153"),
+      price: getPrice("$199", "₩199,000", "¥30,897", "¥1,435"),
       material: isKo ? "티타님 · 플래티넘" : "Titanium · Platinum",
       features: isKo
         ? ["QR 신원 인증", "NFC 태그", "유언 인증 번호", "영구 보관 포함", "자필·영상 유언 포함", "사망 트리거 우선 처리", "VIP 전담 변호사 연결", "전담 콘시어지 서비스"]
@@ -264,8 +264,8 @@ export default function BadgeSection() {
           </p>
           <p className="text-white/50 text-sm mt-2 font-medium">
             {isKo
-              ? "실버 ₩49,000 · 골드 ₩79,000 · 플래티넘 ₩99,000 · VIP 프리미엄 ₩299,000 · 영구 보관 ₩199,000"
-              : "Silver $49 · Gold $79 · Platinum $99 · VIP Premium $299 · Lifetime Storage $199"}
+              ? "실버 ₩49,000 · 골드 ₩79,000 · 플래티님 ₩99,000 · VIP 프리미엄 ₩199,000"
+              : "Silver $49 · Gold $79 · Platinum $99 · VIP Premium $199"}
           </p>
         </motion.div>
       </div>
