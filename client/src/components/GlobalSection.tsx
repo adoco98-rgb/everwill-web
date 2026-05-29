@@ -5,7 +5,7 @@
  */
 import { motion, AnimatePresence } from "framer-motion";
 import { useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { MapPin, ArrowRight, Globe, Languages, CreditCard, Scale, Users, Building2, Landmark, ShieldCheck, Zap, Globe2, Clock, Star, BookOpen, Banknote, Phone, Wifi, FileText } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Language } from "@/i18n";
@@ -222,6 +222,40 @@ const highlightIconsMap: Record<Language, HighlightItem[]> = {
   ],
 };
 
+// 뉴질랜드·호주 추가 국가 데이터 (영어권 — en 콘텐츠 재사용)
+const extraCountries = [
+  {
+    code: "nz" as const,
+    label: "New Zealand",
+    flagImg: "https://flagcdn.com/w80/nz.png",
+    flag: "🇳🇿",
+    countryCode: "NZ",
+    name: "New Zealand",
+    phase: "5th",
+    period: "Year 2",
+    statusColor: "bg-gray-400",
+    highlights: ["Wills Act 1837 (NZ) — Immediately Applicable", "Electronic Transactions Act 2002", "Stripe · Visa · Mastercard", "Overseas Korean & Expat Community"],
+    payment: "Stripe · Visa",
+    legalNote: "Wills Act 1837 (NZ) · Electronic Transactions Act 2002",
+    icons: [ShieldCheck, Zap, CreditCard, Users],
+  },
+  {
+    code: "au" as const,
+    label: "Australia",
+    flagImg: "https://flagcdn.com/w80/au.png",
+    flag: "🇦🇺",
+    countryCode: "AU",
+    name: "Australia",
+    phase: "5th",
+    period: "Year 2",
+    statusColor: "bg-gray-400",
+    highlights: ["Succession Act 2006 (NSW) — Immediately Applicable", "Electronic Transactions Act 1999", "Stripe · BPAY · PayID", "Korean-Australian Community"],
+    payment: "Stripe · BPAY · PayID",
+    legalNote: "Succession Act 2006 · Electronic Transactions Act 1999",
+    icons: [ShieldCheck, Zap, CreditCard, Users],
+  },
+];
+
 // 국가명 (선택된 언어로 표시)
 const countryNames: Record<Language, string> = {
   ko: "한국",
@@ -256,9 +290,21 @@ export default function GlobalSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
   const { t, language, setLanguage } = useLanguage();
+  // 뉴질랜드·호주 선택 상태 (null이면 언어 탭 기준)
+  const [extraSelected, setExtraSelected] = useState<"nz" | "au" | null>(null);
 
-  const currentData = countryDataMap[language];
-  const currentCountryName = countryNames[language];
+  const currentData = extraSelected
+    ? { ...countryDataMap["en"], ...extraCountries.find(c => c.code === extraSelected)! }
+    : countryDataMap[language];
+  const currentCountryName = extraSelected
+    ? extraCountries.find(c => c.code === extraSelected)!.name
+    : countryNames[language];
+  const currentHighlightIcons = extraSelected
+    ? extraCountries.find(c => c.code === extraSelected)!.icons.map((icon, i) => ({
+        text: extraCountries.find(c => c.code === extraSelected)!.highlights[i],
+        icon,
+      }))
+    : highlightIconsMap[language];
 
   return (
     <section id="global" className="py-20 lg:py-28 relative overflow-hidden" ref={ref}>
@@ -299,9 +345,9 @@ export default function GlobalSection() {
           {languageTabs.map((lang) => (
             <button
               key={lang.code}
-              onClick={() => setLanguage(lang.code)}
+              onClick={() => { setLanguage(lang.code); setExtraSelected(null); }}
               className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-200 ${
-                language === lang.code
+                language === lang.code && !extraSelected
                   ? "bg-[#C9A961]/20 border-[#C9A961] shadow-lg shadow-[#C9A961]/20"
                   : "bg-white/8 border-white/15 hover:bg-white/15 hover:border-white/30"
               }`}
@@ -315,7 +361,32 @@ export default function GlobalSection() {
               <span className={`text-xs font-medium hidden sm:block ${language === lang.code ? "text-[#C9A961]" : "text-white/70"}`}>
                 {lang.label}
               </span>
-              {language === lang.code && (
+              {language === lang.code && !extraSelected && (
+                <span className="w-1.5 h-1.5 rounded-full bg-[#C9A961] animate-pulse" />
+              )}
+            </button>
+          ))}
+          {/* 뉴질랜드·호주 추가 탭 */}
+          {extraCountries.map((ec) => (
+            <button
+              key={ec.code}
+              onClick={() => setExtraSelected(extraSelected === ec.code ? null : ec.code)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-200 ${
+                extraSelected === ec.code
+                  ? "bg-[#C9A961]/20 border-[#C9A961] shadow-lg shadow-[#C9A961]/20"
+                  : "bg-white/8 border-white/15 hover:bg-white/15 hover:border-white/30"
+              }`}
+            >
+              <img
+                src={ec.flagImg}
+                alt={ec.label}
+                className="rounded-sm flex-shrink-0"
+                style={{ width: 28, height: 18, objectFit: "cover" }}
+              />
+              <span className={`text-xs font-medium hidden sm:block ${extraSelected === ec.code ? "text-[#C9A961]" : "text-white/70"}`}>
+                {ec.label}
+              </span>
+              {extraSelected === ec.code && (
                 <span className="w-1.5 h-1.5 rounded-full bg-[#C9A961] animate-pulse" />
               )}
             </button>
@@ -325,7 +396,7 @@ export default function GlobalSection() {
         {/* 선택된 국가 박스 (애니메이션으로 전환) */}
         <AnimatePresence mode="wait">
           <motion.div
-            key={language}
+            key={extraSelected ?? language}
             initial={{ opacity: 0, y: 20, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.97 }}
@@ -363,7 +434,7 @@ export default function GlobalSection() {
 
               {/* 하이라이트 목록 — 아이콘 포함 */}
               <ul className="space-y-2.5 mb-6">
-                {highlightIconsMap[language].map((item, i) => {
+                {currentHighlightIcons.map((item, i) => {
                   const Icon = item.icon;
                   return (
                     <li key={i} className="flex items-center gap-3 text-white/75 text-sm">
