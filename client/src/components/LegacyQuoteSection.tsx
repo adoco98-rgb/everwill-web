@@ -8,7 +8,7 @@ import { useInView } from "framer-motion";
 import { useRef } from "react";
 
 const COUPLE_IMAGE = "/manus-storage/legacy-couple_b16b465f.jpg";
-const FAMILY_IMAGE = "/manus-storage/family-sunset_e7bcde52.jpg";
+const FAMILY_IMAGE = "/manus-storage/happy-couple_0b7b4216.jpg";
 
 export default function LegacyQuoteSection() {
   const ref = useRef(null);
