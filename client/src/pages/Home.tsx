@@ -15,6 +15,7 @@ import HeirServiceSection from "@/components/HeirServiceSection";
 import ReviewsSection from "@/components/ReviewsSection";
 import ReferralSection from "@/components/ReferralSection";
 import CharityStatsSection from "@/components/CharityStatsSection";
+import CTASection from "@/components/CTASection";
 import PricingSection from "@/components/PricingSection";
 import CertifiedCounterBanner from "@/components/CertifiedCounterBanner";
 import Footer from "@/components/Footer";
@@ -43,7 +44,9 @@ export default function Home() {
       <HeirServiceSection />
       {/* 9. 사회기부 */}
       <CharityStatsSection />
-      {/* 10. 가격 정책 */}
+      {/* 10. 지금 시작하세요 CTA */}
+      <CTASection />
+      {/* 11. 가격 정책 */}
       <PricingSection />
       {/* 11. 친구 추천 & 공유 */}
       <ReferralSection />
