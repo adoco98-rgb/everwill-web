@@ -5,6 +5,7 @@
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import VideoIntroSection from "@/components/VideoIntroSection";
+import CountryVideoSection from "@/components/CountryVideoSection";
 import TrustSection from "@/components/TrustSection";
 import ServicesSection from "@/components/ServicesSection";
 import ComparisonSection from "@/components/ComparisonSection";
@@ -26,6 +27,8 @@ export default function Home() {
       <HeroSection />
       {/* 2. 서비스 소개 슬라이드 */}
       <VideoIntroSection />
+      {/* 2-1. 국가별 유튜브 영상 */}
+      <CountryVideoSection />
       {/* 3. 신뢰 지표 */}
       <TrustSection />
       {/* 4. 핵심 기능 소개 */}
