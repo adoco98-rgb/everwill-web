@@ -347,13 +347,7 @@ export default function PricingSection() {
             </div>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            <div className="bg-amber-500/20 border border-amber-400/30 rounded-xl px-4 py-2 text-center">
-              <p className="text-amber-300 text-xs font-medium leading-snug">
-                {isKo
-                  ? "🔐 전자 인증(₩49,000) 후 법적 효력 · 72시간 임시 저장"
-                  : "🔐 Certification ($39) required for legal validity · 72hr temp save"}
-              </p>
-            </div>
+
             <button
               onClick={handleFreeStart}
               className="flex items-center gap-2 px-6 py-3 bg-white text-[#1F3864] font-bold rounded-xl hover:bg-white/90 transition-all whitespace-nowrap"
