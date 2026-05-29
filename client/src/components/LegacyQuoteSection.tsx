@@ -1,14 +1,12 @@
 /**
  * LegacyQuoteSection
  * ServicesSection 바로 위에 위치하는 감성 문구 + 이미지 배너
- * "지금까지 세상을 참 열심히 행복하게 잘 살았습니다..."
  */
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
 
-const COUPLE_IMAGE = "/manus-storage/legacy-couple_b16b465f.jpg";
-const FAMILY_IMAGE = "/manus-storage/happy-couple_0b7b4216.jpg";
+const COUPLE_IMAGE = "/manus-storage/happy-couple_0b7b4216.jpg";
 
 export default function LegacyQuoteSection() {
   const ref = useRef(null);
@@ -78,50 +76,37 @@ export default function LegacyQuoteSection() {
             </motion.p>
           </motion.div>
 
-          {/* 우측: 이미지 콜라주 */}
+          {/* 우측: 이미지 + 브랜드 카드 */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
             className="relative"
           >
-            {/* 메인 이미지 (가족 석양) */}
+            {/* 메인 이미지 - 진한 필터 적용 */}
             <div className="relative rounded-3xl overflow-hidden shadow-2xl">
               <img
-                src={FAMILY_IMAGE}
-                alt="가족과 함께하는 소중한 순간"
-                className="w-full h-[420px] lg:h-[500px] object-cover"
+                src={COUPLE_IMAGE}
+                alt="행복한 노부부"
+                className="w-full h-[480px] lg:h-[540px] object-cover"
+                style={{ filter: "saturate(1.3) contrast(1.15) brightness(0.95)" }}
               />
-              {/* 그라데이션 오버레이 */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#1F3864]/60 via-transparent to-transparent" />
-              {/* 하단 문구 오버레이 */}
+              {/* 하단 그라데이션 오버레이 */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#1F3864]/50 via-transparent to-transparent" />
+              {/* 하단 인용 문구 */}
               <div className="absolute bottom-6 left-6 right-6">
-                <p className="text-white text-lg font-semibold" style={{ fontFamily: "'Playfair Display', serif" }}>
+                <p className="text-white text-lg font-semibold drop-shadow-lg" style={{ fontFamily: "'Playfair Display', serif" }}>
                   "나의 마지막 서명이<br />당신의 첫 번째 평화가 됩니다"
                 </p>
               </div>
             </div>
 
-            {/* 플로팅 작은 이미지 (노부부) */}
+            {/* 브랜드 카드 - 우측 상단 바깥으로 배치 (겹침 없음) */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={isInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 0.7, delay: 0.6 }}
-              className="absolute -bottom-8 -left-8 w-44 h-44 rounded-2xl overflow-hidden shadow-xl border-4 border-white"
-            >
-              <img
-                src={COUPLE_IMAGE}
-                alt="노부부의 따뜻한 순간"
-                className="w-full h-full object-cover"
-              />
-            </motion.div>
-
-            {/* 플로팅 골드 장식 카드 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: -20 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.7, delay: 0.8 }}
-              className="absolute -top-6 -right-4 bg-[#1F3864] text-white rounded-2xl px-5 py-4 shadow-xl"
+              className="absolute -top-5 right-4 bg-[#1F3864] text-white rounded-2xl px-5 py-4 shadow-xl z-10"
             >
               <p className="text-[#C9A961] text-xs font-semibold tracking-wider uppercase mb-1">EverWill</p>
               <p className="text-white text-sm font-bold">나의 마지막 서명</p>
