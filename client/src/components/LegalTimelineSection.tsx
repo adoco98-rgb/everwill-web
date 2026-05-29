@@ -72,7 +72,7 @@ export default function LegalTimelineSection() {
   const isKo = language === "ko";
 
   return (
-    <section className="py-24 bg-[#1F3864] relative overflow-hidden">
+    <section className="py-24 bg-[#162d54] relative overflow-hidden">
       {/* 배경 장식 */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-0 left-0 w-96 h-96 bg-[#C9A961] rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
@@ -96,7 +96,7 @@ export default function LegalTimelineSection() {
               ? "전자유언, 세계는 이미 바뀌고 있습니다"
               : "The World Is Already Moving to Digital Wills"}
           </h2>
-          <p className="text-white/60 text-lg max-w-2xl mx-auto">
+          <p className="text-white/90 text-lg max-w-2xl mx-auto">
             {isKo
               ? "전자계약 → 전자서명 → 전자유언. 역사는 반복됩니다. EverWill은 그 흐름의 선두에 있습니다."
               : "E-contracts → E-signatures → E-wills. History repeats itself. EverWill leads this wave."}
@@ -125,8 +125,8 @@ export default function LegalTimelineSection() {
                       item.everwill
                         ? "text-[#C9A961]"
                         : item.future
-                          ? "text-white/40"
-                          : "text-white/60"
+                          ? "text-white/60"
+                          : "text-white"
                     }`}
                   >
                     {item.year}
@@ -150,21 +150,21 @@ export default function LegalTimelineSection() {
                 <div
                   className={`flex-1 pb-2 rounded-xl px-4 py-3 ${
                     item.everwill
-                      ? "bg-[#C9A961]/15 border border-[#C9A961]/40"
+                      ? "bg-[#C9A961]/20 border border-[#C9A961]/60"
                       : item.future
-                        ? "bg-white/3 border border-white/10"
-                        : "bg-white/5 border border-white/10"
+                        ? "bg-white/8 border border-white/20"
+                        : "bg-white/10 border border-white/25"
                   }`}
                 >
                   <div className="flex items-start gap-2">
                     <span className="text-xl leading-tight">{item.flag}</span>
                     <p
-                      className={`text-sm sm:text-base leading-relaxed ${
+                      className={`text-base sm:text-lg leading-relaxed font-medium ${
                         item.everwill
-                          ? "text-[#C9A961] font-semibold"
+                          ? "text-[#C9A961] font-bold"
                           : item.future
-                            ? "text-white/50"
-                            : "text-white/80"
+                            ? "text-white/70"
+                            : "text-white"
                       }`}
                     >
                       {isKo ? item.ko : item.en}
@@ -200,12 +200,12 @@ export default function LegalTimelineSection() {
                 ? '"법은 기술을 뒤따른다."'
                 : '"Law follows technology."'}
             </p>
-            <p className="text-white/70 text-base">
+            <p className="text-white/90 text-base">
               {isKo
                 ? "EverWill은 법이 오기 전에 이미 그 자리에 있습니다."
                 : "EverWill is already there before the law arrives."}
             </p>
-            <p className="text-white/40 text-xs mt-3">
+            <p className="text-white/60 text-xs mt-3">
               {isKo
                 ? "— Law Panel, EverWill 각국 유언 전문 변호사단 · 2026 —"
                 : "— Law Panel, EverWill International Legal Advisory · 2026 —"}
