@@ -39,14 +39,14 @@ export default function Home() {
       <LegalTimelineSection />
       {/* 7. 글로벌 지원 */}
       <GlobalSection />
-      {/* 8. 가격 정책 */}
-      <PricingSection />
-      {/* 9. 친구 추천 & 공유 */}
-      <ReferralSection />
-      {/* 10. 상속인 서비스 */}
+      {/* 8. 상속인 서비스 */}
       <HeirServiceSection />
-      {/* 11. 사회기부 */}
+      {/* 9. 사회기부 */}
       <CharityStatsSection />
+      {/* 10. 가격 정책 */}
+      <PricingSection />
+      {/* 11. 친구 추천 & 공유 */}
+      <ReferralSection />
       {/* 12. 고객 후기 */}
       <ReviewsSection />
       {/* 13. 인증회원 카운터 */}
