@@ -1,6 +1,7 @@
 /**
  * LegacyQuoteSection
  * ServicesSection 바로 위에 위치하는 감성 문구 + 이미지 배너
+ * 좌측 텍스트 하단과 우측 카드 하단이 동일한 높이에 맞춰짐
  */
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
@@ -17,8 +18,8 @@ export default function LegacyQuoteSection() {
     <section ref={ref} className="py-20 lg:py-28 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* 레이아웃: 좌측 문구 + 우측 이미지+텍스트 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
+        {/* 레이아웃: 좌측 문구 + 우측 이미지+텍스트 — items-end로 하단 정렬 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-end">
 
           {/* 좌측: 감성 문구 */}
           <motion.div
@@ -82,15 +83,17 @@ export default function LegacyQuoteSection() {
             initial={{ opacity: 0, x: 50 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
-            className="flex flex-col gap-0 rounded-3xl overflow-hidden"
-          style={{ boxShadow: '0 20px 60px -10px rgba(31, 56, 100, 0.25), 0 8px 24px -4px rgba(31, 56, 100, 0.15), 0 2px 8px rgba(0,0,0,0.08)' }}
+            className="flex flex-col rounded-3xl overflow-hidden"
+            style={{
+              boxShadow: '0 20px 60px -10px rgba(31, 56, 100, 0.25), 0 8px 24px -4px rgba(31, 56, 100, 0.15), 0 2px 8px rgba(0,0,0,0.08)',
+            }}
           >
-            {/* 메인 이미지 - 가로 꽉 차게 */}
-            <div className="relative overflow-hidden">
+            {/* 메인 이미지 — 고정 높이 */}
+            <div className="relative overflow-hidden" style={{ height: '360px' }}>
               <img
                 src={COUPLE_IMAGE}
                 alt="공원을 걷는 행복한 노부부"
-                className="w-full h-[420px] lg:h-[480px] object-cover object-center"
+                className="absolute inset-0 w-full h-full object-cover object-center"
                 style={{ filter: "saturate(1.2) contrast(1.1)" }}
               />
             </div>

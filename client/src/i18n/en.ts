@@ -39,7 +39,7 @@ export const en = {
     card1Desc: "Check boxes → AI converts to legal language → E-certification",
     card1Tag: "AI Auto-Write",
     card2Title: "Your Family Doesn't Have to Do Anything",
-    card2Desc: "multi-layer safety confirmation → Auto-notify heirs → Attorney matching",
+    card2Desc: "multi-layer safety confirmation → Auto-notify heirs → Easy & Comfortable Inheritance Completion",
     card2Tag: "Auto-Execute",
     s1Title: "17-Minute Completion",
     s1Desc: "Anyone can quickly complete complex legal documents with the AI checkbox wizard.",
