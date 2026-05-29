@@ -21,10 +21,10 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 const stepIcons = [Bell, Users, Scale, FileCheck];
 const stepColors = [
-  { color: "text-blue-600", bg: "bg-blue-50" },
-  { color: "text-[#C9A961]", bg: "bg-amber-50" },
-  { color: "text-[#1F3864]", bg: "bg-blue-50" },
-  { color: "text-green-600", bg: "bg-green-50" },
+  { color: "text-blue-700", bg: "bg-blue-100", card: "bg-blue-50 border-blue-200", num: "text-blue-200", title: "text-blue-900", desc: "text-blue-700" },
+  { color: "text-amber-700", bg: "bg-amber-100", card: "bg-amber-50 border-amber-200", num: "text-amber-200", title: "text-amber-900", desc: "text-amber-700" },
+  { color: "text-purple-700", bg: "bg-purple-100", card: "bg-purple-50 border-purple-200", num: "text-purple-200", title: "text-purple-900", desc: "text-purple-700" },
+  { color: "text-green-700", bg: "bg-green-100", card: "bg-green-50 border-green-200", num: "text-green-200", title: "text-green-900", desc: "text-green-700" },
 ];
 const futureIcons = [Cpu, FileCheck, Sparkles, Users];
 
@@ -107,15 +107,15 @@ export default function LawyersSection() {
                   transition={{ duration: 0.5, delay: 0.1 + i * 0.1 }}
                   className="relative"
                 >
-                  <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-[#1F3864]/20 hover:shadow-md transition-all h-full">
+                  <div className={`rounded-2xl p-6 border-2 hover:shadow-lg transition-all h-full ${stepColors[i].card}`}>
                     <div className="flex items-center justify-between mb-4">
-                      <div className={`w-10 h-10 rounded-xl ${bg} flex items-center justify-center`}>
-                        <Icon className={`w-5 h-5 ${color}`} />
+                      <div className={`w-12 h-12 rounded-xl ${stepColors[i].bg} flex items-center justify-center`}>
+                        <Icon className={`w-6 h-6 ${stepColors[i].color}`} />
                       </div>
-                      <span className="text-2xl font-black text-gray-100">{step.step}</span>
+                      <span className={`text-3xl font-black ${stepColors[i].num}`}>{step.step}</span>
                     </div>
-                    <h4 className="font-bold text-[#1F3864] mb-2">{step.title}</h4>
-                    <p className="text-sm text-gray-500 leading-relaxed">{step.desc}</p>
+                    <h4 className={`font-bold text-lg mb-2 ${stepColors[i].title}`}>{step.title}</h4>
+                    <p className={`text-sm leading-relaxed font-medium ${stepColors[i].desc}`}>{step.desc}</p>
                   </div>
 
                   {i < currentProcess.length - 1 && (
