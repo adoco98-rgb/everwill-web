@@ -168,98 +168,53 @@ export default function LawyersSection() {
           </div>
         </motion.div>
 
-        {/* ── 미래 비전: AI 자동화 ── */}
+        {/* ── EverWill 핵심 메시지 ── */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7, delay: 0.3 }}
           className="bg-gradient-to-br from-[#1F3864] to-[#2a4a7f] rounded-3xl p-8 lg:p-12 text-white"
         >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-[#C9A961]/20 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-[#C9A961]" />
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-[#C9A961]/20 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-[#C9A961]" />
             </div>
-            <span className="text-[#C9A961] text-sm font-bold tracking-widest uppercase">Future Vision</span>
+            <span className="text-[#C9A961] text-sm font-bold tracking-widest uppercase">EverWill Promise</span>
           </div>
 
           <h3
-            className="text-2xl lg:text-3xl font-bold text-white mb-3"
+            className="text-3xl lg:text-4xl font-bold text-white mb-6 leading-tight"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
-            {t.lawyers.futureTitle}
+            저렴하고 간편하며,<br />
+            <span className="text-[#C9A961]">더 빠르고 더 투명한</span><br />
+            EverWill 디지털 서명 인증
           </h3>
-          <p className="text-white/70 mb-10 max-w-2xl text-base leading-relaxed">
-            {t.lawyers.futureDesc}
-          </p>
 
-          <div className="grid sm:grid-cols-2 gap-5 mb-10">
-            {futureFeatures.map((feat, i) => {
-              const FeatIcon = futureIcons[i];
-              return (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.5, delay: 0.4 + i * 0.1 }}
-                  className="bg-white/10 backdrop-blur rounded-2xl p-5 border border-white/10 hover:border-[#C9A961]/30 transition-colors"
-                >
-                  <div className="w-9 h-9 rounded-xl bg-[#C9A961]/20 flex items-center justify-center mb-3">
-                    <FeatIcon className="w-4 h-4 text-[#C9A961]" />
-                  </div>
-                  <h4 className="font-bold text-white mb-2 text-sm">{feat.title}</h4>
-                  <p className="text-white/60 text-xs leading-relaxed">{feat.desc}</p>
-                </motion.div>
-              );
-            })}
-          </div>
-
-          {/* 비교 표 - 모바일 카드형 */}
-          <div className="bg-white/5 rounded-2xl p-4 sm:p-6 border border-white/10">
-            <h4 className="text-white font-bold mb-4 text-sm">{t.lawyers.cmpTitle}</h4>
-            {/* 데스크탑: 테이블 */}
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-white/10">
-                    <th className="text-left py-2 text-white/50 font-medium text-xs">{t.lawyers.cmpHeader}</th>
-                    <th className="text-center py-2 text-white/50 font-medium text-xs">{t.lawyers.cmpOld}</th>
-                    <th className="text-center py-2 text-[#C9A961] font-bold text-xs">{t.lawyers.cmpNow}</th>
-                    <th className="text-center py-2 text-[#C9A961] font-bold text-xs">{t.lawyers.cmpFuture}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {comparisonRows.map(([item, old, now, future], i) => (
-                    <tr key={i}>
-                      <td className="py-2.5 text-white/70 text-xs">{item}</td>
-                      <td className="py-2.5 text-center text-white/40 text-xs">{old}</td>
-                      <td className="py-2.5 text-center text-[#C9A961] text-xs font-medium">{now}</td>
-                      <td className="py-2.5 text-center text-[#C9A961] text-xs font-bold">{future}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {/* 모바일: 카드형 */}
-            <div className="sm:hidden space-y-3">
-              {/* 헤더 */}
-              <div className="grid grid-cols-3 gap-1 pb-2 border-b border-white/10">
-                <div className="text-white/50 text-[10px] font-medium"></div>
-                <div className="text-white/50 text-[10px] font-medium text-center">{t.lawyers.cmpOld}</div>
-                <div className="text-[#C9A961] text-[10px] font-bold text-center">{t.lawyers.cmpFuture}</div>
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* 박스 1 */}
+            <div className="bg-white/10 rounded-2xl p-7 border border-white/15">
+              <div className="w-12 h-12 rounded-xl bg-[#C9A961]/20 flex items-center justify-center mb-4">
+                <FileCheck className="w-6 h-6 text-[#C9A961]" />
               </div>
-              {comparisonRows.map(([item, old, _now, future], i) => (
-                <div key={i} className="grid grid-cols-3 gap-1 py-2 border-b border-white/5 items-center">
-                  <div className="text-white/80 text-[11px] font-semibold leading-tight">{item}</div>
-                  <div className="text-white/40 text-[11px] text-center leading-tight">{old}</div>
-                  <div className="text-[#C9A961] text-[11px] font-bold text-center leading-tight">{future}</div>
-                </div>
-              ))}
+              <h4 className="text-xl font-bold text-white mb-3">유언자의 뜻을 100% 반영</h4>
+              <p className="text-white/80 text-base leading-relaxed">
+                유언자의 뜻을 100% 반영한 전자 유언 증서는 유언자 스스로 자기의 뜻을 명확하게 보여줍니다.
+                EverWill은 <strong className="text-[#C9A961]">평생을 동행</strong>하여 행복하고 편안한 삶을 도와드립니다.
+              </p>
             </div>
-          </div>
 
-          <div className="mt-6 flex items-center gap-2 text-white/40 text-xs">
-            <Clock className="w-3.5 h-3.5" />
-            <span>{t.lawyers.aiNote}</span>
+            {/* 박스 2 */}
+            <div className="bg-white/10 rounded-2xl p-7 border border-white/15">
+              <div className="w-12 h-12 rounded-xl bg-[#C9A961]/20 flex items-center justify-center mb-4">
+                <Scale className="w-6 h-6 text-[#C9A961]" />
+              </div>
+              <h4 className="text-xl font-bold text-white mb-3">유언자 유고 후 원스톱 상속 서비스</h4>
+              <p className="text-white/80 text-base leading-relaxed">
+                유언자 유고 후 상속과 세금 모든 서비스를 <strong className="text-[#C9A961]">적은 비용</strong>으로 서비스받아
+                편리하게 상속 서비스를 받으실 수 있도록 도와드립니다.
+              </p>
+            </div>
           </div>
         </motion.div>
 
