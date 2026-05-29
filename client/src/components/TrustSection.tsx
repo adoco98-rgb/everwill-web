@@ -142,9 +142,9 @@ export default function TrustSection() {
                   className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-[#C9A961]/40 text-[#1F3864] text-sm font-semibold hover:bg-[#C9A961]/10 transition-all"
                 >
                   {showAll ? (
-                    <><ChevronUp className="w-4 h-4" /> {language === 'ko' ? '접기' : 'Show less'}</>
+                    <span className="flex items-center gap-2"><ChevronUp className="w-4 h-4" /> {language === 'ko' ? '접기' : 'Show less'}</span>
                   ) : (
-                    <><ChevronDown className="w-4 h-4" /> {language === 'ko' ? `더보기 (+${newsItems.length - INITIAL_COUNT}개)` : `Show more (+${newsItems.length - INITIAL_COUNT})`}</>
+                    <span className="flex items-center gap-2"><ChevronDown className="w-4 h-4" /> {language === 'ko' ? `더보기 (+${newsItems.length - INITIAL_COUNT}개)` : `Show more (+${newsItems.length - INITIAL_COUNT})`}</span>
                   )}
                 </button>
               </div>

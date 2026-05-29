@@ -6,7 +6,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
-import { MapPin, ArrowRight, Globe, Languages, CreditCard, Scale, Users, Building2, Landmark, ShieldCheck, Zap, Globe2, Clock, Star, BookOpen, Banknote, Phone, Wifi } from "lucide-react";
+import { MapPin, ArrowRight, Globe, Languages, CreditCard, Scale, Users, Building2, Landmark, ShieldCheck, Zap, Globe2, Clock, Star, BookOpen, Banknote, Phone, Wifi, FileText } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Language } from "@/i18n";
 
@@ -44,9 +44,9 @@ const countryDataMap: Record<Language, CountryData> = {
     phase: "4th",
     period: "Month 10-12",
     statusColor: "bg-blue-400",
-    highlights: ["Full English support", "Stripe \u00b7 Paddle payment", "California \u00b7 New York first", "\u26a0\ufe0f Will laws vary by state \u2014 CA/NY/FL differ"],
-    payment: "Stripe \u00b7 Paddle",
-    legalNote: "US State Law \u00b7 Probate Court \u00b7 10+ states: e-will legal",
+    highlights: ["ESIGN Act (2000) — Federal Law", "UEWA (2019) — Valid in 20+ States", "Holographic Will — 26+ States", "Stripe · Paddle · CA & NY First"],
+    payment: "Stripe · Paddle",
+    legalNote: "ESIGN Act · UEWA 2019 · Probate Court · Immediately applicable",
   },
   ja: {
     flag: "🇯🇵",
@@ -55,9 +55,9 @@ const countryDataMap: Record<Language, CountryData> = {
     phase: "2次",
     period: "Month 4-6",
     statusColor: "bg-yellow-500",
-    highlights: ["日本語 완벽 지원", "PayPay · LINE Pay 결제", "현지 법률 적용", "✅ 2025.10 공정증서 디지털화 시행 — 원격 공증 합법화"],
+    highlights: ["日本語完全対応", "2025年10月 公正証書デジタル化施行", "遠隔公証合法化 — 即時適用可能", "PayPay · LINE Pay"],
     payment: "PayPay · LINE Pay",
-    legalNote: "日本民法 · 家庭裁判所",
+    legalNote: "日本民法第968条・第969条 · 2025年10月施行 · 家庭裁判所検認",
   },
   zh: {
     flag: "🇨🇳",
@@ -66,9 +66,9 @@ const countryDataMap: Record<Language, CountryData> = {
     phase: "3차",
     period: "Month 7-9",
     statusColor: "bg-blue-400",
-    highlights: ["中文 간체·번체 지원", "Alipay · WeChat Pay 결제", "홍콩·대만 우선 진출", "본토는 규제 검토 후 진출"],
+    highlights: ["香港《遗嘱条例》第20条 — 即时适用", "台湾民法第1189条 — 即时适用", "大陆《民法典》第1133条 — 审慢中", "支付宝 · 微信支付"],
     payment: "Alipay · WeChat Pay",
-    legalNote: "香港·台灣 法律 · 繼承法",
+    legalNote: "香港《遗嘱条例》 · 台湾民法 · 大陆《民法典》第1133条",
   },
   de: {
     flag: "🇩🇪",
@@ -77,9 +77,9 @@ const countryDataMap: Record<Language, CountryData> = {
     phase: "5th",
     period: "Year 2",
     statusColor: "bg-gray-400",
-    highlights: ["Vollständige Deutschsprachige Unterstützung", "SEPA · Stripe Zahlung", "EU-DSGVO konform", "Deutsches Erbrecht"],
+    highlights: ["BGB §2247 (eigenhändig) — Sofort gültig", "BGB §2232 (notariell) — Sofort gültig", "ZTR (Zentrales Testamentsregister)", "EU-DSGVO konform · SEPA · Stripe"],
     payment: "SEPA · Stripe",
-    legalNote: "Deutsches BGB · Nachlassgericht",
+    legalNote: "BGB §2247 · §2232 · Nachlassgericht · ZTR",
   },
   es: {
     flag: "🇪🇸",
@@ -88,9 +88,9 @@ const countryDataMap: Record<Language, CountryData> = {
     phase: "5th",
     period: "Year 2",
     statusColor: "bg-gray-400",
-    highlights: ["Soporte completo en español", "Pago con Stripe · PayPal", "España y Latinoamérica", "Derecho sucesorio local"],
-    payment: "Stripe · PayPal",
-    legalNote: "Código Civil Español · Registro",
+    highlights: ["Código Civil Art.688 (ológrafo)", "Código Civil Art.694 (notarial)", "Registro de Actos de Última Voluntad", "Stripe · PayPal · Bizum"],
+    payment: "Stripe · PayPal · Bizum",
+    legalNote: "Código Civil Art.688 · Art.694 · Registro de Última Voluntad",
   },
   ar: {
     flag: "🇸🇦",
@@ -99,9 +99,9 @@ const countryDataMap: Record<Language, CountryData> = {
     phase: "5th",
     period: "Year 2",
     statusColor: "bg-gray-400",
-    highlights: ["دعم كامل للغة العربية (RTL)", "تطبيق قانون الشريعة الإسلامية تلقائياً", "نسبة الميراث 2:1 (ذكر:أنثى)", "استهداف أصحاب الثروات في الشرق الأوسط"],
+    highlights: ["نظام الوصية والتركات — مطابق فوراً", "نسبة الميراث 2:1 (ذكر:أنثى) تلقائياً", "محاكم الأحوال الشخصية متوافقة", "STC Pay · Mada · الشرق الأوسط"],
     payment: "STC Pay · Mada",
-    legalNote: "الشريعة الإسلامية · محاكم الأحوال الشخصية",
+    legalNote: "الشريعة الإسلامية · نظام الوصية والتركات · محاكم الأحوال الشخصية",
   },
   fr: {
     flag: "🇫🇷",
@@ -161,40 +161,40 @@ const highlightIconsMap: Record<Language, HighlightItem[]> = {
     { text: "재외한인 700만 명 타깃", icon: Users },
   ],
   en: [
-    { text: "Full English support", icon: Languages },
-    { text: "Stripe · Paddle payment", icon: CreditCard },
-    { text: "California · New York first", icon: Building2 },
-    { text: "Korean-American community target", icon: Users },
+    { text: "ESIGN Act (2000) — Federal Law", icon: ShieldCheck },
+    { text: "UEWA 2019 — Valid in 20+ States", icon: Scale },
+    { text: "Holographic Will — 26+ States", icon: FileText },
+    { text: "Stripe · Paddle · CA & NY First", icon: CreditCard },
   ],
   ja: [
-    { text: "日本語 완벽 지원", icon: Languages },
-    { text: "PayPay · LINE Pay 결제", icon: CreditCard },
-    { text: "현지 법률 적용", icon: Scale },
-    { text: "2025.10 공정증서 디지털화", icon: Zap },
+    { text: "日本語完全対応", icon: Languages },
+    { text: "2025年10月 公正証書デジタル化施行", icon: Zap },
+    { text: "遠隔公証合法化 — 即時適用可能", icon: ShieldCheck },
+    { text: "PayPay · LINE Pay", icon: CreditCard },
   ],
   zh: [
-    { text: "中文 간체·번체 지원", icon: Languages },
-    { text: "Alipay · WeChat Pay 결제", icon: CreditCard },
-    { text: "홍콩·대만 우선 진출", icon: Globe2 },
-    { text: "본토는 규제 검토 후 진출", icon: ShieldCheck },
+    { text: "香港《遗嘱条例》第20条 — 即时适用", icon: ShieldCheck },
+    { text: "台湾民法第1189条 — 即时适用", icon: Scale },
+    { text: "大陆《民法典》第1133条 — 审慢中", icon: FileText },
+    { text: "支付宝 · 微信支付", icon: CreditCard },
   ],
   de: [
-    { text: "Vollständige Deutschsprachige Unterstützung", icon: Languages },
-    { text: "SEPA · Stripe Zahlung", icon: CreditCard },
-    { text: "EU-DSGVO konform", icon: ShieldCheck },
-    { text: "Deutsches Erbrecht", icon: Scale },
+    { text: "BGB §2247 (eigenhändig) — Sofort gültig", icon: ShieldCheck },
+    { text: "BGB §2232 (notariell) — Sofort gültig", icon: Scale },
+    { text: "ZTR (Zentrales Testamentsregister)", icon: FileText },
+    { text: "EU-DSGVO konform · SEPA · Stripe", icon: CreditCard },
   ],
   es: [
-    { text: "Soporte completo en español", icon: Languages },
-    { text: "Pago con Stripe · PayPal", icon: CreditCard },
-    { text: "España y Latinoamérica", icon: Globe2 },
-    { text: "Derecho sucesorio local", icon: Scale },
+    { text: "Código Civil Art.688 (ólógrafo)", icon: ShieldCheck },
+    { text: "Código Civil Art.694 (notarial)", icon: Scale },
+    { text: "Registro de Actos de Última Voluntad", icon: FileText },
+    { text: "Stripe · PayPal · Bizum", icon: CreditCard },
   ],
   ar: [
-    { text: "دعم كامل للغة العربية (RTL)", icon: Languages },
-    { text: "تطبيق قانون الشريعة الإسلامية تلقائياً", icon: BookOpen },
-    { text: "نسبة الميراث 2:1 (ذكر:أنثى)", icon: Scale },
-    { text: "استهداف أصحاب الثروات في الشرق الأوسط", icon: Star },
+    { text: "نظام الوصية والتركات — مطابق فوراً", icon: ShieldCheck },
+    { text: "نسبة الميراث 2:1 (ذكر:أنثى) تلقائياً", icon: Scale },
+    { text: "محاكم الأحوال الشخصية متوافقة", icon: BookOpen },
+    { text: "STC Pay · Mada · الشرق الأوسط", icon: CreditCard },
   ],
   fr: [
     { text: "Support complet en français", icon: Languages },
