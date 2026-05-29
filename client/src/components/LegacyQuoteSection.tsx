@@ -17,15 +17,15 @@ export default function LegacyQuoteSection() {
     <section ref={ref} className="py-20 lg:py-28 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* 레이아웃: 좌측 문구 + 우측 이미지 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        {/* 레이아웃: 좌측 문구 + 우측 이미지+텍스트 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
 
           {/* 좌측: 감성 문구 */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.9, ease: "easeOut" }}
-            className="space-y-8"
+            className="space-y-8 lg:pt-4"
           >
             {/* 골드 장식선 */}
             <div className="flex items-center gap-3">
@@ -77,38 +77,44 @@ export default function LegacyQuoteSection() {
             </motion.p>
           </motion.div>
 
-          {/* 우측: 이미지 + 브랜드 카드 */}
+          {/* 우측: 이미지 + 이미지 하단 텍스트 */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
-            className="relative pt-16"
+            className="flex flex-col gap-0"
           >
-            {/* 브랜드 카드 - 이미지 위 완전히 분리된 위치 */}
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.7, delay: 0.6 }}
-              className="absolute top-0 right-4 bg-[#1F3864] text-white rounded-2xl px-5 py-4 shadow-xl z-10"
-            >
-              <p className="text-[#C9A961] text-xs font-semibold tracking-wider uppercase mb-1">EverWill</p>
-              <p className="text-white text-sm font-bold">나의 마지막 서명이</p>
-              <p className="text-white/80 text-xs mt-0.5">사랑하는 사람들에게</p>
-              <p className="text-[#C9A961] text-xs font-semibold">사랑과 평화를 만들어줍니다</p>
-            </motion.div>
-
-            {/* 메인 이미지 */}
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+            {/* 메인 이미지 - 가로 꽉 차게 */}
+            <div className="relative rounded-t-3xl overflow-hidden shadow-xl">
               <img
                 src={COUPLE_IMAGE}
                 alt="공원을 걷는 행복한 노부부"
-                className="w-full h-[480px] lg:h-[540px] object-cover"
-                style={{ filter: "saturate(1.2) contrast(1.1) brightness(1.0)" }}
+                className="w-full h-[420px] lg:h-[480px] object-cover object-center"
+                style={{ filter: "saturate(1.2) contrast(1.1)" }}
               />
-              {/* 하단 그라데이션 오버레이 */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#1F3864]/40 via-transparent to-transparent" />
             </div>
+
+            {/* 이미지 바로 하단 - 가로 꽉 차는 텍스트 배너 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.7, delay: 0.6 }}
+              className="bg-[#1F3864] rounded-b-3xl px-8 py-6 shadow-xl"
+            >
+              <p className="text-[#C9A961] text-xs font-semibold tracking-widest uppercase mb-2">EverWill</p>
+              <p
+                className="text-white text-2xl lg:text-3xl font-bold leading-snug"
+                style={{ fontFamily: "'Playfair Display', serif" }}
+              >
+                나의 마지막 서명이
+                <br />
+                <span className="text-[#C9A961]">사랑하는 사람들에게</span>
+                <br />
+                사랑과 평화를 만들어줍니다
+              </p>
+            </motion.div>
           </motion.div>
+
         </div>
       </div>
     </section>
