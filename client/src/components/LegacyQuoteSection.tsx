@@ -82,10 +82,11 @@ export default function LegacyQuoteSection() {
             initial={{ opacity: 0, x: 50 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
-            className="flex flex-col gap-0"
+            className="flex flex-col gap-0 rounded-3xl overflow-hidden"
+          style={{ boxShadow: '0 20px 60px -10px rgba(31, 56, 100, 0.25), 0 8px 24px -4px rgba(31, 56, 100, 0.15), 0 2px 8px rgba(0,0,0,0.08)' }}
           >
             {/* 메인 이미지 - 가로 꽉 차게 */}
-            <div className="relative rounded-t-3xl overflow-hidden shadow-xl">
+            <div className="relative overflow-hidden">
               <img
                 src={COUPLE_IMAGE}
                 alt="공원을 걷는 행복한 노부부"
