@@ -5,11 +5,12 @@
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 
+// 국기 코드 (flagcdn.com 사용)
 // 별점: 5 = 즉시 사업 가능, 0 = 불가
 const timelineItems = [
   {
     year: "2000",
-    flag: "🇺🇸",
+    flag: "us",
     stars: 5,
     ko: "ESIGN Act 제정 — 미국, 전자계약·전자서명 법적 효력 전면 인정. 온라인 계약·문서 서명이 종이와 동일한 법적 효력 획득. 디지털 경제의 법적 기반 완성.",
     en: "ESIGN Act — US grants full legal validity to e-contracts & e-signatures. Digital economy legal foundation established.",
@@ -18,7 +19,7 @@ const timelineItems = [
   },
   {
     year: "2016",
-    flag: "🇪🇺",
+    flag: "eu",
     stars: 3,
     ko: "EU eIDAS 규정 시행 — 유럽 27개국 전자서명 통일. 3단계 전자서명 체계(SES·AES·QES) 도입. 국경 초월 전자문서 상호 인정 실현.",
     en: "EU eIDAS Regulation — Unified e-signature across 27 EU countries. 3-tier signature framework established.",
@@ -27,7 +28,7 @@ const timelineItems = [
   },
   {
     year: "2019",
-    flag: "🇺🇸",
+    flag: "us",
     stars: 5,
     ko: "UEWA(통일전자유언법) 제정 — 미국 20개 주 이상 전자유언 명시적 법적 인정. 전자서명 + 원격 증인 방식으로 유언장 작성 가능. Trust & Will 등 디지털 유언 플랫폼 급성장.",
     en: "UEWA enacted — 20+ US states recognize digital wills. Remote witnessing allowed. Digital will platforms boom.",
@@ -36,7 +37,7 @@ const timelineItems = [
   },
   {
     year: "2020",
-    flag: "🇰🇷",
+    flag: "kr",
     stars: 2,
     ko: "전자서명법 전면 개정 — 공인인증서 독점 폐지, 다양한 민간 전자서명 효력 인정. 단, 민법상 유언 방식(5종)에 전자유언 미포함 — 헌법소원 논거 확보.",
     en: "Korea e-Signature Act revised — Monopoly abolished. However, digital wills still not recognized under Civil Code.",
@@ -45,7 +46,7 @@ const timelineItems = [
   },
   {
     year: "2021",
-    flag: "🇳🇿",
+    flag: "nz",
     stars: 5,
     ko: "뉴질랜드 Wills Act 개정 — 전자유언 공식 인정. 법원 재량으로 전자 형태 유언 효력 부여 가능. 영미법 국가 최초 전자유언 전면 합법화.",
     en: "New Zealand Wills Act amended — Digital wills officially recognized. First common law country to fully legalize e-wills.",
@@ -54,7 +55,7 @@ const timelineItems = [
   },
   {
     year: "2021",
-    flag: "🇦🇪",
+    flag: "ae",
     stars: 5,
     ko: "UAE 전자거래법 개정 — 전자서명 법적 가치 강화. 비무슬림 외국인(전체 인구 90%) 민법 기반 유언 등록 가능. 디지털 자산 상속 포함 의무화.",
     en: "UAE e-Transaction Law revised — Non-Muslims (90% of population) can register digital wills. Digital assets included.",
@@ -63,7 +64,7 @@ const timelineItems = [
   },
   {
     year: "2025",
-    flag: "🇯🇵",
+    flag: "jp",
     stars: 4,
     ko: "일본 공정증서 디지털화 시행 — 2025년 10월부터 온라인 신청·웹 회의 방식으로 공정증서 유언 작성 가능. 법무성 법제심의회: 디지털 자필증서 도입 검토 중.",
     en: "Japan notarial will digitization — Online/video conference notarial wills allowed from Oct 2025. Digital holographic will under review.",
@@ -72,7 +73,7 @@ const timelineItems = [
   },
   {
     year: "2025",
-    flag: "🇰🇷",
+    flag: "kr",
     stars: 2,
     ko: "법무부 공식 입장 발표 — '디지털 유언 현행법상 효력 없음, 추가 입법 논의 필요'. 사법정책연구원 유언증서 등록·보관제도 연구 발간. 헌법소원 논의 가속화.",
     en: "Korea Ministry of Justice — 'Digital wills have no legal effect under current law, legislative discussion needed.'",
@@ -81,7 +82,7 @@ const timelineItems = [
   },
   {
     year: "2026.8",
-    flag: "🌍",
+    flag: "everwill",
     stars: 5,
     ko: "EverWill — 전자서명 유언 디지털 서비스 개시. 한국·미국·일본·UAE 동시 서비스. 세계 최초 디지털 유언 OS 플랫폼.",
     en: "EverWill — Digital Will OS Service Launches. Korea, US, Japan, UAE simultaneous service.",
@@ -212,7 +213,19 @@ export default function LegalTimelineSection() {
                   }`}
                 >
                   <div className="flex items-start gap-2.5">
-                    <span className="text-2xl leading-tight flex-shrink-0 mt-0.5">{item.flag}</span>
+                    {item.flag === "everwill" ? (
+                      <span className="text-2xl leading-tight flex-shrink-0 mt-0.5">🌍</span>
+                    ) : (
+                      <img
+                        src={`https://flagcdn.com/w40/${item.flag}.png`}
+                        srcSet={`https://flagcdn.com/w80/${item.flag}.png 2x`}
+                        width="32"
+                        height="24"
+                        alt={item.flag}
+                        className="rounded-sm flex-shrink-0 mt-0.5 object-cover"
+                        style={{ width: 32, height: 24 }}
+                      />
+                    )}
                     <div className="flex-1 min-w-0">
                       <p
                         className={`text-base sm:text-lg leading-relaxed font-medium ${
