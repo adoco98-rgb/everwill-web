@@ -164,17 +164,17 @@ export default function ServicesSection() {
         </div>
 
         {/* 서비스 카드 그리드 */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-          {services.map((service, i) => {
+        {/* 일반 카드 7개 (추가인증 박스 없음) */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 mb-3">
+          {services.slice(0, 7).map((service, i) => {
             const Icon = serviceIcons[i];
-            const hasAdditionalAuth = !!(service as any).additionalAuth;
             return (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.5, delay: 0.1 + i * 0.05 }}
-                className={`${cardBg[i]} rounded-2xl p-4 border border-white/60 hover:shadow-xl transition-all card-hover group cursor-default flex flex-col ${hasAdditionalAuth ? "col-span-2 md:col-span-1" : ""}`}
+                className={`${cardBg[i]} rounded-2xl p-4 border border-white/60 hover:shadow-xl transition-all card-hover group cursor-default flex flex-col`}
               >
                 <div className={`w-12 h-12 rounded-xl ${serviceColors[i]} flex items-center justify-center mb-3 shadow-sm`}>
                   <Icon className="w-6 h-6" />
@@ -186,26 +186,50 @@ export default function ServicesSection() {
                 </div>
                 <h3 className="font-extrabold text-[#1F3864] text-lg mb-2 leading-tight">{service.title}</h3>
                 <p className="text-gray-700 text-sm leading-relaxed">{service.description}</p>
+              </motion.div>
+            );
+          })}
+        </div>
 
-                {/* 추가 인증 설명 (영상유언장·자필유언장 카드만 표시) */}
-                {hasAdditionalAuth && (
-                  <div className={`mt-4 rounded-xl border-2 p-4 flex items-start gap-2.5 ${(service as any).legalColor}`}>
-                    <Scale className="w-4 h-4 flex-shrink-0 mt-0.5 opacity-80" />
-                    <div>
-                      <p className="text-sm font-bold mb-1 leading-tight">
-                        {(service as any).additionalAuth}
+        {/* 영상 유언장 + 자필 유언 스캔 — 가로 2열, 높이 통일 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {services.slice(7).map((service, j) => {
+            const i = j + 7;
+            const Icon = serviceIcons[i];
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, delay: 0.1 + i * 0.05 }}
+                className={`${cardBg[i]} rounded-2xl p-4 border border-white/60 hover:shadow-xl transition-all card-hover group cursor-default flex flex-col h-full`}
+              >
+                <div className={`w-12 h-12 rounded-xl ${serviceColors[i]} flex items-center justify-center mb-3 shadow-sm`}>
+                  <Icon className="w-6 h-6" />
+                </div>
+                <div className="mb-1.5">
+                  <span className={`text-xs font-bold ${tagColors[i]} px-2.5 py-0.5 rounded-full`}>
+                    {service.tag}
+                  </span>
+                </div>
+                <h3 className="font-extrabold text-[#1F3864] text-lg mb-2 leading-tight">{service.title}</h3>
+                <p className="text-gray-700 text-sm leading-relaxed">{service.description}</p>
+                <div className={`mt-4 rounded-xl border-2 p-4 flex items-start gap-2.5 flex-1 ${(service as any).legalColor}`}>
+                  <Scale className="w-4 h-4 flex-shrink-0 mt-0.5 opacity-80" />
+                  <div>
+                    <p className="text-sm font-bold mb-1 leading-tight">
+                      {(service as any).additionalAuth}
+                    </p>
+                    <p className="text-sm leading-relaxed opacity-90">
+                      {(service as any).legalNote}
+                    </p>
+                    {(service as any).legalBase && (
+                      <p className={`text-xs mt-1.5 leading-relaxed ${(service as any).legalBaseColor}`}>
+                        {(service as any).legalBase}
                       </p>
-                      <p className="text-sm leading-relaxed opacity-90">
-                        {(service as any).legalNote}
-                      </p>
-                      {(service as any).legalBase && (
-                        <p className={`text-xs mt-1.5 leading-relaxed ${(service as any).legalBaseColor}`}>
-                          {(service as any).legalBase}
-                        </p>
-                      )}
-                    </div>
+                    )}
                   </div>
-                )}
+                </div>
               </motion.div>
             );
           })}
