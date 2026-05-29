@@ -128,22 +128,44 @@ export default function LawyersSection() {
             })}
           </div>
 
-          {/* 변호사 안내 배너 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="mt-6 bg-[#1F3864]/5 border border-[#1F3864]/10 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4"
-          >
-            <div className="w-10 h-10 rounded-xl bg-[#1F3864] flex items-center justify-center flex-shrink-0">
-              <Scale className="w-5 h-5 text-[#C9A961]" />
-            </div>
-            <div>
-              <div className="font-bold text-[#1F3864] mb-1">{t.lawyers.bannerTitle}</div>
-              <p className="text-sm text-gray-600">{t.lawyers.bannerDesc}</p>
-            </div>
+          {/* 소송 발생 / 소송 없음 두 박스 */}
+          <div className="mt-8 grid md:grid-cols-2 gap-6">
+            {/* 소송 발생 시 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="bg-red-50 border-2 border-red-200 rounded-2xl p-7"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <Scale className="w-6 h-6 text-red-600" />
+                </div>
+                <span className="text-lg font-black text-red-700">소송 발생 시</span>
+              </div>
+              <p className="text-red-900 text-base leading-relaxed font-medium">
+                유언과 관련하여 소송이 발생할 경우, EverWill에서 선정한 <strong>최상의 유산상속 전문 변호사</strong>가 준비되어 있습니다. 확실한 전자 인증 유언 문서로 한 건의 문제도 없이 대응할 수 있도록 도와드립니다.
+              </p>
+            </motion.div>
 
-          </motion.div>
+            {/* 소송 없을 시 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.65 }}
+              className="bg-green-50 border-2 border-green-200 rounded-2xl p-7"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <FileCheck className="w-6 h-6 text-green-600" />
+                </div>
+                <span className="text-lg font-black text-green-700">소송 없을 시</span>
+              </div>
+              <p className="text-green-900 text-base leading-relaxed font-medium">
+                EverWill 서비스는 <strong>유언자의 뜻을 100% 구현</strong>하는 데 그 목적이 있습니다. 유언자 유고 후 상속과 세금 모든 서비스를 <strong>적은 비용</strong>으로 편리하게 상속 서비스를 받으실 수 있도록 도와드립니다.
+              </p>
+            </motion.div>
+          </div>
         </motion.div>
 
         {/* ── 미래 비전: AI 자동화 ── */}
