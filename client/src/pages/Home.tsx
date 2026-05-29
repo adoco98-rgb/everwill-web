@@ -1,7 +1,6 @@
 /**
  * EverWill 메인 홈페이지
- * 섹션 순서: Hero → VideoIntro → Trust → Services → Comparison → LegalTimeline → Badge → Global → Lawyers → HeirService → Reviews → Pricing → CTA → Footer
- * 설득 흐름: 소개 → 신뢰 → 기능 → 비교(설득) → 입법흐름(신뢰강화) → 차별화 → 글로벌 → 전문가 → 상속인 → 후기 → 가격(구매)
+ * 섹션 순서: Hero → VideoIntro → Trust → Services → Comparison → LegalTimeline → Global → Pricing → Referral → HeirService → Charity → Reviews → Footer
  */
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
@@ -17,7 +16,6 @@ import ReferralSection from "@/components/ReferralSection";
 import CharityStatsSection from "@/components/CharityStatsSection";
 import PricingSection from "@/components/PricingSection";
 import CertifiedCounterBanner from "@/components/CertifiedCounterBanner";
-import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -36,26 +34,24 @@ export default function Home() {
       <ComparisonSection />
       {/* 6. 글로벌 입법 흐름 타임라인 — 법적 신뢰 강화 */}
       <LegalTimelineSection />
-      {/* 8. 글로벌 지원 */}
+      {/* 7. 글로벌 지원 */}
       <GlobalSection />
-      {/* 9. 가격 정책 */}
+      {/* 8. 가격 정책 */}
       <PricingSection />
+      {/* 9. 친구 추천 & 공유 */}
+      <ReferralSection />
       {/* 10. 상속인 서비스 */}
       <HeirServiceSection />
-      {/* 11. 추천/공유 */}
-      <ReferralSection />
-      {/* 12. 사회기부 누적 현황 */}
+      {/* 11. 사회기부 */}
       <CharityStatsSection />
-      {/* 13. 고객 후기 */}
+      {/* 12. 고객 후기 */}
       <ReviewsSection />
-      {/* 14. 인증회원 카운터 */}
+      {/* 13. 인증회원 카운터 */}
       <section className="py-10 bg-[#FAFAF8]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <CertifiedCounterBanner />
         </div>
       </section>
-      {/* 15. 1:1 문의 */}
-      <ContactSection />
       <Footer />
     </div>
   );
