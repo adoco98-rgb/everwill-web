@@ -59,35 +59,42 @@ export default function ServicesSection() {
   const { t } = useLanguage();
 
   const services = [
+    // s1: AI 체크박스 유언 작성
     { title: t.services.s1Title, description: t.services.s1Desc, tag: t.services.s1Tag },
+    // s4: 다중 안심 확인 서비스
+    { title: t.services.s4Title, description: t.services.s4Desc, tag: t.services.s4Tag },
+    // s5: 상속자 직접 등록
+    { title: t.services.s5Title, description: t.services.s5Desc, tag: t.services.s5Tag },
+    // s6: 생애 이벤트 재인증
+    { title: t.services.s6Title, description: t.services.s6Desc, tag: t.services.s6Tag },
+    // s7: 글로벌 멀티관할권
+    { title: t.services.s7Title, description: t.services.s7Desc, tag: t.services.s7Tag },
+    // s8: eKYC 전자 인증
+    { title: t.services.s8Title, description: t.services.s8Desc, tag: t.services.s8Tag },
+    // s9: 11개 언어 + RTL 지원
+    { title: t.services.s9Title, description: t.services.s9Desc, tag: t.services.s9Tag },
+    // s2: 영상 유언장 (추가인증 박스 있음 → 맨 오른쪽)
     {
       title: t.services.s2Title,
       description: t.services.s2Desc,
       tag: t.services.s2Tag,
-      // 영상 유언장: 추가 인증 설명
       additionalAuth: t.services.s2AdditionalAuth,
       legalNote: t.services.s2LegalNote,
       legalBase: t.services.s2LegalBase,
       legalColor: "bg-purple-50 border-purple-100 text-purple-700",
       legalBaseColor: "text-purple-500",
     },
+    // s3: 자필 유언 스캔 인증 (추가인증 박스 있음 → 맨 오른쪽)
     {
       title: t.services.s3Title,
       description: t.services.s3Desc,
       tag: t.services.s3Tag,
-      // 자필 유언장 스캔: 추가 인증 설명
       additionalAuth: t.services.s3AdditionalAuth,
       legalNote: t.services.s3LegalNote,
       legalBase: t.services.s3LegalBase,
       legalColor: "bg-amber-50 border-amber-100 text-amber-700",
       legalBaseColor: "text-amber-500",
     },
-    { title: t.services.s4Title, description: t.services.s4Desc, tag: t.services.s4Tag },
-    { title: t.services.s5Title, description: t.services.s5Desc, tag: t.services.s5Tag },
-    { title: t.services.s6Title, description: t.services.s6Desc, tag: t.services.s6Tag },
-    { title: t.services.s7Title, description: t.services.s7Desc, tag: t.services.s7Tag },
-    { title: t.services.s8Title, description: t.services.s8Desc, tag: t.services.s8Tag },
-    { title: t.services.s9Title, description: t.services.s9Desc, tag: t.services.s9Tag },
   ];
 
   return (
