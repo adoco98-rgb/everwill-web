@@ -347,46 +347,60 @@ export default function Navbar() {
       </div>
 
       {/* 국기 언어 선택 바 - 네비게이션 바 하단에 항상 표시 */}
-      <div className="border-t border-white/10 bg-[#162d52]/80">
+      <div className="border-t border-[#C9A961]/20 bg-[#162d52]">
         <div className="w-full">
-          <div className="flex flex-wrap items-center justify-center gap-1 py-1.5 px-4">
-            {languages.map((lang) => (
+          <div className="flex flex-wrap items-center justify-center gap-2 py-2.5 px-4">
+            {/* 현재 선택 언어를 맹 앞에 표시하고 나머지 언어 순서대로 정렬 */}
+            {[
+              ...languages.filter(l => l.code === language),
+              ...languages.filter(l => l.code !== language),
+            ].map((lang) => (
               <motion.button
                 key={lang.code}
+                layout
                 onClick={() => handleSetLanguage(lang.code)}
                 title={lang.label}
-                whileHover={{ scale: 1.12, y: -2 }}
+                whileHover={{ scale: 1.1, y: -2 }}
                 whileTap={{ scale: 0.92 }}
-                animate={language === lang.code ? { scale: 1.08 } : { scale: 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                className={`relative flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg whitespace-nowrap flex-shrink-0 ${
+                className={`relative flex flex-col items-center gap-0.5 rounded-xl whitespace-nowrap flex-shrink-0 transition-all ${
                   language === lang.code
-                    ? "bg-[#C9A961]/20 ring-1 ring-[#C9A961]"
-                    : "hover:bg-white/10"
+                    ? "px-3 py-1.5 bg-[#C9A961]/25 ring-2 ring-[#C9A961] shadow-lg shadow-[#C9A961]/30"
+                    : "px-2 py-1 hover:bg-white/10"
                 }`}
               >
                 {language === lang.code && (
                   <motion.div
                     layoutId="activeLang"
-                    className="absolute inset-0 rounded-lg bg-[#C9A961]/15"
+                    className="absolute inset-0 rounded-xl bg-[#C9A961]/15"
                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
                   />
                 )}
                 <img
-                    src={lang.flagImg}
-                    alt={lang.label}
-                    loading="eager"
-                    decoding="async"
-                    className={`relative z-10 rounded-sm flex-shrink-0 ${
-                      language === lang.code
-                        ? "ring-1 ring-[#C9A961] shadow-sm shadow-[#C9A961]/50"
-                        : "opacity-80 hover:opacity-100"
-                    }`}
-                    style={{ width: 32, height: 22, objectFit: "cover", display: "block" }}
-                  />
+                  src={lang.flagImg}
+                  alt={lang.label}
+                  loading="eager"
+                  decoding="async"
+                  className={`relative z-10 rounded-sm flex-shrink-0 transition-all ${
+                    language === lang.code
+                      ? "ring-2 ring-[#C9A961] shadow-md shadow-[#C9A961]/40"
+                      : "opacity-75 hover:opacity-100"
+                  }`}
+                  style={{
+                    width: language === lang.code ? 54 : 40,
+                    height: language === lang.code ? 36 : 27,
+                    objectFit: "cover",
+                    display: "block",
+                  }}
+                />
+                {language === lang.code && (
+                  <span className="relative z-10 text-[10px] font-semibold text-[#C9A961] mt-0.5 leading-none">
+                    {lang.label}
+                  </span>
+                )}
               </motion.button>
             ))}
-            {/* 뉴질랜드·호주: 영어(en) 콘텐츠 사용, 국기만 별도 표시 */}
+            {/* 뉴질랜드·호주: 영어(en) 콘텐츠 사용 */}
             {[
               { code: "nz", label: "New Zealand", flagImg: "https://flagcdn.com/w80/nz.png" },
               { code: "au", label: "Australia", flagImg: "https://flagcdn.com/w80/au.png" },
@@ -395,18 +409,18 @@ export default function Navbar() {
                 key={extra.code}
                 onClick={() => handleSetLanguage("en")}
                 title={extra.label}
-                whileHover={{ scale: 1.12, y: -2 }}
+                whileHover={{ scale: 1.1, y: -2 }}
                 whileTap={{ scale: 0.92 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                className="relative flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg whitespace-nowrap flex-shrink-0 hover:bg-white/10"
+                className="relative flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl whitespace-nowrap flex-shrink-0 hover:bg-white/10"
               >
                 <img
                   src={extra.flagImg}
                   alt={extra.label}
                   loading="eager"
                   decoding="async"
-                  className="relative z-10 rounded-sm flex-shrink-0 opacity-80 hover:opacity-100"
-                  style={{ width: 32, height: 22, objectFit: "cover", display: "block" }}
+                  className="relative z-10 rounded-sm flex-shrink-0 opacity-75 hover:opacity-100"
+                  style={{ width: 40, height: 27, objectFit: "cover", display: "block" }}
                 />
               </motion.button>
             ))}
