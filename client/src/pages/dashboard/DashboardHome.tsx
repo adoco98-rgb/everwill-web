@@ -142,26 +142,6 @@ export default function DashboardHome() {
         </p>
       </motion.div>
 
-      {/* 회원번호 표시 카드 */}
-      {(user as any)?.memberCode && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.02 }}
-          className="bg-gradient-to-r from-[#1F3864] to-[#2a4a80] rounded-2xl px-6 py-4 flex items-center justify-between"
-        >
-          <div>
-            <p className="text-white/50 text-xs mb-1">나의 회원번호 (EverWill Card 각인 번호)</p>
-            <p className="text-[#C9A961] font-mono font-bold text-xl tracking-widest">{(user as any).memberCode}</p>
-          </div>
-          <Link href="/dashboard/membership-card">
-            <a className="shrink-0 bg-[#C9A961] hover:bg-[#b8944f] text-[#1F3864] px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap">
-              카드 보기 →
-            </a>
-          </Link>
-        </motion.div>
-      )}
-
       {/* 자산 인증 완료 배지 배너 */}
       {assetVerifyStatus === "approved" && (
         <motion.div

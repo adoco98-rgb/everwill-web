@@ -349,7 +349,7 @@ export default function Navbar() {
       {/* 국기 언어 선택 바 - 네비게이션 바 하단에 항상 표시 */}
       <div className="border-t border-white/10 bg-[#162d52]/80">
         <div className="w-full">
-          <div className="flex items-center justify-center gap-1 py-1.5 overflow-x-auto scrollbar-hide px-4">
+          <div className="flex flex-wrap items-center justify-center gap-1 py-1.5 px-4">
             {languages.map((lang) => (
               <motion.button
                 key={lang.code}

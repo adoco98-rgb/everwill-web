@@ -103,14 +103,7 @@ export default function MembershipCardPage() {
           {/* 카드 정보 */}
           <div className="flex-1 min-w-0">
             <p className="text-white/60 text-xs mb-1">회원명</p>
-            <p className="text-white font-bold text-xl mb-2 truncate">{user?.name ?? "회원"}</p>
-            {/* 회원번호 - 카드에 각인되는 번호 */}
-            <div className="mb-3">
-              <p className="text-white/50 text-xs mb-0.5">회원번호</p>
-              <p className="text-[#C9A961] font-mono font-bold text-sm tracking-widest">
-                {(user as any)?.memberCode ?? "발급 중..."}
-              </p>
-            </div>
+            <p className="text-white font-bold text-xl mb-4 truncate">{user?.name ?? "회원"}</p>
             <div className="bg-white/10 rounded-xl px-3 py-2">
               <p className="text-white/80 text-xs leading-relaxed">
                 나는 <span className="text-[#C9A961] font-semibold">EverWill</span>에<br />

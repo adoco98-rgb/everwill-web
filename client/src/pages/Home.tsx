@@ -6,10 +6,8 @@
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import VideoIntroSection from "@/components/VideoIntroSection";
-import CountryVideoSection from "@/components/CountryVideoSection";
 import TrustSection from "@/components/TrustSection";
 import ServicesSection from "@/components/ServicesSection";
-import LegacyQuoteSection from "@/components/LegacyQuoteSection";
 import ComparisonSection from "@/components/ComparisonSection";
 import LegalTimelineSection from "@/components/LegalTimelineSection";
 import BadgeSection from "@/components/BadgeSection";
@@ -32,12 +30,8 @@ export default function Home() {
       <HeroSection />
       {/* 2. 서비스 소개 슬라이드 */}
       <VideoIntroSection />
-      {/* 2-1. 국가별 유튜브 영상 섹션 */}
-      <CountryVideoSection />
       {/* 3. 신뢰 지표 */}
       <TrustSection />
-      {/* 3-1. 감성 문구 + 이미지 배너 */}
-      <LegacyQuoteSection />
       {/* 4. 핵심 기능 소개 */}
       <ServicesSection />
       {/* 5. 기존 공증 vs EverWill 비교 (설득) */}

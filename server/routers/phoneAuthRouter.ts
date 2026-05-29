@@ -15,7 +15,6 @@ import { publicProcedure, router } from "../_core/trpc";
 import { sendSmsOtp, verifySmsOtp, toE164 } from "../_core/sms";
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { randomUUID } from "crypto";
-import { generateMemberCode } from "../memberCode";
 
 export const phoneAuthRouter = router({
   /**
@@ -76,8 +75,6 @@ export const phoneAuthRouter = router({
 
       // 신규 사용자용 QR 코드 생성
       const newQrCode = randomUUID();
-      // 신규 가입 시 회원번호 자동 생성
-      const newMemberCode = isNewUser ? await generateMemberCode("KR") : undefined;
 
       await db.insert(users).values({
         openId,
@@ -86,7 +83,6 @@ export const phoneAuthRouter = router({
         loginMethod: "phone",
         lastSignedIn: new Date(),
         qrCode: newQrCode,
-        memberCode: newMemberCode,
       }).onDuplicateKeyUpdate({
         set: { lastSignedIn: new Date() },
       });
@@ -134,8 +130,6 @@ export const phoneAuthRouter = router({
 
       const passwordHash = await bcrypt.hash(input.password, 12);
       const newQrCode = randomUUID();
-      // 신규 가입 시 회원번호 자동 생성
-      const newMemberCode = await generateMemberCode("KR");
 
       await db.insert(users).values({
         openId,
@@ -146,7 +140,6 @@ export const phoneAuthRouter = router({
         passwordHash,
         lastSignedIn: new Date(),
         qrCode: newQrCode,
-        memberCode: newMemberCode,
       });
 
       return { success: true };

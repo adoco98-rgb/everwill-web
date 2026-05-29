@@ -53,9 +53,6 @@ export default function PaymentPage() {
   const [activeCategory, setActiveCategory] = useState("인증");
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
-  const [helperCode, setHelperCode] = useState("");
-  const [helperCodeValid, setHelperCodeValid] = useState<null | { name: string; commissionRate: number }>(null);
-  const [helperCodeChecking, setHelperCodeChecking] = useState(false);
 
   const addToCart = (key: ProductKey) => {
     const product = PRODUCTS.find((p) => p.key === key)!;
@@ -74,28 +71,6 @@ export default function PaymentPage() {
   const total = cart.reduce((sum, item) => sum + item.amount * item.quantity, 0);
   const inCart = (key: ProductKey) => cart.some((i) => i.key === key);
 
-  const checkHelperCode = async (code: string) => {
-    if (!code.trim()) {
-      setHelperCodeValid(null);
-      return;
-    }
-    setHelperCodeChecking(true);
-    try {
-      const res = await fetch(`/api/trpc/helper.validateCode?batch=1&input=${encodeURIComponent(JSON.stringify({ "0": { json: { code: code.trim().toUpperCase() } } }))}`);
-      const data = await res.json();
-      const result = data?.[0]?.result?.data?.json;
-      if (result) {
-        setHelperCodeValid({ name: result.name, commissionRate: result.commissionRate });
-      } else {
-        setHelperCodeValid(null);
-      }
-    } catch {
-      setHelperCodeValid(null);
-    } finally {
-      setHelperCodeChecking(false);
-    }
-  };
-
   const handleCheckout = async () => {
     if (cart.length === 0) {
       toast.error("결제할 상품을 선택해주세요.");
@@ -109,7 +84,6 @@ export default function PaymentPage() {
         body: JSON.stringify({
           items: cart.map((i) => ({ key: i.key, quantity: i.quantity })),
           customerEmail: email || undefined,
-          helperCode: helperCode.trim().toUpperCase() || undefined,
         }),
       });
       const data = await res.json();
@@ -302,7 +276,7 @@ export default function PaymentPage() {
                     <p className="text-xs text-gray-400 mt-1">USD 환산: ~${(total / 1350).toFixed(2)}</p>
                   </div>
 
-                  <div className="mb-3">
+                  <div className="mb-4">
                     <label className="block text-xs font-semibold text-gray-500 mb-1.5">이메일 (영수증 발송)</label>
                     <input
                       type="email"
@@ -311,41 +285,6 @@ export default function PaymentPage() {
                       placeholder="your@email.com"
                       className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#1F3864] transition-all"
                     />
-                  </div>
-
-                  {/* 헬퍼 코드 입력 */}
-                  <div className="mb-4">
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">헬퍼 코드 (선택)</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={helperCode}
-                        onChange={(e) => {
-                          setHelperCode(e.target.value.toUpperCase());
-                          setHelperCodeValid(null);
-                        }}
-                        onBlur={() => checkHelperCode(helperCode)}
-                        placeholder="HELPER-XXXXXX"
-                        className={`flex-1 border rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none transition-all ${
-                          helperCodeValid ? "border-green-400 bg-green-50" : "border-gray-200 focus:border-[#1F3864]"
-                        }`}
-                      />
-                      <button
-                        onClick={() => checkHelperCode(helperCode)}
-                        disabled={helperCodeChecking || !helperCode}
-                        className="px-3 py-2 bg-[#1F3864] text-white rounded-xl text-xs font-semibold disabled:opacity-40"
-                      >
-                        {helperCodeChecking ? "..." : "확인"}
-                      </button>
-                    </div>
-                    {helperCodeValid && (
-                      <p className="text-xs text-green-600 mt-1 font-medium">
-                        ✓ {helperCodeValid.name} 헬퍼 코드 ({helperCodeValid.commissionRate}% 커미션)
-                      </p>
-                    )}
-                    {helperCode && !helperCodeValid && !helperCodeChecking && (
-                      <p className="text-xs text-gray-400 mt-1">유효하지 않은 코드입니다</p>
-                    )}
                   </div>
                 </>
               )}

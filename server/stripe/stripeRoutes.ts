@@ -11,10 +11,9 @@ import { eq } from "drizzle-orm";
 import { Resend } from "resend";
 import { SARAM_PRODUCTS, type ProductKey } from "./products";
 import { getDb } from "../db";
-import { payments, users, wills, helpers, helperCommissions } from "../../drizzle/schema";
+import { payments, users, wills } from "../../drizzle/schema";
 import { sdk } from "../_core/sdk";
 import { ENV } from "../_core/env";
-import { and } from "drizzle-orm";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-03-25.dahlia",
@@ -24,11 +23,10 @@ export function registerStripeRoutes(app: Express) {
   /* ─── 1. Checkout Session 생성 (로그인 필수) ─── */
   app.post("/api/stripe/checkout", async (req: Request, res: Response) => {
     try {
-      const { items, customerName, willId, helperCode } = req.body as {
+      const { items, customerName, willId } = req.body as {
         items: { key: ProductKey; quantity?: number }[];
         customerName?: string;
         willId?: number; // 인증 결제 시 유언장 ID
-        helperCode?: string; // 헬퍼 추천 코드
       };
 
       if (!items || items.length === 0) {
@@ -82,7 +80,6 @@ export function registerStripeRoutes(app: Express) {
           customer_name: customerName || "",
           items: items.map((i) => i.key).join(","),
           will_id: willId ? willId.toString() : "", // 인증 결제 시 유언장 ID
-          helper_code: helperCode || "", // 헬퍼 추천 코드
         },
         success_url: `${origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/payment/cancel`,
@@ -154,51 +151,6 @@ export function registerStripeRoutes(app: Express) {
               });
 
               console.log(`[Webhook] 결제 DB 저장 완료: ${session.id}`);
-
-              // ─── 헬퍼 코드 커미션 자동 적립 ───
-              const helperCodeMeta = session.metadata?.helper_code;
-              if (helperCodeMeta && dbUserId && session.amount_total) {
-                try {
-                  const helperRows = await db.select().from(helpers).where(
-                    and(eq(helpers.helperCode, helperCodeMeta), eq(helpers.status, "approved"))
-                  ).limit(1);
-                  if (helperRows[0]) {
-                    const h = helperRows[0];
-                    const saleAmount = session.currency === "krw" ? session.amount_total : Math.round(session.amount_total / 100 * 1350);
-                    const commissionAmount = Math.floor((saleAmount * h.commissionRate) / 100);
-                    const itemsStr = session.metadata?.items || "項목 미상";
-
-                    await db.insert(helperCommissions).values({
-                      helperId: h.id,
-                      customerId: dbUserId,
-                      stripeSessionId: session.id,
-                      productName: itemsStr,
-                      saleAmount,
-                      commissionRate: h.commissionRate,
-                      commissionAmount,
-                      payoutStatus: "pending",
-                    });
-
-                    // 헬퍼 누적 매출 및 커미션 업데이트
-                    const newTotalSales = h.totalSales + saleAmount;
-                    const newPending = h.pendingCommission + commissionAmount;
-                    let newRate = 15;
-                    if (newTotalSales >= 50_000_000) newRate = 30;
-                    else if (newTotalSales >= 20_000_000) newRate = 25;
-                    else if (newTotalSales >= 5_000_000) newRate = 20;
-
-                    await db.update(helpers).set({
-                      totalSales: newTotalSales,
-                      pendingCommission: newPending,
-                      commissionRate: newRate,
-                    }).where(eq(helpers.id, h.id));
-
-                    console.log(`[Webhook] 헬퍼 커미션 적립: ${helperCodeMeta} +${commissionAmount}원`);
-                  }
-                } catch (helperErr) {
-                  console.error("[Webhook] 헬퍼 커미션 적립 실패:", helperErr);
-                }
-              }
 
               // ─── 인증 상품 결제 시 유언장 상태 자동 업데이트 ───
               const purchasedItems = (session.metadata?.items || "").split(",");
