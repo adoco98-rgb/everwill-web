@@ -10,7 +10,6 @@ import TrustSection from "@/components/TrustSection";
 import ServicesSection from "@/components/ServicesSection";
 import ComparisonSection from "@/components/ComparisonSection";
 import LegalTimelineSection from "@/components/LegalTimelineSection";
-import BadgeSection from "@/components/BadgeSection";
 import GlobalSection from "@/components/GlobalSection";
 import LawyersSection from "@/components/LawyersSection";
 import HeirServiceSection from "@/components/HeirServiceSection";
@@ -38,8 +37,6 @@ export default function Home() {
       <ComparisonSection />
       {/* 6. 글로벌 입법 흐름 타임라인 — 법적 신뢰 강화 */}
       <LegalTimelineSection />
-      {/* 7. Badge/카드 차별화 */}
-      <BadgeSection />
       {/* 8. 글로벌 지원 */}
       <GlobalSection />
       {/* 9. 변호사 매칭 */}

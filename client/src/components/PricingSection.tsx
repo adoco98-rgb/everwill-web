@@ -1,225 +1,81 @@
 /**
- * EverWill 가격 섹션
- * 모바일: 카드형 세로 레이아웃
- * 데스크탑: 가로 행 레이아웃
- * pricing.ts 연동으로 언어별 자동 가격 변환
+ * EverWill 통합 가격 섹션 (BadgeSection + PricingSection 합본)
+ * - 상단: 카드 기능 4가지 (QR/NFC/유언인증/사망트리거)
+ * - 중단: 카드 디자인 4종 (실버/골드/플래티넘/VIP) + 가격 상세
+ * - 하단: 무료 시작 플랜 안내
  */
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
 import {
+  QrCode,
+  FileCheck,
+  Wifi,
+  ShieldCheck,
+  Star,
+  Sparkles,
+  CreditCard,
   Check,
   Zap,
-  Star,
-  Crown,
-  Shield,
-  Clock,
-  Infinity as InfinityIcon,
   ChevronRight,
-  Minus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { formatPrice, getPlanPrices, isKorean, PLAN_KRW_PRICES } from "@/lib/pricing";
+import { formatPrice, isKorean, PLAN_KRW_PRICES } from "@/lib/pricing";
+
+/* 카드 공통 기능 4가지 */
+const CARD_FEATURES = [
+  {
+    icon: QrCode,
+    labelKo: "QR 신원 인증",
+    labelEn: "QR Identity",
+    descKo: "응급 시 QR 스캔 → 가족 연락처 즉시 확인",
+    descEn: "Emergency QR scan → instant family contact",
+  },
+  {
+    icon: Wifi,
+    labelKo: "NFC 태그",
+    labelEn: "NFC Tag",
+    descKo: "스마트폰 태그 → 의료정보 자동 표시",
+    descEn: "Tap phone → medical info displayed",
+  },
+  {
+    icon: FileCheck,
+    labelKo: "유언 인증 번호",
+    labelEn: "Will Certificate",
+    descKo: "법원·은행에서 일련번호로 유언 확인",
+    descEn: "Court & bank will verification by serial number",
+  },
+  {
+    icon: ShieldCheck,
+    labelKo: "사망 트리거",
+    labelEn: "Death Trigger",
+    descKo: "카드 발견 시 자동 사망 알림 발송",
+    descEn: "Auto death notification when card is found",
+  },
+];
 
 export default function PricingSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
   const { t, language } = useLanguage();
   const isKo = isKorean(language);
-
-  // 언어에 맞는 플랜 가격 계산
-  const planPrices = getPlanPrices(language);
-
-  // 가격 포맷 함수 (원화 또는 달러)
-  const fmtKrw = (krw: number) => formatPrice(krw, language);
-
-  // 무료 플랜 페이월 안내 텍스트
-  const certPriceStr = planPrices.cert.total;
-  const paywallNote = isKo
-    ? `🔐 전자 인증(${certPriceStr}) 후 법적 효력 · 72시간 임시 저장`
-    : `🔐 Certification required for validity (${certPriceStr}) · 72hr temp save`;
-
-  // 인증 플랜 배지 텍스트
-  const certBadge = isKo ? "실버 카드 포함" : "Silver Card Included";
-  const certSubBadge = isKo ? "★ 1년 보관(₩15,000) 포함" : "★ 1yr storage included";
-
-  // 플랜 이름/설명 다국어 처리
-  const planLabels = {
-    free: {
-      name: t.pricing.free || (isKo ? "무료 시작" : "Free Start"),
-      description: t.pricing.freeDesc || (isKo ? "AI 유언장 작성 · 저장까지 무료" : "AI will writing — free until certification"),
-      features: [
-        isKo ? "AI 유언장 작성 (무료)" : "AI Will Writing (Free)",
-        isKo ? "상속자 등록 (무료)" : "Heir Registration (Free)",
-        isKo ? "자산 분배 설계 (무료)" : "Asset Distribution (Free)",
-        isKo ? "미리보기 확인 (무료)" : "Preview & Review (Free)",
-      ],
-      cta: isKo ? "무료로 시작하기" : "Start Free",
-    },
-    cert: {
-      name: isKo ? "전자 인증" : "Will Certification",
-      description: isKo ? "전자 인증 + 1년 보관 + 실버 카드" : "Certification + 1yr storage + Silver Card",
-      features: [
-        isKo ? "eKYC 전자 인증 완료" : "eKYC Certified",
-        isKo ? "1년 보관 (₩15,000 포함)" : "1-Year Storage (included)",
-        isKo ? "실버 카드 발급" : "Silver Card Issued",
-        isKo ? "은행급 보안" : "Bank-Level Security",
-        isKo ? "무료 수정 1회 포함" : "1 Free Revision Included",
-        isKo ? "추가 수정: ₩5,000/회" : "Extra Revision: ₩5,000/each",
-      ],
-      cta: isKo ? "지금 인증 시작하기" : "Start Certification",
-    },
-    plan3y: {
-      name: isKo ? "3년 플랜" : "3-Year Plan",
-      description: isKo ? "3년 보관 + 골드 카드" : "3-year storage + Gold Card",
-      features: [
-        isKo ? "eKYC 전자 인증 완료" : "eKYC Certified",
-        isKo ? "3년 보관 포함" : "3-Year Storage Included",
-        isKo ? "골드 카드 발급" : "Gold Card Issued",
-        isKo ? "유족 자동 알림" : "Auto Family Notification",
-        isKo ? "무료 수정 2회 포함" : "2 Free Revisions Included",
-        isKo ? "추가 수정: ₩5,000/회" : "Extra Revision: ₩5,000/each",
-      ],
-      cta: isKo ? "시작하기" : "Get Started",
-    },
-    plan5y: {
-      name: isKo ? "5년 플랜" : "5-Year Plan",
-      description: isKo ? "5년 보관 + 자필·영상 유언 포함 + 플래티넘 카드" : "5yr storage + Handwritten & Video will + Platinum Card",
-      features: [
-        isKo ? "eKYC 전자 인증 완료" : "eKYC Certified",
-        isKo ? "5년 보관 포함" : "5-Year Storage Included",
-        isKo ? "자필 유언 스캔 인증 포함" : "Handwritten Scan Included",
-        isKo ? "영상 유언 포함" : "Video Will Included",
-        isKo ? "플래티넘 카드 발급" : "Platinum Card Issued",
-        isKo ? "유족 자동 알림" : "Auto Family Notification",
-      ],
-      cta: isKo ? "지금 시작하기" : "Start Now",
-    },
-    planLife: {
-      name: isKo ? "영구 플랜" : "Lifetime Plan",
-      description: isKo ? "영구 보관 + 자필·영상 유언 포함 + VIP" : "Lifetime storage + All features + VIP",
-      features: [
-        isKo ? "eKYC 전자 인증 완료" : "eKYC Certified",
-        isKo ? "영구 보관" : "Lifetime Storage",
-        isKo ? "자필 유언 스캔 인증 포함" : "Handwritten Scan Included",
-        isKo ? "영상 유언 포함" : "Video Will Included",
-        isKo ? "VIP 카드 발급" : "VIP Card Issued",
-        isKo ? "유족 자동 알림" : "Auto Family Notification",
-        isKo ? "유언장 수정 무제한 무료" : "Unlimited Free Revisions",
-      ],
-      cta: isKo ? "영구 보관 시작" : "Start Lifetime",
-    },
-  };
-
-  // 가격 세분화 레이블
-  const baseFeeLabel = isKo ? "전자 인증" : "Certification";
-  const storageFeeLabel = isKo ? "보관료" : "Storage";
-  const discountLabel = isKo ? "할인" : "Discount";
-  const totalLabel = isKo ? "합계" : "Total";
-
-  const plans = [
-    {
-      id: "free",
-      icon: Zap,
-      name: planLabels.free.name,
-      description: planLabels.free.description,
-      baseFeeKrw: 0,
-      storageFeeKrw: null as number | null,
-      discountKrw: null as number | null,
-      totalKrw: 0,
-      badge: null as string | null,
-      highlight: false,
-      accent: "border-gray-200 bg-[#FAFAF8]",
-      iconBg: "bg-gray-100",
-      iconColor: "text-gray-500",
-      features: planLabels.free.features,
-      paywallNote,
-      cta: planLabels.free.cta,
-      ctaClass: "bg-[#1F3864] text-white hover:bg-[#1F3864]/90",
-    },
-    {
-      id: "cert",
-      icon: Shield,
-      name: planLabels.cert.name,
-      description: planLabels.cert.description,
-      baseFeeKrw: PLAN_KRW_PRICES.cert.baseFee,
-      storageFeeKrw: PLAN_KRW_PRICES.cert.storageFee,
-      discountKrw: PLAN_KRW_PRICES.cert.discount,
-      totalKrw: PLAN_KRW_PRICES.cert.total,
-      badge: certBadge,
-      subBadge: certSubBadge,
-      highlight: true,
-      cardTier: isKo ? "실버" : "Silver",
-      accent: "border-[#1F3864] bg-[#1F3864]",
-      iconBg: "bg-white/15",
-      iconColor: "text-[#C9A961]",
-      features: planLabels.cert.features,
-      cta: planLabels.cert.cta,
-      ctaClass: "bg-[#C9A961] text-[#1F3864] font-bold hover:bg-[#d4b870]",
-    },
-    {
-      id: "3y",
-      icon: Clock,
-      name: planLabels.plan3y.name,
-      description: planLabels.plan3y.description,
-      baseFeeKrw: PLAN_KRW_PRICES.plan3y.baseFee,
-      storageFeeKrw: PLAN_KRW_PRICES.plan3y.storageFee,
-      discountKrw: PLAN_KRW_PRICES.plan3y.discount,
-      totalKrw: PLAN_KRW_PRICES.plan3y.total,
-      badge: isKo ? "골드 카드" : "Gold Card",
-      highlight: false,
-      accent: "border-[#C9A961]/50 bg-amber-50/30",
-      iconBg: "bg-amber-100",
-      iconColor: "text-[#C9A961]",
-      features: planLabels.plan3y.features,
-      cta: planLabels.plan3y.cta,
-      ctaClass: "bg-[#C9A961] text-[#1F3864] font-bold hover:bg-[#d4b870]",
-    },
-    {
-      id: "5y",
-      icon: Star,
-      name: planLabels.plan5y.name,
-      description: planLabels.plan5y.description,
-      baseFeeKrw: PLAN_KRW_PRICES.plan5y.baseFee,
-      storageFeeKrw: PLAN_KRW_PRICES.plan5y.storageFee,
-      discountKrw: PLAN_KRW_PRICES.plan5y.discount,
-      totalKrw: PLAN_KRW_PRICES.plan5y.total,
-      badge: isKo ? "플래티넘 카드" : "Platinum Card",
-      highlight: false,
-      accent: "border-[#C9A961]/50 bg-amber-50/40",
-      iconBg: "bg-amber-100",
-      iconColor: "text-[#C9A961]",
-      features: planLabels.plan5y.features,
-      cta: planLabels.plan5y.cta,
-      ctaClass: "bg-[#C9A961] text-[#1F3864] font-bold hover:bg-[#d4b870]",
-    },
-    {
-      id: "life",
-      icon: Crown,
-      name: planLabels.planLife.name,
-      description: planLabels.planLife.description,
-      baseFeeKrw: PLAN_KRW_PRICES.planLife.baseFee,
-      storageFeeKrw: PLAN_KRW_PRICES.planLife.storageFee,
-      discountKrw: PLAN_KRW_PRICES.planLife.discount,
-      totalKrw: PLAN_KRW_PRICES.planLife.total,
-      badge: isKo ? "VIP · 영구" : "VIP · Lifetime",
-      highlight: false,
-      accent: "border-[#C9A961]/40 bg-gradient-to-r from-amber-50/60 to-[#FAFAF8]",
-      iconBg: "bg-amber-100",
-      iconColor: "text-[#C9A961]",
-      features: planLabels.planLife.features,
-      cta: planLabels.planLife.cta,
-      ctaClass: "bg-gradient-to-r from-[#C9A961] to-amber-500 text-[#1F3864] font-bold hover:opacity-90",
-    },
-  ];
-
+  const isJa = language === "ja";
+  const isZh = language === "zh";
   const [, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
-  const comingSoonMsg = isKo ? "서비스 준비 중입니다. 곧 오픈합니다!" : "Coming soon!";
-  // 무료 플랜 버튼: 로그인 여부에 따라 /write 또는 /login?returnTo=/write
+
+  const fmtKrw = (krw: number) => formatPrice(krw, language);
+
+  const getPrice = (usd: string, krw: string, jpy: string, cny: string) => {
+    if (isKo) return krw;
+    if (isJa) return jpy;
+    if (isZh) return cny;
+    return usd;
+  };
+
   const handleFreeStart = () => {
     if (isAuthenticated) {
       navigate("/write");
@@ -228,259 +84,320 @@ export default function PricingSection() {
     }
   };
 
+  const comingSoonMsg = isKo ? "서비스 준비 중입니다. 곧 오픈합니다!" : "Coming soon!";
+
+  /* 카드 4종 데이터 */
+  const cards = [
+    {
+      tier: "Silver",
+      tierLabel: isKo ? "실버 카드" : "Silver Card",
+      planName: isKo ? "전자 인증 + 1년 보관" : "Certification + 1yr Storage",
+      color: "from-slate-400 to-slate-600",
+      borderColor: "border-slate-400/40",
+      textAccent: "text-slate-300",
+      bgCard: "bg-gradient-to-br from-slate-700 to-slate-900",
+      price: getPrice("$49", "₩49,000", "¥7,595", "¥353"),
+      priceKrw: PLAN_KRW_PRICES.cert.total,
+      material: isKo ? "실버 컬러" : "Silver Color",
+      popular: false,
+      icon: CreditCard,
+      features: isKo
+        ? ["eKYC 전자 인증 완료", "QR 신원 인증", "NFC 태그", "유언 인증 번호", "1년 보관 포함", "사망 트리거"]
+        : ["eKYC Certified", "QR Identity", "NFC Tag", "Will Certificate", "1yr Storage", "Death Trigger"],
+      breakdown: isKo
+        ? [{ label: "전자 인증", val: "₩49,000" }, { label: "1년 보관", val: "₩15,000" }, { label: "할인", val: "-₩15,000", red: true }, { label: "합계", val: "₩49,000", bold: true }]
+        : [{ label: "Certification", val: "$39" }, { label: "1yr Storage", val: "$15" }, { label: "Discount", val: "-$15", red: true }, { label: "Total", val: "$39", bold: true }],
+    },
+    {
+      tier: "Gold",
+      tierLabel: isKo ? "골드 카드" : "Gold Card",
+      planName: isKo ? "전자 인증 + 3년 보관" : "Certification + 3yr Storage",
+      color: "from-[#C9A961] to-[#a07c3a]",
+      borderColor: "border-[#C9A961]/50",
+      textAccent: "text-[#C9A961]",
+      bgCard: "bg-gradient-to-br from-[#1a2f5a] to-[#0d1f3c]",
+      price: getPrice("$79", "₩79,000", "¥12,245", "¥569"),
+      priceKrw: PLAN_KRW_PRICES.plan3y.total,
+      material: isKo ? "골드 컬러" : "Gold Color",
+      popular: true,
+      icon: Star,
+      features: isKo
+        ? ["eKYC 전자 인증 완료", "QR 신원 인증", "NFC 태그", "유언 인증 번호", "3년 보관 포함", "사망 트리거 우선 처리", "유족 자동 알림"]
+        : ["eKYC Certified", "QR Identity", "NFC Tag", "Will Certificate", "3yr Storage", "Priority Death Trigger", "Auto Family Notification"],
+      breakdown: isKo
+        ? [{ label: "전자 인증", val: "₩49,000" }, { label: "3년 보관", val: "₩30,000" }, { label: "합계", val: "₩79,000", bold: true }]
+        : [{ label: "Certification", val: "$39" }, { label: "3yr Storage", val: "$30" }, { label: "Total", val: "$79", bold: true }],
+    },
+    {
+      tier: "Platinum",
+      tierLabel: isKo ? "플래티넘 카드" : "Platinum Card",
+      planName: isKo ? "전자 인증 + 5년 보관 + 자필·영상" : "Certification + 5yr + Handwritten & Video",
+      color: "from-purple-300 to-purple-600",
+      borderColor: "border-purple-400/40",
+      textAccent: "text-purple-300",
+      bgCard: "bg-gradient-to-br from-purple-900 to-slate-900",
+      price: getPrice("$99", "₩99,000", "¥15,345", "¥713"),
+      priceKrw: PLAN_KRW_PRICES.plan5y.total,
+      material: isKo ? "플래티넘 컬러" : "Platinum Color",
+      popular: false,
+      icon: Sparkles,
+      features: isKo
+        ? ["eKYC 전자 인증 완료", "QR 신원 인증", "NFC 태그", "유언 인증 번호", "5년 보관 포함", "자필 유언 스캔 인증", "영상 유언 포함", "사망 트리거 우선 처리"]
+        : ["eKYC Certified", "QR Identity", "NFC Tag", "Will Certificate", "5yr Storage", "Handwritten Scan", "Video Will", "Priority Death Trigger"],
+      breakdown: isKo
+        ? [{ label: "전자 인증", val: "₩49,000" }, { label: "5년 보관", val: "₩50,000" }, { label: "합계", val: "₩99,000", bold: true }]
+        : [{ label: "Certification", val: "$39" }, { label: "5yr Storage", val: "$50" }, { label: "Total", val: "$99", bold: true }],
+    },
+    {
+      tier: "VIP",
+      tierLabel: isKo ? "VIP 프리미엄" : "VIP Premium",
+      planName: isKo ? "영구 보관 + 전체 기능 + VIP" : "Lifetime Storage + All Features + VIP",
+      color: "from-amber-300 via-yellow-400 to-amber-600",
+      borderColor: "border-amber-400/60",
+      textAccent: "text-amber-300",
+      bgCard: "bg-gradient-to-br from-amber-950 to-slate-900",
+      price: getPrice("$199", "₩199,000", "¥30,897", "¥1,435"),
+      priceKrw: PLAN_KRW_PRICES.planLife.total,
+      material: isKo ? "티타늄 · 플래티넘" : "Titanium · Platinum",
+      popular: false,
+      icon: Sparkles,
+      features: isKo
+        ? ["eKYC 전자 인증 완료", "QR 신원 인증", "NFC 태그", "유언 인증 번호", "영구 보관", "자필·영상 유언 포함", "사망 트리거 우선 처리", "VIP 전담 변호사 연결", "전담 콘시어지 서비스", "수정 무제한 무료"]
+        : ["eKYC Certified", "QR Identity", "NFC Tag", "Will Certificate", "Lifetime Storage", "Handwritten & Video Will", "Priority Death Trigger", "Dedicated VIP Attorney", "Dedicated Concierge", "Unlimited Free Revisions"],
+      breakdown: isKo
+        ? [{ label: "전자 인증", val: "₩49,000" }, { label: "영구 보관", val: "₩150,000" }, { label: "합계", val: "₩199,000", bold: true }]
+        : [{ label: "Certification", val: "$39" }, { label: "Lifetime Storage", val: "$150" }, { label: "Total", val: "$199", bold: true }],
+    },
+  ];
+
   return (
-    <section id="pricing" className="py-16 lg:py-28 bg-white" ref={ref}>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="pricing" className="py-20 lg:py-28 navy-gradient relative overflow-hidden" ref={ref}>
+      {/* 배경 장식 */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-0 w-96 h-96 rounded-full bg-[#C9A961]/5 blur-3xl -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-[#C9A961]/8 blur-3xl translate-x-1/2 translate-y-1/2" />
+        <div className="absolute top-1/2 left-1/2 w-[600px] h-[600px] rounded-full bg-[#C9A961]/3 blur-3xl -translate-x-1/2 -translate-y-1/2" />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* ── 섹션 헤더 ── */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7 }}
-          className="text-center mb-10"
+          className="text-center mb-12"
         >
-          <div className="section-divider mx-auto mb-6" />
+          <div className="inline-flex items-center gap-2 bg-[#C9A961]/20 border border-[#C9A961]/30 rounded-full px-4 py-1.5 mb-5">
+            <CreditCard className="w-4 h-4 text-[#C9A961]" />
+            <span className="text-sm text-[#C9A961] font-medium">
+              {isKo ? "멤버십 인증 카드 & 가격 정책" : "Membership Card & Pricing"}
+            </span>
+          </div>
           <h2
-            className="text-3xl lg:text-5xl font-bold text-[#1F3864] mb-4"
+            className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
-            {t.pricing.title}
+            {isKo ? "투명한 가격 정책" : "Transparent Pricing"}
           </h2>
-          <p className="text-gray-700 text-base lg:text-lg font-medium max-w-2xl mx-auto mb-5">
-            {t.pricing.subtitle}
+          <p className="text-white/70 text-base lg:text-lg max-w-2xl mx-auto mb-5">
+            {isKo
+              ? "지갑 속 한 장으로 — 신원 확인, 유언 인증, 사망 트리거까지. 필요할 때만 비용이 발생하는 합리적인 가격."
+              : "One card in your wallet — identity, will authentication, death trigger. Pay only when you need it."}
           </p>
-          <div className="inline-flex items-center gap-2 bg-red-50 border border-red-200 rounded-full px-5 py-2">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-            <span className="text-red-700 text-sm font-extrabold">{t.pricing.earlyBird}</span>
+          <div className="inline-flex items-center gap-2 bg-red-500/20 border border-red-400/30 rounded-full px-5 py-2">
+            <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
+            <span className="text-red-300 text-sm font-bold">
+              {isKo ? "2026 출시 기념 한정 특가 — 정식 출시 후 가격 인상 예정" : "2026 Launch Special — Price increases after official launch"}
+            </span>
           </div>
         </motion.div>
 
-        {/* ── 가격 카드 목록 ── */}
-        <div className="space-y-4">
-          {plans.map((plan, i) => {
-            const Icon = plan.icon;
-            const showBreakdown = plan.id !== "free";
-            const totalFormatted = plan.id === "free" ? (isKo ? "₩0" : "$0") : fmtKrw(plan.totalKrw);
-            const freeLabel = isKo ? "무료" : "Free";
+        {/* ── 카드 기능 4가지 ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-14"
+        >
+          {CARD_FEATURES.map((feat, i) => (
+            <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4 text-center hover:bg-white/10 transition-colors">
+              <div className="inline-flex items-center justify-center w-10 h-10 bg-[#C9A961]/20 rounded-full mb-3">
+                <feat.icon className="w-5 h-5 text-[#C9A961]" />
+              </div>
+              <p className="text-white font-semibold text-sm mb-1">
+                {isKo ? feat.labelKo : feat.labelEn}
+              </p>
+              <p className="text-white/50 text-xs leading-relaxed">
+                {isKo ? feat.descKo : feat.descEn}
+              </p>
+            </div>
+          ))}
+        </motion.div>
 
-            return (
-              <motion.div
-                key={plan.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.5, delay: i * 0.07 }}
-                className={`relative rounded-2xl border-2 p-5 lg:px-6 lg:py-5 transition-all hover:shadow-lg ${plan.accent}`}
+        {/* ── 카드 4종 라인업 ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
+          {cards.map((card, i) => (
+            <motion.div
+              key={card.tier}
+              initial={{ opacity: 0, y: 40 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.3 + i * 0.12 }}
+              className={`relative rounded-2xl border ${card.borderColor} ${card.bgCard} p-6 shadow-xl hover:-translate-y-1 transition-transform duration-300 flex flex-col ${card.popular ? "ring-2 ring-[#C9A961]/50" : ""}`}
+            >
+              {/* 인기 배지 */}
+              {card.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="bg-[#C9A961] text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
+                    {isKo ? "인기" : "Popular"}
+                  </span>
+                </div>
+              )}
+
+              {/* 카드 상단: 등급 + 아이콘 */}
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className={`text-xs font-semibold uppercase tracking-widest ${card.textAccent} mb-0.5`}>
+                    {card.tier}
+                  </p>
+                  <h3 className="text-white font-bold text-lg">{card.tierLabel}</h3>
+                  <p className="text-white/40 text-xs mt-0.5">{card.material}</p>
+                </div>
+                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${card.color} flex items-center justify-center shadow-lg`}>
+                  <card.icon className="w-6 h-6 text-white" />
+                </div>
+              </div>
+
+              {/* 카드 시각화 */}
+              <div className={`relative h-28 rounded-xl bg-gradient-to-br ${card.color} mb-4 overflow-hidden shadow-inner`}>
+                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
+                <div className="absolute top-3 left-4">
+                  <p className="text-white font-bold text-sm tracking-wider">EverWill</p>
+                  <p className="text-white/70 text-xs font-medium">{card.tier.toUpperCase()}</p>
+                </div>
+                <div className="absolute top-3 right-4">
+                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                    <Wifi className="w-4 h-4 text-white/80" />
+                  </div>
+                </div>
+                <div className="absolute bottom-3 left-4">
+                  <p className="text-white/60 text-xs font-mono tracking-widest">**** **** **** ****</p>
+                </div>
+              </div>
+
+              {/* 가격 */}
+              <div className="mb-4">
+                <span className={`text-3xl font-bold ${card.textAccent}`}>{card.price}</span>
+                <span className="text-white/40 text-sm ml-1">{isKo ? "/ 1회" : "/ once"}</span>
+              </div>
+
+              {/* 가격 세분화 */}
+              <div className="bg-white/5 rounded-xl px-3 py-2 mb-4 space-y-1">
+                {card.breakdown.map((row: { label: string; val: string; red?: boolean; bold?: boolean }, ri) => (
+                  <div key={ri} className={`flex justify-between items-center ${row.bold ? "border-t border-white/10 pt-1 mt-1" : ""}`}>
+                    <span className={`text-xs ${row.bold ? "text-white/80 font-bold" : "text-white/40"}`}>{row.label}</span>
+                    <span className={`text-xs font-semibold ${row.red ? "text-red-400" : row.bold ? card.textAccent : "text-white/70"}`}>{row.val}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* 포함 기능 목록 */}
+              <ul className="space-y-1.5 mb-5 flex-1">
+                {card.features.map((feat, fi) => (
+                  <li key={fi} className="flex items-center gap-2 text-xs text-white/70">
+                    <div className={`w-4 h-4 rounded-full bg-gradient-to-br ${card.color} flex items-center justify-center flex-shrink-0`}>
+                      <span className="text-white text-[8px] font-bold">✓</span>
+                    </div>
+                    {feat}
+                  </li>
+                ))}
+              </ul>
+
+              {/* 신청 버튼 */}
+              <button
+                onClick={() => toast.info(isKo ? "카드 주문 기능은 곧 오픈됩니다!" : "Card ordering coming soon!")}
+                className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 bg-gradient-to-r ${card.color} text-white hover:opacity-90 hover:shadow-lg mt-auto`}
               >
-                {/* 뱃지 */}
-                {plan.badge && (
-                  <div className={`absolute -top-3 left-5 text-[10px] font-bold px-3 py-1 rounded-full whitespace-nowrap ${
-                    plan.id === "life"
-                      ? "bg-[#C9A961] text-[#1F3864]"
-                      : plan.id === "5y"
-                      ? "bg-green-500 text-white"
-                      : "bg-red-500 text-white"
-                  }`}>
-                    {plan.badge}
-                  </div>
-                )}
-
-                {/* ── 모바일: 세로 레이아웃 ── */}
-                <div className="flex flex-col gap-4 lg:hidden">
-                  {/* 상단: 아이콘 + 플랜명 + 가격 */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl ${plan.iconBg} flex items-center justify-center flex-shrink-0`}>
-                        {plan.id === "life"
-                          ? <InfinityIcon className={`w-5 h-5 ${plan.iconColor}`} />
-                          : <Icon className={`w-5 h-5 ${plan.iconColor}`} />
-                        }
-                      </div>
-                      <div>
-                        <div className={`font-bold text-sm ${plan.highlight ? "text-white" : "text-[#1F3864]"}`}>
-                          {plan.name}
-                        </div>
-                        <div className={`text-xs ${plan.highlight ? "text-white/70" : "text-gray-500"}`}>
-                          {plan.description}
-                        </div>
-                      </div>
-                    </div>
-                    {/* 가격 */}
-                    <div className="text-right">
-                      <div className={`text-xl font-extrabold ${plan.highlight ? "text-[#C9A961]" : "text-[#1F3864]"}`}>
-                        {totalFormatted}
-                      </div>
-                      {plan.id === "free" && (
-                        <div className={`text-xs ${plan.highlight ? "text-white/50" : "text-gray-400"}`}>
-                          {freeLabel}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* subBadge */}
-                  {(plan as any).subBadge && (
-                    <div className="inline-flex items-center gap-1 bg-[#C9A961]/20 border border-[#C9A961]/40 rounded-full px-2 py-0.5 w-fit">
-                      <span className="text-[10px] font-bold text-[#C9A961]">{(plan as any).subBadge}</span>
-                    </div>
-                  )}
-
-                  {/* 기능 목록 */}
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                    {plan.features.map((f) => (
-                      <div key={f} className="flex items-center gap-1.5">
-                        <Check className={`w-3 h-3 flex-shrink-0 ${plan.highlight ? "text-[#C9A961]" : "text-green-500"}`} />
-                        <span className={`text-xs font-semibold ${plan.highlight ? "text-white" : "text-gray-800"}`}>{f}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* 페이월 안내 (무료 플랜) */}
-                  {plan.id === "free" && plan.paywallNote && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                      <p className="text-[11px] text-amber-700 font-medium leading-snug">{plan.paywallNote}</p>
-                    </div>
-                  )}
-
-                  {/* 가격 세분화 (무료 외) */}
-                  {showBreakdown && (
-                    <div className={`rounded-xl px-3 py-2 space-y-1 ${plan.highlight ? "bg-white/10" : "bg-white/60 border border-gray-100"}`}>
-                      <div className="flex justify-between">
-                        <span className={`text-xs ${plan.highlight ? "text-white/60" : "text-gray-400"}`}>{baseFeeLabel}</span>
-                        <span className={`text-xs font-semibold ${plan.highlight ? "text-white/80" : "text-gray-600"}`}>{fmtKrw(plan.baseFeeKrw)}</span>
-                      </div>
-                      {plan.storageFeeKrw !== null && (
-                        <div className="flex justify-between">
-                          <span className={`text-xs ${plan.highlight ? "text-white/60" : "text-gray-400"}`}>{storageFeeLabel}</span>
-                          <span className={`text-xs font-semibold ${plan.highlight ? "text-white/80" : "text-gray-600"}`}>+{fmtKrw(plan.storageFeeKrw!)}</span>
-                        </div>
-                      )}
-                      {plan.discountKrw !== null && plan.discountKrw > 0 && (
-                        <div className="flex justify-between">
-                          <span className={`text-xs ${plan.highlight ? "text-white/60" : "text-gray-400"}`}>{discountLabel}</span>
-                          <span className={`text-xs font-bold ${plan.highlight ? "text-[#C9A961]" : "text-red-500"}`}>
-                            <Minus className="w-2.5 h-2.5 inline" />{fmtKrw(plan.discountKrw!)}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* CTA 버튼 */}
-                  <button
-                    onClick={() => plan.id === "free" ? handleFreeStart() : toast.info(comingSoonMsg)}
-                    className={`w-full flex items-center justify-center gap-1.5 py-3 rounded-xl font-semibold text-sm transition-all ${plan.ctaClass}`}
-                  >
-                    {plan.cta}
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* ── 데스크탑: 가로 레이아웃 ── */}
-                <div className="hidden lg:flex items-center gap-5">
-                  {/* 아이콘 */}
-                  <div className={`w-11 h-11 rounded-xl ${plan.iconBg} flex items-center justify-center flex-shrink-0`}>
-                    {plan.id === "life"
-                      ? <InfinityIcon className={`w-5 h-5 ${plan.iconColor}`} />
-                      : <Icon className={`w-5 h-5 ${plan.iconColor}`} />
-                    }
-                  </div>
-
-                  {/* 플랜명 + 설명 */}
-                  <div className="w-40 flex-shrink-0">
-                    <div className={`font-bold text-base mb-0.5 ${plan.highlight ? "text-white" : "text-[#1F3864]"}`}>
-                      {plan.name}
-                    </div>
-                    <div className={`text-xs leading-tight ${plan.highlight ? "text-white/70" : "text-gray-500"}`}>
-                      {plan.description}
-                    </div>
-                    {(plan as any).subBadge && (
-                      <div className="mt-1 inline-flex items-center gap-1 bg-[#C9A961]/20 border border-[#C9A961]/40 rounded-full px-2 py-0.5">
-                        <span className="text-[10px] font-bold text-[#C9A961]">{(plan as any).subBadge}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 구분선 */}
-                  <div className={`w-px h-12 flex-shrink-0 ${plan.highlight ? "bg-white/20" : "bg-gray-200"}`} />
-
-                  {/* 기능 목록 */}
-                  <div className="flex-1 flex flex-wrap gap-x-4 gap-y-1">
-                    {plan.features.slice(0, 4).map((f) => (
-                      <div key={f} className="flex items-center gap-1">
-                        <Check className={`w-3 h-3 flex-shrink-0 ${plan.highlight ? "text-[#C9A961]" : "text-green-500"}`} />
-                        <span className={`text-sm font-semibold ${plan.highlight ? "text-white" : "text-gray-800"}`}>{f}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* 무료 플랜 페이월 안내 노트 */}
-                  {plan.id === "free" && plan.paywallNote && (
-                    <div className="hidden lg:flex flex-shrink-0 w-52 items-center justify-end">
-                      <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-center">
-                        <p className="text-[10px] text-amber-700 font-medium leading-tight">{plan.paywallNote}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 가격 세분화 */}
-                  {showBreakdown ? (
-                    <div className="flex-shrink-0 w-52 text-right">
-                      <div className="flex justify-between items-center mb-0.5">
-                        <span className={`text-xs ${plan.highlight ? "text-white/60" : "text-gray-400"}`}>{baseFeeLabel}</span>
-                        <span className={`text-xs font-semibold ${plan.highlight ? "text-white/80" : "text-gray-600"}`}>{fmtKrw(plan.baseFeeKrw)}</span>
-                      </div>
-                      {plan.storageFeeKrw !== null && (
-                        <div className="flex justify-between items-center mb-0.5">
-                          <span className={`text-xs ${plan.highlight ? "text-white/60" : "text-gray-400"}`}>{storageFeeLabel}</span>
-                          <span className={`text-xs font-semibold ${plan.highlight ? "text-white/80" : "text-gray-600"}`}>+{fmtKrw(plan.storageFeeKrw!)}</span>
-                        </div>
-                      )}
-                      {plan.discountKrw !== null && plan.discountKrw > 0 && (
-                        <div className="flex justify-between items-center mb-0.5">
-                          <span className={`text-xs ${plan.highlight ? "text-white/60" : "text-gray-400"}`}>{discountLabel}</span>
-                          <span className={`text-xs font-bold ${plan.highlight ? "text-[#C9A961]" : "text-red-500"}`}>
-                            <Minus className="w-2.5 h-2.5 inline" />{fmtKrw(plan.discountKrw!)}
-                          </span>
-                        </div>
-                      )}
-                      <div className={`h-px mb-1 ${plan.highlight ? "bg-white/20" : "bg-gray-200"}`} />
-                      <div className="flex justify-between items-center">
-                        <span className={`text-xs font-bold ${plan.highlight ? "text-white/80" : "text-gray-500"}`}>{totalLabel}</span>
-                        <div className="text-right">
-                          <div className={`text-xl font-extrabold ${plan.highlight ? "text-[#C9A961]" : "text-[#1F3864]"}`}>{totalFormatted}</div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex-shrink-0 w-28 text-right">
-                      <div className="text-2xl font-extrabold text-[#1F3864]">{isKo ? "₩0" : "$0"}</div>
-                      <div className="text-xs text-gray-400">{freeLabel}</div>
-                    </div>
-                  )}
-
-                  {/* CTA 버튼 */}
-                  <button
-                    onClick={() => plan.id === "free" ? handleFreeStart() : toast.info(comingSoonMsg)}
-                    className={`flex-shrink-0 flex items-center gap-1 px-5 py-2.5 rounded-xl font-semibold text-xs transition-all whitespace-nowrap ${plan.ctaClass}`}
-                  >
-                    {plan.cta}
-                    <ChevronRight className="w-3 h-3" />
-                  </button>
-                </div>
-              </motion.div>
-            );
-          })}
+                {isKo ? "지금 신청하기" : "Apply Now"}
+              </button>
+            </motion.div>
+          ))}
         </div>
 
-        {/* ── 주석 ── */}
-        <motion.p
+        {/* ── 무료 시작 배너 ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.7 }}
+          className="bg-white/5 border border-white/15 rounded-2xl p-6 lg:p-8 flex flex-col lg:flex-row items-center justify-between gap-6"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+              <Zap className="w-6 h-6 text-[#C9A961]" />
+            </div>
+            <div>
+              <h3 className="text-white font-bold text-lg mb-1">
+                {isKo ? "무료로 시작하기" : "Start for Free"}
+              </h3>
+              <p className="text-white/60 text-sm">
+                {isKo
+                  ? "AI 유언장 작성 · 상속자 등록 · 자산 분배 설계 · 미리보기 — 모두 무료"
+                  : "AI will writing · heir registration · asset distribution · preview — all free"}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="bg-amber-500/20 border border-amber-400/30 rounded-xl px-4 py-2 text-center">
+              <p className="text-amber-300 text-xs font-medium leading-snug">
+                {isKo
+                  ? "🔐 전자 인증(₩49,000) 후 법적 효력 · 72시간 임시 저장"
+                  : "🔐 Certification ($39) required for legal validity · 72hr temp save"}
+              </p>
+            </div>
+            <button
+              onClick={handleFreeStart}
+              className="flex items-center gap-2 px-6 py-3 bg-white text-[#1F3864] font-bold rounded-xl hover:bg-white/90 transition-all whitespace-nowrap"
+            >
+              {isKo ? "무료로 시작하기" : "Start Free"}
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </motion.div>
+
+        {/* ── 포함 기능 체크리스트 (무료) ── */}
+        <motion.div
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.5, delay: 0.6 }}
-          className="text-center text-gray-400 text-xs mt-8 leading-relaxed"
+          transition={{ duration: 0.5, delay: 0.9 }}
+          className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-2"
         >
-          {t.pricing.note}
-        </motion.p>
+          {(isKo
+            ? ["AI 유언장 작성 (무료)", "상속자 등록 (무료)", "자산 분배 설계 (무료)", "미리보기 확인 (무료)"]
+            : ["AI Will Writing (Free)", "Heir Registration (Free)", "Asset Distribution (Free)", "Preview & Review (Free)"]
+          ).map((item) => (
+            <div key={item} className="flex items-center gap-1.5">
+              <Check className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-white/60 text-sm">{item}</span>
+            </div>
+          ))}
+        </motion.div>
+
+        {/* ── 하단 안내 ── */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ duration: 0.6, delay: 1.0 }}
+          className="text-center mt-8"
+        >
+          <p className="text-white/30 text-xs">
+            {isKo
+              ? "* 카드는 유언장 인증 완료 후 신청 가능합니다. 제작 기간 약 2-3주 소요."
+              : "* Card available after will certification. Production takes approx. 2-3 weeks."}
+          </p>
+          <p className="text-white/40 text-xs mt-1">
+            {t.pricing?.note || (isKo ? "부가세 별도. 해외 결제 시 환율 적용." : "VAT excluded. Exchange rates apply for international payments.")}
+          </p>
+        </motion.div>
       </div>
     </section>
   );
