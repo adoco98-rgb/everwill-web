@@ -73,7 +73,7 @@ export default function CountryVideoSection() {
             ── EverWill 영상 ──
           </p>
           <h2 className="text-3xl md:text-4xl font-extrabold text-[#1F3864]">
-            EverWill을 영상으로 만나보세요
+            EverWill 전자인증은 사랑의 실천입니다
           </h2>
           <p className="text-gray-500 mt-3 text-sm md:text-base">
             유언 작성의 중요성과 EverWill 서비스를 영상으로 확인하세요.
