@@ -50,20 +50,12 @@ const timelineItems = [
     highlight: false,
   },
   {
-    year: "2026",
+    year: "2026.8",
     flag: "🌍",
-    ko: "EverWill — 세계 최초 디지털 유언 OS 서비스 개시",
-    en: "EverWill — World's first Digital Will OS launches",
+    ko: "EverWill — 전자서명 유언 디지털 서비스 개시",
+    en: "EverWill — Digital Will Service with E-Signature Launches",
     highlight: true,
     everwill: true,
-  },
-  {
-    year: "2027+",
-    flag: "🇰🇷",
-    ko: "한국 민법 개정 논의 중 — 전자유언 방식 추가 입법 예상",
-    en: "Korea Civil Code amendment under discussion — Electronic will method expected",
-    highlight: false,
-    future: true,
   },
 ];
 
@@ -124,9 +116,7 @@ export default function LegalTimelineSection() {
                     className={`text-sm font-bold ${
                       item.everwill
                         ? "text-[#C9A961]"
-                        : item.future
-                          ? "text-white/60"
-                          : "text-white"
+                        : "text-white"
                     }`}
                   >
                     {item.year}
@@ -139,9 +129,7 @@ export default function LegalTimelineSection() {
                     className={`w-3 h-3 rounded-full border-2 ${
                       item.everwill
                         ? "bg-[#C9A961] border-[#C9A961] shadow-[0_0_12px_rgba(201,169,97,0.6)]"
-                        : item.future
-                          ? "bg-transparent border-white/30"
-                          : "bg-white/20 border-white/40"
+                        : "bg-white/20 border-white/40"
                     }`}
                   />
                 </div>
@@ -151,9 +139,7 @@ export default function LegalTimelineSection() {
                   className={`flex-1 pb-2 rounded-xl px-4 py-3 ${
                     item.everwill
                       ? "bg-[#C9A961]/20 border border-[#C9A961]/60"
-                      : item.future
-                        ? "bg-white/8 border border-white/20"
-                        : "bg-white/10 border border-white/25"
+                      : "bg-white/10 border border-white/25"
                   }`}
                 >
                   <div className="flex items-start gap-2">
@@ -162,9 +148,7 @@ export default function LegalTimelineSection() {
                       className={`text-base sm:text-lg leading-relaxed font-medium ${
                         item.everwill
                           ? "text-[#C9A961] font-bold"
-                          : item.future
-                            ? "text-white/70"
-                            : "text-white"
+                          : "text-white"
                       }`}
                     >
                       {isKo ? item.ko : item.en}
@@ -173,11 +157,7 @@ export default function LegalTimelineSection() {
                           {isKo ? "지금 여기" : "NOW"}
                         </span>
                       )}
-                      {item.future && (
-                        <span className="ml-2 inline-block px-2 py-0.5 rounded-full bg-white/10 text-white/50 text-xs">
-                          {isKo ? "예정" : "Upcoming"}
-                        </span>
-                      )}
+
                     </p>
                   </div>
                 </div>
