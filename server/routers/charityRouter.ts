@@ -161,7 +161,48 @@ export const charityRouter = router({
     }),
 
   /**
-   * 글로벌 기부 누적 통계 (공개 API)
+   * 공개 기부 메시지 목록 (모든 방문자 열람 가능)
+   * messagePublic=1 인 레코드만 반환
+   */
+  getPublicMessages: publicProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(100).default(6) }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) return { messages: [], total: 0 };
+      const rows = await db
+        .select({
+          id: charityDonations.id,
+          displayName: charityDonations.displayName,
+          publicMessage: charityDonations.publicMessage,
+          category: charityDonations.category,
+          donationType: charityDonations.donationType,
+          country: charityDonations.country,
+          createdAt: charityDonations.createdAt,
+        })
+        .from(charityDonations)
+        .where(eq(charityDonations.messagePublic, 1))
+        .orderBy(sql`${charityDonations.createdAt} DESC`)
+        .limit(input.limit);
+      const totalRows = await db
+        .select({ cnt: sql<number>`COUNT(*)` })
+        .from(charityDonations)
+        .where(eq(charityDonations.messagePublic, 1));
+      return {
+        messages: rows.map((r) => ({
+          id: r.id,
+          displayName: r.displayName ?? '익명의 기부자',
+          publicMessage: r.publicMessage ?? '',
+          category: r.category,
+          donationType: r.donationType,
+          country: r.country ?? 'KR',
+          createdAt: r.createdAt,
+        })),
+        total: Number(totalRows[0]?.cnt ?? 0),
+      };
+    }),
+
+  /**
+   * 글로벌 기부 누적 통계 (공개 API) - 생전/사후 분리
    */
   getGlobalStats: publicProcedure.query(async () => {
     const db = await getDb();
@@ -226,6 +267,17 @@ export const charityRouter = router({
       .select({ cnt: sql<number>`COUNT(DISTINCT ${charityDonations.userId})` })
       .from(charityDonations);
 
+    // 생전 기부 (결제 완료된 것만) vs 사후 기부 (유언 등록)
+    const lifetimeRows = await db
+      .select({ total: sql<number>`COALESCE(SUM(${charityDonations.amount}), 0)`, cnt: sql<number>`COUNT(*)` })
+      .from(charityDonations)
+      .where(and(eq(charityDonations.donationType, 'lifetime'), eq(charityDonations.paymentStatus, 'completed')));
+
+    const posthumousRows = await db
+      .select({ total: sql<number>`COALESCE(SUM(${charityDonations.amount}), 0)`, cnt: sql<number>`COUNT(*)` })
+      .from(charityDonations)
+      .where(eq(charityDonations.donationType, 'posthumous'));
+
     const byCategory = categoryRows.map((r) => ({
       category: r.category,
       totalKrw: Number(r.totalAmount),
@@ -237,6 +289,10 @@ export const charityRouter = router({
       donorCount: Number(donorCount[0]?.cnt ?? 0),
       byCountry,
       byCategory,
+      lifetimeKrw: Number(lifetimeRows[0]?.total ?? 0),
+      lifetimeCount: Number(lifetimeRows[0]?.cnt ?? 0),
+      posthumousKrw: Number(posthumousRows[0]?.total ?? 0),
+      posthumousCount: Number(posthumousRows[0]?.cnt ?? 0),
     };
   }),
 });

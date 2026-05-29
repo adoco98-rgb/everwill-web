@@ -693,6 +693,24 @@ export const charityDonations = mysqlTable("charityDonations", {
   amount: bigint("amount", { mode: "number" }).notNull().default(0),
   /** 메모 (선택) */
   memo: text("memo"),
+  /**
+   * 기부 유형: posthumous=사후기부(유언), lifetime=생전기부(즉시)
+   */
+  donationType: mysqlEnum("donationType", ["posthumous", "lifetime"]).default("posthumous").notNull(),
+  /** 생전 기부 결제 상태 (posthumous는 null) */
+  paymentStatus: mysqlEnum("paymentStatus", ["pending", "completed", "failed"]).default("pending"),
+  /** 생전 기부 Stripe 세션 ID */
+  stripeSessionId: varchar("stripeSessionId", { length: 128 }),
+  /** 생전 기부 결제 완료 시각 */
+  paidAt: timestamp("paidAt"),
+  /** 공개 메시지 (기부자가 남기는 한마디, 모든 방문자에게 공개) */
+  publicMessage: text("publicMessage"),
+  /** 메시지 공개 여부 (0=비공개, 1=공개 동의) */
+  messagePublic: tinyint("messagePublic").default(0).notNull(),
+  /** 표시 닉네임 (익명 선택 시 '익명의 기부자') */
+  displayName: varchar("displayName", { length: 64 }),
+  /** 국가 코드 (기부자 국가) */
+  country: varchar("country", { length: 8 }).default("KR"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
