@@ -40,19 +40,19 @@ export default function Home() {
       <LegalTimelineSection />
       {/* 7. 글로벌 지원 */}
       <GlobalSection />
-      {/* 8. 상속인 서비스 */}
-      <HeirServiceSection />
-      {/* 9. 사회기부 */}
+      {/* 8. 사회기부 */}
       <CharityStatsSection />
-      {/* 10. 지금 시작하세요 CTA */}
+      {/* 9. 지금 시작하세요 CTA */}
       <CTASection />
-      {/* 11. 가격 정책 */}
+      {/* 10. 가격 정책 */}
       <PricingSection />
       {/* 11. 친구 추천 & 공유 */}
       <ReferralSection />
       {/* 12. 고객 후기 */}
       <ReviewsSection />
-      {/* 13. 인증회원 카운터 */}
+      {/* 13. 상속인 서비스 (제일 아래) */}
+      <HeirServiceSection />
+      {/* 14. 인증회원 카운터 */}
       <section className="py-10 bg-[#FAFAF8]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <CertifiedCounterBanner />
