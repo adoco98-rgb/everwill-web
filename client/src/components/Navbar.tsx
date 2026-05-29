@@ -386,6 +386,30 @@ export default function Navbar() {
                   />
               </motion.button>
             ))}
+            {/* 뉴질랜드·호주: 영어(en) 콘텐츠 사용, 국기만 별도 표시 */}
+            {[
+              { code: "nz", label: "New Zealand", flagImg: "https://flagcdn.com/w80/nz.png" },
+              { code: "au", label: "Australia", flagImg: "https://flagcdn.com/w80/au.png" },
+            ].map((extra) => (
+              <motion.button
+                key={extra.code}
+                onClick={() => handleSetLanguage("en")}
+                title={extra.label}
+                whileHover={{ scale: 1.12, y: -2 }}
+                whileTap={{ scale: 0.92 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                className="relative flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg whitespace-nowrap flex-shrink-0 hover:bg-white/10"
+              >
+                <img
+                  src={extra.flagImg}
+                  alt={extra.label}
+                  loading="eager"
+                  decoding="async"
+                  className="relative z-10 rounded-sm flex-shrink-0 opacity-80 hover:opacity-100"
+                  style={{ width: 32, height: 22, objectFit: "cover", display: "block" }}
+                />
+              </motion.button>
+            ))}
           </div>
         </div>
       </div>
