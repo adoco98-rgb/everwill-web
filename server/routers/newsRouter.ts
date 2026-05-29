@@ -14,8 +14,7 @@ export const newsRouter = router({
       .select()
       .from(newsPosts)
       .where(eq(newsPosts.isActive, 1))
-      .orderBy(desc(newsPosts.createdAt))
-      .limit(10);
+      .orderBy(desc(newsPosts.createdAt));
     return items;
   }),
 

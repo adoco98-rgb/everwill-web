@@ -5,9 +5,10 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
-import { ShieldCheck, Globe2, Zap, Lock, Scale, Heart, ExternalLink, Newspaper } from "lucide-react";
+import { ShieldCheck, Globe2, Zap, Lock, Scale, Heart, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { trpc } from "@/lib/trpc";
+import { useState } from "react";
 
 const strengthColors = [
   "bg-amber-50 text-amber-600",
@@ -20,10 +21,13 @@ const strengthColors = [
 
 const strengthIcons = [Zap, ShieldCheck, Globe2, Lock, Scale, Heart];
 
+const INITIAL_COUNT = 10;
+
 export default function TrustSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const { t, language } = useLanguage();
+  const [showAll, setShowAll] = useState(false);
   // DB에서 공개 뉴스 목록 조회
   const { data: newsItems, isLoading: newsLoading } = trpc.news.getPublic.useQuery();
 
@@ -79,8 +83,9 @@ export default function TrustSection() {
               ))}
             </div>
           ) : !newsItems || newsItems.length === 0 ? null : (
+            <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {newsItems.map((item, i) => (
+              {(showAll ? newsItems : newsItems.slice(0, INITIAL_COUNT)).map((item, i) => (
                 <motion.a
                   key={item.id}
                   href={item.url}
@@ -128,6 +133,23 @@ export default function TrustSection() {
                 </motion.a>
               ))}
             </div>
+
+            {/* 더보기 / 접기 버튼 */}
+            {newsItems.length > INITIAL_COUNT && (
+              <div className="flex justify-center mt-6">
+                <button
+                  onClick={() => setShowAll(prev => !prev)}
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-[#C9A961]/40 text-[#1F3864] text-sm font-semibold hover:bg-[#C9A961]/10 transition-all"
+                >
+                  {showAll ? (
+                    <><ChevronUp className="w-4 h-4" /> {language === 'ko' ? '접기' : 'Show less'}</>
+                  ) : (
+                    <><ChevronDown className="w-4 h-4" /> {language === 'ko' ? `더보기 (+${newsItems.length - INITIAL_COUNT}개)` : `Show more (+${newsItems.length - INITIAL_COUNT})`}</>
+                  )}
+                </button>
+              </div>
+            )}
+            </>
           )}
         </motion.div>
 

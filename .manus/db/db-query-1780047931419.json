@@ -1,0 +1,13 @@
+{
+  "query": "SHOW TABLES LIKE 'newsPosts';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aTj4qahS4dKfPu.349ddf4404ef --database PhaVJexqfm3CAwoPdg4NhS --execute SHOW TABLES LIKE 'newsPosts';",
+  "rows": [
+    {
+      "Tables_in_PhaVJexqfm3CAwoPdg4NhS (newsPosts)": "newsPosts"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_PhaVJexqfm3CAwoPdg4NhS (newsPosts)\nnewsPosts\n",
+  "stderr": "",
+  "execution_time_ms": 1737
+}
