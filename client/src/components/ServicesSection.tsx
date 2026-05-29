@@ -29,6 +29,30 @@ const serviceColors = [
 
 const serviceIcons = [FileText, Video, Scan, Shield, Users, Bell, Globe, Smartphone, RefreshCw];
 
+const cardBg = [
+  "bg-blue-50",
+  "bg-purple-50",
+  "bg-amber-50",
+  "bg-green-50",
+  "bg-teal-50",
+  "bg-rose-50",
+  "bg-cyan-50",
+  "bg-orange-50",
+  "bg-lime-50",
+];
+
+const tagColors = [
+  "text-blue-700 bg-blue-100",
+  "text-purple-700 bg-purple-100",
+  "text-amber-700 bg-amber-100",
+  "text-green-700 bg-green-100",
+  "text-teal-700 bg-teal-100",
+  "text-rose-700 bg-rose-100",
+  "text-cyan-700 bg-cyan-100",
+  "text-orange-700 bg-orange-100",
+  "text-lime-700 bg-lime-100",
+];
+
 export default function ServicesSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
@@ -133,7 +157,7 @@ export default function ServicesSection() {
         </div>
 
         {/* 서비스 카드 그리드 */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {services.map((service, i) => {
             const Icon = serviceIcons[i];
             const hasAdditionalAuth = !!(service as any).additionalAuth;
@@ -143,18 +167,18 @@ export default function ServicesSection() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.5, delay: 0.1 + i * 0.05 }}
-                className={`bg-white rounded-2xl p-6 border-2 border-gray-100 hover:border-[#C9A961]/40 shadow-md hover:shadow-xl transition-all card-hover group cursor-default flex flex-col ${hasAdditionalAuth ? "xl:col-span-1" : ""}`}
+                className={`${cardBg[i]} rounded-2xl p-4 border border-white/60 hover:shadow-xl transition-all card-hover group cursor-default flex flex-col ${hasAdditionalAuth ? "col-span-2 md:col-span-1" : ""}`}
               >
-                <div className={`w-14 h-14 rounded-2xl ${serviceColors[i]} flex items-center justify-center mb-4 shadow-md`}>
-                  <Icon className="w-7 h-7" />
+                <div className={`w-12 h-12 rounded-xl ${serviceColors[i]} flex items-center justify-center mb-3 shadow-sm`}>
+                  <Icon className="w-6 h-6" />
                 </div>
-                <div className="mb-2">
-                  <span className="text-sm font-bold text-[#C9A961] bg-[#C9A961]/15 px-3 py-1 rounded-full border border-[#C9A961]/30">
+                <div className="mb-1.5">
+                  <span className={`text-xs font-bold ${tagColors[i]} px-2.5 py-0.5 rounded-full`}>
                     {service.tag}
                   </span>
                 </div>
-                <h3 className="font-extrabold text-[#1F3864] text-xl mb-3 leading-tight">{service.title}</h3>
-                <p className="text-gray-600 text-base leading-relaxed">{service.description}</p>
+                <h3 className="font-extrabold text-[#1F3864] text-lg mb-2 leading-tight">{service.title}</h3>
+                <p className="text-gray-700 text-sm leading-relaxed">{service.description}</p>
 
                 {/* 추가 인증 설명 (영상유언장·자필유언장 카드만 표시) */}
                 {hasAdditionalAuth && (
