@@ -40,6 +40,7 @@ const KRW_RATES: Record<string, number> = {
 
 // ─── 기부 분야 목록 ───────────────────────────────────────────────
 const CAUSE_LIST = [
+  { id: "designated",  emoji: "🏢", ko: "지정 기부",         en: "Designated Org" },
   { id: "politics",    emoji: "🏛️", ko: "정치 개혁",       en: "Political Reform" },
   { id: "sme",         emoji: "🏭", ko: "중소기업 지원",    en: "SME Support" },
   { id: "education",   emoji: "🎓", ko: "교육",             en: "Education" },
@@ -118,8 +119,12 @@ export default function CharityStatsSection() {
 
   // ── 기부 폼 상태 ──
   const [selectedCauses, setSelectedCauses] = useState<string[]>([]);
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState("");           // 숫자 원값 (콤마 없음)
+  const [displayAmount, setDisplayAmount] = useState(""); // 화면 표시용 (콤마 포함)
   const [donationType, setDonationType] = useState<"now" | "posthumous">("posthumous");
+  // 지정기부 단체 정보
+  const [designatedOrg, setDesignatedOrg] = useState({ name: "", address: "", phone: "" });
+  const [orgSaved, setOrgSaved] = useState(false);
 
   const toggleCause = (id: string) => {
     setSelectedCauses((prev) =>
@@ -132,9 +137,26 @@ export default function CharityStatsSection() {
     : ["$10", "$30", "$50", "$100"];
   const QUICK_VALUES = ["10000", "30000", "50000", "100000"];
 
+  // 금액 입력 핸들러 - 숫자만 허용, 천단위 콤마 자동
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/[^0-9]/g, ""); // 숫자만 추출
+    setAmount(raw);
+    setDisplayAmount(raw ? Number(raw).toLocaleString("ko-KR") : "");
+  };
+
+  const handleQuickAmount = (val: string) => {
+    setAmount(val);
+    setDisplayAmount(Number(val).toLocaleString("ko-KR"));
+  };
+
   const handleDonate = () => {
     if (selectedCauses.length === 0) {
       toast.error(isKo ? "기부 분야를 하나 이상 선택해주세요." : "Please select at least one cause.");
+      return;
+    }
+    // 지정기부 선택 시 단체 정보 필수
+    if (selectedCauses.includes("designated") && !orgSaved) {
+      toast.error(isKo ? "지정 기부 단체 정보를 먼저 저장해주세요." : "Please save the designated organization info first.");
       return;
     }
     if (!amount || Number(amount) <= 0) {
@@ -264,7 +286,7 @@ export default function CharityStatsSection() {
               {QUICK_AMOUNTS.map((label, i) => (
                 <button
                   key={i}
-                  onClick={() => setAmount(QUICK_VALUES[i])}
+                  onClick={() => handleQuickAmount(QUICK_VALUES[i])}
                   className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all ${
                     amount === QUICK_VALUES[i]
                       ? "bg-[#C9A961] border-[#C9A961] text-[#1F3864]"
@@ -275,19 +297,92 @@ export default function CharityStatsSection() {
                 </button>
               ))}
             </div>
-            {/* 직접 입력 */}
+            {/* 직접 입력 - ₩ 표시 + 천단위 콤마 */}
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#C9A961] font-bold text-lg">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#C9A961] font-bold text-xl select-none pointer-events-none">
                 {isKo ? "₩" : "$"}
               </span>
               <input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                type="text"
+                inputMode="numeric"
+                value={displayAmount}
+                onChange={handleAmountChange}
                 placeholder={isKo ? "금액 직접 입력" : "Enter custom amount"}
-                className="w-full bg-white/10 border border-white/20 rounded-xl pl-10 pr-4 py-3 text-white placeholder-white/30 text-lg font-semibold focus:outline-none focus:border-[#C9A961] transition-colors"
+                className="w-full bg-white/10 border border-white/20 rounded-xl pl-10 pr-4 py-3.5 text-white placeholder-white/30 text-lg font-semibold focus:outline-none focus:border-[#C9A961] transition-colors"
               />
+              {displayAmount && (
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 text-sm">
+                  {isKo ? "원" : ""}
+                </span>
+              )}
             </div>
+
+            {/* 지정기부 단체 정보 입력 (지정기부 선택 시만 표시) */}
+            {selectedCauses.includes("designated") && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="mt-5 bg-white/5 border border-[#C9A961]/30 rounded-2xl p-5"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-xl">🏢</span>
+                  <h4 className="text-white font-bold text-sm">
+                    {isKo ? "지정 기부 단체 정보" : "Designated Organization Info"}
+                  </h4>
+                  {orgSaved && (
+                    <span className="ml-auto bg-green-500/20 text-green-400 text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                      <Check className="w-3 h-3" /> {isKo ? "저장됨" : "Saved"}
+                    </span>
+                  )}
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-white/50 text-xs mb-1 block">{isKo ? "단체명 *" : "Organization Name *"}</label>
+                    <input
+                      type="text"
+                      value={designatedOrg.name}
+                      onChange={(e) => { setDesignatedOrg(p => ({ ...p, name: e.target.value })); setOrgSaved(false); }}
+                      placeholder={isKo ? "예: 사랑의 열매 사회복지공동모금회" : "e.g. Red Cross"}
+                      className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[#C9A961] transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-white/50 text-xs mb-1 block">{isKo ? "주소 *" : "Address *"}</label>
+                    <input
+                      type="text"
+                      value={designatedOrg.address}
+                      onChange={(e) => { setDesignatedOrg(p => ({ ...p, address: e.target.value })); setOrgSaved(false); }}
+                      placeholder={isKo ? "예: 서울시 중구 남대문로 120" : "e.g. 123 Main St, Seoul"}
+                      className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[#C9A961] transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-white/50 text-xs mb-1 block">{isKo ? "전화번호 *" : "Phone *"}</label>
+                    <input
+                      type="tel"
+                      value={designatedOrg.phone}
+                      onChange={(e) => { setDesignatedOrg(p => ({ ...p, phone: e.target.value })); setOrgSaved(false); }}
+                      placeholder={isKo ? "예: 02-1234-5678" : "e.g. 02-1234-5678"}
+                      className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[#C9A961] transition-colors"
+                    />
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (!designatedOrg.name || !designatedOrg.address || !designatedOrg.phone) {
+                        toast.error(isKo ? "단체명, 주소, 전화번호를 모두 입력해주세요." : "Please fill in all fields.");
+                        return;
+                      }
+                      setOrgSaved(true);
+                      toast.success(isKo ? "단체 정보가 저장되었습니다." : "Organization info saved.");
+                    }}
+                    className="w-full bg-[#C9A961]/20 border border-[#C9A961]/50 text-[#C9A961] font-bold py-2.5 rounded-xl text-sm hover:bg-[#C9A961]/30 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Check className="w-4 h-4" />
+                    {isKo ? "단체 정보 저장하기" : "Save Organization Info"}
+                  </button>
+                </div>
+              </motion.div>
+            )}
           </div>
 
           {/* Step 3: 즉시 결제 / 사후 기부 선택 */}
@@ -368,7 +463,7 @@ export default function CharityStatsSection() {
               )}
               {amount && (
                 <p className="text-white font-bold text-sm">
-                  {isKo ? `기부 금액: ₩${Number(amount).toLocaleString()}` : `Amount: $${Number(amount).toLocaleString()}`}
+                  {isKo ? `기부 금액: ₩${Number(amount).toLocaleString("ko-KR")}원` : `Amount: $${Number(amount).toLocaleString()}`}
                   {" · "}
                   <span className="text-[#C9A961]">
                     {donationType === "now" ? (isKo ? "즉시 결제" : "Pay Now") : (isKo ? "사후 기부" : "Posthumous")}
