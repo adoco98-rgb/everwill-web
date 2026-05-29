@@ -11,7 +11,6 @@ import ServicesSection from "@/components/ServicesSection";
 import ComparisonSection from "@/components/ComparisonSection";
 import LegalTimelineSection from "@/components/LegalTimelineSection";
 import GlobalSection from "@/components/GlobalSection";
-import LawyersSection from "@/components/LawyersSection";
 import HeirServiceSection from "@/components/HeirServiceSection";
 import ReviewsSection from "@/components/ReviewsSection";
 import ReferralSection from "@/components/ReferralSection";
@@ -39,8 +38,8 @@ export default function Home() {
       <LegalTimelineSection />
       {/* 8. 글로벌 지원 */}
       <GlobalSection />
-      {/* 9. 변호사 매칭 */}
-      <LawyersSection />
+      {/* 9. 가격 정책 */}
+      <PricingSection />
       {/* 10. 상속인 서비스 */}
       <HeirServiceSection />
       {/* 11. 추천/공유 */}
@@ -57,8 +56,6 @@ export default function Home() {
       </section>
       {/* 15. 1:1 문의 */}
       <ContactSection />
-      {/* 16. 가격 정책 (맨 아래 - 구매 결정) */}
-      <PricingSection />
       <Footer />
     </div>
   );
