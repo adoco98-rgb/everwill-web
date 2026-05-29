@@ -143,32 +143,32 @@ export default function ServicesSection() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.5, delay: 0.1 + i * 0.05 }}
-                className={`bg-white rounded-xl p-5 border border-gray-100 card-hover group cursor-default flex flex-col ${hasAdditionalAuth ? "xl:col-span-1" : ""}`}
+                className={`bg-white rounded-2xl p-6 border-2 border-gray-100 hover:border-[#C9A961]/40 shadow-md hover:shadow-xl transition-all card-hover group cursor-default flex flex-col ${hasAdditionalAuth ? "xl:col-span-1" : ""}`}
               >
-                <div className={`w-10 h-10 rounded-lg ${serviceColors[i]} flex items-center justify-center mb-3`}>
-                  <Icon className="w-5 h-5" />
+                <div className={`w-14 h-14 rounded-2xl ${serviceColors[i]} flex items-center justify-center mb-4 shadow-md`}>
+                  <Icon className="w-7 h-7" />
                 </div>
                 <div className="mb-2">
-                  <span className="text-xs font-semibold text-[#C9A961] bg-[#C9A961]/10 px-2 py-0.5 rounded-full">
+                  <span className="text-sm font-bold text-[#C9A961] bg-[#C9A961]/15 px-3 py-1 rounded-full border border-[#C9A961]/30">
                     {service.tag}
                   </span>
                 </div>
-                <h3 className="font-bold text-[#1F3864] text-sm mb-2 leading-tight">{service.title}</h3>
-                <p className="text-gray-500 text-xs leading-relaxed">{service.description}</p>
+                <h3 className="font-extrabold text-[#1F3864] text-xl mb-3 leading-tight">{service.title}</h3>
+                <p className="text-gray-600 text-base leading-relaxed">{service.description}</p>
 
                 {/* 추가 인증 설명 (영상유언장·자필유언장 카드만 표시) */}
                 {hasAdditionalAuth && (
-                  <div className={`mt-3 rounded-lg border p-2.5 flex items-start gap-1.5 ${(service as any).legalColor}`}>
-                    <Scale className="w-3 h-3 flex-shrink-0 mt-0.5 opacity-70" />
+                  <div className={`mt-4 rounded-xl border-2 p-4 flex items-start gap-2.5 ${(service as any).legalColor}`}>
+                    <Scale className="w-4 h-4 flex-shrink-0 mt-0.5 opacity-80" />
                     <div>
-                      <p className="text-[10px] font-bold mb-0.5 leading-tight">
+                      <p className="text-sm font-bold mb-1 leading-tight">
                         {(service as any).additionalAuth}
                       </p>
-                      <p className="text-[10px] leading-relaxed opacity-90">
+                      <p className="text-sm leading-relaxed opacity-90">
                         {(service as any).legalNote}
                       </p>
                       {(service as any).legalBase && (
-                        <p className={`text-[9px] mt-1 leading-relaxed ${(service as any).legalBaseColor}`}>
+                        <p className={`text-xs mt-1.5 leading-relaxed ${(service as any).legalBaseColor}`}>
                           {(service as any).legalBase}
                         </p>
                       )}
