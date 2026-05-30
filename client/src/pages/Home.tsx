@@ -18,6 +18,7 @@ import CharityStatsSection from "@/components/CharityStatsSection";
 import CTASection from "@/components/CTASection";
 import PricingSection from "@/components/PricingSection";
 import CertifiedCounterBanner from "@/components/CertifiedCounterBanner";
+import { LifeStorySection } from "@/components/LifeStorySection";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -48,9 +49,11 @@ export default function Home() {
       <PricingSection />
       {/* 11. 친구 추천 & 공유 */}
       <ReferralSection />
-      {/* 12. 고객 후기 */}
+      {/* 12. Life Story 프리미엄 기능 소개 */}
+      <LifeStorySection />
+      {/* 13. 고객 후기 */}
       <ReviewsSection />
-      {/* 13. 상속인 서비스 (제일 아래) */}
+      {/* 14. 상속인 서비스 (제일 아래) */}
       <HeirServiceSection />
       {/* 14. 인증회원 카운터 */}
       <section className="py-10 bg-[#FAFAF8]">

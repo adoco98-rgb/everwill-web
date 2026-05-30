@@ -157,6 +157,7 @@ export default function Navbar() {
     { label: t.nav.taxCalc, href: "/tax", isPage: true },
     { label: t.nav.letter ?? "사회기부", href: "/charity", isPage: true },
     { label: t.nav.pricing, href: "#pricing" },
+    { label: "Life Story", href: "/life-story", isPage: true, isPremium: true },
   ];
 
   // 소셜 링크 목록 (링크가 있는 것만 표시)
@@ -197,11 +198,18 @@ export default function Navbar() {
               <button
                 key={link.href}
                 onClick={() => link.isPage ? navigate(link.href) : handleNavClick(link.href)}
-                className={`whitespace-nowrap text-white/80 hover:text-[#C9A961] text-xs xl:text-sm font-medium transition-colors duration-200 relative group ${
-                  link.href === "/tax" ? "text-[#C9A961]/80" : ""
+                className={`whitespace-nowrap text-xs xl:text-sm font-medium transition-colors duration-200 relative group flex items-center gap-1 ${
+                  (link as any).isPremium
+                    ? "text-[#C9A961] hover:text-[#d4b56e]"
+                    : link.href === "/tax"
+                    ? "text-[#C9A961]/80 hover:text-[#C9A961]"
+                    : "text-white/80 hover:text-[#C9A961]"
                 }`}
               >
                 {link.label}
+                {(link as any).isPremium && (
+                  <span className="text-[9px] bg-[#C9A961] text-[#1F3864] font-bold px-1 py-0.5 rounded leading-none">PRO</span>
+                )}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#C9A961] transition-all duration-300 group-hover:w-full" />
               </button>
             ))}

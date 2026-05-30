@@ -797,3 +797,101 @@ export const siteSettings = mysqlTable("siteSettings", {
 });
 export type SiteSetting = typeof siteSettings.$inferSelect;
 export type InsertSiteSetting = typeof siteSettings.$inferInsert;
+
+/**
+ * 인물 앨범 테이블
+ * 유언자 본인 및 가족 사진 등록 → AI 일기 그림 생성 시 참조
+ */
+export const personProfiles = mysqlTable("personProfiles", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 소유자 사용자 ID */
+  userId: int("userId").notNull(),
+  /** 인물 이름 */
+  name: varchar("name", { length: 64 }).notNull(),
+  /** 관계 (self=본인, spouse=배우자, son=아들, daughter=딸, etc.) */
+  relationship: varchar("relationship", { length: 32 }).default("self").notNull(),
+  /** 대표 사진 S3 키 */
+  photoKey: varchar("photoKey", { length: 512 }),
+  /** 대표 사진 URL */
+  photoUrl: text("photoUrl"),
+  /** GPT-4 Vision으로 추출한 얼굴 특징 프롬프트 (캐시) */
+  facePrompt: text("facePrompt"),
+  /** 활성 여부 */
+  isActive: tinyint("isActive").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type PersonProfile = typeof personProfiles.$inferSelect;
+export type InsertPersonProfile = typeof personProfiles.$inferInsert;
+
+/**
+ * AI 일기 테이블
+ * 유언자가 AI와 대화 후 생성된 일기 저장
+ */
+export const lifeJournals = mysqlTable("lifeJournals", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 작성자 사용자 ID */
+  userId: int("userId").notNull(),
+  /** 일기 날짜 (YYYY-MM-DD) */
+  journalDate: varchar("journalDate", { length: 16 }).notNull(),
+  /** AI와 나눈 대화 원문 JSON */
+  conversationJson: text("conversationJson"),
+  /** AI가 생성한 일기 텍스트 */
+  diaryText: text("diaryText"),
+  /** AI가 생성한 그림 S3 키 */
+  imageKey: varchar("imageKey", { length: 512 }),
+  /** AI가 생성한 그림 URL */
+  imageUrl: text("imageUrl"),
+  /** 그림 스타일 (watercolor/illustration/oil_painting) */
+  imageStyle: varchar("imageStyle", { length: 32 }).default("watercolor"),
+  /** 감정 태그 (쉼표 구분) */
+  emotionTags: varchar("emotionTags", { length: 256 }),
+  /** 공개 여부 (0=비공개, 1=가족공개) */
+  isShared: tinyint("isShared").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type LifeJournal = typeof lifeJournals.$inferSelect;
+export type InsertLifeJournal = typeof lifeJournals.$inferInsert;
+
+/**
+ * 소중한 사람에게 남기는 편지 테이블
+ * 유언자가 작성 → 사후 또는 특정 조건 충족 시 수신자에게 공개
+ */
+export const legacyLetters = mysqlTable("legacyLetters", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 작성자 사용자 ID */
+  userId: int("userId").notNull(),
+  /** 수신자 이름 */
+  recipientName: varchar("recipientName", { length: 64 }).notNull(),
+  /** 수신자 관계 */
+  recipientRelationship: varchar("recipientRelationship", { length: 32 }),
+  /** 수신자 이메일 */
+  recipientEmail: varchar("recipientEmail", { length: 320 }),
+  /** 수신자 전화번호 */
+  recipientPhone: varchar("recipientPhone", { length: 32 }),
+  /** 편지 제목 */
+  title: varchar("title", { length: 256 }),
+  /** 편지 본문 */
+  content: text("content"),
+  /** 공개 조건 (after_death=사후즉시, specific_date=특정날짜, event=이벤트) */
+  releaseCondition: mysqlEnum("releaseCondition", ["after_death", "specific_date", "event"]).default("after_death").notNull(),
+  /** 공개 예정 날짜 (specific_date 조건 시) */
+  releaseDate: timestamp("releaseDate"),
+  /** 공개 이벤트 설명 (event 조건 시, 예: '아들 결혼식 날') */
+  releaseEventDesc: varchar("releaseEventDesc", { length: 256 }),
+  /** 편지 상태 (draft=작성중, locked=잠금완료, released=공개됨) */
+  status: mysqlEnum("status", ["draft", "locked", "released"]).default("draft").notNull(),
+  /** 공개된 시각 */
+  releasedAt: timestamp("releasedAt"),
+  /** 수신자가 열람한 시각 */
+  viewedAt: timestamp("viewedAt"),
+  /** 첨부 이미지 S3 키 */
+  attachmentKey: varchar("attachmentKey", { length: 512 }),
+  /** 첨부 이미지 URL */
+  attachmentUrl: text("attachmentUrl"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type LegacyLetter = typeof legacyLetters.$inferSelect;
+export type InsertLegacyLetter = typeof legacyLetters.$inferInsert;

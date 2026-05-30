@@ -27,6 +27,7 @@ import InvestorPage from "./pages/InvestorPage";
 import InternalPage from "./pages/InternalPage";
 import AdminPage from "./pages/AdminPage";
 import LetterDashboard from "./pages/LetterDashboard";
+import LifeStoryPage from "./pages/LifeStoryPage";
 import LetterWrite from "./pages/LetterWrite";
 import CharityPage from "./pages/CharityPage";
 import Feedback from "./pages/Feedback";
@@ -99,6 +100,8 @@ function Router() {
       <Route path={"/assets"} component={AssetsPage} />
       {/* 투자유치 사업설명회 - 비공개 URL */}
       <Route path={"/investor"} component={InvestorPage} />
+      {/* Life Story - AI 일기·편지·인물앨범 (₩99,000 이상 전용) */}
+      <Route path={"/life-story"} component={LifeStoryPage} />
       {/* 유서 쓰기 */}
       <Route path={"/letter"} component={LetterDashboard} />
       <Route path={"/letter/write"} component={LetterWrite} />
