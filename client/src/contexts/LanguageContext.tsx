@@ -59,8 +59,8 @@ function detectDefaultLanguage(): Language {
     if (mapped) return mapped;
   }
 
-  // 기본값: 한국어 (한국 서비스 우선)
-  return "ko";
+  // 기본값: 영어 (글로벌 서비스)
+  return "en";
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
