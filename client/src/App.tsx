@@ -44,7 +44,8 @@ import MedicalDirectivePage from "./pages/dashboard/MedicalDirectivePage";
 import WillsPage from "./pages/dashboard/WillsPage";
 import WillDetailPage from "./pages/dashboard/WillDetailPage";
 import WillRevisionPage from "./pages/dashboard/WillRevisionPage";
-import HeirAcceptPage from "./pages/HeirAcceptPage";
+import HeirAcceptPage from "@/pages/HeirAcceptPage";
+import CountryPage from "@/pages/CountryPage";
 import BadgePage from "./pages/dashboard/BadgePage";
 import CertificationPage from "./pages/dashboard/CertificationPage";
 import { ChatbotWidget } from "./components/ChatbotWidget";
@@ -111,6 +112,8 @@ function Router() {
       <Route path={"/heir/accept/:token"} component={HeirAcceptPage} />
       {/* 만족도 평가 페이지 (이메일 링크 클릭 시) */}
       <Route path={"/feedback"} component={Feedback} />
+      {/* 국가별 랜딩 페이지 (/country/kr, /country/us, /country/jp 등) */}
+      <Route path={"/country/:code"} component={CountryPage} />
       {/* 관리자 대시보드 */}
       <Route path={"/799805"} component={AdminPage} />
       {/* 내부 기밀 사업기획서 - 비공개 URL */}
