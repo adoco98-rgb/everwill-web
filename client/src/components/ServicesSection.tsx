@@ -187,12 +187,50 @@ export default function ServicesSection() {
         </div>
 
         {/* 서비스 카드 그리드 */}
-        {/* 일반 카드 9개 (AI일기·편지 포함) */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 mb-3">
-          {services.slice(0, 9).map((service: any, i) => {
+        {/* 첫 번째 행: 5개 카드 */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-3">
+          {services.slice(0, 5).map((service: any, i) => {
             const Icon = serviceIcons[i];
             const isPremium = service.isPremium;
-            const CardWrapper = isPremium ? 'a' : 'div';
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, delay: 0.1 + i * 0.05 }}
+                className={`${cardBg[i]} rounded-2xl p-4 border ${
+                  isPremium ? 'border-[#C9A961]/60 ring-1 ring-[#C9A961]/30' : 'border-white/60'
+                } hover:shadow-xl transition-all card-hover group ${
+                  isPremium ? 'cursor-pointer' : 'cursor-default'
+                } flex flex-col relative overflow-hidden`}
+                onClick={() => isPremium && service.href && (window.location.href = service.href)}
+              >
+                {isPremium && (
+                  <span className="absolute top-2 right-2 text-[9px] bg-[#C9A961] text-[#1F3864] font-bold px-1.5 py-0.5 rounded-full">PRO</span>
+                )}
+                <div className={`w-12 h-12 rounded-xl ${serviceColors[i]} flex items-center justify-center mb-3 shadow-sm`}>
+                  <Icon className="w-6 h-6" />
+                </div>
+                <div className="mb-1.5">
+                  <span className={`text-xs font-bold ${
+                    isPremium ? 'text-[#C9A961] bg-[#C9A961]/10' : tagColors[i]
+                  } px-2.5 py-0.5 rounded-full`}>
+                    {service.tag}
+                  </span>
+                </div>
+                <h3 className="font-extrabold text-[#1F3864] text-lg mb-2 leading-tight">{service.title}</h3>
+                <p className="text-gray-700 text-sm leading-relaxed">{service.description}</p>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* 두 번째 행: 4개 카드 — 전체 너비 맞춤 (4등분) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+          {services.slice(5, 9).map((service: any, j) => {
+            const i = j + 5;
+            const Icon = serviceIcons[i];
+            const isPremium = service.isPremium;
             return (
               <motion.div
                 key={i}
