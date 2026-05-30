@@ -107,9 +107,10 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 언어 자동 감지 (최초 1회, 수동 선택이 없는 경우만)
+  // 언어 자동 감지 비활성화 — 기본값 ko 고정 (IP 감지 오류 방지)
+  // IP 기반 감지는 샌드박스/서버 환경에서 SA로 오감지되는 문제로 비활성화
   useEffect(() => {
-    // 0순위: URL 파라미터 ?lang=xx 가 있으면 무조건 우선
+    // URL 파라미터 ?lang=xx 가 있으면 무조건 우선
     const urlParams = new URLSearchParams(window.location.search);
     const urlLang = urlParams.get("lang") as Language | null;
     if (urlLang && countryToLanguage) {
@@ -121,32 +122,8 @@ export default function Navbar() {
     const saved = localStorage.getItem("everwill-lang-manual");
     if (saved) return;
 
-    // IP 기반 감지 (한국 IP면 ko, 그 외 국가는 해당 언어)
-    fetch("https://ipapi.co/json/")
-      .then((res) => res.json())
-      .then((data) => {
-        const countryCode = data.country_code as string;
-        const detectedLang = countryToLanguage[countryCode];
-        // 감지된 언어를 적용하되, 수동 선택으로 기록하지 않음 (자동 감지)
-        if (detectedLang) {
-          setLanguage(detectedLang);
-          // 자동 감지 결과를 저장 (수동 선택 키가 아닌 별도 키로)
-          localStorage.setItem("everwill-lang-auto", detectedLang);
-        } else {
-          // 매핑 없는 국가 → 기본값 한국어
-          setLanguage("ko");
-        }
-      })
-      .catch(() => {
-        // IP 감지 실패 시 브라우저 언어 → 없으면 한국어
-        const browserLang = navigator.language.slice(0, 2);
-        const langMap: Record<string, Language> = {
-          ko: "ko", en: "en", ja: "ja", zh: "zh",
-          de: "de", es: "es", ar: "ar", fr: "fr",
-          ru: "ru", hi: "hi", pt: "pt",
-        };
-        setLanguage(langMap[browserLang] ?? "ko");
-      });
+    // 기본값: 한국어 (IP 감지 없이 고정)
+    setLanguage("ko");
   }, []);
 
   // 언어 수동 변경 핸들러
