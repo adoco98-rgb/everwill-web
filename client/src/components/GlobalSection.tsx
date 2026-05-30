@@ -252,8 +252,8 @@ export default function GlobalSection() {
         >
           {/* 지도 - 실제 세계지도 이미지 */}
           <div className="absolute inset-0 rounded-3xl overflow-hidden border border-white/20">
-            <img src={WORLD_MAP_URL} alt="세계지도" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-[#0d1f3c]/10" />
+            <img src={WORLD_MAP_URL} alt="세계지도" className="absolute inset-0 w-full h-full" style={{ objectFit: 'fill', background: '#0d1f3c' }} />
+            <div className="absolute inset-0" style={{ background: 'transparent' }} />
           </div>
 
           {/* 국기 핀들 */}
