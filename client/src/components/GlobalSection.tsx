@@ -10,11 +10,11 @@ import { MapPin, ArrowRight, Globe, Languages, CreditCard, Scale, Users, ShieldC
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Language } from "@/i18n";
 // WorldMapSVG 대신 실제 세계지도 이미지 사용
-const WORLD_MAP_URL = "/manus-storage/worldmap_navy_798031eb.jpg";
+const WORLD_MAP_URL = "/manus-storage/worldmap_new_hd_10cea9a0.jpg";
 
 // 국가별 세계지도 위 위치 (% 기준, 지도 이미지에 맞게 조정)
 type CountryPin = {
-  code: Language | "nz" | "au";
+  code: Language | "nz" | "au" | "ca";
   flagImg: string;
   label: string;
   // 지도 위 위치 (left%, top%)
@@ -22,34 +22,22 @@ type CountryPin = {
   y: number;
 };
 
-// 메르카토르 투영법으로 정확히 계산된 좌표 (경위도 → 픽셀%)
+// Jeff님이 직접 AI 파일에서 배치한 정확한 좌표
 const countryPins: CountryPin[] = [
-  // 한국: 서울 (126.9°E, 37.5°N) → 85.2%, 38.7%
-  { code: "ko",  flagImg: "https://flagcdn.com/w80/kr.png",  label: "한국",        x: 85.2, y: 29.2 },
-  // 일본: 도쿄 (139.7°E, 35.7°N) → 88.8%, 39.4%
-  { code: "ja",  flagImg: "https://flagcdn.com/w80/jp.png",  label: "日本",        x: 88.8, y: 30.2 },
-  // 중국: 베이징 (116.4°E, 39.9°N) → 82.3%, 37.9%
-  { code: "zh",  flagImg: "https://flagcdn.com/w80/cn.png",  label: "中国",        x: 82.3, y: 27.8 },
-  // 미국: 뉴욕 (74°W, 40.7°N) → 29.4%, 37.6%
-  { code: "en",  flagImg: "https://flagcdn.com/w80/us.png",  label: "USA",         x: 29.4, y: 27.4 },
-  // 독일: 베를린 (13.4°E, 52.5°N) → 53.7%, 32.8%
-  { code: "de",  flagImg: "https://flagcdn.com/w80/de.png",  label: "Deutschland", x: 53.7, y: 20.8 },
-  // 스페인: 마드리드 (3.7°W, 40.4°N) → 49.0%, 37.7%
-  { code: "es",  flagImg: "https://flagcdn.com/w80/es.png",  label: "España",      x: 49.0, y: 27.6 },
-  // 사우디: 리야드 (46.7°E, 24.7°N) → 63.0%, 42.9%
-  { code: "ar",  flagImg: "https://flagcdn.com/w80/sa.png",  label: "السعودية",    x: 63.0, y: 36.3 },
-  // 프랑스: 파리 (2.3°E, 48.9°N) → 50.6%, 34.4%
-  { code: "fr",  flagImg: "https://flagcdn.com/w80/fr.png",  label: "France",      x: 50.6, y: 22.8 },
-  // 러시아: 모스크바 (37.6°E, 55.8°N) → 60.4%, 31.2%
-  { code: "ru",  flagImg: "https://flagcdn.com/w80/ru.png",  label: "Россия",      x: 60.4, y: 19.0 },
-  // 인도: 뉴델리 (77.2°E, 28.6°N) → 71.4%, 41.7%
-  { code: "hi",  flagImg: "https://flagcdn.com/w80/in.png",  label: "भारत",        x: 71.4, y: 34.1 },
-  // 브라질: 상파울루 (46.6°W, 23.5°S) → 37.1%, 56.7%
-  { code: "pt",  flagImg: "https://flagcdn.com/w80/br.png",  label: "Brasil",      x: 37.1, y: 63.1 },
-  // 뉴질랜드: 오클랜드 (174.8°E, 36.9°S) → 98.6%, 61.0% (지도 끝이라 약간 조정)
-  { code: "nz",  flagImg: "https://flagcdn.com/w80/nz.png",  label: "New Zealand", x: 98.6, y: 70.5 },
-  // 호주: 시드니 (151.2°E, 33.9°S) → 92.0%, 60.0%
-  { code: "au",  flagImg: "https://flagcdn.com/w80/au.png",  label: "Australia",   x: 92.0, y: 68.8 },
+  { code: "ko",  flagImg: "https://flagcdn.com/w80/kr.png",  label: "한국",        x: 80.1, y: 40.2 },
+  { code: "ja",  flagImg: "https://flagcdn.com/w80/jp.png",  label: "日本",        x: 84.4, y: 43.2 },
+  { code: "zh",  flagImg: "https://flagcdn.com/w80/cn.png",  label: "中国",        x: 73.7, y: 43.2 },
+  { code: "en",  flagImg: "https://flagcdn.com/w80/us.png",  label: "USA",         x: 18.3, y: 43.2 },
+  { code: "de",  flagImg: "https://flagcdn.com/w80/de.png",  label: "Deutschland", x: 48.6, y: 36.4 },
+  { code: "es",  flagImg: "https://flagcdn.com/w80/es.png",  label: "España",      x: 43.5, y: 43.2 },
+  { code: "ar",  flagImg: "https://flagcdn.com/w80/sa.png",  label: "السعودية",    x: 58.4, y: 45.5 },
+  { code: "fr",  flagImg: "https://flagcdn.com/w80/fr.png",  label: "France",      x: 43.5, y: 38.7 },
+  { code: "ru",  flagImg: "https://flagcdn.com/w80/ru.png",  label: "Россия",      x: 71.2, y: 25.8 },
+  { code: "hi",  flagImg: "https://flagcdn.com/w80/in.png",  label: "भारत",        x: 64.8, y: 45.5 },
+  { code: "pt",  flagImg: "https://flagcdn.com/w80/br.png",  label: "Brasil",      x: 29.0, y: 68.3 },
+  { code: "nz",  flagImg: "https://flagcdn.com/w80/nz.png",  label: "New Zealand", x: 93.4, y: 78.9 },
+  { code: "au",  flagImg: "https://flagcdn.com/w80/au.png",  label: "Australia",   x: 81.4, y: 74.4 },
+  { code: "ca",  flagImg: "https://flagcdn.com/w80/ca.png",  label: "Canada",      x: 16.6, y: 26.6 },
 ];
 
 // 11개 언어별 국가 정보 데이터
@@ -177,23 +165,23 @@ export default function GlobalSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
   const { t, language, setLanguage } = useLanguage();
-  const [selectedPin, setSelectedPin] = useState<Language | "nz" | "au" | null>(null);
+  const [selectedPin, setSelectedPin] = useState<Language | "nz" | "au" | "ca" | null>(null);
 
-  const getCountryData = (code: Language | "nz" | "au") => {
-    if (code === "nz" || code === "au") {
+  const getCountryData = (code: Language | "nz" | "au" | "ca") => {
+    if (code === "nz" || code === "au" || code === "ca") {
       return extraCountries.find(c => c.code === code)!;
     }
     return countryDataMap[code as Language];
   };
 
-  const getCountryName = (code: Language | "nz" | "au") => {
+  const getCountryName = (code: Language | "nz" | "au" | "ca") => {
     if (code === "nz") return "New Zealand";
     if (code === "au") return "Australia";
     return countryNames[code as Language];
   };
 
-  const getHighlightIcons = (code: Language | "nz" | "au") => {
-    if (code === "nz" || code === "au") {
+  const getHighlightIcons = (code: Language | "nz" | "au" | "ca") => {
+    if (code === "nz" || code === "au" || code === "ca") {
       const ec = extraCountries.find(c => c.code === code)!;
       return ec.icons.map((icon, i) => ({ text: ec.highlights[i], icon }));
     }
@@ -204,13 +192,13 @@ export default function GlobalSection() {
   const selectedName = selectedPin ? getCountryName(selectedPin) : null;
   const selectedIcons = selectedPin ? getHighlightIcons(selectedPin) : null;
 
-  const handlePinClick = (code: Language | "nz" | "au") => {
+  const handlePinClick = (code: Language | "nz" | "au" | "ca") => {
     if (selectedPin === code) {
       setSelectedPin(null);
     } else {
       setSelectedPin(code);
       // 언어 탭도 함께 변경 (nz/au는 en으로)
-      if (code !== "nz" && code !== "au") {
+      if (code !== "nz" && code !== "au" && code !== "ca") {
         setLanguage(code as Language);
       }
     }
