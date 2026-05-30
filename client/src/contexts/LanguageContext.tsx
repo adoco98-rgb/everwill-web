@@ -38,17 +38,6 @@ function mapBrowserLang(lang: string): Language | null {
 
 /** 브라우저 언어 + 도메인을 기반으로 기본 언어 감지 */
 function detectDefaultLanguage(): Language {
-  // 0순위: URL 파라미터 ?lang=xx (가장 높은 우선순위)
-  if (typeof window !== "undefined") {
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlLang = urlParams.get("lang") as Language | null;
-    if (urlLang && translations[urlLang]) {
-      localStorage.setItem(STORAGE_KEY, urlLang);
-      localStorage.setItem("everwill-lang-manual", urlLang);
-      return urlLang;
-    }
-  }
-
   // 1순위: 도메인 기반 자동 감지 (저장값 무시)
   const hostname = typeof window !== "undefined" ? window.location.hostname : "";
   const domainLang = DOMAIN_LANGUAGE_MAP[hostname];
@@ -57,27 +46,21 @@ function detectDefaultLanguage(): Language {
     return domainLang;
   }
 
-  // 2순위: 사용자가 직접 수동으로 선택한 언어
-  const manual = typeof window !== "undefined" ? localStorage.getItem("everwill-lang-manual") as Language | null : null;
-  if (manual && translations[manual]) return manual;
-
-  // 3순위: 저장된 언어 (자동 감지로 저장된 경우)
-  const saved = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) as Language | null : null;
+  // 2순위: 저장된 언어 (사용자가 직접 선택한 경우)
+  const saved = localStorage.getItem(STORAGE_KEY) as Language | null;
   if (saved && translations[saved]) return saved;
 
-  // 4순위: 브라우저 언어 목록 순서대로 매핑 (navigator.languages 우선)
-  if (typeof navigator !== "undefined") {
-    const langs = navigator.languages?.length
-      ? navigator.languages
-      : [navigator.language];
-    for (const lang of langs) {
-      const mapped = mapBrowserLang(lang);
-      if (mapped) return mapped;
-    }
+  // 3순위: 브라우저 언어 목록 순서대로 매핑 (navigator.languages 우선)
+  const langs = navigator.languages?.length
+    ? navigator.languages
+    : [navigator.language];
+  for (const lang of langs) {
+    const mapped = mapBrowserLang(lang);
+    if (mapped) return mapped;
   }
 
-  // 기본값: 한국어 (1차 출시 시장)
-  return "ko";
+  // 기본값: 영어 (글로벌 서비스)
+  return "en";
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {

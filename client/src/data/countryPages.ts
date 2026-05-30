@@ -1,8 +1,6 @@
 /**
  * 14개국 국가별 유언·상속 법률 데이터
  * 한국판을 기준으로 각 나라 법률에 맞게 현지화
- * 법적으로 즉시 적용 가능한 나라: 법적 문구 사용
- * 법적으로 불확실한 나라: "법리 분석 검토중" 표시
  */
 
 export type LegalStatus = "active" | "review" | "partial";
@@ -16,62 +14,36 @@ export interface CountryPageData {
   flagImg: string;
   legalStatus: LegalStatus;
   legalStatusLabel: string;
-
-  // 헤더
   heroTitle: string;
   heroSubtitle: string;
   heroTagline: string;
   heroCtaText: string;
-
-  // 법률 정보
   legalBasis: string[];
   legalNote: string;
   legalWarning?: string;
-
-  // 서비스 소개
   serviceTitle: string;
   serviceDesc: string;
-
-  // 주요 기능 (한국판 동일 구조)
-  features: {
-    title: string;
-    desc: string;
-    icon: string;
-  }[];
-
-  // 가격
+  features: { title: string; desc: string; icon: string }[];
   currency: string;
   certPrice: string;
   renewPrice: string;
   membershipPrice: string;
-
-  // 결제 수단
   paymentMethods: string[];
-
-  // 타깃 고객
   targetAudience: string;
-
-  // 신뢰 지표
   trustPoints: string[];
-
-  // CTA
   ctaTitle: string;
   ctaDesc: string;
   ctaButton: string;
-
-  // SEO
   metaTitle: string;
   metaDesc: string;
 }
 
 export const countryPagesData: Record<string, CountryPageData> = {
 
-  // ─── 한국 (기준) ───────────────────────────────────────────
   kr: {
     code: "kr", countryCode: "KR", lang: "한국어", langCode: "ko",
     flag: "🇰🇷", flagImg: "https://flagcdn.com/w80/kr.png",
-    legalStatus: "active",
-    legalStatusLabel: "즉시 적용 가능",
+    legalStatus: "active", legalStatusLabel: "즉시 적용 가능",
     heroTitle: "누구나 한번은 꼭 해야할,\n나의 마지막 서명",
     heroSubtitle: "세계 최초 디지털 유언 OS",
     heroTagline: "유언 작성부터 사후 자동 집행까지, 전 과정을 책임지는 EverWill",
@@ -98,19 +70,15 @@ export const countryPagesData: Record<string, CountryPageData> = {
     paymentMethods: ["토스페이먼츠", "카카오페이", "네이버페이", "신용카드"],
     targetAudience: "재외한인 700만 명 · 50-70대 한국인 · 다국적 자산 보유자",
     trustPoints: ["한국 민법 완전 준수", "개인정보보호법 준수", "E2E 암호화", "블록체인 무결성 기록"],
-    ctaTitle: "지금 바로 시작하세요",
-    ctaDesc: "AI 유언장 작성은 무료입니다. 인증만 ₩49,000",
-    ctaButton: "무료로 시작하기",
+    ctaTitle: "지금 바로 시작하세요", ctaDesc: "AI 유언장 작성은 무료입니다. 인증만 ₩49,000", ctaButton: "무료로 시작하기",
     metaTitle: "EverWill 한국 — 세계 최초 디지털 유언 OS",
     metaDesc: "한국 민법 기반 AI 유언장 작성, 전자 인증, 사후 자동 집행. 무료로 시작하세요.",
   },
 
-  // ─── 미국 ───────────────────────────────────────────────────
   us: {
     code: "us", countryCode: "US", lang: "English", langCode: "en",
     flag: "🇺🇸", flagImg: "https://flagcdn.com/w80/us.png",
-    legalStatus: "active",
-    legalStatusLabel: "Legally Valid — Immediately Applicable",
+    legalStatus: "active", legalStatusLabel: "Legally Valid — Immediately Applicable",
     heroTitle: "Everyone needs to do\nat least once,\nMy Final Signature",
     heroSubtitle: "World's First Digital Will OS",
     heroTagline: "From will creation to automatic post-death execution — EverWill handles it all",
@@ -136,20 +104,16 @@ export const countryPagesData: Record<string, CountryPageData> = {
     currency: "USD", certPrice: "$39", renewPrice: "$15", membershipPrice: "$29/yr",
     paymentMethods: ["Stripe", "Paddle", "Credit Card", "Apple Pay", "Google Pay"],
     targetAudience: "1M+ Korean-Americans · Overseas Koreans · Multi-asset holders · All US residents",
-    trustPoints: ["ESIGN Act Compliant", "UEWA 2019 Compliant", "SOC 2 Type II (in progress)", "HIPAA Compliant", "E2E Encrypted", "Blockchain Integrity"],
-    ctaTitle: "Start Your Will Today",
-    ctaDesc: "AI will drafting is completely free. Certification only $39.",
-    ctaButton: "Start for Free",
+    trustPoints: ["ESIGN Act Compliant", "UEWA 2019 Compliant", "HIPAA Compliant", "E2E Encrypted", "Blockchain Integrity"],
+    ctaTitle: "Start Your Will Today", ctaDesc: "AI will drafting is completely free. Certification only $39.", ctaButton: "Start for Free",
     metaTitle: "EverWill USA — World's First Digital Will OS",
-    metaDesc: "ESIGN Act & UEWA 2019 compliant AI will drafting, electronic certification, and automatic estate execution. Start free.",
+    metaDesc: "ESIGN Act & UEWA 2019 compliant AI will drafting, electronic certification, automatic estate execution. Start free.",
   },
 
-  // ─── 일본 ───────────────────────────────────────────────────
   jp: {
     code: "jp", countryCode: "JP", lang: "日本語", langCode: "ja",
     flag: "🇯🇵", flagImg: "https://flagcdn.com/w80/jp.png",
-    legalStatus: "active",
-    legalStatusLabel: "即時適用可能 — 法的有効",
+    legalStatus: "active", legalStatusLabel: "即時適用可能 — 法的有効",
     heroTitle: "誰もが一度は必ずすべき、\n私の最後のサイン",
     heroSubtitle: "世界初のデジタル遺言OS",
     heroTagline: "遺言作成から死後自動執行まで、全過程をEverWillが責任を持ちます",
@@ -176,19 +140,15 @@ export const countryPagesData: Record<string, CountryPageData> = {
     paymentMethods: ["PayPay", "LINE Pay", "クレジットカード", "コンビニ払い"],
     targetAudience: "在日韓国人 · 日本国内在住者 · 海外資産保有者",
     trustPoints: ["日本民法完全準拠", "個人情報保護法準拠", "E2Eエンドツーエンド暗号化", "ブロックチェーン完全性記録"],
-    ctaTitle: "今すぐ始めましょう",
-    ctaDesc: "AI遺言作成は無料です。認証のみ¥6,500",
-    ctaButton: "無料で始める",
+    ctaTitle: "今すぐ始めましょう", ctaDesc: "AI遺言作成は無料です。認証のみ¥6,500", ctaButton: "無料で始める",
     metaTitle: "EverWill 日本 — 世界初のデジタル遺言OS",
     metaDesc: "日本民法準拠のAI遺言作成、電子認証、死後自動執行。無料で始めましょう。",
   },
 
-  // ─── 중국/홍콩/대만 ─────────────────────────────────────────
   cn: {
     code: "cn", countryCode: "CN", lang: "中文", langCode: "zh",
     flag: "🇨🇳", flagImg: "https://flagcdn.com/w80/cn.png",
-    legalStatus: "partial",
-    legalStatusLabel: "香港·台灣即時適用 | 中國大陸法理分析審查中",
+    legalStatus: "partial", legalStatusLabel: "香港·台灣即時適用 | 中國大陸法理分析審查中",
     heroTitle: "每个人都应该做一次的，\n我的最后签名",
     heroSubtitle: "全球首个数字遗嘱OS",
     heroTagline: "从遗嘱撰写到身后自动执行，EverWill全程负责",
@@ -212,23 +172,19 @@ export const countryPagesData: Record<string, CountryPageData> = {
       { title: "律师匹配", desc: "自动匹配身后执行专属律师", icon: "Scale" },
       { title: "EverWill Badge", desc: "内置QR·NFC的实体认证卡", icon: "CreditCard" },
     ],
-    currency: "HKD/TWD/CNY", certPrice: "HK$299 / NT$1,290", renewPrice: "HK$115 / NT$460", membershipPrice: "HK$220/年",
+    currency: "HKD/TWD", certPrice: "HK$299 / NT$1,290", renewPrice: "HK$115 / NT$460", membershipPrice: "HK$220/年",
     paymentMethods: ["Alipay", "WeChat Pay", "信用卡", "PayMe (HK)"],
     targetAudience: "香港居民 · 台灣居民 · 海外華人 · 多國資產持有者",
     trustPoints: ["香港法律完全合規", "台灣民法合規", "E2E端對端加密", "區塊鏈完整性記錄"],
-    ctaTitle: "立即开始",
-    ctaDesc: "AI遗嘱撰写完全免费。认证仅需HK$299",
-    ctaButton: "免费开始",
+    ctaTitle: "立即开始", ctaDesc: "AI遗嘱撰写完全免费。认证仅需HK$299", ctaButton: "免费开始",
     metaTitle: "EverWill 中港台 — 全球首个数字遗嘱OS",
     metaDesc: "香港《遺囑條例》·台灣民法合規AI遺囑撰寫、電子認證、身後自動執行。免費開始。",
   },
 
-  // ─── 독일 ───────────────────────────────────────────────────
   de: {
     code: "de", countryCode: "DE", lang: "Deutsch", langCode: "de",
     flag: "🇩🇪", flagImg: "https://flagcdn.com/w80/de.png",
-    legalStatus: "active",
-    legalStatusLabel: "Sofort gültig — Rechtlich wirksam",
+    legalStatus: "active", legalStatusLabel: "Sofort gültig — Rechtlich wirksam",
     heroTitle: "Jeder sollte es einmal tun,\nMeine letzte Unterschrift",
     heroSubtitle: "Das weltweit erste digitale Testament-OS",
     heroTagline: "Von der Testamentserstellung bis zur automatischen Nachlassabwicklung — EverWill übernimmt alles",
@@ -254,20 +210,16 @@ export const countryPagesData: Record<string, CountryPageData> = {
     currency: "EUR", certPrice: "€39", renewPrice: "€15", membershipPrice: "€29/Jahr",
     paymentMethods: ["SEPA-Lastschrift", "Stripe", "Kreditkarte", "PayPal"],
     targetAudience: "Deutschsprachige Bevölkerung · Auslandsdeutsche · Inhaber internationaler Vermögenswerte",
-    trustPoints: ["BGB-konform", "EU-DSGVO-konform", "eIDAS-konform", "Ende-zu-Ende-Verschlüsselung", "Blockchain-Integrität"],
-    ctaTitle: "Jetzt starten",
-    ctaDesc: "KI-Testamentserstellung ist völlig kostenlos. Zertifizierung nur €39.",
-    ctaButton: "Kostenlos starten",
+    trustPoints: ["BGB-konform", "EU-DSGVO-konform", "eIDAS-konform", "Ende-zu-Ende-Verschlüsselung"],
+    ctaTitle: "Jetzt starten", ctaDesc: "KI-Testamentserstellung ist völlig kostenlos. Zertifizierung nur €39.", ctaButton: "Kostenlos starten",
     metaTitle: "EverWill Deutschland — Das weltweit erste digitale Testament-OS",
     metaDesc: "BGB §2247 & §2232 konformes KI-Testament, elektronische Zertifizierung, automatische Nachlassabwicklung. Kostenlos starten.",
   },
 
-  // ─── 스페인 ─────────────────────────────────────────────────
   es: {
     code: "es", countryCode: "ES", lang: "Español", langCode: "es",
     flag: "🇪🇸", flagImg: "https://flagcdn.com/w80/es.png",
-    legalStatus: "active",
-    legalStatusLabel: "Válido Legalmente — Aplicable de Inmediato",
+    legalStatus: "active", legalStatusLabel: "Válido Legalmente — Aplicable de Inmediato",
     heroTitle: "Algo que todos deben hacer\nal menos una vez,\nMi Última Firma",
     heroSubtitle: "El Primer OS Digital de Testamentos del Mundo",
     heroTagline: "Desde la redacción del testamento hasta la ejecución automática post-mortem — EverWill se encarga de todo",
@@ -293,20 +245,16 @@ export const countryPagesData: Record<string, CountryPageData> = {
     currency: "EUR", certPrice: "€39", renewPrice: "€15", membershipPrice: "€29/año",
     paymentMethods: ["Stripe", "PayPal", "Bizum", "Tarjeta de Crédito"],
     targetAudience: "Residentes en España · Latinoamericanos · Propietarios de activos internacionales",
-    trustPoints: ["Conforme al Código Civil", "Conforme al RGPD", "Conforme a eIDAS", "Cifrado de extremo a extremo", "Integridad blockchain"],
-    ctaTitle: "Comience Ahora",
-    ctaDesc: "La redacción de testamentos con IA es completamente gratuita. Solo €39 para la certificación.",
-    ctaButton: "Empezar Gratis",
+    trustPoints: ["Conforme al Código Civil", "Conforme al RGPD", "Conforme a eIDAS", "Cifrado de extremo a extremo"],
+    ctaTitle: "Comience Ahora", ctaDesc: "La redacción de testamentos con IA es completamente gratuita. Solo €39 para la certificación.", ctaButton: "Empezar Gratis",
     metaTitle: "EverWill España — El Primer OS Digital de Testamentos del Mundo",
     metaDesc: "Testamento IA conforme al Código Civil, certificación electrónica, ejecución automática de herencias. Empiece gratis.",
   },
 
-  // ─── 사우디아라비아 (아랍어) ─────────────────────────────────
   sa: {
     code: "sa", countryCode: "SA", lang: "العربية", langCode: "ar",
     flag: "🇸🇦", flagImg: "https://flagcdn.com/w80/sa.png",
-    legalStatus: "active",
-    legalStatusLabel: "صالح قانونياً — قابل للتطبيق فوراً",
+    legalStatus: "active", legalStatusLabel: "صالح قانونياً — قابل للتطبيق فوراً",
     heroTitle: "شيء يجب على الجميع فعله\nمرة واحدة على الأقل،\nتوقيعي الأخير",
     heroSubtitle: "أول نظام وصية رقمي في العالم",
     heroTagline: "من كتابة الوصية إلى التنفيذ التلقائي بعد الوفاة — EverWill يتولى كل شيء",
@@ -333,19 +281,15 @@ export const countryPagesData: Record<string, CountryPageData> = {
     paymentMethods: ["STC Pay", "Mada", "بطاقة ائتمانية", "Apple Pay"],
     targetAudience: "المقيمون في المملكة العربية السعودية · الخليج العربي · أصحاب الأصول الدولية",
     trustPoints: ["متوافق مع الشريعة الإسلامية", "متوافق مع أنظمة الخليج", "تشفير كامل من طرف إلى طرف", "سجل بلوكتشين"],
-    ctaTitle: "ابدأ الآن",
-    ctaDesc: "كتابة الوصية بالذكاء الاصطناعي مجانية تماماً. التوثيق فقط SAR 146",
-    ctaButton: "ابدأ مجاناً",
+    ctaTitle: "ابدأ الآن", ctaDesc: "كتابة الوصية بالذكاء الاصطناعي مجانية تماماً. التوثيق فقط SAR 146", ctaButton: "ابدأ مجاناً",
     metaTitle: "EverWill السعودية — أول نظام وصية رقمي في العالم",
     metaDesc: "وصية ذكاء اصطناعي متوافقة مع الشريعة الإسلامية، توثيق إلكتروني، تنفيذ تلقائي للتركات. ابدأ مجاناً.",
   },
 
-  // ─── 프랑스 ─────────────────────────────────────────────────
   fr: {
     code: "fr", countryCode: "FR", lang: "Français", langCode: "fr",
     flag: "🇫🇷", flagImg: "https://flagcdn.com/w80/fr.png",
-    legalStatus: "active",
-    legalStatusLabel: "Valide Légalement — Applicable Immédiatement",
+    legalStatus: "active", legalStatusLabel: "Valide Légalement — Applicable Immédiatement",
     heroTitle: "Quelque chose que tout le monde\ndoit faire au moins une fois,\nMa Dernière Signature",
     heroSubtitle: "Le Premier OS Testamentaire Numérique au Monde",
     heroTagline: "De la rédaction du testament à l'exécution automatique post-mortem — EverWill s'occupe de tout",
@@ -371,20 +315,16 @@ export const countryPagesData: Record<string, CountryPageData> = {
     currency: "EUR", certPrice: "€39", renewPrice: "€15", membershipPrice: "€29/an",
     paymentMethods: ["Carte Bancaire", "Stripe", "PayPal", "Virement SEPA"],
     targetAudience: "Résidents en France · Français de l'étranger · Détenteurs d'actifs internationaux",
-    trustPoints: ["Conforme au Code Civil", "Conforme au RGPD", "Conforme à eIDAS", "Chiffrement de bout en bout", "Intégrité blockchain"],
-    ctaTitle: "Commencez Maintenant",
-    ctaDesc: "La rédaction de testament par IA est entièrement gratuite. Certification seulement €39.",
-    ctaButton: "Commencer Gratuitement",
+    trustPoints: ["Conforme au Code Civil", "Conforme au RGPD", "Conforme à eIDAS", "Chiffrement de bout en bout"],
+    ctaTitle: "Commencez Maintenant", ctaDesc: "La rédaction de testament par IA est entièrement gratuite. Certification seulement €39.", ctaButton: "Commencer Gratuitement",
     metaTitle: "EverWill France — Le Premier OS Testamentaire Numérique au Monde",
     metaDesc: "Testament IA conforme au Code Civil, certification électronique, exécution automatique de succession. Commencez gratuitement.",
   },
 
-  // ─── 러시아 ─────────────────────────────────────────────────
   ru: {
     code: "ru", countryCode: "RU", lang: "Русский", langCode: "ru",
     flag: "🇷🇺", flagImg: "https://flagcdn.com/w80/ru.png",
-    legalStatus: "partial",
-    legalStatusLabel: "Частично применимо — Правовой анализ продолжается",
+    legalStatus: "partial", legalStatusLabel: "Частично применимо — Правовой анализ продолжается",
     heroTitle: "То, что каждый должен сделать\nхотя бы раз,\nМоя Последняя Подпись",
     heroSubtitle: "Первая в мире цифровая ОС завещаний",
     heroTagline: "От составления завещания до автоматического исполнения после смерти — EverWill берёт на себя всё",
@@ -412,19 +352,15 @@ export const countryPagesData: Record<string, CountryPageData> = {
     paymentMethods: ["СБП", "Stripe", "Кредитная карта", "ЮMoney"],
     targetAudience: "Жители России · Русскоязычное зарубежье · Владельцы международных активов",
     trustPoints: ["Анализ соответствия ГК РФ", "Шифрование E2E", "Целостность блокчейна", "Переговоры с регуляторами"],
-    ctaTitle: "Начните Сейчас",
-    ctaDesc: "Составление завещания с ИИ полностью бесплатно. Сертификация только ₽3,500",
-    ctaButton: "Начать бесплатно",
+    ctaTitle: "Начните Сейчас", ctaDesc: "Составление завещания с ИИ полностью бесплатно. Сертификация только ₽3,500", ctaButton: "Начать бесплатно",
     metaTitle: "EverWill Россия — Первая в мире цифровая ОС завещаний",
     metaDesc: "Завещание с ИИ, электронная сертификация, автоматическое исполнение наследства. Начните бесплатно.",
   },
 
-  // ─── 인도 ───────────────────────────────────────────────────
   in: {
     code: "in", countryCode: "IN", lang: "हिन्दी", langCode: "hi",
     flag: "🇮🇳", flagImg: "https://flagcdn.com/w80/in.png",
-    legalStatus: "active",
-    legalStatusLabel: "कानूनी रूप से वैध — तुरंत लागू",
+    legalStatus: "active", legalStatusLabel: "कानूनी रूप से वैध — तुरंत लागू",
     heroTitle: "हर किसी को कम से कम\nएक बार करना चाहिए,\nमेरा अंतिम हस्ताक्षर",
     heroSubtitle: "विश्व का पहला डिजिटल वसीयत OS",
     heroTagline: "वसीयत लिखने से लेकर मृत्यु के बाद स्वचालित निष्पादन तक — EverWill सब संभालता है",
@@ -451,19 +387,15 @@ export const countryPagesData: Record<string, CountryPageData> = {
     paymentMethods: ["UPI", "Razorpay", "Paytm", "क्रेडिट कार्ड"],
     targetAudience: "भारतीय निवासी · NRI समुदाय · अंतर्राष्ट्रीय संपत्ति धारक",
     trustPoints: ["Indian Succession Act अनुपालन", "IT Act 2000 अनुपालन", "E2E एन्क्रिप्शन", "ब्लॉकचेन अखंडता"],
-    ctaTitle: "अभी शुरू करें",
-    ctaDesc: "AI वसीयत लेखन पूरी तरह मुफ्त है। प्रमाणीकरण केवल ₹3,200",
-    ctaButton: "मुफ्त में शुरू करें",
+    ctaTitle: "अभी शुरू करें", ctaDesc: "AI वसीयत लेखन पूरी तरह मुफ्त है। प्रमाणीकरण केवल ₹3,200", ctaButton: "मुफ्त में शुरू करें",
     metaTitle: "EverWill India — विश्व का पहला डिजिटल वसीयत OS",
     metaDesc: "Indian Succession Act अनुपालन AI वसीयत, इलेक्ट्रॉनिक प्रमाणीकरण, स्वचालित संपत्ति निष्पादन। मुफ्त में शुरू करें।",
   },
 
-  // ─── 브라질 ─────────────────────────────────────────────────
   br: {
     code: "br", countryCode: "BR", lang: "Português", langCode: "pt",
     flag: "🇧🇷", flagImg: "https://flagcdn.com/w80/br.png",
-    legalStatus: "active",
-    legalStatusLabel: "Legalmente Válido — Aplicável Imediatamente",
+    legalStatus: "active", legalStatusLabel: "Legalmente Válido — Aplicável Imediatamente",
     heroTitle: "Algo que todos devem fazer\npelo menos uma vez,\nMinha Última Assinatura",
     heroSubtitle: "O Primeiro OS Digital de Testamentos do Mundo",
     heroTagline: "Da redação do testamento à execução automática pós-morte — EverWill cuida de tudo",
@@ -490,19 +422,15 @@ export const countryPagesData: Record<string, CountryPageData> = {
     paymentMethods: ["PIX", "Stripe", "Cartão de Crédito", "Boleto Bancário"],
     targetAudience: "Residentes no Brasil · Brasileiros no exterior · Detentores de ativos internacionais",
     trustPoints: ["Conforme ao Código Civil", "Conforme à LGPD", "Criptografia ponta a ponta", "Integridade blockchain"],
-    ctaTitle: "Comece Agora",
-    ctaDesc: "A redação de testamento com IA é completamente gratuita. Certificação apenas R$199.",
-    ctaButton: "Começar Gratuitamente",
+    ctaTitle: "Comece Agora", ctaDesc: "A redação de testamento com IA é completamente gratuita. Certificação apenas R$199.", ctaButton: "Começar Gratuitamente",
     metaTitle: "EverWill Brasil — O Primeiro OS Digital de Testamentos do Mundo",
     metaDesc: "Testamento IA conforme ao Código Civil, certificação eletrônica, execução automática de inventário. Comece gratuitamente.",
   },
 
-  // ─── 호주 ───────────────────────────────────────────────────
   au: {
     code: "au", countryCode: "AU", lang: "English (AU)", langCode: "en",
     flag: "🇦🇺", flagImg: "https://flagcdn.com/w80/au.png",
-    legalStatus: "active",
-    legalStatusLabel: "Legally Valid — Immediately Applicable",
+    legalStatus: "active", legalStatusLabel: "Legally Valid — Immediately Applicable",
     heroTitle: "Something everyone must do\nat least once,\nMy Final Signature",
     heroSubtitle: "World's First Digital Will OS",
     heroTagline: "From will creation to automatic estate execution — EverWill handles it all",
@@ -529,19 +457,15 @@ export const countryPagesData: Record<string, CountryPageData> = {
     paymentMethods: ["Stripe", "BPAY", "PayID", "Credit Card"],
     targetAudience: "Australian residents · Korean-Australians · International asset holders",
     trustPoints: ["Succession Act Compliant", "Privacy Act Compliant", "E2E Encrypted", "Blockchain Integrity"],
-    ctaTitle: "Start Today",
-    ctaDesc: "AI will drafting is completely free. Certification only A$59.",
-    ctaButton: "Start for Free",
+    ctaTitle: "Start Today", ctaDesc: "AI will drafting is completely free. Certification only A$59.", ctaButton: "Start for Free",
     metaTitle: "EverWill Australia — World's First Digital Will OS",
     metaDesc: "Succession Act compliant AI will, electronic certification, automatic estate execution. Start free.",
   },
 
-  // ─── 뉴질랜드 ───────────────────────────────────────────────
   nz: {
     code: "nz", countryCode: "NZ", lang: "English (NZ)", langCode: "en",
     flag: "🇳🇿", flagImg: "https://flagcdn.com/w80/nz.png",
-    legalStatus: "active",
-    legalStatusLabel: "Legally Valid — Immediately Applicable",
+    legalStatus: "active", legalStatusLabel: "Legally Valid — Immediately Applicable",
     heroTitle: "Something everyone must do\nat least once,\nMy Final Signature",
     heroSubtitle: "World's First Digital Will OS",
     heroTagline: "From will creation to automatic estate execution — EverWill handles it all",
@@ -568,19 +492,15 @@ export const countryPagesData: Record<string, CountryPageData> = {
     paymentMethods: ["Stripe", "Visa", "Mastercard", "POLi"],
     targetAudience: "New Zealand residents · Korean-New Zealanders · International asset holders",
     trustPoints: ["Wills Act 2007 Compliant", "Privacy Act 2020 Compliant", "E2E Encrypted", "Blockchain Integrity"],
-    ctaTitle: "Start Today",
-    ctaDesc: "AI will drafting is completely free. Certification only NZ$65.",
-    ctaButton: "Start for Free",
+    ctaTitle: "Start Today", ctaDesc: "AI will drafting is completely free. Certification only NZ$65.", ctaButton: "Start for Free",
     metaTitle: "EverWill New Zealand — World's First Digital Will OS",
     metaDesc: "Wills Act 2007 compliant AI will, electronic certification, automatic estate execution. Start free.",
   },
 
-  // ─── 캐나다 ─────────────────────────────────────────────────
   ca: {
     code: "ca", countryCode: "CA", lang: "English / Français", langCode: "en",
     flag: "🇨🇦", flagImg: "https://flagcdn.com/w80/ca.png",
-    legalStatus: "active",
-    legalStatusLabel: "Legally Valid — Immediately Applicable (BC & ON)",
+    legalStatus: "active", legalStatusLabel: "Legally Valid — Immediately Applicable (BC & ON)",
     heroTitle: "Something everyone must do\nat least once,\nMy Final Signature",
     heroSubtitle: "World's First Digital Will OS",
     heroTagline: "From will creation to automatic estate execution — EverWill handles it all",
@@ -606,10 +526,8 @@ export const countryPagesData: Record<string, CountryPageData> = {
     currency: "CAD", certPrice: "C$52", renewPrice: "C$20", membershipPrice: "C$39/yr",
     paymentMethods: ["Stripe", "Interac", "Credit Card", "EFT"],
     targetAudience: "240,000+ Korean-Canadians · Canadian residents · International asset holders",
-    trustPoints: ["WESA (BC) Compliant", "PIPEDA Compliant", "Electronic Wills Act Compliant", "E2E Encrypted", "Blockchain Integrity"],
-    ctaTitle: "Start Today",
-    ctaDesc: "AI will drafting is completely free. Certification only C$52.",
-    ctaButton: "Start for Free",
+    trustPoints: ["WESA (BC) Compliant", "PIPEDA Compliant", "Electronic Wills Act Compliant", "E2E Encrypted"],
+    ctaTitle: "Start Today", ctaDesc: "AI will drafting is completely free. Certification only C$52.", ctaButton: "Start for Free",
     metaTitle: "EverWill Canada — World's First Digital Will OS",
     metaDesc: "WESA & Electronic Wills Act compliant AI will, electronic certification, automatic estate execution. Start free.",
   },
