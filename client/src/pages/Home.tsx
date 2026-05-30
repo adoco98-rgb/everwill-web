@@ -41,16 +41,16 @@ export default function Home() {
       <LegalTimelineSection />
       {/* 7. 글로벌 지원 */}
       <GlobalSection />
-      {/* 8. 사회기부 */}
-      <CharityStatsSection />
-      {/* 9. 지금 시작하세요 CTA */}
-      <CTASection />
-      {/* 10. 가격 정책 */}
-      <PricingSection />
-      {/* 11. 친구 추천 & 공유 */}
-      <ReferralSection />
-      {/* 12. Life Story 프리미엄 기능 소개 */}
+      {/* 8. Life Story 프리미엄 기능 소개 */}
       <LifeStorySection />
+      {/* 9. 사회기부 */}
+      <CharityStatsSection />
+      {/* 10. 지금 시작하세요 CTA */}
+      <CTASection />
+      {/* 11. 가격 정책 */}
+      <PricingSection />
+      {/* 12. 친구 추천 & 공유 */}
+      <ReferralSection />
       {/* 13. 고객 후기 */}
       <ReviewsSection />
       {/* 14. 상속인 서비스 (제일 아래) */}

@@ -270,6 +270,32 @@ function JournalTab({ userId }: { userId: number }) {
                   ))}
                 </div>
               )}
+              {/* 인쇄·PDF 출력 버튼 */}
+              <div className="flex gap-2 pt-2 border-t border-amber-100">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 border-[#1F3864]/30 text-[#1F3864] hover:bg-[#1F3864]/5"
+                  onClick={() => window.print()}
+                >
+                  프린트 인쇄
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 border-[#C9A961]/50 text-[#C9A961] hover:bg-[#C9A961]/5"
+                  onClick={() => {
+                    const content = `나의 일기\n\n${result.diaryText}\n\n[감정 태그] ${result.emotionTags}`;
+                    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = `나의_일기_${new Date().toISOString().split('T')[0]}.txt`;
+                    a.click(); URL.revokeObjectURL(url);
+                  }}
+                >
+                  텍스트 다운로드
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </motion.div>
@@ -462,16 +488,40 @@ function LettersTab({ userId }: { userId: number }) {
                       </div>
                     </div>
                   </div>
-                  <button
-                    onClick={async () => {
-                      await deleteMutation.mutateAsync({ letterId: letter.id });
-                      refetch();
-                      toast.success("편지가 삭제됐습니다.");
-                    }}
-                    className="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {/* 인쇄 버튼 */}
+                    <button
+                      onClick={() => {
+                        const content = `소중한 사람에게 남기는 편지\n\n수신자: ${letter.recipientName} ${letter.recipientRelationship ? `(${letter.recipientRelationship})` : ''}\n제목: ${letter.title ?? ''}\n공개 조건: ${releaseLabel(letter.releaseCondition, letter.releaseEventDesc)}\n\n${letter.content ?? ''}`;
+                        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url; a.download = `편지_${letter.recipientName}_${new Date().toISOString().split('T')[0]}.txt`;
+                        a.click(); URL.revokeObjectURL(url);
+                      }}
+                      className="text-gray-300 hover:text-[#C9A961] transition-colors"
+                      title="텍스트 다운로드"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    </button>
+                    <button
+                      onClick={() => window.print()}
+                      className="text-gray-300 hover:text-[#1F3864] transition-colors"
+                      title="프린트 인쇄"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await deleteMutation.mutateAsync({ letterId: letter.id });
+                        refetch();
+                        toast.success("편지가 삭제됐습니다.");
+                      }}
+                      className="text-gray-300 hover:text-red-400 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -8,7 +8,8 @@ import { useInView } from "framer-motion";
 import { useRef } from "react";
 import {
   FileText, Video, Scan, Shield, Users,
-  Bell, Globe, Smartphone, RefreshCw, Scale
+  Bell, Globe, Smartphone, RefreshCw, Scale,
+  BookOpen, Mail
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -23,11 +24,13 @@ const serviceColors = [
   "bg-teal-50 text-teal-600",
   "bg-rose-50 text-rose-600",
   "bg-cyan-50 text-cyan-600",
+  "bg-indigo-50 text-indigo-600",
+  "bg-pink-50 text-pink-600",
   "bg-orange-50 text-orange-600",
   "bg-lime-50 text-lime-600",
 ];
 
-const serviceIcons = [FileText, Video, Scan, Shield, Users, Bell, Globe, Smartphone, RefreshCw];
+const serviceIcons = [FileText, Video, Scan, Shield, Users, Bell, Globe, BookOpen, Mail, Smartphone, RefreshCw];
 
 const cardBg = [
   "bg-blue-50",
@@ -37,6 +40,8 @@ const cardBg = [
   "bg-teal-50",
   "bg-rose-50",
   "bg-cyan-50",
+  "bg-indigo-50",
+  "bg-pink-50",
   "bg-orange-50",
   "bg-lime-50",
 ];
@@ -49,6 +54,8 @@ const tagColors = [
   "text-teal-700 bg-teal-100",
   "text-rose-700 bg-rose-100",
   "text-cyan-700 bg-cyan-100",
+  "text-indigo-700 bg-indigo-100",
+  "text-pink-700 bg-pink-100",
   "text-orange-700 bg-orange-100",
   "text-lime-700 bg-lime-100",
 ];
@@ -73,6 +80,22 @@ export default function ServicesSection() {
     { title: t.services.s8Title, description: t.services.s8Desc, tag: t.services.s8Tag },
     // s9: 11개 언어 + RTL 지원
     { title: t.services.s9Title, description: t.services.s9Desc, tag: t.services.s9Tag },
+    // Life Story: 나의 스토리 (AI 일기)
+    {
+      title: "나의 스토리 AI 일기",
+      description: "오늘 있었던 일을 AI에게 이야기하세요. 음성이 텍스트로 변환되고, AI가 오늘의 일기와 그림을 자동으로 만들어 드립니다. 인쇄·PDF 출력 가능.",
+      tag: "Life Story PRO",
+      isPremium: true,
+      href: "/life-story",
+    },
+    // Life Story: 소중한 편지 쓰기
+    {
+      title: "소중한 사람에게 편지 쓰기",
+      description: "아들의 결혼식 날, 손녀의 성인이 되는 날 — 원하는 순간에 자동으로 전달되는 편지를 지금 써두세요. 인쇄·PDF 출력 가능.",
+      tag: "Legacy Letter PRO",
+      isPremium: true,
+      href: "/life-story",
+    },
     // s2: 영상 유언장 (추가인증 박스 있음 → 맨 오른쪽)
     {
       title: t.services.s2Title,
@@ -164,23 +187,35 @@ export default function ServicesSection() {
         </div>
 
         {/* 서비스 카드 그리드 */}
-        {/* 일반 카드 7개 (추가인증 박스 없음) */}
+        {/* 일반 카드 9개 (AI일기·편지 포함) */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 mb-3">
-          {services.slice(0, 7).map((service, i) => {
+          {services.slice(0, 9).map((service: any, i) => {
             const Icon = serviceIcons[i];
+            const isPremium = service.isPremium;
+            const CardWrapper = isPremium ? 'a' : 'div';
             return (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.5, delay: 0.1 + i * 0.05 }}
-                className={`${cardBg[i]} rounded-2xl p-4 border border-white/60 hover:shadow-xl transition-all card-hover group cursor-default flex flex-col`}
+                className={`${cardBg[i]} rounded-2xl p-4 border ${
+                  isPremium ? 'border-[#C9A961]/60 ring-1 ring-[#C9A961]/30' : 'border-white/60'
+                } hover:shadow-xl transition-all card-hover group ${
+                  isPremium ? 'cursor-pointer' : 'cursor-default'
+                } flex flex-col relative overflow-hidden`}
+                onClick={() => isPremium && service.href && (window.location.href = service.href)}
               >
+                {isPremium && (
+                  <span className="absolute top-2 right-2 text-[9px] bg-[#C9A961] text-[#1F3864] font-bold px-1.5 py-0.5 rounded-full">PRO</span>
+                )}
                 <div className={`w-12 h-12 rounded-xl ${serviceColors[i]} flex items-center justify-center mb-3 shadow-sm`}>
                   <Icon className="w-6 h-6" />
                 </div>
                 <div className="mb-1.5">
-                  <span className={`text-xs font-bold ${tagColors[i]} px-2.5 py-0.5 rounded-full`}>
+                  <span className={`text-xs font-bold ${
+                    isPremium ? 'text-[#C9A961] bg-[#C9A961]/10' : tagColors[i]
+                  } px-2.5 py-0.5 rounded-full`}>
                     {service.tag}
                   </span>
                 </div>
@@ -193,8 +228,8 @@ export default function ServicesSection() {
 
         {/* 영상 유언장 + 자필 유언 스캔 — 가로 2열, 높이 통일 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {services.slice(7).map((service, j) => {
-            const i = j + 7;
+          {services.slice(9).map((service: any, j) => {
+            const i = j + 9;
             const Icon = serviceIcons[i];
             return (
               <motion.div
