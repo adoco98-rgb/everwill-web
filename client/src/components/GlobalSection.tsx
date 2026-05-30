@@ -9,8 +9,7 @@ import { useRef, useState } from "react";
 import { MapPin, ArrowRight, Globe, Languages, CreditCard, Scale, Users, ShieldCheck, Zap, Globe2, BookOpen, FileText } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Language } from "@/i18n";
-
-const GLOBAL_MAP_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/global-map-bg-azf9Vc6ZPzzfcAYoyT8HFS.webp";
+import WorldMapSVG from "./WorldMapSVG";
 
 // 국가별 세계지도 위 위치 (% 기준, 지도 이미지에 맞게 조정)
 type CountryPin = {
@@ -22,20 +21,34 @@ type CountryPin = {
   y: number;
 };
 
+// SVG viewBox 1000x500 기준 좌표 → % 변환
+// 서울(742,122) → x=74.2%, y=24.4%
+// 도쿄(762,112) → x=76.2%, y=22.4%
+// 베이징(700,122) → x=70%, y=24.4%
+// 뉴욕(175,200) → x=17.5%, y=40%
+// 런던(465,95) → x=46.5%, y=19%
+// 두바이(540,178) → x=54%, y=35.6%
+// 뭄바이(605,200) → x=60.5%, y=40%
+// 상파울루(215,350) → x=21.5%, y=70%
+// 시드니(785,340) → x=78.5%, y=68%
+// 모스크바(530,78) → x=53%, y=15.6%
+// 뉴질랜드(852,372) → x=85.2%, y=74.4%
+// 스페인(430,140) → x=43%, y=28%
+// 프랑스(460,100) → x=46%, y=20%
 const countryPins: CountryPin[] = [
-  { code: "ko",  flagImg: "https://flagcdn.com/w80/kr.png",  label: "한국",       x: 77.5, y: 36 },
-  { code: "ja",  flagImg: "https://flagcdn.com/w80/jp.png",  label: "日本",       x: 80.5, y: 33 },
-  { code: "zh",  flagImg: "https://flagcdn.com/w80/cn.png",  label: "中国",       x: 74,   y: 37 },
-  { code: "en",  flagImg: "https://flagcdn.com/w80/us.png",  label: "USA",        x: 18,   y: 36 },
-  { code: "de",  flagImg: "https://flagcdn.com/w80/de.png",  label: "Deutschland",x: 49,   y: 27 },
-  { code: "es",  flagImg: "https://flagcdn.com/w80/es.png",  label: "España",     x: 45,   y: 32 },
-  { code: "ar",  flagImg: "https://flagcdn.com/w80/sa.png",  label: "السعودية",   x: 59,   y: 42 },
-  { code: "fr",  flagImg: "https://flagcdn.com/w80/fr.png",  label: "France",     x: 47,   y: 29 },
-  { code: "ru",  flagImg: "https://flagcdn.com/w80/ru.png",  label: "Россия",     x: 63,   y: 22 },
-  { code: "hi",  flagImg: "https://flagcdn.com/w80/in.png",  label: "भारत",       x: 67,   y: 42 },
-  { code: "pt",  flagImg: "https://flagcdn.com/w80/br.png",  label: "Brasil",     x: 28,   y: 62 },
-  { code: "nz",  flagImg: "https://flagcdn.com/w80/nz.png",  label: "New Zealand",x: 87,   y: 73 },
-  { code: "au",  flagImg: "https://flagcdn.com/w80/au.png",  label: "Australia",  x: 82,   y: 67 },
+  { code: "ko",  flagImg: "https://flagcdn.com/w80/kr.png",  label: "한국",        x: 74.2, y: 24.4 },
+  { code: "ja",  flagImg: "https://flagcdn.com/w80/jp.png",  label: "日本",        x: 76.5, y: 21.5 },
+  { code: "zh",  flagImg: "https://flagcdn.com/w80/cn.png",  label: "中国",        x: 70.0, y: 24.4 },
+  { code: "en",  flagImg: "https://flagcdn.com/w80/us.png",  label: "USA",         x: 17.5, y: 40.0 },
+  { code: "de",  flagImg: "https://flagcdn.com/w80/de.png",  label: "Deutschland", x: 47.5, y: 19.5 },
+  { code: "es",  flagImg: "https://flagcdn.com/w80/es.png",  label: "España",      x: 43.5, y: 28.5 },
+  { code: "ar",  flagImg: "https://flagcdn.com/w80/sa.png",  label: "السعودية",    x: 54.0, y: 35.6 },
+  { code: "fr",  flagImg: "https://flagcdn.com/w80/fr.png",  label: "France",      x: 46.0, y: 20.5 },
+  { code: "ru",  flagImg: "https://flagcdn.com/w80/ru.png",  label: "Россия",      x: 53.0, y: 15.6 },
+  { code: "hi",  flagImg: "https://flagcdn.com/w80/in.png",  label: "भारत",        x: 60.5, y: 40.0 },
+  { code: "pt",  flagImg: "https://flagcdn.com/w80/br.png",  label: "Brasil",      x: 21.5, y: 70.0 },
+  { code: "nz",  flagImg: "https://flagcdn.com/w80/nz.png",  label: "New Zealand", x: 85.5, y: 74.4 },
+  { code: "au",  flagImg: "https://flagcdn.com/w80/au.png",  label: "Australia",   x: 78.5, y: 68.0 },
 ];
 
 // 11개 언어별 국가 정보 데이터
@@ -204,14 +217,10 @@ export default function GlobalSection() {
 
   return (
     <section id="global" className="py-20 lg:py-28 relative overflow-hidden" ref={ref}>
-      {/* 배경 이미지 */}
+      {/* 배경 - SVG 지도 */}
       <div className="absolute inset-0">
-        <img
-          src={GLOBAL_MAP_IMAGE}
-          alt="글로벌 네트워크 지도"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-[#1F3864]/70" />
+        <WorldMapSVG className="w-full h-full" />
+        <div className="absolute inset-0 bg-[#0d1f3c]/40" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -240,14 +249,9 @@ export default function GlobalSection() {
           className="relative w-full mb-10"
           style={{ paddingBottom: "50%" }}
         >
-          {/* 지도 배경 (반투명) */}
-          <div className="absolute inset-0 rounded-3xl overflow-hidden border border-white/10">
-            <img
-              src={GLOBAL_MAP_IMAGE}
-              alt="세계지도"
-              className="w-full h-full object-cover opacity-90"
-            />
-            <div className="absolute inset-0 bg-[#1F3864]/30" />
+          {/* 지도 - SVG */}
+          <div className="absolute inset-0 rounded-3xl overflow-hidden border border-white/15">
+            <WorldMapSVG className="w-full h-full" />
           </div>
 
           {/* 국기 핀들 */}
