@@ -107,45 +107,26 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 언어 자동 감지 (최초 1회, 수동 선택이 없는 경우만)
+  // IP 기반 자동 언어 감지 (최초 1회, 사용자가 직접 변경하지 않은 경우만)
   useEffect(() => {
-    // 0순위: URL 파라미터 ?lang=xx 가 있으면 무조건 우선
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlLang = urlParams.get("lang") as Language | null;
-    if (urlLang && countryToLanguage) {
-      // LanguageContext에서 이미 처리됨 — 여기서는 중복 방지
-      return;
-    }
-
-    // 수동 선택이 있으면 덮어쓰지 않음
     const saved = localStorage.getItem("everwill-lang-manual");
     if (saved) return;
 
-    // IP 기반 감지 (한국 IP면 ko, 그 외 국가는 해당 언어)
     fetch("https://ipapi.co/json/")
       .then((res) => res.json())
       .then((data) => {
         const countryCode = data.country_code as string;
         const detectedLang = countryToLanguage[countryCode];
-        // 감지된 언어를 적용하되, 수동 선택으로 기록하지 않음 (자동 감지)
-        if (detectedLang) {
-          setLanguage(detectedLang);
-          // 자동 감지 결과를 저장 (수동 선택 키가 아닌 별도 키로)
-          localStorage.setItem("everwill-lang-auto", detectedLang);
-        } else {
-          // 매핑 없는 국가 → 기본값 한국어
-          setLanguage("ko");
-        }
+        if (detectedLang) setLanguage(detectedLang);
       })
       .catch(() => {
-        // IP 감지 실패 시 브라우저 언어 → 없으면 한국어
         const browserLang = navigator.language.slice(0, 2);
         const langMap: Record<string, Language> = {
           ko: "ko", en: "en", ja: "ja", zh: "zh",
           de: "de", es: "es", ar: "ar", fr: "fr",
           ru: "ru", hi: "hi", pt: "pt",
         };
-        setLanguage(langMap[browserLang] ?? "ko");
+        if (langMap[browserLang]) setLanguage(langMap[browserLang]);
       });
   }, []);
 
@@ -427,7 +408,7 @@ export default function Navbar() {
                 </span>
               </motion.button>
             ))}
-            {/* 뉴질랜드·호주·캐나다: 국가 전용 페이지로 이동 */}
+            {/* 뉴질랜드·호주·캐나다: 영어(en) 콘텐츠 사용 */}
             {[
               { code: "nz", label: "New Zealand", flagImg: "https://flagcdn.com/w80/nz.png", countryCode: "NZ" },
               { code: "au", label: "Australia", flagImg: "https://flagcdn.com/w80/au.png", countryCode: "AU" },
@@ -435,7 +416,7 @@ export default function Navbar() {
             ].map((extra) => (
               <motion.button
                 key={extra.code}
-                onClick={() => { navigate(`/country/${extra.code}`); setMobileOpen(false); }}
+                onClick={() => handleSetLanguage("en")}
                 title={extra.label}
                 whileHover={{ scale: 1.1, y: -2 }}
                 whileTap={{ scale: 0.92 }}
@@ -456,6 +437,8 @@ export default function Navbar() {
               </motion.button>
             ))}
           </div>
+        </div>
+      </div>
 
       {/* 모바일 메뉴 */}
       <AnimatePresence>
