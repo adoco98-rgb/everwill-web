@@ -82,17 +82,17 @@ export default function ServicesSection() {
     { title: t.services.s9Title, description: t.services.s9Desc, tag: t.services.s9Tag },
     // Life Story: 나의 스토리 (AI 일기)
     {
-      title: "나의 스토리 AI 일기",
-      description: "오늘 있었던 일을 AI에게 이야기하세요. 음성이 텍스트로 변환되고, AI가 오늘의 일기와 그림을 자동으로 만들어 드립니다. 인쇄·PDF 출력 가능.",
-      tag: "Life Story PRO",
+      title: t.lifeStory.s10Title,
+      description: t.lifeStory.s10Desc,
+      tag: t.lifeStory.s10Tag,
       isPremium: true,
       href: "/life-story",
     },
     // Life Story: 소중한 편지 쓰기
     {
-      title: "소중한 사람에게 편지 쓰기",
-      description: "아들의 결혼식 날, 손녀의 성인이 되는 날 — 원하는 순간에 자동으로 전달되는 편지를 지금 써두세요. 인쇄·PDF 출력 가능.",
-      tag: "Legacy Letter PRO",
+      title: t.lifeStory.s11Title,
+      description: t.lifeStory.s11Desc,
+      tag: t.lifeStory.s11Tag,
       isPremium: true,
       href: "/life-story",
     },
