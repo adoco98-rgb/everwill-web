@@ -211,7 +211,7 @@ export default function GlobalSection() {
           alt="글로벌 네트워크 지도"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-[#1F3864]/88" />
+        <div className="absolute inset-0 bg-[#1F3864]/70" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -245,9 +245,9 @@ export default function GlobalSection() {
             <img
               src={GLOBAL_MAP_IMAGE}
               alt="세계지도"
-              className="w-full h-full object-cover opacity-60"
+              className="w-full h-full object-cover opacity-90"
             />
-            <div className="absolute inset-0 bg-[#1F3864]/50" />
+            <div className="absolute inset-0 bg-[#1F3864]/30" />
           </div>
 
           {/* 국기 핀들 */}
