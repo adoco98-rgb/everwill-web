@@ -47,6 +47,7 @@ import WillRevisionPage from "./pages/dashboard/WillRevisionPage";
 import HeirAcceptPage from "./pages/HeirAcceptPage";
 import BadgePage from "./pages/dashboard/BadgePage";
 import CertificationPage from "./pages/dashboard/CertificationPage";
+import CountryPage from "./pages/CountryPage";
 import { ChatbotWidget } from "./components/ChatbotWidget";
 
 function Router() {
@@ -100,7 +101,7 @@ function Router() {
       <Route path={"/assets"} component={AssetsPage} />
       {/* 투자유치 사업설명회 - 비공개 URL */}
       <Route path={"/investor"} component={InvestorPage} />
-      {/* Life Story - AI 일기·편지·인물앨범 (₩99,000 이상 전용) */}
+      {/* Life Story - AI 일기·편지·인물앨범 (₩79,000 이상 전용) */}
       <Route path={"/life-story"} component={LifeStoryPage} />
       {/* 유서 쓰기 */}
       <Route path={"/letter"} component={LetterDashboard} />
@@ -111,6 +112,8 @@ function Router() {
       <Route path={"/heir/accept/:token"} component={HeirAcceptPage} />
       {/* 만족도 평가 페이지 (이메일 링크 클릭 시) */}
       <Route path={"/feedback"} component={Feedback} />
+      {/* 국가별 전용 랜딩 페이지 (/country/kr, /country/us, /country/jp 등) */}
+      <Route path={"/country/:code"} component={CountryPage} />
       {/* 관리자 대시보드 */}
       <Route path={"/799805"} component={AdminPage} />
       {/* 내부 기밀 사업기획서 - 비공개 URL */}
