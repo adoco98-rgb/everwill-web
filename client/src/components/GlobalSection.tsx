@@ -9,7 +9,8 @@ import { useRef, useState } from "react";
 import { MapPin, ArrowRight, Globe, Languages, CreditCard, Scale, Users, ShieldCheck, Zap, Globe2, BookOpen, FileText } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Language } from "@/i18n";
-import WorldMapSVG from "./WorldMapSVG";
+// WorldMapSVG 대신 실제 세계지도 이미지 사용
+const WORLD_MAP_URL = "/manus-storage/worldmap_navy_798031eb.jpg";
 
 // 국가별 세계지도 위 위치 (% 기준, 지도 이미지에 맞게 조정)
 type CountryPin = {
@@ -21,34 +22,35 @@ type CountryPin = {
   y: number;
 };
 
-// SVG viewBox 1000x500 기준 좌표 → % 변환
-// 서울(742,122) → x=74.2%, y=24.4%
-// 도쿄(762,112) → x=76.2%, y=22.4%
-// 베이징(700,122) → x=70%, y=24.4%
-// 뉴욕(175,200) → x=17.5%, y=40%
-// 런던(465,95) → x=46.5%, y=19%
-// 두바이(540,178) → x=54%, y=35.6%
-// 뭄바이(605,200) → x=60.5%, y=40%
-// 상파울루(215,350) → x=21.5%, y=70%
-// 시드니(785,340) → x=78.5%, y=68%
-// 모스크바(530,78) → x=53%, y=15.6%
-// 뉴질랜드(852,372) → x=85.2%, y=74.4%
-// 스페인(430,140) → x=43%, y=28%
-// 프랑스(460,100) → x=46%, y=20%
+// 실제 세계지도(2400x1200) 기준 좌표
+// 멘공도 투영법 지도 기준
 const countryPins: CountryPin[] = [
-  { code: "ko",  flagImg: "https://flagcdn.com/w80/kr.png",  label: "한국",        x: 74.2, y: 24.4 },
-  { code: "ja",  flagImg: "https://flagcdn.com/w80/jp.png",  label: "日本",        x: 76.5, y: 21.5 },
-  { code: "zh",  flagImg: "https://flagcdn.com/w80/cn.png",  label: "中国",        x: 70.0, y: 24.4 },
-  { code: "en",  flagImg: "https://flagcdn.com/w80/us.png",  label: "USA",         x: 17.5, y: 40.0 },
-  { code: "de",  flagImg: "https://flagcdn.com/w80/de.png",  label: "Deutschland", x: 47.5, y: 19.5 },
-  { code: "es",  flagImg: "https://flagcdn.com/w80/es.png",  label: "España",      x: 43.5, y: 28.5 },
-  { code: "ar",  flagImg: "https://flagcdn.com/w80/sa.png",  label: "السعودية",    x: 54.0, y: 35.6 },
-  { code: "fr",  flagImg: "https://flagcdn.com/w80/fr.png",  label: "France",      x: 46.0, y: 20.5 },
-  { code: "ru",  flagImg: "https://flagcdn.com/w80/ru.png",  label: "Россия",      x: 53.0, y: 15.6 },
-  { code: "hi",  flagImg: "https://flagcdn.com/w80/in.png",  label: "भारत",        x: 60.5, y: 40.0 },
-  { code: "pt",  flagImg: "https://flagcdn.com/w80/br.png",  label: "Brasil",      x: 21.5, y: 70.0 },
-  { code: "nz",  flagImg: "https://flagcdn.com/w80/nz.png",  label: "New Zealand", x: 85.5, y: 74.4 },
-  { code: "au",  flagImg: "https://flagcdn.com/w80/au.png",  label: "Australia",   x: 78.5, y: 68.0 },
+  // 한국: 서울 위치 (126.9°E, 37.5°N)
+  { code: "ko",  flagImg: "https://flagcdn.com/w80/kr.png",  label: "한국",        x: 77.5, y: 32.5 },
+  // 일본: 도쿄 (139.7°E, 35.7°N)
+  { code: "ja",  flagImg: "https://flagcdn.com/w80/jp.png",  label: "日本",        x: 80.0, y: 31.0 },
+  // 중국: 베이징 (116.4°E, 39.9°N)
+  { code: "zh",  flagImg: "https://flagcdn.com/w80/cn.png",  label: "中国",        x: 74.0, y: 30.5 },
+  // 미국: 뉴욕 (74°W, 40.7°N)
+  { code: "en",  flagImg: "https://flagcdn.com/w80/us.png",  label: "USA",         x: 22.5, y: 31.5 },
+  // 독일: 베를린 (13.4°E, 52.5°N)
+  { code: "de",  flagImg: "https://flagcdn.com/w80/de.png",  label: "Deutschland", x: 52.0, y: 23.5 },
+  // 스페인: 마드리드 (3.7°W, 40.4°N)
+  { code: "es",  flagImg: "https://flagcdn.com/w80/es.png",  label: "España",      x: 48.0, y: 31.5 },
+  // 사우디: 리야드 (46.7°E, 24.7°N)
+  { code: "ar",  flagImg: "https://flagcdn.com/w80/sa.png",  label: "السعودية",    x: 60.0, y: 39.5 },
+  // 프랑스: 파리 (2.3°E, 48.9°N)
+  { code: "fr",  flagImg: "https://flagcdn.com/w80/fr.png",  label: "France",      x: 50.5, y: 24.5 },
+  // 러시아: 모스크바 (37.6°E, 55.8°N)
+  { code: "ru",  flagImg: "https://flagcdn.com/w80/ru.png",  label: "Россия",      x: 60.5, y: 20.5 },
+  // 인도: 듸리 (77.2°E, 28.6°N)
+  { code: "hi",  flagImg: "https://flagcdn.com/w80/in.png",  label: "भारत",        x: 68.5, y: 38.5 },
+  // 브라질: 상파울루 (46.6°W, 23.5°S)
+  { code: "pt",  flagImg: "https://flagcdn.com/w80/br.png",  label: "Brasil",      x: 31.5, y: 62.0 },
+  // 뉴질랜드: 오클랜드 (174.8°E, 36.9°S)
+  { code: "nz",  flagImg: "https://flagcdn.com/w80/nz.png",  label: "New Zealand", x: 95.5, y: 65.5 },
+  // 호주: 시드니 (151.2°E, 33.9°S)
+  { code: "au",  flagImg: "https://flagcdn.com/w80/au.png",  label: "Australia",   x: 85.5, y: 63.0 },
 ];
 
 // 11개 언어별 국가 정보 데이터
@@ -217,10 +219,10 @@ export default function GlobalSection() {
 
   return (
     <section id="global" className="py-20 lg:py-28 relative overflow-hidden" ref={ref}>
-      {/* 배경 - SVG 지도 */}
+      {/* 배경 - 실제 세계지도 */}
       <div className="absolute inset-0">
-        <WorldMapSVG className="w-full h-full" />
-        <div className="absolute inset-0 bg-[#0d1f3c]/40" />
+        <img src={WORLD_MAP_URL} alt="" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-[#0d1f3c]/20" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -249,9 +251,10 @@ export default function GlobalSection() {
           className="relative w-full mb-10"
           style={{ paddingBottom: "50%" }}
         >
-          {/* 지도 - SVG */}
-          <div className="absolute inset-0 rounded-3xl overflow-hidden border border-white/15">
-            <WorldMapSVG className="w-full h-full" />
+          {/* 지도 - 실제 세계지도 이미지 */}
+          <div className="absolute inset-0 rounded-3xl overflow-hidden border border-white/20">
+            <img src={WORLD_MAP_URL} alt="세계지도" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-[#0d1f3c]/10" />
           </div>
 
           {/* 국기 핀들 */}
