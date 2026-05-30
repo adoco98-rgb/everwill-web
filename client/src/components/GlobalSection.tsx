@@ -248,11 +248,11 @@ export default function GlobalSection() {
           animate={isInView ? { opacity: 1, scale: 1 } : {}}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative w-full mb-10"
-          style={{ paddingBottom: "50%" }}
+          style={{ aspectRatio: '2/1', paddingBottom: undefined }}
         >
           {/* 지도 - 실제 세계지도 이미지 */}
           <div className="absolute inset-0 rounded-3xl overflow-hidden border border-white/20">
-            <img src={WORLD_MAP_URL} alt="세계지도" className="absolute inset-0 w-full h-full" style={{ objectFit: 'fill', background: '#0d1f3c' }} />
+            <img src={WORLD_MAP_URL} alt="세계지도" className="w-full h-full" style={{ display: 'block', objectFit: 'fill' }} />
             <div className="absolute inset-0" style={{ background: 'transparent' }} />
           </div>
 
