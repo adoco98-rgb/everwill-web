@@ -11,10 +11,10 @@ import { storagePut } from "../storage";
 /**
  * Life Story 라우터
  * AI 일기, 소중한 사람에게 남기는 편지, 인물 앨범 기능
- * ₩99,000 이상 구매자 전용 (Badge Necklace 이상)
+ * ₩79,000 이상 구매자 전용 (Badge Gold 이상)
  */
 
-/** ₩99,000 이상 구매 여부 확인 헬퍼 */
+/** ₩79,000 이상 구매 여부 확인 헬퍼 */
 async function checkLifeStoryAccess(userId: number): Promise<boolean> {
   const db = await getDb();
   if (!db) return false;
@@ -26,12 +26,13 @@ async function checkLifeStoryAccess(userId: number): Promise<boolean> {
 
   for (const p of paymentRows) {
     const items = p.items ?? "";
-    // Badge Necklace (₩99,000), Badge Premium (₩299,000), Custom 이상
+    // Badge Gold (₩79,000) 이상: Gold, Necklace, Premium, Custom
     if (
+      items.includes("badge_gold") ||
       items.includes("badge_necklace") ||
       items.includes("badge_premium") ||
       items.includes("badge_custom") ||
-      (p.amountTotal && p.amountTotal >= 99000)
+      (p.amountTotal && p.amountTotal >= 79000)
     ) {
       return true;
     }

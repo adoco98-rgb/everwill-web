@@ -23,8 +23,8 @@ import Navbar from "@/components/Navbar";
 /**
  * Life Story 페이지
  * - 비로그인: 로그인 유도
- * - 로그인 + ₩49,000/₩79,000 구매자: 잠금 화면 + 업그레이드 유도
- * - 로그인 + ₩99,000 이상 구매자: 전체 기능 이용
+ * - 로그인 + ₩49,000 구매자: 잠금 화면 + 업그레이드 유도
+ * - 로그인 + ₩79,000 이상 구매자: 전체 기능 이용
  */
 
 // ─── 잠금 화면 ───────────────────────────────────────────────
@@ -66,7 +66,7 @@ function LockedScreen({ isLoggedIn }: { isLoggedIn: boolean }) {
         ) : (
           <>
             <p className="text-white/60 mb-4 leading-relaxed">
-              이 기능은 <span className="text-[#C9A961] font-semibold">Badge Necklace (₩99,000) 이상</span> 구매 회원 전용입니다.
+              이 기능은 <span className="text-[#C9A961] font-semibold">Badge Gold (₩79,000) 이상</span> 구매 회원 전용입니다.
             </p>
             <p className="text-white/40 text-sm mb-8">
               현재 플랜으로는 이용할 수 없습니다. 업그레이드 후 이용해주세요.
@@ -89,10 +89,10 @@ function LockedScreen({ isLoggedIn }: { isLoggedIn: boolean }) {
 
             <Link href="/payment">
               <Button className="bg-[#C9A961] text-[#1F3864] hover:bg-[#d4b56e] font-bold px-10 py-3 rounded-full text-lg">
-                Badge Necklace 구매하기 →
+                Badge Gold 구매하기 →
               </Button>
             </Link>
-            <p className="text-white/30 text-xs mt-3">₩99,000 · 1회 결제 · 평생 이용</p>
+            <p className="text-white/30 text-xs mt-3">₩79,000 · 1회 결제 · 3년 이용</p>
           </>
         )}
 
