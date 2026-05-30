@@ -408,7 +408,7 @@ export default function Navbar() {
                 </span>
               </motion.button>
             ))}
-            {/* 뉴질랜드·호주·캐나다: 국가 전용 페이지로 이동 */
+            {/* 뉴질랜드·호주·캐나다: 영어(en) 콘텐츠 사용 */}
             {[
               { code: "nz", label: "New Zealand", flagImg: "https://flagcdn.com/w80/nz.png", countryCode: "NZ" },
               { code: "au", label: "Australia", flagImg: "https://flagcdn.com/w80/au.png", countryCode: "AU" },
@@ -416,7 +416,7 @@ export default function Navbar() {
             ].map((extra) => (
               <motion.button
                 key={extra.code}
-                onClick={() => { navigate(`/country/${extra.code}`); setMobileOpen(false); }}
+                onClick={() => handleSetLanguage("en")}
                 title={extra.label}
                 whileHover={{ scale: 1.1, y: -2 }}
                 whileTap={{ scale: 0.92 }}
@@ -437,6 +437,8 @@ export default function Navbar() {
               </motion.button>
             ))}
           </div>
+        </div>
+      </div>
 
       {/* 모바일 메뉴 */}
       <AnimatePresence>

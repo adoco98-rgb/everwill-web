@@ -389,7 +389,7 @@ export default function GlobalSection() {
                 </ul>
 
                 {/* 결제 + 법률 */}
-                <div className="grid grid-cols-2 gap-4 pt-5 border-t border-white/10 mb-5">
+                <div className="grid grid-cols-2 gap-4 pt-5 border-t border-white/10">
                   <div>
                     <div className="text-white/40 text-xs mb-1">{t.global.payment}</div>
                     <div className="text-white/80 text-sm font-semibold">{selectedData.payment}</div>
@@ -399,15 +399,6 @@ export default function GlobalSection() {
                     <div className="text-white/80 text-sm font-semibold">{selectedData.legalNote}</div>
                   </div>
                 </div>
-                {/* 국가 전용 페이지 링크 버튼 */}
-                <a
-                  href={`/country/${selectedData.countryCode.toLowerCase() === "sa" ? "sa" : selectedData.countryCode.toLowerCase() === "in" ? "in" : selectedData.countryCode.toLowerCase()}`}
-                  className="flex items-center justify-center gap-2 w-full bg-[#C9A961] text-[#1F3864] font-bold py-3 rounded-2xl hover:bg-[#d4b56e] transition-colors text-sm"
-                >
-                  <Globe className="w-4 h-4" />
-                  {language === "ko" ? `${selectedName} 전용 페이지 보기` : `View ${selectedName} Page`}
-                  <ArrowRight className="w-4 h-4" />
-                </a>
               </div>
             </motion.div>
           )}
