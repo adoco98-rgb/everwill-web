@@ -168,7 +168,7 @@ export const es = {
   },
   global: {
     title: "Hoja de Ruta de Lanzamiento Global",
-    subtitle: "Comenzando en Corea, expandiéndonos por todo el mundo.",
+    subtitle: "Un servicio para todas las personas del mundo, juntos como uno.\nNo existe nada igual en ninguna parte del planeta.",
     phase1: "Fase 1",
     phase2: "Fase 2",
     phase3: "Fase 3",

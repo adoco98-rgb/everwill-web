@@ -168,7 +168,7 @@ export const fr = {
   },
   global: {
     title: "OS de testament mondial",
-    subtitle: "Commençant en Corée, s'étendant dans le monde entier. 11 langues, expansion vers 4 pays.",
+    subtitle: "Un seul service pour tous les habitants du monde, ensemble comme un.\nRien de tel n'existe nulle part sur Terre.",
     phase1: "Phase 1",
     phase2: "Phase 2",
     phase3: "Phase 3",

@@ -168,7 +168,7 @@ export const zh = {
   },
   global: {
     title: "全球发布路线图",
-    subtitle: "从韩国出发，走向全世界。",
+    subtitle: "全世界的人们，共同使用同一个服务。\n这样的服务在世界任何地方都不存在。",
     phase1: "第一阶段",
     phase2: "第二阶段",
     phase3: "第三阶段",

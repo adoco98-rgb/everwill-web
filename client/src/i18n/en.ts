@@ -171,7 +171,7 @@ export const en = {
   },
   global: {
     title: "Global Will OS",
-    subtitle: "Starting in Korea, expanding worldwide. 11 languages, 4 countries.\nNo service like this exists anywhere in the world.",
+    subtitle: "One service for everyone in the world, together as one.\nNothing like this exists anywhere on Earth.",
     phase1: "Phase 1",
     phase2: "Phase 2",
     phase3: "Phase 3",

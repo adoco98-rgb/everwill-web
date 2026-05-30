@@ -168,7 +168,7 @@ export const de = {
   },
   global: {
     title: "Globale Launch-Roadmap",
-    subtitle: "Start in Korea, weltweite Expansion.",
+    subtitle: "Ein Service für alle Menschen der Welt, gemeinsam als Eins.\nSo einen Service gibt es nirgendwo auf der Erde.",
     phase1: "Phase 1",
     phase2: "Phase 2",
     phase3: "Phase 3",

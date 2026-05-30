@@ -181,7 +181,7 @@ export const ko = {
   // Global Section
   global: {
     title: "글로벌 유언 OS",
-    subtitle: "한국에서 시작해 전 세계로. 11개 언어, 4개국 확장 예정.\n이런 서비스는 현재 세계에 없습니다.",
+    subtitle: "전 세계인이 함께 하나로 사용하는 유일한 서비스.\n세계 어디에도 없습니다.",
     phase1: "1차",
     phase2: "2차",
     phase3: "3차",
