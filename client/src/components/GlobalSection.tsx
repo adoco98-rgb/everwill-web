@@ -452,7 +452,7 @@ export default function GlobalSection() {
                 initial={{ opacity: 0, scale: 0.85, y: 10 }}
                 animate={isInView ? { opacity: 1, scale: 1, y: 0 } : {}}
                 transition={{ duration: 0.4, delay: 0.5 + i * 0.05 }}
-                className={`flex items-center gap-3 border rounded-2xl px-4 py-3 transition-all group ${
+                className={`flex items-center gap-2 border rounded-xl px-3 py-2 transition-all group shrink-0 ${
                   (selectedPin === pin.code || (!selectedPin && language === pin.code))
                     ? "bg-[#C9A961]/20 border-[#C9A961]/60"
                     : "bg-white/10 border-white/20 hover:bg-white/15 hover:border-[#C9A961]/40"
