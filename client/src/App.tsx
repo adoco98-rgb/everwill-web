@@ -47,7 +47,10 @@ import WillRevisionPage from "./pages/dashboard/WillRevisionPage";
 import BadgePage from "./pages/dashboard/BadgePage";
 import CertificationPage from "./pages/dashboard/CertificationPage";
 import { ChatbotWidget } from "./components/ChatbotWidget";
-import CountryPage from "./pages/CountryPage";onsider if you need authentication for certain routes
+import CountryPage from "./pages/CountryPage";
+
+function Router() {
+  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
