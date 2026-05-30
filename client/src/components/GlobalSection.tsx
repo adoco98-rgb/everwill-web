@@ -443,8 +443,8 @@ export default function GlobalSection() {
             <div className="h-px flex-1 max-w-16 bg-white/20" />
           </div>
 
-          {/* 11개 언어 카드 그리드 */}
-          <div className="flex flex-wrap justify-center gap-3">
+          {/* 11개 언어 카드 그리드 - 모바일 가로 스크롤 */}
+          <div className="flex flex-nowrap overflow-x-auto gap-3 pb-2 scrollbar-none">
             {countryPins.filter(p => p.code !== "nz" && p.code !== "au").map((pin, i) => (
               <motion.button
                 key={pin.code}

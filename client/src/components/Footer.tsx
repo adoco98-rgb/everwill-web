@@ -38,9 +38,9 @@ export default function Footer() {
       {/* Footer */}
       <footer className="bg-[#0f1e36] text-white/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
-            {/* 브랜드 */}
-            <div className="col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
+            {/* 브랜드 - 모바일에서 전체 너비 */}
+            <div className="col-span-1 sm:col-span-2">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#C9A961] to-[#a88840] flex items-center justify-center">
                   <span className="text-white font-bold text-sm font-serif">S</span>

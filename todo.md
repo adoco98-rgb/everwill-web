@@ -756,7 +756,7 @@
 - [ ] SEO: index.html 한국어 메타태그 (title, description, keywords, og:*)
 - [ ] SEO: sitemap.xml 생성
 - [ ] SEO: robots.txt 설정
-- [ ] 모바일 반응형 점검 (홈, 결제, 유언장 작성, 대시보드)
+- [x] 모바일 반응형 점검 (홈, 결제, 유언장 작성, 대시보드) - 국기 바 가로 스크롤 + GlobalSection 언어 버튼 가로 스크롤 + Footer 모바일 레이아웃 개선
 
 ## EverWill AI 챗봇 (2026-05-27)
 - [x] 서버: chatRouter.ts - EverWill 전문가 페르소나 시스템 프롬프트 작성

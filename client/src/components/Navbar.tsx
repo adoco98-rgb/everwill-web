@@ -109,44 +109,18 @@ export default function Navbar() {
 
   // 언어 자동 감지 (최초 1회, 수동 선택이 없는 경우만)
   useEffect(() => {
-    // 0순위: URL 파라미터 ?lang=xx 가 있으면 무조건 우선
+    // URL 파라미터 ?lang=xx 가 있으면 LanguageContext에서 이미 처리
     const urlParams = new URLSearchParams(window.location.search);
     const urlLang = urlParams.get("lang") as Language | null;
-    if (urlLang && countryToLanguage) {
-      // LanguageContext에서 이미 처리됨 — 여기서는 중복 방지
-      return;
-    }
+    if (urlLang) return;
 
     // 수동 선택이 있으면 덮어쓰지 않음
     const saved = localStorage.getItem("everwill-lang-manual");
     if (saved) return;
 
-    // IP 기반 감지 (한국 IP면 ko, 그 외 국가는 해당 언어)
-    fetch("https://ipapi.co/json/")
-      .then((res) => res.json())
-      .then((data) => {
-        const countryCode = data.country_code as string;
-        const detectedLang = countryToLanguage[countryCode];
-        // 감지된 언어를 적용하되, 수동 선택으로 기록하지 않음 (자동 감지)
-        if (detectedLang) {
-          setLanguage(detectedLang);
-          // 자동 감지 결과를 저장 (수동 선택 키가 아닌 별도 키로)
-          localStorage.setItem("everwill-lang-auto", detectedLang);
-        } else {
-          // 매핑 없는 국가 → 기본값 한국어
-          setLanguage("ko");
-        }
-      })
-      .catch(() => {
-        // IP 감지 실패 시 브라우저 언어 → 없으면 한국어
-        const browserLang = navigator.language.slice(0, 2);
-        const langMap: Record<string, Language> = {
-          ko: "ko", en: "en", ja: "ja", zh: "zh",
-          de: "de", es: "es", ar: "ar", fr: "fr",
-          ru: "ru", hi: "hi", pt: "pt",
-        };
-        setLanguage(langMap[browserLang] ?? "ko");
-      });
+    // LanguageContext의 detectDefaultLanguage()가 브라우저 언어 기반으로 설정함
+    // Navbar에서는 별도 감지 없이 LanguageContext 값을 그대로 사용
+    // (IP 감지 제거 — 새드박스/서버 IP가 SA로 오감지되는 문제 방지)
   }, []);
 
   // 언어 수동 변경 핸들러
@@ -375,8 +349,8 @@ export default function Navbar() {
 
       {/* 국기 언어 선택 바 - 네비게이션 바 하단에 항상 표시 */}
       <div className="border-t border-[#C9A961]/20 bg-[#162d52]">
-        <div className="w-full">
-          <div className="flex flex-wrap items-center justify-center gap-2 py-2.5 px-4">
+        <div className="w-full overflow-x-auto scrollbar-none" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="flex items-center justify-start gap-1 py-2.5 px-4 min-w-max mx-auto" style={{ justifyContent: 'safe center' }}>
             {/* 현재 선택 언어를 맹 앞에 표시하고 나머지 언어 순서대로 정렬 */}
             {[
               ...languages.filter(l => l.code === language),

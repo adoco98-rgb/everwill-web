@@ -223,6 +223,15 @@
 ::-webkit-scrollbar {
   width: 6px;
 }
+
+/* 수평 스크롤 컨테이너 스크롤바 숨기기 */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
 ::-webkit-scrollbar-track {
   background: oklch(0.96 0.005 80);
 }

@@ -36,9 +36,16 @@ function mapBrowserLang(lang: string): Language | null {
   return null;
 }
 
-/** 브라우저 언어 + 도메인을 기반으로 기본 언어 감지 */
+/** 기본 언어 감지 (URL 파라미터 > 저장값 > 한국어 고정) */
 function detectDefaultLanguage(): Language {
-  // 1순위: 도메인 기반 자동 감지 (저장값 무시)
+  // 1순위: URL 파라미터 ?lang=xx
+  if (typeof window !== "undefined") {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLang = urlParams.get("lang") as Language | null;
+    if (urlLang && translations[urlLang]) return urlLang;
+  }
+
+  // 2순위: 도메인 기반 (예: everwillusa.com → en)
   const hostname = typeof window !== "undefined" ? window.location.hostname : "";
   const domainLang = DOMAIN_LANGUAGE_MAP[hostname];
   if (domainLang) {
@@ -46,21 +53,12 @@ function detectDefaultLanguage(): Language {
     return domainLang;
   }
 
-  // 2순위: 저장된 언어 (사용자가 직접 선택한 경우)
+  // 3순위: 사용자가 직접 선택한 저장값
   const saved = localStorage.getItem(STORAGE_KEY) as Language | null;
   if (saved && translations[saved]) return saved;
 
-  // 3순위: 브라우저 언어 목록 순서대로 매핑 (navigator.languages 우선)
-  const langs = navigator.languages?.length
-    ? navigator.languages
-    : [navigator.language];
-  for (const lang of langs) {
-    const mapped = mapBrowserLang(lang);
-    if (mapped) return mapped;
-  }
-
-  // 기본값: 영어 (글로벌 서비스)
-  return "en";
+  // 기본값: 한국어 고정 (IP/브라우저 언어 감지 제거 — 새드박스 IP가 SA로 오감지되는 문제 방지)
+  return "ko";
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
