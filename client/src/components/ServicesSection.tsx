@@ -1,6 +1,6 @@
 /**
  * EverWill 서비스 섹션
- * 10가지 핵심 서비스/기능 소개
+ * 11가지 핵심 서비스/기능 소개 (Life Story PRO 포함)
  * 카드 그리드 레이아웃 + 호버 애니메이션
  */
 import { motion } from "framer-motion";
