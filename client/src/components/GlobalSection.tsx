@@ -22,35 +22,34 @@ type CountryPin = {
   y: number;
 };
 
-// 실제 세계지도(2400x1200) 기준 좌표
-// 멘공도 투영법 지도 기준
+// 메르카토르 투영법으로 정확히 계산된 좌표 (경위도 → 픽셀%)
 const countryPins: CountryPin[] = [
-  // 한국: 서울 위치 (126.9°E, 37.5°N)
-  { code: "ko",  flagImg: "https://flagcdn.com/w80/kr.png",  label: "한국",        x: 77.5, y: 32.5 },
-  // 일본: 도쿄 (139.7°E, 35.7°N)
-  { code: "ja",  flagImg: "https://flagcdn.com/w80/jp.png",  label: "日本",        x: 80.0, y: 31.0 },
-  // 중국: 베이징 (116.4°E, 39.9°N)
-  { code: "zh",  flagImg: "https://flagcdn.com/w80/cn.png",  label: "中国",        x: 74.0, y: 30.5 },
-  // 미국: 뉴욕 (74°W, 40.7°N)
-  { code: "en",  flagImg: "https://flagcdn.com/w80/us.png",  label: "USA",         x: 22.5, y: 31.5 },
-  // 독일: 베를린 (13.4°E, 52.5°N)
-  { code: "de",  flagImg: "https://flagcdn.com/w80/de.png",  label: "Deutschland", x: 52.0, y: 23.5 },
-  // 스페인: 마드리드 (3.7°W, 40.4°N)
-  { code: "es",  flagImg: "https://flagcdn.com/w80/es.png",  label: "España",      x: 48.0, y: 31.5 },
-  // 사우디: 리야드 (46.7°E, 24.7°N)
-  { code: "ar",  flagImg: "https://flagcdn.com/w80/sa.png",  label: "السعودية",    x: 60.0, y: 39.5 },
-  // 프랑스: 파리 (2.3°E, 48.9°N)
-  { code: "fr",  flagImg: "https://flagcdn.com/w80/fr.png",  label: "France",      x: 50.5, y: 24.5 },
-  // 러시아: 모스크바 (37.6°E, 55.8°N)
-  { code: "ru",  flagImg: "https://flagcdn.com/w80/ru.png",  label: "Россия",      x: 60.5, y: 20.5 },
-  // 인도: 듸리 (77.2°E, 28.6°N)
-  { code: "hi",  flagImg: "https://flagcdn.com/w80/in.png",  label: "भारत",        x: 68.5, y: 38.5 },
-  // 브라질: 상파울루 (46.6°W, 23.5°S)
-  { code: "pt",  flagImg: "https://flagcdn.com/w80/br.png",  label: "Brasil",      x: 31.5, y: 62.0 },
-  // 뉴질랜드: 오클랜드 (174.8°E, 36.9°S)
-  { code: "nz",  flagImg: "https://flagcdn.com/w80/nz.png",  label: "New Zealand", x: 95.5, y: 65.5 },
-  // 호주: 시드니 (151.2°E, 33.9°S)
-  { code: "au",  flagImg: "https://flagcdn.com/w80/au.png",  label: "Australia",   x: 85.5, y: 63.0 },
+  // 한국: 서울 (126.9°E, 37.5°N) → 85.2%, 38.7%
+  { code: "ko",  flagImg: "https://flagcdn.com/w80/kr.png",  label: "한국",        x: 85.2, y: 38.7 },
+  // 일본: 도쿄 (139.7°E, 35.7°N) → 88.8%, 39.4%
+  { code: "ja",  flagImg: "https://flagcdn.com/w80/jp.png",  label: "日本",        x: 88.8, y: 39.4 },
+  // 중국: 베이징 (116.4°E, 39.9°N) → 82.3%, 37.9%
+  { code: "zh",  flagImg: "https://flagcdn.com/w80/cn.png",  label: "中国",        x: 82.3, y: 37.9 },
+  // 미국: 뉴욕 (74°W, 40.7°N) → 29.4%, 37.6%
+  { code: "en",  flagImg: "https://flagcdn.com/w80/us.png",  label: "USA",         x: 29.4, y: 37.6 },
+  // 독일: 베를린 (13.4°E, 52.5°N) → 53.7%, 32.8%
+  { code: "de",  flagImg: "https://flagcdn.com/w80/de.png",  label: "Deutschland", x: 53.7, y: 32.8 },
+  // 스페인: 마드리드 (3.7°W, 40.4°N) → 49.0%, 37.7%
+  { code: "es",  flagImg: "https://flagcdn.com/w80/es.png",  label: "España",      x: 49.0, y: 37.7 },
+  // 사우디: 리야드 (46.7°E, 24.7°N) → 63.0%, 42.9%
+  { code: "ar",  flagImg: "https://flagcdn.com/w80/sa.png",  label: "السعودية",    x: 63.0, y: 42.9 },
+  // 프랑스: 파리 (2.3°E, 48.9°N) → 50.6%, 34.4%
+  { code: "fr",  flagImg: "https://flagcdn.com/w80/fr.png",  label: "France",      x: 50.6, y: 34.4 },
+  // 러시아: 모스크바 (37.6°E, 55.8°N) → 60.4%, 31.2%
+  { code: "ru",  flagImg: "https://flagcdn.com/w80/ru.png",  label: "Россия",      x: 60.4, y: 31.2 },
+  // 인도: 뉴델리 (77.2°E, 28.6°N) → 71.4%, 41.7%
+  { code: "hi",  flagImg: "https://flagcdn.com/w80/in.png",  label: "भारत",        x: 71.4, y: 41.7 },
+  // 브라질: 상파울루 (46.6°W, 23.5°S) → 37.1%, 56.7%
+  { code: "pt",  flagImg: "https://flagcdn.com/w80/br.png",  label: "Brasil",      x: 37.1, y: 56.7 },
+  // 뉴질랜드: 오클랜드 (174.8°E, 36.9°S) → 98.6%, 61.0% (지도 끝이라 약간 조정)
+  { code: "nz",  flagImg: "https://flagcdn.com/w80/nz.png",  label: "New Zealand", x: 97.0, y: 61.0 },
+  // 호주: 시드니 (151.2°E, 33.9°S) → 92.0%, 60.0%
+  { code: "au",  flagImg: "https://flagcdn.com/w80/au.png",  label: "Australia",   x: 92.0, y: 60.0 },
 ];
 
 // 11개 언어별 국가 정보 데이터
