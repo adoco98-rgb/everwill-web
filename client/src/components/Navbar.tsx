@@ -456,6 +456,8 @@ export default function Navbar() {
               </motion.button>
             ))}
           </div>
+        </div>
+      </div>
 
       {/* 모바일 메뉴 */}
       <AnimatePresence>
