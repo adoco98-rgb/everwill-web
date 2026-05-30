@@ -15,18 +15,18 @@ import { Language } from "@/i18n";
 import { trpc } from "@/lib/trpc";
 
 // 11개 언어 국기 목록 (flagcdn 고화질 PNG)
-const languages: { code: Language; label: string; flagImg: string }[] = [
-  { code: "ko", label: "한국어", flagImg: "https://flagcdn.com/w80/kr.png" },
-  { code: "en", label: "English", flagImg: "https://flagcdn.com/w80/us.png" },
-  { code: "ja", label: "日本語", flagImg: "https://flagcdn.com/w80/jp.png" },
-  { code: "zh", label: "中文", flagImg: "https://flagcdn.com/w80/cn.png" },
-  { code: "de", label: "Deutsch", flagImg: "https://flagcdn.com/w80/de.png" },
-  { code: "es", label: "Español", flagImg: "https://flagcdn.com/w80/es.png" },
-  { code: "ar", label: "العربية", flagImg: "https://flagcdn.com/w80/sa.png" },
-  { code: "fr", label: "Français", flagImg: "https://flagcdn.com/w80/fr.png" },
-  { code: "ru", label: "Русский", flagImg: "https://flagcdn.com/w80/ru.png" },
-  { code: "hi", label: "हिन्दी", flagImg: "https://flagcdn.com/w80/in.png" },
-  { code: "pt", label: "Português", flagImg: "https://flagcdn.com/w80/br.png" },
+const languages: { code: Language; label: string; flagImg: string; countryCode: string }[] = [
+  { code: "ko", label: "한국어", flagImg: "https://flagcdn.com/w80/kr.png", countryCode: "KR" },
+  { code: "en", label: "English", flagImg: "https://flagcdn.com/w80/us.png", countryCode: "US" },
+  { code: "ja", label: "日本語", flagImg: "https://flagcdn.com/w80/jp.png", countryCode: "JP" },
+  { code: "zh", label: "中文", flagImg: "https://flagcdn.com/w80/cn.png", countryCode: "CN" },
+  { code: "de", label: "Deutsch", flagImg: "https://flagcdn.com/w80/de.png", countryCode: "DE" },
+  { code: "es", label: "Español", flagImg: "https://flagcdn.com/w80/es.png", countryCode: "ES" },
+  { code: "ar", label: "العربية", flagImg: "https://flagcdn.com/w80/sa.png", countryCode: "SA" },
+  { code: "fr", label: "Français", flagImg: "https://flagcdn.com/w80/fr.png", countryCode: "FR" },
+  { code: "ru", label: "Русский", flagImg: "https://flagcdn.com/w80/ru.png", countryCode: "RU" },
+  { code: "hi", label: "हिन्दी", flagImg: "https://flagcdn.com/w80/in.png", countryCode: "IN" },
+  { code: "pt", label: "Português", flagImg: "https://flagcdn.com/w80/br.png", countryCode: "BR" },
 ];
 
 // IP 기반 국가 → 언어 매핑
@@ -401,17 +401,17 @@ export default function Navbar() {
                     display: "block",
                   }}
                 />
-                {language === lang.code && (
-                  <span className="relative z-10 text-[10px] font-semibold text-[#C9A961] mt-0.5 leading-none">
-                    {lang.label}
-                  </span>
-                )}
+                <span className={`relative z-10 text-[9px] font-bold mt-0.5 leading-none tracking-wide ${
+                  language === lang.code ? "text-[#C9A961]" : "text-white/70"
+                }`}>
+                  {lang.countryCode}
+                </span>
               </motion.button>
             ))}
             {/* 뉴질랜드·호주: 영어(en) 콘텐츠 사용 */}
             {[
-              { code: "nz", label: "New Zealand", flagImg: "https://flagcdn.com/w80/nz.png" },
-              { code: "au", label: "Australia", flagImg: "https://flagcdn.com/w80/au.png" },
+              { code: "nz", label: "New Zealand", flagImg: "https://flagcdn.com/w80/nz.png", countryCode: "NZ" },
+              { code: "au", label: "Australia", flagImg: "https://flagcdn.com/w80/au.png", countryCode: "AU" },
             ].map((extra) => (
               <motion.button
                 key={extra.code}
@@ -430,6 +430,9 @@ export default function Navbar() {
                   className="relative z-10 rounded-sm flex-shrink-0 opacity-75 hover:opacity-100"
                   style={{ width: 40, height: 27, objectFit: "cover", display: "block" }}
                 />
+                <span className="relative z-10 text-[9px] font-bold mt-0.5 leading-none tracking-wide text-white/70">
+                  {extra.countryCode}
+                </span>
               </motion.button>
             ))}
           </div>

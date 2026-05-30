@@ -139,6 +139,14 @@ const extraCountries = [
     payment: "Stripe · BPAY · PayID", legalNote: "Succession Act 2006 · Electronic Transactions Act 1999",
     icons: [ShieldCheck, Zap, CreditCard, Users],
   },
+  {
+    code: "ca" as const, label: "Canada", flagImg: "https://flagcdn.com/w80/ca.png",
+    flag: "🇨🇦", countryCode: "CA", name: "Canada",
+    phase: "4th", period: "Month 10-12", statusColor: "bg-yellow-400",
+    highlights: ["Wills, Estates and Succession Act (BC, 2014)", "Electronic Wills Act — BC·SK 시행 완료", "Stripe · Interac · EFT", "재캐나다 한인 24만 명 타깃"],
+    payment: "Stripe · Interac", legalNote: "WESA (BC) · Succession Law Reform Act (ON)",
+    icons: [ShieldCheck, Zap, CreditCard, Users],
+  },
 ];
 
 const countryNames: Record<Language, string> = {
@@ -177,6 +185,7 @@ export default function GlobalSection() {
   const getCountryName = (code: Language | "nz" | "au" | "ca") => {
     if (code === "nz") return "New Zealand";
     if (code === "au") return "Australia";
+    if (code === "ca") return "Canada";
     return countryNames[code as Language];
   };
 
