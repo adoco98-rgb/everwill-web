@@ -153,51 +153,7 @@ export default function TrustSection() {
           )}
         </motion.div>
 
-        <div className="gold-line mb-14 max-w-2xl mx-auto" />
 
-        {/* 섹션 타이틀 */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          className="text-center mb-10"
-        >
-          <h2
-            className="text-2xl lg:text-4xl font-bold text-[#1F3864] mb-3"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            {t.trust.title}
-          </h2>
-          <p className="text-gray-500">
-            {t.trust.subtitle}
-          </p>
-        </motion.div>
-
-        {/* 강점 카드 */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {strengths.map((s, i) => {
-            const Icon = strengthIcons[i];
-            return (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.5, delay: 0.2 + i * 0.08 }}
-                className="flex items-start gap-4 bg-[#FAFAF8] rounded-xl p-5 border border-gray-100 card-hover"
-              >
-                <div
-                  className={`w-10 h-10 rounded-lg ${strengthColors[i]} flex items-center justify-center flex-shrink-0`}
-                >
-                  <Icon className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-[#1F3864] mb-1">{s.title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">{s.description}</p>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
       </div>
     </section>
   );
