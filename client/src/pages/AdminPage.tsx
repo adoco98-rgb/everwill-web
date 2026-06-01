@@ -68,10 +68,10 @@ function StatsTab({ country, locale }: { country: string; locale: typeof ADMIN_L
         </h2>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Users} label="열 회원수" value={`${data.totalUsers.toLocaleString()}명`} sub={`오늘 +${data.todayUsers}명`} color="bg-[#1F3864]" />
-        <StatCard icon={TrendingUp} label="이번달 매출" value={formatKRW(data.monthRevenue)} sub={`열 ${formatKRW(data.totalRevenue)}`} color="bg-[#C9A961]" />
-        <StatCard icon={FileText} label="유언장 수" value={`${data.totalWills.toLocaleString()}건`} color="bg-green-500" />
-        <StatCard icon={MessageSquare} label="미답변 문의" value={`${data.pendingInquiries}건`} color="bg-orange-500" />
+        <StatCard icon={Users} label={locale.ui.totalMembers} value={`${data.totalUsers.toLocaleString()}`} sub={`${locale.ui.todayNew} +${data.todayUsers}`} color="bg-[#1F3864]" />
+        <StatCard icon={TrendingUp} label={locale.ui.monthRevenue} value={formatKRW(data.monthRevenue)} sub={`${locale.ui.totalRevenue}: ${formatKRW(data.totalRevenue)}`} color="bg-[#C9A961]" />
+        <StatCard icon={FileText} label={locale.ui.totalWills} value={`${data.totalWills.toLocaleString()}`} color="bg-green-500" />
+        <StatCard icon={MessageSquare} label={locale.ui.pendingInquiries} value={`${data.pendingInquiries}`} color="bg-orange-500" />
       </div>
     </div>
   );
@@ -403,7 +403,7 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
   );
 }
 
-function UsersTab({ country }: { country: string }) {
+function UsersTab({ country, locale }: { country: string; locale: typeof ADMIN_LOCALES[string] }) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
@@ -446,13 +446,13 @@ function UsersTab({ country }: { country: string }) {
       {resetTarget && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
-            <h3 className="font-bold text-[#1F3864] text-lg mb-1">비밀번호 초기화</h3>
-            <p className="text-sm text-gray-400 mb-4">{resetTarget.name} 회원의 새 비밀번호를 입력하세요.</p>
+            <h3 className="font-bold text-[#1F3864] text-lg mb-1">{locale.ui.resetPwTitle}</h3>
+            <p className="text-sm text-gray-400 mb-4">{resetTarget.name}</p>
             <div className="relative mb-4">
               <input
                 type={showPw ? "text" : "password"}
                 className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1F3864] pr-10"
-                placeholder="새 비밀번호 (8자 이상)"
+                placeholder={locale.ui.resetPwPlaceholder}
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
               />
@@ -464,24 +464,24 @@ function UsersTab({ country }: { country: string }) {
               <button
                 className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-500 hover:bg-gray-50"
                 onClick={() => { setResetTarget(null); setNewPassword(""); }}
-              >취소</button>
+              >{locale.ui.cancel}</button>
               <button
                 className="flex-1 py-2.5 rounded-xl bg-[#1F3864] text-white text-sm font-semibold hover:bg-[#162d52] disabled:opacity-50"
                 disabled={newPassword.length < 8 || resetPassword.isPending}
                 onClick={() => resetPassword.mutate({ userId: resetTarget.id, newPassword })}
-              >{resetPassword.isPending ? "처리 중..." : "초기화"}</button>
+              >{resetPassword.isPending ? "..." : locale.ui.resetPwSubmit}</button>
             </div>
           </div>
         </div>
       )}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <h2 className="text-lg font-bold text-[#1F3864]">회원 관리 <span className="text-sm font-normal text-gray-400">({data?.total ?? 0}명)</span></h2>
+        <h2 className="text-lg font-bold text-[#1F3864]">{locale.ui.memberMgmt} <span className="text-sm font-normal text-gray-400">({data?.total ?? 0})</span></h2>
         <div className="flex gap-2 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#1F3864]"
-              placeholder="이름, 이메일, 전화번호 검색"
+              placeholder={locale.ui.searchPlaceholder}
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter") { setSearch(searchInput); setPage(1); } }}
@@ -492,9 +492,9 @@ function UsersTab({ country }: { country: string }) {
             value={roleFilter}
             onChange={e => { setRoleFilter(e.target.value as any); setPage(1); }}
           >
-            <option value="all">전체</option>
-            <option value="user">일반</option>
-            <option value="admin">관리자</option>
+            <option value="all">{locale.ui.allRoles}</option>
+            <option value="user">{locale.ui.normalRole}</option>
+            <option value="admin">{locale.ui.adminRole}</option>
           </select>
         </div>
       </div>
@@ -504,21 +504,21 @@ function UsersTab({ country }: { country: string }) {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">이름</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">이메일</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">전화번호</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">국가</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">가입일</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">등급</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">역할</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">관리</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium">{locale.ui.colName}</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium">{locale.ui.colEmail}</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">{locale.ui.colPhone}</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">{locale.ui.colCountry}</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">{locale.ui.colJoinDate}</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium">{locale.ui.colGrade}</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium">{locale.ui.colRole}</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium">{locale.ui.colManage}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {isLoading ? (
-                <tr><td colSpan={6} className="text-center py-10 text-gray-400">로딩 중...</td></tr>
+                <tr><td colSpan={6} className="text-center py-10 text-gray-400">{locale.ui.loading}</td></tr>
               ) : data?.list.length === 0 ? (
-                <tr><td colSpan={6} className="text-center py-10 text-gray-400">검색 결과가 없습니다.</td></tr>
+                <tr><td colSpan={6} className="text-center py-10 text-gray-400">{locale.ui.noData}</td></tr>
               ) : data?.list.map(u => (
                 <tr key={u.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3 font-medium text-[#1F3864] cursor-pointer hover:underline" onClick={() => setSelectedUserId(u.id)}>{u.name || "-"}</td>
@@ -532,11 +532,11 @@ function UsersTab({ country }: { country: string }) {
                       value={u.memberGrade ?? "general"}
                       onChange={e => updateGrade.mutate({ userId: u.id, grade: e.target.value as any })}
                     >
-                      <option value="general">일반</option>
-                      <option value="silver">Silver</option>
-                      <option value="gold">Gold</option>
-                      <option value="platinum">Platinum</option>
-                      <option value="vip">VIP</option>
+                      <option value="general">{locale.ui.gradeGeneral}</option>
+                      <option value="silver">{locale.ui.gradeSilver}</option>
+                      <option value="gold">{locale.ui.gradeGold}</option>
+                      <option value="platinum">{locale.ui.gradePlatinum}</option>
+                      <option value="vip">{locale.ui.gradeVip}</option>
                     </select>
                   </td>
                   <td className="px-4 py-3">
@@ -547,8 +547,8 @@ function UsersTab({ country }: { country: string }) {
                       value={u.role}
                       onChange={e => updateRole.mutate({ userId: u.id, role: e.target.value as "user" | "admin" })}
                     >
-                      <option value="user">일반</option>
-                      <option value="admin">관리자</option>
+                      <option value="user">{locale.ui.normalRole}</option>
+                      <option value="admin">{locale.ui.adminRole}</option>
                     </select>
                   </td>
                   <td className="px-4 py-3">
@@ -559,15 +559,15 @@ function UsersTab({ country }: { country: string }) {
                         title="회원 상세 보기"
                       >
                         <Eye className="w-3 h-3" />
-                        상세
+                        {locale.ui.detail}
                       </button>
                       <button
                         className="flex items-center gap-1 text-xs text-gray-500 border border-gray-200 hover:bg-gray-50 px-2 py-1 rounded-lg"
-                        onClick={() => setResetTarget({ id: u.id, name: u.name || "회원" })}
-                        title="비밀번호 초기화"
+                        onClick={() => setResetTarget({ id: u.id, name: u.name || "" })}
+                        title={locale.ui.resetPwTitle}
                       >
                         <KeyRound className="w-3 h-3" />
-                        비번
+                        {locale.ui.password}
                       </button>
                     </div>
                   </td>
@@ -601,7 +601,7 @@ function UsersTab({ country }: { country: string }) {
 
 
 /** 결제/매입 탭 */
-function PaymentsTab({ country }: { country: string }) {
+function PaymentsTab({ country, locale }: { country: string; locale: typeof ADMIN_LOCALES[string] }) {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "completed" | "failed" | "refunded">("all");
   const [search, setSearch] = useState("");
@@ -612,22 +612,22 @@ function PaymentsTab({ country }: { country: string }) {
   const totalPages = data ? Math.ceil(data.total / 20) : 1;
 
   const statusLabel: Record<string, { label: string; color: string }> = {
-    completed: { label: "완료", color: "bg-green-50 text-green-700" },
-    pending: { label: "대기", color: "bg-yellow-50 text-yellow-700" },
-    failed: { label: "실패", color: "bg-red-50 text-red-700" },
-    refunded: { label: "환불", color: "bg-gray-50 text-gray-600" },
+    completed: { label: locale.ui.completed, color: "bg-green-50 text-green-700" },
+    pending: { label: locale.ui.pending, color: "bg-yellow-50 text-yellow-700" },
+    failed: { label: locale.ui.failed, color: "bg-red-50 text-red-700" },
+    refunded: { label: locale.ui.refunded, color: "bg-gray-50 text-gray-600" },
   };
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <h2 className="text-lg font-bold text-[#1F3864]">결제/매출 관리 <span className="text-sm font-normal text-gray-400">({data?.total ?? 0}건)</span></h2>
+        <h2 className="text-lg font-bold text-[#1F3864]">{locale.ui.paymentMgmt} <span className="text-sm font-normal text-gray-400">({data?.total ?? 0})</span></h2>
         <div className="flex gap-2 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-52">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#1F3864]"
-              placeholder="이메일 검색"
+              placeholder={locale.ui.searchEmail}
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter") { setSearch(searchInput); setPage(1); } }}
@@ -638,11 +638,11 @@ function PaymentsTab({ country }: { country: string }) {
             value={statusFilter}
             onChange={e => { setStatusFilter(e.target.value as any); setPage(1); }}
           >
-            <option value="all">전체</option>
-            <option value="completed">완료</option>
-            <option value="pending">대기</option>
-            <option value="failed">실패</option>
-            <option value="refunded">환불</option>
+            <option value="all">{locale.ui.allStatus}</option>
+            <option value="completed">{locale.ui.completed}</option>
+            <option value="pending">{locale.ui.pending}</option>
+            <option value="failed">{locale.ui.failed}</option>
+            <option value="refunded">{locale.ui.refunded}</option>
           </select>
         </div>
       </div>
@@ -654,19 +654,19 @@ function PaymentsTab({ country }: { country: string }) {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">이메일</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">금액</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">통화</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">상태</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">결제일</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">상품</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium">{locale.ui.colEmail}</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium">{locale.ui.colAmount}</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">{locale.ui.colCurrency}</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium">{locale.ui.colStatus}</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">{locale.ui.colPaidAt}</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">{locale.ui.colItems}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {isLoading ? (
-                <tr><td colSpan={6} className="text-center py-10 text-gray-400">로딩 중...</td></tr>
+                <tr><td colSpan={6} className="text-center py-10 text-gray-400">{locale.ui.loading}</td></tr>
               ) : data?.list.length === 0 ? (
-                <tr><td colSpan={6} className="text-center py-10 text-gray-400">결제 내역이 없습니다.</td></tr>
+                <tr><td colSpan={6} className="text-center py-10 text-gray-400">{locale.ui.noData}</td></tr>
               ) : data?.list.map(p => (
                 <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3 text-gray-600 truncate max-w-[160px]">{p.userEmail || "-"}</td>
@@ -784,7 +784,7 @@ function WillsTab() {
 }
 
 /** 문의 관리 탭 */
-function InquiriesTab({ country }: { country: string }) {
+function InquiriesTab({ country, locale }: { country: string; locale: typeof ADMIN_LOCALES[string] }) {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "answered">("all");
   const [replyingId, setReplyingId] = useState<number | null>(null);
@@ -804,32 +804,32 @@ function InquiriesTab({ country }: { country: string }) {
 
   const totalPages = data ? Math.ceil(data.total / 20) : 1;
   const statusLabel: Record<string, { label: string; color: string }> = {
-    pending: { label: "미답변", color: "bg-orange-50 text-orange-700" },
-    answered: { label: "답변완료", color: "bg-green-50 text-green-700" },
-    closed: { label: "종료", color: "bg-gray-50 text-gray-500" },
+    pending: { label: locale.ui.unanswered, color: "bg-orange-50 text-orange-700" },
+    answered: { label: locale.ui.answered, color: "bg-green-50 text-green-700" },
+    closed: { label: locale.ui.answered, color: "bg-gray-50 text-gray-500" },
   };
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <h2 className="text-lg font-bold text-[#1F3864]">문의 관리 <span className="text-sm font-normal text-gray-400">({data?.total ?? 0}건)</span></h2>
+        <h2 className="text-lg font-bold text-[#1F3864]">{locale.ui.inquiryMgmt} <span className="text-sm font-normal text-gray-400">({data?.total ?? 0})</span></h2>
         <select
           className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none"
           value={statusFilter}
           onChange={e => { setStatusFilter(e.target.value as any); setPage(1); }}
         >
-          <option value="all">전체</option>
-          <option value="pending">미답변</option>
-          <option value="answered">답변완료</option>
-          <option value="closed">종료</option>
+          <option value="all">{locale.ui.allInquiry}</option>
+          <option value="pending">{locale.ui.unanswered}</option>
+          <option value="answered">{locale.ui.answered}</option>
+          <option value="closed">{locale.ui.answered}</option>
         </select>
       </div>
 
       <div className="space-y-3">
         {isLoading ? (
-          <div className="text-center py-10 text-gray-400">로딩 중...</div>
+          <div className="text-center py-10 text-gray-400">{locale.ui.loading}</div>
         ) : data?.list.length === 0 ? (
-          <div className="text-center py-10 text-gray-400 bg-white rounded-2xl border border-gray-100">문의가 없습니다.</div>
+          <div className="text-center py-10 text-gray-400 bg-white rounded-2xl border border-gray-100">{locale.ui.noData}</div>
         ) : data?.list.map(inq => (
           <div key={inq.id} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
             <div className="flex items-start justify-between gap-3 mb-2">
@@ -849,7 +849,7 @@ function InquiriesTab({ country }: { country: string }) {
                   onClick={() => { setReplyingId(inq.id); setReplyText(""); }}
                   className="shrink-0 px-3 py-1.5 bg-[#1F3864] text-white text-xs rounded-lg hover:bg-[#162a4e] transition-colors"
                 >
-                  답변하기
+                  {locale.ui.reply}
                 </button>
               )}
             </div>
@@ -865,18 +865,18 @@ function InquiriesTab({ country }: { country: string }) {
                 <textarea
                   className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864] resize-none"
                   rows={3}
-                  placeholder="답변 내용을 입력하세요..."
+                  placeholder={locale.ui.replyPlaceholder}
                   value={replyText}
                   onChange={e => setReplyText(e.target.value)}
                 />
                 <div className="flex gap-2 justify-end">
-                  <button onClick={() => setReplyingId(null)} className="px-3 py-1.5 border border-gray-200 text-gray-600 text-xs rounded-lg hover:bg-gray-50">취소</button>
+                  <button onClick={() => setReplyingId(null)} className="px-3 py-1.5 border border-gray-200 text-gray-600 text-xs rounded-lg hover:bg-gray-50">{locale.ui.cancel}</button>
                   <button
                     onClick={() => replyMutation.mutate({ inquiryId: inq.id, reply: replyText })}
                     disabled={!replyText.trim() || replyMutation.isPending}
                     className="px-3 py-1.5 bg-[#C9A961] text-white text-xs rounded-lg hover:bg-[#b8944f] disabled:opacity-50"
                   >
-                    {replyMutation.isPending ? "저장 중..." : "답변 저장"}
+                    {replyMutation.isPending ? "..." : locale.ui.submitReply}
                   </button>
                 </div>
               </div>
@@ -1928,95 +1928,240 @@ function CountriesTab() {
 }
 
 // 14개국 언어 번역 데이터
-const ADMIN_LOCALES: Record<string, {
+type AdminLocale = {
   langName: string;
   tabs: Record<Tab, string>;
   title: string;
   subtitle: string;
-}> = {
+  ui: {
+    // 통계
+    totalMembers: string; todayNew: string; monthRevenue: string; totalRevenue: string; totalWills: string; pendingInquiries: string;
+    // 회원
+    memberMgmt: string; searchPlaceholder: string; allRoles: string; normalRole: string; adminRole: string;
+    colName: string; colEmail: string; colPhone: string; colCountry: string; colJoinDate: string; colGrade: string; colRole: string; colManage: string;
+    detail: string; password: string; loading: string; noData: string;
+    gradeGeneral: string; gradeSilver: string; gradeGold: string; gradePlatinum: string; gradeVip: string;
+    // 결제
+    paymentMgmt: string; searchEmail: string; allStatus: string; completed: string; pending: string; failed: string; refunded: string;
+    colAmount: string; colCurrency: string; colStatus: string; colPaidAt: string; colItems: string;
+    // 문의
+    inquiryMgmt: string; allInquiry: string; unanswered: string; answered: string;
+    colSubject: string; colContent: string; colRepliedAt: string; reply: string; replyPlaceholder: string; submitReply: string; cancel: string;
+    // 비밀번호
+    resetPwTitle: string; resetPwPlaceholder: string; resetPwSubmit: string;
+  };
+};
+
+const ADMIN_LOCALES: Record<string, AdminLocale> = {
   KR: {
-    langName: "한국어",
-    title: "SARAM 관리자 대시보드",
-    subtitle: "관리자",
+    langName: "한국어", title: "SARAM 관리자 대시보드", subtitle: "관리자",
     tabs: { stats: "통계 개요", countries: "국가별 관리", users: "회원 관리", payments: "결제/매출", inquiries: "문의 관리", news: "뉴스 관리", socialLinks: "SNS 소셜 링크", videos: "국가별 영상" },
+    ui: { totalMembers: "총 회원수", todayNew: "오늘 신규", monthRevenue: "이번달 매출", totalRevenue: "총 매출", totalWills: "유언장 수", pendingInquiries: "미답변 문의",
+      memberMgmt: "회원 관리", searchPlaceholder: "이름, 이메일, 전화번호 검색", allRoles: "전체", normalRole: "일반", adminRole: "관리자",
+      colName: "이름", colEmail: "이메일", colPhone: "전화번호", colCountry: "국가", colJoinDate: "가입일", colGrade: "등급", colRole: "역할", colManage: "관리",
+      detail: "상세", password: "비번", loading: "로딩 중...", noData: "데이터가 없습니다.",
+      gradeGeneral: "일반", gradeSilver: "Silver", gradeGold: "Gold", gradePlatinum: "Platinum", gradeVip: "VIP",
+      paymentMgmt: "결제/매출 관리", searchEmail: "이메일 검색", allStatus: "전체", completed: "완료", pending: "대기", failed: "실패", refunded: "환불",
+      colAmount: "금액", colCurrency: "통화", colStatus: "상태", colPaidAt: "결제일", colItems: "상품",
+      inquiryMgmt: "문의 관리", allInquiry: "전체", unanswered: "미답변", answered: "답변완료",
+      colSubject: "제목", colContent: "내용", colRepliedAt: "답변일", reply: "답변", replyPlaceholder: "답변 내용을 입력하세요", submitReply: "답변 저장", cancel: "취소",
+      resetPwTitle: "비밀번호 초기화", resetPwPlaceholder: "새 비밀번호 (8자 이상)", resetPwSubmit: "초기화",
+    },
   },
   US: {
-    langName: "English",
-    title: "SARAM Admin Dashboard",
-    subtitle: "Admin",
+    langName: "English", title: "SARAM Admin Dashboard", subtitle: "Admin",
     tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos" },
+    ui: { totalMembers: "Total Members", todayNew: "Today New", monthRevenue: "Monthly Revenue", totalRevenue: "Total Revenue", totalWills: "Wills", pendingInquiries: "Pending Inquiries",
+      memberMgmt: "Member Management", searchPlaceholder: "Search name, email, phone", allRoles: "All", normalRole: "User", adminRole: "Admin",
+      colName: "Name", colEmail: "Email", colPhone: "Phone", colCountry: "Country", colJoinDate: "Joined", colGrade: "Grade", colRole: "Role", colManage: "Manage",
+      detail: "Detail", password: "Password", loading: "Loading...", noData: "No data found.",
+      gradeGeneral: "General", gradeSilver: "Silver", gradeGold: "Gold", gradePlatinum: "Platinum", gradeVip: "VIP",
+      paymentMgmt: "Payment Management", searchEmail: "Search email", allStatus: "All", completed: "Completed", pending: "Pending", failed: "Failed", refunded: "Refunded",
+      colAmount: "Amount", colCurrency: "Currency", colStatus: "Status", colPaidAt: "Paid At", colItems: "Items",
+      inquiryMgmt: "Inquiry Management", allInquiry: "All", unanswered: "Unanswered", answered: "Answered",
+      colSubject: "Subject", colContent: "Content", colRepliedAt: "Replied At", reply: "Reply", replyPlaceholder: "Enter your reply", submitReply: "Save Reply", cancel: "Cancel",
+      resetPwTitle: "Reset Password", resetPwPlaceholder: "New password (min 8 chars)", resetPwSubmit: "Reset",
+    },
   },
   JP: {
-    langName: "日本語",
-    title: "SARAM 管理ダッシュボード",
-    subtitle: "管理者",
+    langName: "日本語", title: "SARAM 管理ダッシュボード", subtitle: "管理者",
     tabs: { stats: "統計概要", countries: "国別管理", users: "会員管理", payments: "決済/売上", inquiries: "お問い合わせ", news: "ニュース管理", socialLinks: "SNSリンク", videos: "国別動画" },
+    ui: { totalMembers: "総会員数", todayNew: "今日の新規", monthRevenue: "今月の売上", totalRevenue: "総売上", totalWills: "遺言書数", pendingInquiries: "未回答問い合わせ",
+      memberMgmt: "会員管理", searchPlaceholder: "名前・メール・電話番号で検索", allRoles: "全て", normalRole: "一般", adminRole: "管理者",
+      colName: "名前", colEmail: "メール", colPhone: "電話番号", colCountry: "国", colJoinDate: "登録日", colGrade: "等級", colRole: "役割", colManage: "管理",
+      detail: "詳細", password: "パスワード", loading: "読み込み中...", noData: "データがありません。",
+      gradeGeneral: "一般", gradeSilver: "Silver", gradeGold: "Gold", gradePlatinum: "Platinum", gradeVip: "VIP",
+      paymentMgmt: "決済管理", searchEmail: "メール検索", allStatus: "全て", completed: "完了", pending: "待機", failed: "失敗", refunded: "返金",
+      colAmount: "金額", colCurrency: "通貨", colStatus: "状態", colPaidAt: "決済日", colItems: "商品",
+      inquiryMgmt: "問い合わせ管理", allInquiry: "全て", unanswered: "未回答", answered: "回答済み",
+      colSubject: "件名", colContent: "内容", colRepliedAt: "回答日", reply: "返信", replyPlaceholder: "返信内容を入力してください", submitReply: "返信保存", cancel: "キャンセル",
+      resetPwTitle: "パスワードリセット", resetPwPlaceholder: "新しいパスワード（8文字以上）", resetPwSubmit: "リセット",
+    },
   },
   CN: {
-    langName: "中文",
-    title: "SARAM 管理员仪表板",
-    subtitle: "管理员",
+    langName: "中文", title: "SARAM 管理员仪表板", subtitle: "管理员",
     tabs: { stats: "统计概览", countries: "国家管理", users: "会员管理", payments: "支付/收入", inquiries: "咨询管理", news: "新闻管理", socialLinks: "社交链接", videos: "国家视频" },
+    ui: { totalMembers: "总会员数", todayNew: "今日新增", monthRevenue: "本月收入", totalRevenue: "总收入", totalWills: "遗嘱数", pendingInquiries: "待回复咨询",
+      memberMgmt: "会员管理", searchPlaceholder: "搜索姓名、邮箱、电话", allRoles: "全部", normalRole: "普通", adminRole: "管理员",
+      colName: "姓名", colEmail: "邮箱", colPhone: "电话", colCountry: "国家", colJoinDate: "注册日期", colGrade: "等级", colRole: "角色", colManage: "管理",
+      detail: "详情", password: "密码", loading: "加载中...", noData: "暂无数据。",
+      gradeGeneral: "普通", gradeSilver: "Silver", gradeGold: "Gold", gradePlatinum: "Platinum", gradeVip: "VIP",
+      paymentMgmt: "支付管理", searchEmail: "搜索邮箱", allStatus: "全部", completed: "已完成", pending: "待处理", failed: "失败", refunded: "已退款",
+      colAmount: "金额", colCurrency: "货币", colStatus: "状态", colPaidAt: "支付日期", colItems: "商品",
+      inquiryMgmt: "咨询管理", allInquiry: "全部", unanswered: "未回复", answered: "已回复",
+      colSubject: "主题", colContent: "内容", colRepliedAt: "回复日期", reply: "回复", replyPlaceholder: "请输入回复内容", submitReply: "保存回复", cancel: "取消",
+      resetPwTitle: "重置密码", resetPwPlaceholder: "新密码（至少8位）", resetPwSubmit: "重置",
+    },
   },
   DE: {
-    langName: "Deutsch",
-    title: "SARAM Admin-Dashboard",
-    subtitle: "Administrator",
+    langName: "Deutsch", title: "SARAM Admin-Dashboard", subtitle: "Administrator",
     tabs: { stats: "Statistiken", countries: "Länderverwaltung", users: "Mitglieder", payments: "Zahlungen", inquiries: "Anfragen", news: "Nachrichten", socialLinks: "Social Links", videos: "Ländervideos" },
+    ui: { totalMembers: "Mitglieder gesamt", todayNew: "Heute neu", monthRevenue: "Monatsumsatz", totalRevenue: "Gesamtumsatz", totalWills: "Testamente", pendingInquiries: "Offene Anfragen",
+      memberMgmt: "Mitgliederverwaltung", searchPlaceholder: "Name, E-Mail, Telefon suchen", allRoles: "Alle", normalRole: "Benutzer", adminRole: "Admin",
+      colName: "Name", colEmail: "E-Mail", colPhone: "Telefon", colCountry: "Land", colJoinDate: "Beigetreten", colGrade: "Stufe", colRole: "Rolle", colManage: "Verwalten",
+      detail: "Details", password: "Passwort", loading: "Laden...", noData: "Keine Daten gefunden.",
+      gradeGeneral: "Standard", gradeSilver: "Silver", gradeGold: "Gold", gradePlatinum: "Platinum", gradeVip: "VIP",
+      paymentMgmt: "Zahlungsverwaltung", searchEmail: "E-Mail suchen", allStatus: "Alle", completed: "Abgeschlossen", pending: "Ausstehend", failed: "Fehlgeschlagen", refunded: "Erstattet",
+      colAmount: "Betrag", colCurrency: "Währung", colStatus: "Status", colPaidAt: "Bezahlt am", colItems: "Artikel",
+      inquiryMgmt: "Anfragenverwaltung", allInquiry: "Alle", unanswered: "Unbeantwortet", answered: "Beantwortet",
+      colSubject: "Betreff", colContent: "Inhalt", colRepliedAt: "Beantwortet am", reply: "Antworten", replyPlaceholder: "Antwort eingeben", submitReply: "Antwort speichern", cancel: "Abbrechen",
+      resetPwTitle: "Passwort zurücksetzen", resetPwPlaceholder: "Neues Passwort (min. 8 Zeichen)", resetPwSubmit: "Zurücksetzen",
+    },
   },
   ES: {
-    langName: "Español",
-    title: "Panel de Administración SARAM",
-    subtitle: "Administrador",
+    langName: "Español", title: "Panel de Administración SARAM", subtitle: "Administrador",
     tabs: { stats: "Estadísticas", countries: "Gestión de Países", users: "Miembros", payments: "Pagos", inquiries: "Consultas", news: "Noticias", socialLinks: "Redes Sociales", videos: "Videos por País" },
+    ui: { totalMembers: "Total de Miembros", todayNew: "Nuevos hoy", monthRevenue: "Ingresos del mes", totalRevenue: "Ingresos totales", totalWills: "Testamentos", pendingInquiries: "Consultas pendientes",
+      memberMgmt: "Gestión de Miembros", searchPlaceholder: "Buscar nombre, email, teléfono", allRoles: "Todos", normalRole: "Usuario", adminRole: "Admin",
+      colName: "Nombre", colEmail: "Email", colPhone: "Teléfono", colCountry: "País", colJoinDate: "Registro", colGrade: "Nivel", colRole: "Rol", colManage: "Gestionar",
+      detail: "Detalle", password: "Contraseña", loading: "Cargando...", noData: "Sin datos.",
+      gradeGeneral: "General", gradeSilver: "Silver", gradeGold: "Gold", gradePlatinum: "Platinum", gradeVip: "VIP",
+      paymentMgmt: "Gestión de Pagos", searchEmail: "Buscar email", allStatus: "Todos", completed: "Completado", pending: "Pendiente", failed: "Fallido", refunded: "Reembolsado",
+      colAmount: "Monto", colCurrency: "Moneda", colStatus: "Estado", colPaidAt: "Fecha de pago", colItems: "Artículos",
+      inquiryMgmt: "Gestión de Consultas", allInquiry: "Todas", unanswered: "Sin respuesta", answered: "Respondidas",
+      colSubject: "Asunto", colContent: "Contenido", colRepliedAt: "Respondido el", reply: "Responder", replyPlaceholder: "Ingrese su respuesta", submitReply: "Guardar respuesta", cancel: "Cancelar",
+      resetPwTitle: "Restablecer contraseña", resetPwPlaceholder: "Nueva contraseña (mín. 8 chars)", resetPwSubmit: "Restablecer",
+    },
   },
   SA: {
-    langName: "العربية",
-    title: "لوحة إدارة SARAM",
-    subtitle: "المسؤول",
+    langName: "العربية", title: "لوحة إدارة SARAM", subtitle: "المسؤول",
     tabs: { stats: "الإحصائيات", countries: "إدارة الدول", users: "الأعضاء", payments: "المدفوعات", inquiries: "الاستفسارات", news: "الأخبار", socialLinks: "روابط التواصل", videos: "مقاطع الفيديو" },
+    ui: { totalMembers: "إجمالي الأعضاء", todayNew: "جديد اليوم", monthRevenue: "إيرادات الشهر", totalRevenue: "إجمالي الإيرادات", totalWills: "الوصايا", pendingInquiries: "استفسارات معلقة",
+      memberMgmt: "إدارة الأعضاء", searchPlaceholder: "ابحث بالاسم أو البريد أو الهاتف", allRoles: "الكل", normalRole: "مستخدم", adminRole: "مسؤول",
+      colName: "الاسم", colEmail: "البريد الإلكتروني", colPhone: "الهاتف", colCountry: "الدولة", colJoinDate: "تاريخ الانضمام", colGrade: "الدرجة", colRole: "الدور", colManage: "إدارة",
+      detail: "تفاصيل", password: "كلمة المرور", loading: "جارٍ التحميل...", noData: "لا توجد بيانات.",
+      gradeGeneral: "عام", gradeSilver: "Silver", gradeGold: "Gold", gradePlatinum: "Platinum", gradeVip: "VIP",
+      paymentMgmt: "إدارة المدفوعات", searchEmail: "البحث بالبريد", allStatus: "الكل", completed: "مكتمل", pending: "معلق", failed: "فاشل", refunded: "مسترد",
+      colAmount: "المبلغ", colCurrency: "العملة", colStatus: "الحالة", colPaidAt: "تاريخ الدفع", colItems: "العناصر",
+      inquiryMgmt: "إدارة الاستفسارات", allInquiry: "الكل", unanswered: "بدون رد", answered: "تمت الإجابة",
+      colSubject: "الموضوع", colContent: "المحتوى", colRepliedAt: "تاريخ الرد", reply: "رد", replyPlaceholder: "أدخل ردك هنا", submitReply: "حفظ الرد", cancel: "إلغاء",
+      resetPwTitle: "إعادة تعيين كلمة المرور", resetPwPlaceholder: "كلمة مرور جديدة (8 أحرف على الأقل)", resetPwSubmit: "إعادة تعيين",
+    },
   },
   FR: {
-    langName: "Français",
-    title: "Tableau de Bord Admin SARAM",
-    subtitle: "Administrateur",
+    langName: "Français", title: "Tableau de Bord Admin SARAM", subtitle: "Administrateur",
     tabs: { stats: "Statistiques", countries: "Gestion des Pays", users: "Membres", payments: "Paiements", inquiries: "Demandes", news: "Actualités", socialLinks: "Liens Sociaux", videos: "Vidéos par Pays" },
+    ui: { totalMembers: "Total des membres", todayNew: "Nouveaux aujourd'hui", monthRevenue: "Revenus du mois", totalRevenue: "Revenus totaux", totalWills: "Testaments", pendingInquiries: "Demandes en attente",
+      memberMgmt: "Gestion des membres", searchPlaceholder: "Rechercher nom, email, téléphone", allRoles: "Tous", normalRole: "Utilisateur", adminRole: "Admin",
+      colName: "Nom", colEmail: "Email", colPhone: "Téléphone", colCountry: "Pays", colJoinDate: "Inscription", colGrade: "Niveau", colRole: "Rôle", colManage: "Gérer",
+      detail: "Détail", password: "Mot de passe", loading: "Chargement...", noData: "Aucune donnée.",
+      gradeGeneral: "Général", gradeSilver: "Silver", gradeGold: "Gold", gradePlatinum: "Platinum", gradeVip: "VIP",
+      paymentMgmt: "Gestion des paiements", searchEmail: "Rechercher email", allStatus: "Tous", completed: "Terminé", pending: "En attente", failed: "Échoué", refunded: "Remboursé",
+      colAmount: "Montant", colCurrency: "Devise", colStatus: "Statut", colPaidAt: "Payé le", colItems: "Articles",
+      inquiryMgmt: "Gestion des demandes", allInquiry: "Toutes", unanswered: "Sans réponse", answered: "Répondues",
+      colSubject: "Sujet", colContent: "Contenu", colRepliedAt: "Répondu le", reply: "Répondre", replyPlaceholder: "Entrez votre réponse", submitReply: "Enregistrer", cancel: "Annuler",
+      resetPwTitle: "Réinitialiser le mot de passe", resetPwPlaceholder: "Nouveau mot de passe (min. 8 chars)", resetPwSubmit: "Réinitialiser",
+    },
   },
   RU: {
-    langName: "Русский",
-    title: "Панель администратора SARAM",
-    subtitle: "Администратор",
+    langName: "Русский", title: "Панель администратора SARAM", subtitle: "Администратор",
     tabs: { stats: "Статистика", countries: "Управление странами", users: "Участники", payments: "Платежи", inquiries: "Запросы", news: "Новости", socialLinks: "Соц. сети", videos: "Видео по странам" },
+    ui: { totalMembers: "Всего участников", todayNew: "Новые сегодня", monthRevenue: "Доход за месяц", totalRevenue: "Общий доход", totalWills: "Завещания", pendingInquiries: "Ожидающие запросы",
+      memberMgmt: "Управление участниками", searchPlaceholder: "Поиск по имени, email, телефону", allRoles: "Все", normalRole: "Пользователь", adminRole: "Администратор",
+      colName: "Имя", colEmail: "Email", colPhone: "Телефон", colCountry: "Страна", colJoinDate: "Дата регистрации", colGrade: "Уровень", colRole: "Роль", colManage: "Управление",
+      detail: "Детали", password: "Пароль", loading: "Загрузка...", noData: "Данные не найдены.",
+      gradeGeneral: "Обычный", gradeSilver: "Silver", gradeGold: "Gold", gradePlatinum: "Platinum", gradeVip: "VIP",
+      paymentMgmt: "Управление платежами", searchEmail: "Поиск по email", allStatus: "Все", completed: "Завершён", pending: "Ожидание", failed: "Ошибка", refunded: "Возврат",
+      colAmount: "Сумма", colCurrency: "Валюта", colStatus: "Статус", colPaidAt: "Дата оплаты", colItems: "Товары",
+      inquiryMgmt: "Управление запросами", allInquiry: "Все", unanswered: "Без ответа", answered: "Отвечено",
+      colSubject: "Тема", colContent: "Содержание", colRepliedAt: "Дата ответа", reply: "Ответить", replyPlaceholder: "Введите ответ", submitReply: "Сохранить ответ", cancel: "Отмена",
+      resetPwTitle: "Сброс пароля", resetPwPlaceholder: "Новый пароль (мин. 8 символов)", resetPwSubmit: "Сбросить",
+    },
   },
   IN: {
-    langName: "हिन्दी",
-    title: "SARAM एडमिन डैशबोर्ड",
-    subtitle: "व्यवस्थापक",
+    langName: "हिन्दी", title: "SARAM एडमिन डैशबोर्ड", subtitle: "व्यवस्थापक",
     tabs: { stats: "आँकड़े", countries: "देश प्रबंधन", users: "सदस्य", payments: "भुगतान", inquiries: "पूछताछ", news: "समाचार", socialLinks: "सोशल लिंक", videos: "देश वीडियो" },
+    ui: { totalMembers: "कुल सदस्य", todayNew: "आज के नए", monthRevenue: "मासिक राजस्व", totalRevenue: "कुल राजस्व", totalWills: "वसीयतें", pendingInquiries: "लंबित पूछताछ",
+      memberMgmt: "सदस्य प्रबंधन", searchPlaceholder: "नाम, ईमेल, फ़ोन खोजें", allRoles: "सभी", normalRole: "उपयोगकर्ता", adminRole: "व्यवस्थापक",
+      colName: "नाम", colEmail: "ईमेल", colPhone: "फ़ोन", colCountry: "देश", colJoinDate: "शामिल हुए", colGrade: "स्तर", colRole: "भूमिका", colManage: "प्रबंधन",
+      detail: "विवरण", password: "पासवर्ड", loading: "लोड हो रहा है...", noData: "कोई डेटा नहीं।",
+      gradeGeneral: "सामान्य", gradeSilver: "Silver", gradeGold: "Gold", gradePlatinum: "Platinum", gradeVip: "VIP",
+      paymentMgmt: "भुगतान प्रबंधन", searchEmail: "ईमेल खोजें", allStatus: "सभी", completed: "पूर्ण", pending: "लंबित", failed: "विफल", refunded: "वापसी",
+      colAmount: "राशि", colCurrency: "मुद्रा", colStatus: "स्थिति", colPaidAt: "भुगतान तिथि", colItems: "वस्तुएं",
+      inquiryMgmt: "पूछताछ प्रबंधन", allInquiry: "सभी", unanswered: "अनुत्तरित", answered: "उत्तरित",
+      colSubject: "विषय", colContent: "सामग्री", colRepliedAt: "उत्तर तिथि", reply: "उत्तर", replyPlaceholder: "अपना उत्तर दर्ज करें", submitReply: "उत्तर सहेजें", cancel: "रद्द करें",
+      resetPwTitle: "पासवर्ड रीसेट", resetPwPlaceholder: "नया पासवर्ड (न्यूनतम 8 अक्षर)", resetPwSubmit: "रीसेट",
+    },
   },
   BR: {
-    langName: "Português",
-    title: "Painel Admin SARAM",
-    subtitle: "Administrador",
+    langName: "Português", title: "Painel Admin SARAM", subtitle: "Administrador",
     tabs: { stats: "Estatísticas", countries: "Gestão de Países", users: "Membros", payments: "Pagamentos", inquiries: "Consultas", news: "Notícias", socialLinks: "Links Sociais", videos: "Vídeos por País" },
+    ui: { totalMembers: "Total de Membros", todayNew: "Novos hoje", monthRevenue: "Receita do mês", totalRevenue: "Receita total", totalWills: "Testamentos", pendingInquiries: "Consultas pendentes",
+      memberMgmt: "Gestão de Membros", searchPlaceholder: "Pesquisar nome, email, telefone", allRoles: "Todos", normalRole: "Usuário", adminRole: "Admin",
+      colName: "Nome", colEmail: "Email", colPhone: "Telefone", colCountry: "País", colJoinDate: "Cadastro", colGrade: "Nível", colRole: "Função", colManage: "Gerenciar",
+      detail: "Detalhe", password: "Senha", loading: "Carregando...", noData: "Sem dados.",
+      gradeGeneral: "Geral", gradeSilver: "Silver", gradeGold: "Gold", gradePlatinum: "Platinum", gradeVip: "VIP",
+      paymentMgmt: "Gestão de Pagamentos", searchEmail: "Pesquisar email", allStatus: "Todos", completed: "Concluído", pending: "Pendente", failed: "Falhou", refunded: "Reembolsado",
+      colAmount: "Valor", colCurrency: "Moeda", colStatus: "Status", colPaidAt: "Pago em", colItems: "Itens",
+      inquiryMgmt: "Gestão de Consultas", allInquiry: "Todas", unanswered: "Sem resposta", answered: "Respondidas",
+      colSubject: "Assunto", colContent: "Conteúdo", colRepliedAt: "Respondido em", reply: "Responder", replyPlaceholder: "Digite sua resposta", submitReply: "Salvar resposta", cancel: "Cancelar",
+      resetPwTitle: "Redefinir senha", resetPwPlaceholder: "Nova senha (mín. 8 chars)", resetPwSubmit: "Redefinir",
+    },
   },
   CA: {
-    langName: "English (CA)",
-    title: "SARAM Admin Dashboard",
-    subtitle: "Admin",
+    langName: "English (CA)", title: "SARAM Admin Dashboard", subtitle: "Admin",
     tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos" },
+    ui: { totalMembers: "Total Members", todayNew: "Today New", monthRevenue: "Monthly Revenue", totalRevenue: "Total Revenue", totalWills: "Wills", pendingInquiries: "Pending Inquiries",
+      memberMgmt: "Member Management", searchPlaceholder: "Search name, email, phone", allRoles: "All", normalRole: "User", adminRole: "Admin",
+      colName: "Name", colEmail: "Email", colPhone: "Phone", colCountry: "Country", colJoinDate: "Joined", colGrade: "Grade", colRole: "Role", colManage: "Manage",
+      detail: "Detail", password: "Password", loading: "Loading...", noData: "No data found.",
+      gradeGeneral: "General", gradeSilver: "Silver", gradeGold: "Gold", gradePlatinum: "Platinum", gradeVip: "VIP",
+      paymentMgmt: "Payment Management", searchEmail: "Search email", allStatus: "All", completed: "Completed", pending: "Pending", failed: "Failed", refunded: "Refunded",
+      colAmount: "Amount", colCurrency: "Currency", colStatus: "Status", colPaidAt: "Paid At", colItems: "Items",
+      inquiryMgmt: "Inquiry Management", allInquiry: "All", unanswered: "Unanswered", answered: "Answered",
+      colSubject: "Subject", colContent: "Content", colRepliedAt: "Replied At", reply: "Reply", replyPlaceholder: "Enter your reply", submitReply: "Save Reply", cancel: "Cancel",
+      resetPwTitle: "Reset Password", resetPwPlaceholder: "New password (min 8 chars)", resetPwSubmit: "Reset",
+    },
   },
   AU: {
-    langName: "English (AU)",
-    title: "SARAM Admin Dashboard",
-    subtitle: "Admin",
+    langName: "English (AU)", title: "SARAM Admin Dashboard", subtitle: "Admin",
     tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos" },
+    ui: { totalMembers: "Total Members", todayNew: "Today New", monthRevenue: "Monthly Revenue", totalRevenue: "Total Revenue", totalWills: "Wills", pendingInquiries: "Pending Inquiries",
+      memberMgmt: "Member Management", searchPlaceholder: "Search name, email, phone", allRoles: "All", normalRole: "User", adminRole: "Admin",
+      colName: "Name", colEmail: "Email", colPhone: "Phone", colCountry: "Country", colJoinDate: "Joined", colGrade: "Grade", colRole: "Role", colManage: "Manage",
+      detail: "Detail", password: "Password", loading: "Loading...", noData: "No data found.",
+      gradeGeneral: "General", gradeSilver: "Silver", gradeGold: "Gold", gradePlatinum: "Platinum", gradeVip: "VIP",
+      paymentMgmt: "Payment Management", searchEmail: "Search email", allStatus: "All", completed: "Completed", pending: "Pending", failed: "Failed", refunded: "Refunded",
+      colAmount: "Amount", colCurrency: "Currency", colStatus: "Status", colPaidAt: "Paid At", colItems: "Items",
+      inquiryMgmt: "Inquiry Management", allInquiry: "All", unanswered: "Unanswered", answered: "Answered",
+      colSubject: "Subject", colContent: "Content", colRepliedAt: "Replied At", reply: "Reply", replyPlaceholder: "Enter your reply", submitReply: "Save Reply", cancel: "Cancel",
+      resetPwTitle: "Reset Password", resetPwPlaceholder: "New password (min 8 chars)", resetPwSubmit: "Reset",
+    },
   },
   NZ: {
-    langName: "English (NZ)",
-    title: "SARAM Admin Dashboard",
-    subtitle: "Admin",
+    langName: "English (NZ)", title: "SARAM Admin Dashboard", subtitle: "Admin",
     tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos" },
+    ui: { totalMembers: "Total Members", todayNew: "Today New", monthRevenue: "Monthly Revenue", totalRevenue: "Total Revenue", totalWills: "Wills", pendingInquiries: "Pending Inquiries",
+      memberMgmt: "Member Management", searchPlaceholder: "Search name, email, phone", allRoles: "All", normalRole: "User", adminRole: "Admin",
+      colName: "Name", colEmail: "Email", colPhone: "Phone", colCountry: "Country", colJoinDate: "Joined", colGrade: "Grade", colRole: "Role", colManage: "Manage",
+      detail: "Detail", password: "Password", loading: "Loading...", noData: "No data found.",
+      gradeGeneral: "General", gradeSilver: "Silver", gradeGold: "Gold", gradePlatinum: "Platinum", gradeVip: "VIP",
+      paymentMgmt: "Payment Management", searchEmail: "Search email", allStatus: "All", completed: "Completed", pending: "Pending", failed: "Failed", refunded: "Refunded",
+      colAmount: "Amount", colCurrency: "Currency", colStatus: "Status", colPaidAt: "Paid At", colItems: "Items",
+      inquiryMgmt: "Inquiry Management", allInquiry: "All", unanswered: "Unanswered", answered: "Answered",
+      colSubject: "Subject", colContent: "Content", colRepliedAt: "Replied At", reply: "Reply", replyPlaceholder: "Enter your reply", submitReply: "Save Reply", cancel: "Cancel",
+      resetPwTitle: "Reset Password", resetPwPlaceholder: "New password (min 8 chars)", resetPwSubmit: "Reset",
+    },
   },
 };
 
@@ -2136,9 +2281,9 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         {activeTab === "stats" && <StatsTab country={adminLang} locale={locale} />}
         {activeTab === "countries" && <CountriesTab />}
-        {activeTab === "users" && <UsersTab country={adminLang} />}
-        {activeTab === "payments" && <PaymentsTab country={adminLang} />}
-        {activeTab === "inquiries" && <InquiriesTab country={adminLang} />}
+        {activeTab === "users" && <UsersTab country={adminLang} locale={locale} />}
+        {activeTab === "payments" && <PaymentsTab country={adminLang} locale={locale} />}
+        {activeTab === "inquiries" && <InquiriesTab country={adminLang} locale={locale} />}
         {activeTab === "news" && <NewsTab />}
         {activeTab === "socialLinks" && <SocialLinksTab />}
         {activeTab === "videos" && <VideosTab />}
