@@ -2,6 +2,7 @@
  * EverWill 서비스 섹션
  * - 영상 유언장 + 자필 유언 스캔 → 하나의 박스로 통합
  * - 나의 자서전 만들기 박스 추가
+ * - 모든 텍스트 다국어 처리 (useLanguage 훅 사용)
  */
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
@@ -87,6 +88,16 @@ export default function ServicesSection() {
       isPremium: true,
       href: "/life-story",
     },
+  ];
+
+  // 자서전 6챕터 데이터 (번역 키 사용)
+  const autobiographyChapters = [
+    { emoji: "👶", title: t.services.autobiographyCh1Title, desc: t.services.autobiographyCh1Desc },
+    { emoji: "🎓", title: t.services.autobiographyCh2Title, desc: t.services.autobiographyCh2Desc },
+    { emoji: "💑", title: t.services.autobiographyCh3Title, desc: t.services.autobiographyCh3Desc },
+    { emoji: "💼", title: t.services.autobiographyCh4Title, desc: t.services.autobiographyCh4Desc },
+    { emoji: "👨‍👩‍👧‍👦", title: t.services.autobiographyCh5Title, desc: t.services.autobiographyCh5Desc },
+    { emoji: "🌅", title: t.services.autobiographyCh6Title, desc: t.services.autobiographyCh6Desc },
   ];
 
   return (
@@ -239,11 +250,15 @@ export default function ServicesSection() {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-bold text-orange-700 bg-orange-100 px-2.5 py-0.5 rounded-full">영상 + 자필 인증</span>
+                  <span className="text-xs font-bold text-orange-700 bg-orange-100 px-2.5 py-0.5 rounded-full">
+                    {t.services.videoHandwrittenBadge}
+                  </span>
                 </div>
-                <h3 className="font-extrabold text-[#1F3864] text-lg leading-tight">영상 유언장 + 자필 유언 스캔 인증</h3>
+                <h3 className="font-extrabold text-[#1F3864] text-lg leading-tight">
+                  {t.services.videoHandwrittenTitle}
+                </h3>
                 <p className="text-gray-700 text-sm leading-relaxed mt-1">
-                  법적 녹음 유언 + 가족 감성 메시지 영상 녹화, 그리고 자필 유언 사진 업로드 → AI 형식 검증 → 분산 암호화 무결성 기록까지 한 번에.
+                  {t.services.videoHandwrittenDesc}
                 </p>
               </div>
             </div>
@@ -254,32 +269,32 @@ export default function ServicesSection() {
               <div className="bg-white/60 rounded-xl p-3 border border-orange-100">
                 <div className="flex items-center gap-2 mb-2">
                   <Video className="w-4 h-4 text-orange-500" />
-                  <span className="text-xs font-bold text-orange-600">영상 유언장</span>
+                  <span className="text-xs font-bold text-orange-600">{t.services.videoWillSubTitle}</span>
                 </div>
                 <ul className="text-xs text-gray-600 space-y-1">
-                  <li>• AI 낭독 스크립트 자동 생성</li>
-                  <li>• 녹화 중 실시간 가이드</li>
-                  <li>• 가족별 개별 메시지 설정</li>
-                  <li>• 공개 타이밍 설정 (성인식·결혼식)</li>
-                  <li>• 블록체인 해시 기록</li>
+                  <li>• {t.services.videoWillDetail1}</li>
+                  <li>• {t.services.videoWillDetail2}</li>
+                  <li>• {t.services.videoWillDetail3}</li>
+                  <li>• {t.services.videoWillDetail4}</li>
+                  <li>• {t.services.videoWillDetail5}</li>
                 </ul>
-                <div className="mt-2 text-[10px] text-orange-500 font-medium">+₩29,000</div>
+                <div className="mt-2 text-[10px] text-orange-500 font-medium">{t.services.videoWillPrice}</div>
               </div>
 
               {/* 자필 유언 스캔 */}
               <div className="bg-white/60 rounded-xl p-3 border border-amber-100">
                 <div className="flex items-center gap-2 mb-2">
                   <Scroll className="w-4 h-4 text-amber-500" />
-                  <span className="text-xs font-bold text-amber-600">자필 유언 스캔</span>
+                  <span className="text-xs font-bold text-amber-600">{t.services.handwrittenSubTitle}</span>
                 </div>
                 <ul className="text-xs text-gray-600 space-y-1">
-                  <li>• 자필 유언 사진 업로드</li>
-                  <li>• AI 자동 형식 검증</li>
-                  <li>• 날짜·서명·날인 5요건 체크</li>
-                  <li>• 위조 탐지 알고리즘</li>
-                  <li>• 분산 암호화 무결성 기록</li>
+                  <li>• {t.services.handwrittenDetail1}</li>
+                  <li>• {t.services.handwrittenDetail2}</li>
+                  <li>• {t.services.handwrittenDetail3}</li>
+                  <li>• {t.services.handwrittenDetail4}</li>
+                  <li>• {t.services.handwrittenDetail5}</li>
                 </ul>
-                <div className="mt-2 text-[10px] text-amber-500 font-medium">+₩19,000</div>
+                <div className="mt-2 text-[10px] text-amber-500 font-medium">{t.services.handwrittenPrice}</div>
               </div>
             </div>
 
@@ -287,12 +302,12 @@ export default function ServicesSection() {
             <div className="rounded-xl border-2 p-4 flex items-start gap-2.5 bg-orange-50 border-orange-100 text-orange-700">
               <Scale className="w-4 h-4 flex-shrink-0 mt-0.5 opacity-80" />
               <div>
-                <p className="text-sm font-bold mb-1 leading-tight">추가 인증 서비스</p>
+                <p className="text-sm font-bold mb-1 leading-tight">{t.services.additionalAuthTitle}</p>
                 <p className="text-sm leading-relaxed opacity-90">
-                  기본 가입만으로도 전자 인증 유언장이 완성됩니다. 영상 유언 + 자필 스캔은 이를 더욱 확고히 하는 선택적 추가 인증입니다.
+                  {t.services.additionalAuthDesc}
                 </p>
                 <p className="text-xs mt-1.5 leading-relaxed text-orange-500">
-                  민법 제1067조(녹음 유언) · 제1066조(자필증서 유언) 기준 — AI 자동 검증으로 인증 신뢰도 강화
+                  {t.services.additionalAuthLegal}
                 </p>
               </div>
             </div>
@@ -316,25 +331,22 @@ export default function ServicesSection() {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-bold text-indigo-700 bg-indigo-100 px-2.5 py-0.5 rounded-full">Life Story PRO</span>
+                  <span className="text-xs font-bold text-indigo-700 bg-indigo-100 px-2.5 py-0.5 rounded-full">
+                    {t.services.autobiographyBadge}
+                  </span>
                 </div>
-                <h3 className="font-extrabold text-[#1F3864] text-lg leading-tight">나의 자서전 만들기</h3>
+                <h3 className="font-extrabold text-[#1F3864] text-lg leading-tight">
+                  {t.services.autobiographyTitle}
+                </h3>
                 <p className="text-gray-700 text-sm leading-relaxed mt-1">
-                  AI와 대화하며 나만의 인생 이야기를 책으로 만들어 보세요. 음성으로 말씀하시면 AI가 아름다운 자서전을 써드립니다.
+                  {t.services.autobiographyDesc}
                 </p>
               </div>
             </div>
 
             {/* 6챕터 구성 */}
             <div className="grid grid-cols-3 gap-2 mb-4">
-              {[
-                { emoji: "👶", title: "어린 시절", desc: "태어난 곳, 가족, 추억" },
-                { emoji: "🎓", title: "청년 시절", desc: "학창 시절, 꿈, 도전" },
-                { emoji: "💑", title: "사랑과 결혼", desc: "만남, 결혼, 가정" },
-                { emoji: "💼", title: "직업과 성취", desc: "일, 성공, 보람" },
-                { emoji: "👨‍👩‍👧‍👦", title: "가족과 삶", desc: "자녀, 손자녀, 행복" },
-                { emoji: "🌅", title: "지혜와 유언", desc: "인생 교훈, 마지막 말" },
-              ].map((chapter, idx) => (
+              {autobiographyChapters.map((chapter, idx) => (
                 <div key={idx} className="bg-white/70 rounded-xl p-2.5 border border-indigo-100 text-center">
                   <div className="text-xl mb-1">{chapter.emoji}</div>
                   <div className="text-xs font-bold text-[#1F3864] leading-tight">{chapter.title}</div>
@@ -348,19 +360,19 @@ export default function ServicesSection() {
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex items-center gap-2">
                   <Mic className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
-                  <span className="text-xs text-gray-700">음성으로 말하면 AI가 글로 변환</span>
+                  <span className="text-xs text-gray-700">{t.services.autobiographyFeature1}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm">🎨</span>
-                  <span className="text-xs text-gray-700">내 사진 → AI 수채화 그림 삽입</span>
+                  <span className="text-xs text-gray-700">{t.services.autobiographyFeature2}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm">📖</span>
-                  <span className="text-xs text-gray-700">6챕터 완성 후 PDF 출력</span>
+                  <span className="text-xs text-gray-700">{t.services.autobiographyFeature3}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm">👨‍👩‍👧</span>
-                  <span className="text-xs text-gray-700">가족 공유 링크 발송</span>
+                  <span className="text-xs text-gray-700">{t.services.autobiographyFeature4}</span>
                 </div>
               </div>
             </div>
@@ -373,7 +385,7 @@ export default function ServicesSection() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <BookOpen className="w-4 h-4" />
-                  자서전 시작하기 →
+                  {t.services.autobiographyStartBtn}
                 </button>
               </Link>
             </div>
