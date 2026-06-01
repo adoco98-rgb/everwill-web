@@ -12,6 +12,29 @@ import { invokeLLM } from "../_core/llm";
 
 export const verificationRouter = router({
   /**
+   * 프로필 사진 업로드
+   * - photoBase64: 프로필 사진 (base64 data URL)
+   */
+  uploadProfilePhoto: protectedProcedure
+    .input(z.object({ photoBase64: z.string().min(10) }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("데이터베이스 연결 오류");
+
+      const userId = ctx.user.id;
+      const match = input.photoBase64.match(/^data:([^;]+);base64,(.+)$/);
+      if (!match) throw new Error("잘못된 이미지 형식입니다.");
+      const mimeType = match[1];
+      const buffer = Buffer.from(match[2], "base64");
+      const ext = mimeType.split("/")[1] || "jpg";
+      const key = `profile/${userId}/photo_${Date.now()}.${ext}`;
+      const { url } = await storagePut(key, buffer, mimeType);
+
+      await db.update(users).set({ profilePhotoKey: key }).where(eq(users.id, userId));
+      return { success: true, url, key };
+    }),
+
+  /**
    * 현재 사용자의 얼굴 인증 상태 조회
    */
   getStatus: protectedProcedure.query(async ({ ctx }) => {
@@ -25,6 +48,7 @@ export const verificationRouter = router({
         selfieImageKey: users.selfieImageKey,
         faceVerifiedAt: users.faceVerifiedAt,
         faceVerifyResult: users.faceVerifyResult,
+        profilePhotoKey: users.profilePhotoKey,
       })
       .from(users)
       .where(eq(users.id, ctx.user.id))
@@ -37,6 +61,7 @@ export const verificationRouter = router({
       hasSelfie: !!user?.selfieImageKey,
       faceVerifiedAt: user?.faceVerifiedAt ?? null,
       faceVerifyResult: user?.faceVerifyResult ?? null,
+      profilePhotoUrl: user?.profilePhotoKey ? `/manus-storage/${user.profilePhotoKey}` : null,
     };
   }),
 

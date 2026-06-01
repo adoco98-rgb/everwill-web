@@ -824,3 +824,18 @@
 - [x] AdminPage.tsx: CountriesTab 컴포넌트 (14개국 카드 그리드 + 전체 요약 통계)
 - [x] AdminPage.tsx: CountryDetailView 컴포넌트 (회원/매출/문의 서브탭)
 - [x] 관리자 탭 네비게이션에 "국가별 관리" 탭 추가 (Globe 아이콘)
+
+## eKYC 인증 플로우 및 프로필 사진 업로드
+- [ ] DB: users 테이블에 profilePhoto, idCardPhoto, selfiePhoto, kycStatus, kycVerifiedAt, ciValue 필드 추가
+- [ ] DB: pnpm db:push 실행
+- [ ] API: 프로필 사진 업로드 tRPC 프로시저 (S3 저장)
+- [ ] API: 신분증 사진 업로드 tRPC 프로시저 (S3 저장, 관리자만 조회 가능)
+- [ ] API: 셀카 사진 업로드 tRPC 프로시저 (S3 저장)
+- [ ] API: KYC 상태 업데이트 프로시저 (pending → verified/rejected)
+- [ ] 마이페이지: 프로필 사진 업로드/변경 UI (원형 아바타 클릭 → 파일 선택)
+- [ ] 유언장 인증 단계 (Step9): 신분증 업로드 + 셀카 촬영 + 휴대폰 인증 UI
+- [ ] 신분증 업로드 가이드 UI (빛 반사 없는 곳, 모서리 맞추기 안내)
+- [ ] 셀카 촬영 가이드 UI (원형 프레임, 정면 응시 안내)
+- [ ] KYC 완료 후 결제 버튼 활성화 로직
+- [ ] 관리자 페이지: KYC 신청 목록 + 승인/거절 처리 UI
+- [ ] 관리자 페이지: 신분증/셀카 사진 확인 (보안 접근)

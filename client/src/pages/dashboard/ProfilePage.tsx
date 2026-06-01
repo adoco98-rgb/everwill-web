@@ -11,8 +11,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Mail, Calendar, Shield, LogOut, Gift, Copy, Check,
   TrendingUp, Clock, ChevronRight, Coins, Share2, X as XIcon,
-  Pencil, Save, Phone, MapPin, Briefcase
+  Pencil, Save, Phone, MapPin, Briefcase, Camera, CheckCircle2, AlertCircle
 } from "lucide-react";
+import FaceVerification from "@/components/FaceVerification";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -220,6 +221,55 @@ export default function ProfilePage() {
 
   const isSaving = updateEmailProfileMutation.isPending || updatePhoneProfileMutation.isPending;
 
+  // 프로필 사진 업로드 상태
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
+  const [showKycSection, setShowKycSection] = useState(false);
+
+  // 인증 상태 조회
+  const { data: verificationStatus, refetch: refetchVerification } = trpc.verification.getStatus.useQuery();
+
+  // 프로필 사진 업로드 mutation
+  const uploadPhotoMutation = trpc.verification.uploadProfilePhoto.useMutation({
+    onSuccess: (data) => {
+      toast.success("프로필 사진이 업데이트되었습니다.");
+      setProfilePhotoPreview(data.url);
+      refetchVerification();
+    },
+    onError: (err) => {
+      toast.error(err.message || "사진 업로드에 실패했습니다.");
+    },
+  });
+
+  // 프로필 사진 선택 처리
+  const handleProfilePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("파일 크기는 5MB 이하여야 합니다.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result as string;
+      // 리사이즈
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxSize = 400;
+        let { width, height } = img;
+        if (width > height) { height = Math.round(height * maxSize / width); width = maxSize; }
+        else { width = Math.round(width * maxSize / height); height = maxSize; }
+        canvas.width = width; canvas.height = height;
+        canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+        const resized = canvas.toDataURL("image/jpeg", 0.85);
+        setProfilePhotoPreview(resized);
+        uploadPhotoMutation.mutate({ photoBase64: resized });
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  };
+
   function handleCancelEdit() {
     // 취소 시 폼을 현재 user 정보로 재초기화
     if (user) {
@@ -372,9 +422,38 @@ export default function ProfilePage() {
         {/* 헤더 */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-5">
-            <div className="w-16 h-16 bg-[#1F3864] rounded-2xl flex items-center justify-center shrink-0">
-              <span className="text-white font-bold text-xl">{initials}</span>
-            </div>
+            {/* 프로필 사진 업로드 영역 */}
+            <label className="relative cursor-pointer group shrink-0">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleProfilePhotoChange}
+              />
+              <div className="w-16 h-16 rounded-2xl overflow-hidden bg-[#1F3864] flex items-center justify-center">
+                {profilePhotoPreview || verificationStatus?.profilePhotoUrl ? (
+                  <img
+                    src={profilePhotoPreview || verificationStatus?.profilePhotoUrl || ""}
+                    alt="프로필 사진"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-white font-bold text-xl">{initials}</span>
+                )}
+              </div>
+              {/* 호버 오버레이 */}
+              <div className="absolute inset-0 rounded-2xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                {uploadPhotoMutation.isPending ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Camera className="w-5 h-5 text-white" />
+                )}
+              </div>
+              {/* 카메라 아이콘 배지 */}
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#C9A961] rounded-full flex items-center justify-center">
+                <Camera className="w-2.5 h-2.5 text-white" />
+              </div>
+            </label>
             <div>
               <h2 className="font-bold text-[#1F3864] text-lg">{user?.name || "사용자"}</h2>
               <p className="text-gray-400 text-sm">{user?.email || "-"}</p>
@@ -550,6 +629,64 @@ export default function ProfilePage() {
             <span className="text-[#1F3864] text-sm font-medium">{joinDate}</span>
           </div>
         </div>
+      </motion.div>
+
+      {/* 본인 인증 (KYC) 섹션 */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.03 }}
+        className="bg-white rounded-2xl border border-gray-100 p-6"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Shield className="w-4 h-4 text-[#1F3864]" />
+            <h3 className="font-bold text-[#1F3864] text-sm">본인 인증 (eKYC)</h3>
+          </div>
+          {verificationStatus?.faceVerified ? (
+            <span className="inline-flex items-center gap-1 bg-green-50 text-green-600 text-xs font-semibold px-2.5 py-1 rounded-full border border-green-200">
+              <CheckCircle2 className="w-3 h-3" /> 인증 완료
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 bg-orange-50 text-orange-600 text-xs font-semibold px-2.5 py-1 rounded-full border border-orange-200">
+              <AlertCircle className="w-3 h-3" /> 미인증
+            </span>
+          )}
+        </div>
+
+        {verificationStatus?.faceVerified ? (
+          <div className="bg-green-50 rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-8 h-8 text-green-500 shrink-0" />
+              <div>
+                <p className="font-semibold text-green-800 text-sm">본인 인증이 완료되었습니다</p>
+                {verificationStatus.faceVerifiedAt && (
+                  <p className="text-xs text-green-600 mt-0.5">
+                    {new Date(verificationStatus.faceVerifiedAt).toLocaleDateString("ko-KR")} 인증됨
+                  </p>
+                )}
+                <p className="text-xs text-green-600 mt-1">{verificationStatus.faceVerifyResult}</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <p className="text-gray-500 text-sm mb-4">
+              유언장 인증을 위해 신분증과 셀피(얼굴 사진)로 본인 인증을 완료해주세요.
+            </p>
+            {!showKycSection ? (
+              <button
+                onClick={() => setShowKycSection(true)}
+                className="w-full py-3 border-2 border-dashed border-[#1F3864]/20 rounded-xl text-[#1F3864] text-sm font-medium hover:bg-[#1F3864]/5 transition-colors flex items-center justify-center gap-2"
+              >
+                <Camera className="w-4 h-4" />
+                본인 인증 시작하기
+              </button>
+            ) : (
+              <FaceVerification onSuccess={() => { setShowKycSection(false); refetchVerification(); }} />
+            )}
+          </div>
+        )}
       </motion.div>
 
       {/* 포인트 잔액 + 추천인 코드 */}

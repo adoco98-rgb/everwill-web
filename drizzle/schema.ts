@@ -77,6 +77,8 @@ export const users = mysqlTable("users", {
   memberGrade: mysqlEnum("memberGrade", ["general", "silver", "gold", "platinum", "vip"]).default("general").notNull(),
   /** 등급 마지막 업데이트 시각 */
   gradeUpdatedAt: timestamp("gradeUpdatedAt"),
+  /** 프로필 사진 스토리지 키 */
+  profilePhotoKey: varchar("profilePhotoKey", { length: 512 }),
   /** 얼굴 인증 완료 여부 (0=미완료, 1=완료) */
   faceVerified: int("faceVerified").default(0),
   /** 신분증 사진 스토리지 키 */

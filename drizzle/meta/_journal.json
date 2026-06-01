@@ -218,6 +218,13 @@
       "when": 1780304632343,
       "tag": "0030_whole_vivisector",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "5",
+      "when": 1780355479832,
+      "tag": "0031_yielding_ricochet",
+      "breakpoints": true
     }
   ]
 }
