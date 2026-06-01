@@ -51,16 +51,25 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
 }
 
 /** 통계 탭 */
-function StatsTab() {
-  const { data, isLoading } = trpc.admin.stats.useQuery();
-  if (isLoading) return <div className="text-center py-16 text-gray-400">로딩 중...</div>;
+function StatsTab({ country, locale }: { country: string; locale: typeof ADMIN_LOCALES[string] }) {
+  const countryFilter = country !== "ALL" ? country : undefined;
+  const { data, isLoading } = trpc.admin.stats.useQuery({ country: countryFilter });
+  const countryInfo = ADMIN_COUNTRY_FLAGS.find(c => c.code === country);
+  if (isLoading) return <div className="text-center py-16 text-gray-400">{locale.tabs.stats}...</div>;
   if (!data) return null;
   return (
     <div className="space-y-6">
-      <h2 className="text-lg font-bold text-[#1F3864]">종합 현황</h2>
+      <div className="flex items-center gap-3">
+        {countryInfo && (
+          <img src={countryInfo.flagImg} alt={country} className="w-8 h-5 object-cover rounded shadow-sm" />
+        )}
+        <h2 className="text-lg font-bold text-[#1F3864]">
+          {country !== "ALL" ? `${country} ` : ""}{locale.tabs.stats}
+        </h2>
+      </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Users} label="총 회원수" value={`${data.totalUsers.toLocaleString()}명`} sub={`오늘 +${data.todayUsers}명`} color="bg-[#1F3864]" />
-        <StatCard icon={TrendingUp} label="이번달 매출" value={formatKRW(data.monthRevenue)} sub={`총 ${formatKRW(data.totalRevenue)}`} color="bg-[#C9A961]" />
+        <StatCard icon={Users} label="열 회원수" value={`${data.totalUsers.toLocaleString()}명`} sub={`오늘 +${data.todayUsers}명`} color="bg-[#1F3864]" />
+        <StatCard icon={TrendingUp} label="이번달 매출" value={formatKRW(data.monthRevenue)} sub={`열 ${formatKRW(data.totalRevenue)}`} color="bg-[#C9A961]" />
         <StatCard icon={FileText} label="유언장 수" value={`${data.totalWills.toLocaleString()}건`} color="bg-green-500" />
         <StatCard icon={MessageSquare} label="미답변 문의" value={`${data.pendingInquiries}건`} color="bg-orange-500" />
       </div>
@@ -394,7 +403,7 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
   );
 }
 
-function UsersTab() {
+function UsersTab({ country }: { country: string }) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
@@ -404,8 +413,9 @@ function UsersTab() {
   const [showPw, setShowPw] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const utils = trpc.useUtils();
+  const countryFilter = country !== "ALL" ? country : undefined;
 
-  const { data, isLoading } = trpc.admin.getUsers.useQuery({ page, limit: 20, search, role: roleFilter });
+  const { data, isLoading } = trpc.admin.getUsers.useQuery({ page, limit: 20, search, role: roleFilter, country: countryFilter });
   const updateRole = trpc.admin.updateUserRole.useMutation({
     onSuccess: () => {
       toast.success("역할이 변경되었습니다.");
@@ -591,13 +601,14 @@ function UsersTab() {
 
 
 /** 결제/매입 탭 */
-function PaymentsTab() {
+function PaymentsTab({ country }: { country: string }) {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "completed" | "failed" | "refunded">("all");
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const countryFilter = country !== "ALL" ? country : undefined;
 
-  const { data, isLoading } = trpc.admin.getPayments.useQuery({ page, limit: 20, search });
+  const { data, isLoading } = trpc.admin.getPayments.useQuery({ page, limit: 20, search, country: countryFilter });
   const totalPages = data ? Math.ceil(data.total / 20) : 1;
 
   const statusLabel: Record<string, { label: string; color: string }> = {
@@ -773,13 +784,14 @@ function WillsTab() {
 }
 
 /** 문의 관리 탭 */
-function InquiriesTab() {
+function InquiriesTab({ country }: { country: string }) {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "answered">("all");
   const [replyingId, setReplyingId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
   const utils = trpc.useUtils();
-  const { data, isLoading } = trpc.admin.getInquiries.useQuery({ page, limit: 20, status: statusFilter });;
+  const countryFilter = country !== "ALL" ? country : undefined;
+  const { data, isLoading } = trpc.admin.getInquiries.useQuery({ page, limit: 20, status: statusFilter, country: countryFilter });
   const replyMutation = trpc.admin.replyInquiry.useMutation({
     onSuccess: () => {
       toast.success("답변이 저장되었습니다.");
@@ -2009,20 +2021,20 @@ const ADMIN_LOCALES: Record<string, {
 };
 
 const ADMIN_COUNTRY_FLAGS = [
-  { code: "KR", flag: "🇰🇷" },
-  { code: "US", flag: "🇺🇸" },
-  { code: "JP", flag: "🇯🇵" },
-  { code: "CN", flag: "🇨🇳" },
-  { code: "DE", flag: "🇩🇪" },
-  { code: "ES", flag: "🇪🇸" },
-  { code: "SA", flag: "🇸🇦" },
-  { code: "FR", flag: "🇫🇷" },
-  { code: "RU", flag: "🇷🇺" },
-  { code: "IN", flag: "🇮🇳" },
-  { code: "BR", flag: "🇧🇷" },
-  { code: "CA", flag: "🇨🇦" },
-  { code: "AU", flag: "🇦🇺" },
-  { code: "NZ", flag: "🇳🇿" },
+  { code: "KR", flag: "🇰🇷", flagImg: "https://flagcdn.com/w80/kr.png" },
+  { code: "US", flag: "🇺🇸", flagImg: "https://flagcdn.com/w80/us.png" },
+  { code: "JP", flag: "🇯🇵", flagImg: "https://flagcdn.com/w80/jp.png" },
+  { code: "CN", flag: "🇨🇳", flagImg: "https://flagcdn.com/w80/cn.png" },
+  { code: "DE", flag: "🇩🇪", flagImg: "https://flagcdn.com/w80/de.png" },
+  { code: "ES", flag: "🇪🇸", flagImg: "https://flagcdn.com/w80/es.png" },
+  { code: "SA", flag: "🇸🇦", flagImg: "https://flagcdn.com/w80/sa.png" },
+  { code: "FR", flag: "🇫🇷", flagImg: "https://flagcdn.com/w80/fr.png" },
+  { code: "RU", flag: "🇷🇺", flagImg: "https://flagcdn.com/w80/ru.png" },
+  { code: "IN", flag: "🇮🇳", flagImg: "https://flagcdn.com/w80/in.png" },
+  { code: "BR", flag: "🇧🇷", flagImg: "https://flagcdn.com/w80/br.png" },
+  { code: "CA", flag: "🇨🇦", flagImg: "https://flagcdn.com/w80/ca.png" },
+  { code: "AU", flag: "🇦🇺", flagImg: "https://flagcdn.com/w80/au.png" },
+  { code: "NZ", flag: "🇳🇿", flagImg: "https://flagcdn.com/w80/nz.png" },
 ];
 
 /** 메인 관리자 페이지 */
@@ -2079,18 +2091,18 @@ export default function AdminPage() {
 
           {/* 14개국 국기 탭 선택바 */}
           <div className="flex gap-1 overflow-x-auto pb-0 scrollbar-hide">
-            {ADMIN_COUNTRY_FLAGS.map(({ code, flag }) => (
+            {ADMIN_COUNTRY_FLAGS.map(({ code, flagImg }) => (
               <button
                 key={code}
                 onClick={() => setAdminLang(code)}
                 title={ADMIN_LOCALES[code]?.langName ?? code}
-                className={`flex flex-col items-center gap-0.5 px-3 py-2.5 rounded-t-xl text-xs font-bold transition-all whitespace-nowrap ${
+                className={`flex flex-col items-center gap-0.5 px-2.5 py-2 rounded-t-xl text-xs font-bold transition-all whitespace-nowrap ${
                   adminLang === code
                     ? "bg-white text-[#1F3864] shadow-sm"
                     : "text-white/70 hover:text-white hover:bg-white/10"
                 }`}
               >
-                <span className="text-xl leading-none">{flag}</span>
+                <img src={flagImg} alt={code} className="w-8 h-5 object-cover rounded shadow-sm" />
                 <span className="text-[10px] leading-none mt-0.5">{code}</span>
               </button>
             ))}
@@ -2122,11 +2134,11 @@ export default function AdminPage() {
 
       {/* 콘텐츠 */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {activeTab === "stats" && <StatsTab />}
+        {activeTab === "stats" && <StatsTab country={adminLang} locale={locale} />}
         {activeTab === "countries" && <CountriesTab />}
-        {activeTab === "users" && <UsersTab />}
-        {activeTab === "payments" && <PaymentsTab />}
-        {activeTab === "inquiries" && <InquiriesTab />}
+        {activeTab === "users" && <UsersTab country={adminLang} />}
+        {activeTab === "payments" && <PaymentsTab country={adminLang} />}
+        {activeTab === "inquiries" && <InquiriesTab country={adminLang} />}
         {activeTab === "news" && <NewsTab />}
         {activeTab === "socialLinks" && <SocialLinksTab />}
         {activeTab === "videos" && <VideosTab />}

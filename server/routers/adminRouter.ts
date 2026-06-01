@@ -16,19 +16,29 @@ import { desc, eq, like, or, sql, and, gte } from "drizzle-orm";
 
 export const adminRouter = router({
   /** 종합 통계 */
-  stats: adminProcedure.query(async ({ ctx }) => {
-    
+  stats: adminProcedure
+    .input(z.object({ country: z.string().optional() }))
+    .query(async ({ ctx, input }) => {
     const db = await getDb();
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const [totalUsersRow] = await db.select({ count: sql<number>`COUNT(*)` }).from(users);
-    const [todayUsersRow] = await db.select({ count: sql<number>`COUNT(*)` }).from(users).where(gte(users.createdAt, todayStart));
-    const [totalWillsRow] = await db.select({ count: sql<number>`COUNT(*)` }).from(wills);
-    const [totalPaymentsRow] = await db.select({ total: sql<number>`COALESCE(SUM(amountTotal), 0)` }).from(payments).where(eq(payments.status, "completed"));
-    const [monthPaymentsRow] = await db.select({ total: sql<number>`COALESCE(SUM(amountTotal), 0)` }).from(payments).where(and(eq(payments.status, "completed"), gte(payments.paidAt, monthStart)));
-    const [pendingInquiriesRow] = await db.select({ count: sql<number>`COUNT(*)` }).from(inquiries).where(eq(inquiries.status, "pending"));
+    const countryFilter = input.country ? eq(users.country, input.country) : undefined;
+    const [totalUsersRow] = await db.select({ count: sql<number>`COUNT(*)` }).from(users).where(countryFilter);
+    const [todayUsersRow] = await db.select({ count: sql<number>`COUNT(*)` }).from(users).where(and(gte(users.createdAt, todayStart), countryFilter));
+    const [totalWillsRow] = await db.select({ count: sql<number>`COUNT(*)` }).from(wills)
+      .leftJoin(users, eq(wills.userId, users.id)).where(countryFilter);
+    const paymentsBase = countryFilter
+      ? db.select({ total: sql<number>`COALESCE(SUM(${payments.amountTotal}), 0)` }).from(payments).leftJoin(users, eq(payments.userId, users.id)).where(and(eq(payments.status, "completed"), countryFilter))
+      : db.select({ total: sql<number>`COALESCE(SUM(amountTotal), 0)` }).from(payments).where(eq(payments.status, "completed"));
+    const monthPaymentsBase = countryFilter
+      ? db.select({ total: sql<number>`COALESCE(SUM(${payments.amountTotal}), 0)` }).from(payments).leftJoin(users, eq(payments.userId, users.id)).where(and(eq(payments.status, "completed"), gte(payments.paidAt, monthStart), countryFilter))
+      : db.select({ total: sql<number>`COALESCE(SUM(amountTotal), 0)` }).from(payments).where(and(eq(payments.status, "completed"), gte(payments.paidAt, monthStart)));
+    const inquiriesBase = countryFilter
+      ? db.select({ count: sql<number>`COUNT(*)` }).from(inquiries).leftJoin(users, eq(inquiries.userId, users.id)).where(and(eq(inquiries.status, "pending"), countryFilter))
+      : db.select({ count: sql<number>`COUNT(*)` }).from(inquiries).where(eq(inquiries.status, "pending"));
+    const [[totalPaymentsRow], [monthPaymentsRow], [pendingInquiriesRow]] = await Promise.all([paymentsBase, monthPaymentsBase, inquiriesBase]);
     return {
       totalUsers: totalUsersRow.count,
       todayUsers: todayUsersRow.count,
@@ -46,6 +56,7 @@ export const adminRouter = router({
       limit: z.number().default(20),
       search: z.string().optional(),
       role: z.enum(["all", "user", "admin"]).default("all"),
+      country: z.string().optional(),
     }))
     .query(async ({ ctx, input }) => {
       
@@ -60,6 +71,9 @@ export const adminRouter = router({
       }
       if (input.role !== "all") {
         conditions.push(eq(users.role, input.role));
+      }
+      if (input.country) {
+        conditions.push(eq(users.country, input.country));
       }
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
       const db = await getDb();
@@ -145,6 +159,7 @@ export const adminRouter = router({
       page: z.number().default(1),
       limit: z.number().default(20),
       search: z.string().optional(),
+      country: z.string().optional(),
     }))
     .query(async ({ ctx, input }) => {
       
@@ -157,6 +172,9 @@ export const adminRouter = router({
           like(users.name, `%${input.search}%`),
           like(users.email, `%${input.search}%`),
         ));
+      }
+      if (input.country) {
+        conditions.push(eq(users.country, input.country));
       }
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
       const list = await db.select({
@@ -232,6 +250,7 @@ export const adminRouter = router({
       page: z.number().default(1),
       limit: z.number().default(20),
       status: z.enum(["all", "pending", "answered"]).default("all"),
+      country: z.string().optional(),
     }))
     .query(async ({ ctx, input }) => {
       
@@ -241,6 +260,9 @@ export const adminRouter = router({
       const conditions = [];
       if (input.status !== "all") {
         conditions.push(eq(inquiries.status, input.status));
+      }
+      if (input.country) {
+        conditions.push(eq(users.country, input.country));
       }
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
       const list = await db.select({
