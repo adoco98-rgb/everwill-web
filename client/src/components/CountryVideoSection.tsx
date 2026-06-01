@@ -9,7 +9,7 @@ import { trpc } from "@/lib/trpc";
 import { motion } from "framer-motion";
 import { Play } from "lucide-react";
 
-// 네비게이션 국기 순서와 동일한 국가 코드 매핑
+// 언어 코드 → 영상 키 매핑 (전체 국가)
 const LANG_TO_VIDEO_KEY: Record<string, string> = {
   ko: "video_kr",
   en: "video_us",
@@ -22,6 +22,17 @@ const LANG_TO_VIDEO_KEY: Record<string, string> = {
   ru: "video_ru",
   hi: "video_in",
   pt: "video_br",
+  // 추가 국가 (영어권 fallback)
+  ca: "video_ca",
+  au: "video_au",
+  nz: "video_nz",
+  mx: "video_mx",
+  it: "video_it",
+  nl: "video_nl",
+  sg: "video_sg",
+  th: "video_th",
+  vi: "video_vn",
+  tl: "video_ph",
 };
 
 const COUNTRY_LABELS: Record<string, string> = {
@@ -36,6 +47,16 @@ const COUNTRY_LABELS: Record<string, string> = {
   video_ru: "🇷🇺 러시아",
   video_in: "🇮🇳 인도",
   video_br: "🇧🇷 브라질",
+  video_ca: "🇨🇦 캐나다",
+  video_au: "🇦🇺 호주",
+  video_nz: "🇳🇿 뉴질랜드",
+  video_mx: "🇲🇽 멕시코",
+  video_it: "🇮🇹 이탈리아",
+  video_nl: "🇳🇱 네덜란드",
+  video_sg: "🇸🇬 싱가포르",
+  video_th: "🇹🇭 태국",
+  video_vn: "🇻🇳 베트남",
+  video_ph: "🇵🇭 필리핀",
 };
 
 // YouTube URL을 embed URL로 변환
