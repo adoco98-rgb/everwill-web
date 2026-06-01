@@ -1915,10 +1915,121 @@ function CountriesTab() {
   );
 }
 
+// 14개국 언어 번역 데이터
+const ADMIN_LOCALES: Record<string, {
+  langName: string;
+  tabs: Record<Tab, string>;
+  title: string;
+  subtitle: string;
+}> = {
+  KR: {
+    langName: "한국어",
+    title: "SARAM 관리자 대시보드",
+    subtitle: "관리자",
+    tabs: { stats: "통계 개요", countries: "국가별 관리", users: "회원 관리", payments: "결제/매출", inquiries: "문의 관리", news: "뉴스 관리", socialLinks: "SNS 소셜 링크", videos: "국가별 영상" },
+  },
+  US: {
+    langName: "English",
+    title: "SARAM Admin Dashboard",
+    subtitle: "Admin",
+    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos" },
+  },
+  JP: {
+    langName: "日本語",
+    title: "SARAM 管理ダッシュボード",
+    subtitle: "管理者",
+    tabs: { stats: "統計概要", countries: "国別管理", users: "会員管理", payments: "決済/売上", inquiries: "お問い合わせ", news: "ニュース管理", socialLinks: "SNSリンク", videos: "国別動画" },
+  },
+  CN: {
+    langName: "中文",
+    title: "SARAM 管理员仪表板",
+    subtitle: "管理员",
+    tabs: { stats: "统计概览", countries: "国家管理", users: "会员管理", payments: "支付/收入", inquiries: "咨询管理", news: "新闻管理", socialLinks: "社交链接", videos: "国家视频" },
+  },
+  DE: {
+    langName: "Deutsch",
+    title: "SARAM Admin-Dashboard",
+    subtitle: "Administrator",
+    tabs: { stats: "Statistiken", countries: "Länderverwaltung", users: "Mitglieder", payments: "Zahlungen", inquiries: "Anfragen", news: "Nachrichten", socialLinks: "Social Links", videos: "Ländervideos" },
+  },
+  ES: {
+    langName: "Español",
+    title: "Panel de Administración SARAM",
+    subtitle: "Administrador",
+    tabs: { stats: "Estadísticas", countries: "Gestión de Países", users: "Miembros", payments: "Pagos", inquiries: "Consultas", news: "Noticias", socialLinks: "Redes Sociales", videos: "Videos por País" },
+  },
+  SA: {
+    langName: "العربية",
+    title: "لوحة إدارة SARAM",
+    subtitle: "المسؤول",
+    tabs: { stats: "الإحصائيات", countries: "إدارة الدول", users: "الأعضاء", payments: "المدفوعات", inquiries: "الاستفسارات", news: "الأخبار", socialLinks: "روابط التواصل", videos: "مقاطع الفيديو" },
+  },
+  FR: {
+    langName: "Français",
+    title: "Tableau de Bord Admin SARAM",
+    subtitle: "Administrateur",
+    tabs: { stats: "Statistiques", countries: "Gestion des Pays", users: "Membres", payments: "Paiements", inquiries: "Demandes", news: "Actualités", socialLinks: "Liens Sociaux", videos: "Vidéos par Pays" },
+  },
+  RU: {
+    langName: "Русский",
+    title: "Панель администратора SARAM",
+    subtitle: "Администратор",
+    tabs: { stats: "Статистика", countries: "Управление странами", users: "Участники", payments: "Платежи", inquiries: "Запросы", news: "Новости", socialLinks: "Соц. сети", videos: "Видео по странам" },
+  },
+  IN: {
+    langName: "हिन्दी",
+    title: "SARAM एडमिन डैशबोर्ड",
+    subtitle: "व्यवस्थापक",
+    tabs: { stats: "आँकड़े", countries: "देश प्रबंधन", users: "सदस्य", payments: "भुगतान", inquiries: "पूछताछ", news: "समाचार", socialLinks: "सोशल लिंक", videos: "देश वीडियो" },
+  },
+  BR: {
+    langName: "Português",
+    title: "Painel Admin SARAM",
+    subtitle: "Administrador",
+    tabs: { stats: "Estatísticas", countries: "Gestão de Países", users: "Membros", payments: "Pagamentos", inquiries: "Consultas", news: "Notícias", socialLinks: "Links Sociais", videos: "Vídeos por País" },
+  },
+  CA: {
+    langName: "English (CA)",
+    title: "SARAM Admin Dashboard",
+    subtitle: "Admin",
+    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos" },
+  },
+  AU: {
+    langName: "English (AU)",
+    title: "SARAM Admin Dashboard",
+    subtitle: "Admin",
+    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos" },
+  },
+  NZ: {
+    langName: "English (NZ)",
+    title: "SARAM Admin Dashboard",
+    subtitle: "Admin",
+    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos" },
+  },
+};
+
+const ADMIN_COUNTRY_FLAGS = [
+  { code: "KR", flag: "🇰🇷" },
+  { code: "US", flag: "🇺🇸" },
+  { code: "JP", flag: "🇯🇵" },
+  { code: "CN", flag: "🇨🇳" },
+  { code: "DE", flag: "🇩🇪" },
+  { code: "ES", flag: "🇪🇸" },
+  { code: "SA", flag: "🇸🇦" },
+  { code: "FR", flag: "🇫🇷" },
+  { code: "RU", flag: "🇷🇺" },
+  { code: "IN", flag: "🇮🇳" },
+  { code: "BR", flag: "🇧🇷" },
+  { code: "CA", flag: "🇨🇦" },
+  { code: "AU", flag: "🇦🇺" },
+  { code: "NZ", flag: "🇳🇿" },
+];
+
 /** 메인 관리자 페이지 */
 export default function AdminPage() {
   const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("stats");
+  const [adminLang, setAdminLang] = useState<string>("KR");
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center text-gray-400">로딩 중...</div>;
@@ -1935,26 +2046,55 @@ export default function AdminPage() {
     );
   }
 
+  const locale = ADMIN_LOCALES[adminLang] ?? ADMIN_LOCALES["KR"];
+  const isRTL = adminLang === "SA";
+
   const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
-    { id: "stats", label: "통계 개요", icon: BarChart3 },
-    { id: "countries", label: "국가별 관리", icon: Globe },
-    { id: "users", label: "회원 관리", icon: Users },
-    { id: "payments", label: "결제/매출", icon: CreditCard },
-    { id: "inquiries", label: "문의 관리", icon: MessageSquare },
-    { id: "news", label: "뉴스 관리", icon: Newspaper },
-    { id: "socialLinks", label: "SNS 소셜 링크", icon: Link2 },
-    { id: "videos", label: "국가별 영상", icon: Youtube },
+    { id: "stats", label: locale.tabs.stats, icon: BarChart3 },
+    { id: "countries", label: locale.tabs.countries, icon: Globe },
+    { id: "users", label: locale.tabs.users, icon: Users },
+    { id: "payments", label: locale.tabs.payments, icon: CreditCard },
+    { id: "inquiries", label: locale.tabs.inquiries, icon: MessageSquare },
+    { id: "news", label: locale.tabs.news, icon: Newspaper },
+    { id: "socialLinks", label: locale.tabs.socialLinks, icon: Link2 },
+    { id: "videos", label: locale.tabs.videos, icon: Youtube },
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8]">
-      {/* 헤더 */}
-      <div className="bg-[#1F3864] text-white px-6 py-5">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-xl font-bold" style={{ fontFamily: "'Playfair Display', serif" }}>
-            SARAM 관리자 대시보드
-          </h1>
-          <p className="text-white/60 text-sm mt-0.5">관리자: {user.name || user.email}</p>
+    <div className="min-h-screen bg-[#FAFAF8]" dir={isRTL ? "rtl" : "ltr"}>
+      {/* 헤더 - 국기 탭 포함 */}
+      <div className="bg-[#1F3864] text-white">
+        <div className="max-w-7xl mx-auto px-6 pt-5 pb-0">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h1 className="text-xl font-bold" style={{ fontFamily: "'Playfair Display', serif" }}>
+                {locale.title}
+              </h1>
+              <p className="text-white/60 text-sm mt-0.5">{locale.subtitle}: {user.name || user.email}</p>
+            </div>
+            <div className="text-xs text-white/50 bg-white/10 px-3 py-1.5 rounded-full">
+              {locale.langName}
+            </div>
+          </div>
+
+          {/* 14개국 국기 탭 선택바 */}
+          <div className="flex gap-1 overflow-x-auto pb-0 scrollbar-hide">
+            {ADMIN_COUNTRY_FLAGS.map(({ code, flag }) => (
+              <button
+                key={code}
+                onClick={() => setAdminLang(code)}
+                title={ADMIN_LOCALES[code]?.langName ?? code}
+                className={`flex flex-col items-center gap-0.5 px-3 py-2.5 rounded-t-xl text-xs font-bold transition-all whitespace-nowrap ${
+                  adminLang === code
+                    ? "bg-white text-[#1F3864] shadow-sm"
+                    : "text-white/70 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                <span className="text-xl leading-none">{flag}</span>
+                <span className="text-[10px] leading-none mt-0.5">{code}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
