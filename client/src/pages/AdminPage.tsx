@@ -1513,7 +1513,23 @@ function CountryDetailView({ country, onBack }: { country: typeof COUNTRY_LIST[0
   const [inqStatus, setInqStatus] = useState<"all" | "pending" | "answered">("all");
   const [replyingId, setReplyingId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [countryResetTarget, setCountryResetTarget] = useState<{ id: number; name: string } | null>(null);
+  const [countryNewPw, setCountryNewPw] = useState("");
+  const [showCountryPw, setShowCountryPw] = useState(false);
   const utils = trpc.useUtils();
+
+  const countryUpdateGrade = trpc.admin.updateUserGrade.useMutation({
+    onSuccess: () => { toast.success("등급이 변경되었습니다."); utils.adminCountry.getUsersByCountry.invalidate(); },
+    onError: () => toast.error("등급 변경에 실패했습니다."),
+  });
+  const countryUpdateRole = trpc.admin.updateUserRole.useMutation({
+    onSuccess: () => { toast.success("역할이 변경되었습니다."); utils.adminCountry.getUsersByCountry.invalidate(); },
+    onError: () => toast.error("역할 변경에 실패했습니다."),
+  });
+  const countryResetPw = trpc.admin.resetUserPassword.useMutation({
+    onSuccess: () => { toast.success("비밀번호가 초기화되었습니다."); setCountryResetTarget(null); setCountryNewPw(""); },
+    onError: () => toast.error("비밀번호 초기화에 실패했습니다."),
+  });
 
   const { data: usersData, isLoading: usersLoading } = trpc.adminCountry.getUsersByCountry.useQuery(
     { country: country.code, page: userPage, limit: 20 }
@@ -1575,6 +1591,36 @@ function CountryDetailView({ country, onBack }: { country: typeof COUNTRY_LIST[0
       {/* 회원 목록 */}
       {subTab === "users" && (
         <div className="space-y-3">
+          {/* 비밀번호 초기화 모달 */}
+          {countryResetTarget && (
+            <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+                <h3 className="font-bold text-[#1F3864] text-lg mb-1">비밀번호 초기화</h3>
+                <p className="text-sm text-gray-400 mb-4">{countryResetTarget.name} 회원의 새 비밀번호를 입력하세요.</p>
+                <div className="relative mb-4">
+                  <input
+                    type={showCountryPw ? "text" : "password"}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1F3864] pr-10"
+                    placeholder="새 비밀번호 (8자 이상)"
+                    value={countryNewPw}
+                    onChange={e => setCountryNewPw(e.target.value)}
+                  />
+                  <button className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" onClick={() => setShowCountryPw(v => !v)}>
+                    {showCountryPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <button className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-500 hover:bg-gray-50" onClick={() => { setCountryResetTarget(null); setCountryNewPw(""); }}>취소</button>
+                  <button
+                    className="flex-1 py-2.5 rounded-xl bg-[#1F3864] text-white text-sm font-semibold hover:bg-[#162d52] disabled:opacity-50"
+                    disabled={countryNewPw.length < 8 || countryResetPw.isPending}
+                    onClick={() => countryResetPw.mutate({ userId: countryResetTarget.id, newPassword: countryNewPw })}
+                  >{countryResetPw.isPending ? "처리 중..." : "초기화"}</button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-[#1F3864]">{country.flag} {country.name} 회원 <span className="text-sm font-normal text-gray-400">({usersData?.total ?? 0}명)</span></h3>
           </div>
@@ -1585,31 +1631,59 @@ function CountryDetailView({ country, onBack }: { country: typeof COUNTRY_LIST[0
                   <tr>
                     <th className="text-left px-4 py-3 text-gray-500 font-medium">이름</th>
                     <th className="text-left px-4 py-3 text-gray-500 font-medium">이메일</th>
-                    <th className="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">등급</th>
-                    <th className="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">KYC</th>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">전화번호</th>
                     <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">가입일</th>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium">등급</th>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium">역할</th>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium">관리</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {usersLoading ? (
-                    <tr><td colSpan={5} className="text-center py-10 text-gray-400">로딩 중...</td></tr>
+                    <tr><td colSpan={7} className="text-center py-10 text-gray-400">로딩 중...</td></tr>
                   ) : usersData?.list.length === 0 ? (
-                    <tr><td colSpan={5} className="text-center py-10 text-gray-400">{country.name} 회원이 없습니다.</td></tr>
+                    <tr><td colSpan={7} className="text-center py-10 text-gray-400">{country.name} 회원이 없습니다.</td></tr>
                   ) : usersData?.list.map(u => (
                     <tr key={u.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3 font-medium text-[#1F3864]">{u.name || "-"}</td>
-                      <td className="px-4 py-3 text-gray-500 text-xs">{u.email}</td>
-                      <td className="px-4 py-3 hidden md:table-cell">
-                        <span className="text-xs px-2 py-0.5 rounded-lg bg-[#C9A961]/10 text-[#C9A961] font-medium">{u.memberGrade ?? "일반"}</span>
+                      <td className="px-4 py-3 text-gray-600 truncate max-w-[160px]">{u.email || "-"}</td>
+                      <td className="px-4 py-3 text-gray-600 hidden md:table-cell">{u.phone || "-"}</td>
+                      <td className="px-4 py-3 text-gray-500 hidden lg:table-cell">{formatDate(u.createdAt)}</td>
+                      <td className="px-4 py-3">
+                        <select
+                          className="text-xs px-2 py-1 rounded-lg border font-medium bg-white"
+                          value={u.memberGrade ?? "general"}
+                          onChange={e => countryUpdateGrade.mutate({ userId: u.id, grade: e.target.value as any })}
+                        >
+                          <option value="general">일반</option>
+                          <option value="silver">Silver</option>
+                          <option value="gold">Gold</option>
+                          <option value="platinum">Platinum</option>
+                          <option value="vip">VIP</option>
+                        </select>
                       </td>
-                      <td className="px-4 py-3 hidden md:table-cell">
-                        <span className={`text-xs px-2 py-0.5 rounded-lg font-medium ${
-                          u.kycStatus === "verified" ? "bg-green-50 text-green-700" :
-                          u.kycStatus === "pending" ? "bg-yellow-50 text-yellow-700" :
-                          "bg-gray-50 text-gray-500"
-                        }`}>{u.kycStatus ?? "미인증"}</span>
+                      <td className="px-4 py-3">
+                        <select
+                          className={`text-xs px-2 py-1 rounded-lg border font-medium ${
+                            u.role === "admin" ? "bg-purple-50 border-purple-200 text-purple-700" : "bg-gray-50 border-gray-200 text-gray-600"
+                          }`}
+                          value={u.role}
+                          onChange={e => countryUpdateRole.mutate({ userId: u.id, role: e.target.value as "user" | "admin" })}
+                        >
+                          <option value="user">일반</option>
+                          <option value="admin">관리자</option>
+                        </select>
                       </td>
-                      <td className="px-4 py-3 text-gray-400 text-xs hidden lg:table-cell">{formatDate(u.createdAt)}</td>
+                      <td className="px-4 py-3">
+                        <button
+                          className="flex items-center gap-1 text-xs text-gray-500 border border-gray-200 hover:bg-gray-50 px-2 py-1 rounded-lg"
+                          onClick={() => setCountryResetTarget({ id: u.id, name: u.name || "회원" })}
+                          title="비밀번호 초기화"
+                        >
+                          <KeyRound className="w-3 h-3" />
+                          비번
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
