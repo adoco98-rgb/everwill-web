@@ -110,7 +110,7 @@ function LockedScreen({ isLoggedIn }: { isLoggedIn: boolean }) {
 }
 
 // ─── 탭 타입 ─────────────────────────────────────────────────
-type Tab = "journal" | "letters" | "album";
+type Tab = "journal" | "letters" | "album" | "autobiography";
 
 // ─── 메인 Life Story 페이지 ───────────────────────────────────
 function LifeStoryMain({ userId }: { userId: number }) {
@@ -142,6 +142,7 @@ function LifeStoryMain({ userId }: { userId: number }) {
             { id: "journal" as Tab, label: "AI 일기", icon: <BookOpen className="w-4 h-4" /> },
             { id: "letters" as Tab, label: "소중한 편지", icon: <Mail className="w-4 h-4" /> },
             { id: "album" as Tab, label: "인물 앨범", icon: <Camera className="w-4 h-4" /> },
+            { id: "autobiography" as Tab, label: "나의 자서전", icon: <span className="text-sm">📖</span> },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -162,6 +163,21 @@ function LifeStoryMain({ userId }: { userId: number }) {
         {activeTab === "journal" && <JournalTab userId={userId} />}
         {activeTab === "letters" && <LettersTab userId={userId} />}
         {activeTab === "album" && <AlbumTab userId={userId} />}
+        {activeTab === "autobiography" && (
+          <div className="text-center py-16">
+            <div className="text-6xl mb-4">📖</div>
+            <h2 className="text-2xl font-bold text-[#1F3864] mb-3">나의 자서전 만들기</h2>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              AI와 대화하며 나만의 인생 이야기를 책으로 만들어 보세요.<br />
+              음성으로 말씀하시면 AI가 아름다운 자서전을 써드립니다.
+            </p>
+            <Link href="/life-story/autobiography">
+              <button className="px-8 py-4 bg-[#1F3864] text-white font-bold text-lg rounded-2xl hover:bg-[#2a4d8a] transition-all shadow-lg">
+                자서전 시작하기 →
+              </button>
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

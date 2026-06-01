@@ -26,6 +26,9 @@ import { chatRouter } from "./routers/chatRouter";
 import { verificationRouter } from "./routers/verificationRouter";
 import { siteSettingsRouter } from "./routers/siteSettingsRouter";
 import { lifeStoryRouter } from "./routers/lifeStoryRouter";
+import { voiceRouter } from "./routers/voiceRouter";
+import { artworkRouter } from "./routers/artworkRouter";
+import { autobiographyRouter } from "./routers/autobiographyRouter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -88,6 +91,12 @@ export const appRouter = router({
   siteSettings: siteSettingsRouter,
   // Life Story (AI 일기·편지·인물앨범) — ₩99,000 이상 전용
   lifeStory: lifeStoryRouter,
+  // 음성 인식 (Whisper API)
+  voice: voiceRouter,
+  // AI 그림 변환 (사진 → 수채화/일러스트)
+  artwork: artworkRouter,
+  // 나의 자서전 (AI 대화 + 챕터 생성 + PDF)
+  autobiography: autobiographyRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -48,6 +48,7 @@ import HeirAcceptPage from "./pages/HeirAcceptPage";
 import BadgePage from "./pages/dashboard/BadgePage";
 import CertificationPage from "./pages/dashboard/CertificationPage";
 import CountryPage from "./pages/CountryPage";
+import AutobiographyPage from "./pages/AutobiographyPage";
 import { ChatbotWidget } from "./components/ChatbotWidget";
 
 function Router() {
@@ -103,6 +104,8 @@ function Router() {
       <Route path={"/investor"} component={InvestorPage} />
       {/* Life Story - AI 일기·편지·인물앨범 (₩79,000 이상 전용) */}
       <Route path={"/life-story"} component={LifeStoryPage} />
+      {/* 나의 자서전 만들기 (AI 대화 + 음성 + 사진 그림) */}
+      <Route path={"/life-story/autobiography"} component={AutobiographyPage} />
       {/* 유서 쓰기 */}
       <Route path={"/letter"} component={LetterDashboard} />
       <Route path={"/letter/write"} component={LetterWrite} />

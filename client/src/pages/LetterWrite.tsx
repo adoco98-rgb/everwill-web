@@ -14,8 +14,10 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   ChevronLeft, ChevronRight, Heart, Users, Star, Gift, FileText,
-  Plus, Trash2, Upload, Image, X, Check, Loader2, Lock
+  Plus, Trash2, Upload, Image, X, Check, Loader2, Lock, Mic
 } from "lucide-react";
+import { VoiceInput } from "@/components/VoiceInput";
+import { PhotoArtUploader, type ArtStyle } from "@/components/PhotoArtUploader";
 
 // ─── 5단계 가이드 질문 ──────────────────────────────────────────────
 const STEPS = [
@@ -121,6 +123,13 @@ export default function LetterWrite() {
   const [attachments, setAttachments] = useState<{ name: string; url: string; type: string }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+
+  // 음성 입력 모드 (각 단계별)
+  const [voiceMode, setVoiceMode] = useState<Record<number, boolean>>({});
+  // 사진 그림 업로더 표시 여부 (각 단계별)
+  const [showPhotoUploader, setShowPhotoUploader] = useState<Record<number, boolean>>({});
+  // 단계별 그림 목록
+  const [stepArtworks, setStepArtworks] = useState<Record<number, { originalUrl: string; artworkUrl: string }[]>>({});
 
   // 저장 상태
   const [savedId, setSavedId] = useState<number | null>(null);
@@ -350,7 +359,58 @@ export default function LetterWrite() {
                 </div>
               )}
 
+              {/* 입력 모드 전환 (음성/텍스트) */}
+              <div className="flex gap-2 mb-3">
+                <button
+                  type="button"
+                  onClick={() => setVoiceMode(prev => ({ ...prev, [step]: true }))}
+                  className={`flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
+                    voiceMode[step]
+                      ? "bg-[#C9A961] text-[#1F3864] shadow-md"
+                      : "bg-white/10 text-white/70 hover:bg-white/20"
+                  }`}
+                >
+                  <Mic size={16} />
+                  음성으로 말하기
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVoiceMode(prev => ({ ...prev, [step]: false }))}
+                  className={`flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
+                    !voiceMode[step]
+                      ? "bg-[#C9A961] text-[#1F3864] shadow-md"
+                      : "bg-white/10 text-white/70 hover:bg-white/20"
+                  }`}
+                >
+                  ✏️ 직접 입력
+                </button>
+              </div>
+
+              {/* 음성 입력 */}
+              {voiceMode[step] && (
+                <div className="bg-white/5 rounded-2xl p-6 flex flex-col items-center">
+                  <VoiceInput
+                    onTranscribed={(text) => {
+                      handleContentChange(step, (contents[step] ? contents[step] + "\n\n" : "") + text);
+                      setVoiceMode(prev => ({ ...prev, [step]: false }));
+                    }}
+                    language="ko"
+                    size="lg"
+                    hint="버튼을 누르고 말씀하세요"
+                  />
+                  {contents[step] && (
+                    <div className="mt-4 w-full">
+                      <p className="text-xs text-white/40 mb-1">변환된 내용:</p>
+                      <p className="text-sm text-white/70 bg-white/5 rounded-lg p-3 leading-relaxed">
+                        {contents[step]}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* 텍스트 입력 */}
+              {!voiceMode[step] && (
               <div>
                 <label className="text-sm text-white/60 mb-1 block">
                   자유롭게 작성해 주세요 <span className="text-white/30">(위 질문들을 참고하세요)</span>
@@ -363,6 +423,60 @@ export default function LetterWrite() {
                   className="bg-white/5 border-white/20 text-white placeholder:text-white/30 resize-none leading-relaxed"
                 />
                 <p className="text-right text-xs text-white/30 mt-1">{contents[step].length}자</p>
+              </div>
+              )}
+
+              {/* 사진 그림 추가 */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowPhotoUploader(prev => ({ ...prev, [step]: !prev[step] }))}
+                  className="flex items-center gap-2 text-sm text-[#C9A961] hover:text-[#d4b56e] transition-colors"
+                >
+                  <Image size={16} />
+                  {showPhotoUploader[step] ? "사진 그림 닫기" : "사진 그림 추가하기 (AI 수채화 변환)"}
+                </button>
+
+                {showPhotoUploader[step] && (
+                  <div className="mt-3 bg-white/5 rounded-xl p-4">
+                    <PhotoArtUploader
+                      onArtGenerated={(originalUrl, artworkUrl, _style) => {
+                        setStepArtworks(prev => ({
+                          ...prev,
+                          [step]: [...(prev[step] ?? []), { originalUrl, artworkUrl }],
+                        }));
+                        setShowPhotoUploader(prev => ({ ...prev, [step]: false }));
+                      }}
+                      contextHint={s.title}
+                      style="watercolor"
+                    />
+                  </div>
+                )}
+
+                {/* 업로드된 그림 목록 */}
+                {(stepArtworks[step] ?? []).length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {(stepArtworks[step] ?? []).map((art, i) => (
+                      <div key={i} className="relative">
+                        <img
+                          src={art.artworkUrl}
+                          alt={`그림 ${i + 1}`}
+                          className="w-20 h-20 object-cover rounded-lg border border-white/20"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setStepArtworks(prev => ({
+                            ...prev,
+                            [step]: (prev[step] ?? []).filter((_, idx) => idx !== i),
+                          }))}
+                          className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center"
+                        >
+                          <X size={10} className="text-white" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           );

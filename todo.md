@@ -783,3 +783,35 @@
 - [x] 네비게이션 바에 소셜 아이콘 표시 (빈 동그라미 → 실제 아이콘)
 - [x] 관리자 페이지에 소셜 링크 설정 패널 추가
 - [x] 체크포인트 저장
+
+## 나의 자서전 만들기 기능
+
+- [ ] DB 스키마: autobiographies 테이블 (id, userId, title, status, createdAt, updatedAt)
+- [ ] DB 스키마: autobiography_sessions 테이블 (id, autobiographyId, chapter, messages JSON, summary, createdAt)
+- [ ] tRPC: autobiography.create / list / get / delete 프로시저
+- [ ] tRPC: autobiography.chat - AI와 대화 (챕터별 질문-답변)
+- [ ] tRPC: autobiography.generateChapter - 대화 내용 → 챕터 글 자동 생성
+- [ ] tRPC: autobiography.generatePdf - 전체 자서전 PDF 책 생성 (표지 포함)
+- [ ] /life-story/autobiography 페이지 생성
+- [ ] 자서전 챕터 구성 (6개): 어린 시절 / 학창 시절 / 직업·커리어 / 가족·사랑 / 인생의 교훈 / 미래 세대에게
+- [ ] AI 대화 UI: 챕터별 질문-답변 채팅 인터페이스 (AIChatBox 활용)
+- [ ] 챕터 완성 후 AI가 자동으로 글 정리 (에세이 형태)
+- [ ] 자서전 미리보기 (책 레이아웃, 페이지 넘김 효과)
+- [ ] PDF 다운로드 (책 표지 + 목차 + 챕터별 내용)
+- [ ] 가족 공유 기능 (고유 링크 생성)
+- [ ] 대시보드 사이드바에 "나의 자서전" 메뉴 추가
+- [ ] App.tsx 라우트 등록 (/life-story/autobiography)
+- [ ] pnpm db:push 실행
+
+## 음성 인식 + 사진 AI 그림 + 자서전 기능
+- [x] VoiceInput 공통 컴포넌트 (노인 친화적 대형 마이크 버튼 + Whisper API 음성→텍스트)
+- [x] PhotoArtUploader 공통 컴포넌트 (사진 업로드 → AI 수채화/일러스트/유화 변환)
+- [x] voiceRouter (Base64 오디오 → S3 저장 → Whisper API → 텍스트 반환)
+- [x] artworkRouter (사진 → AI 그림 변환, 5가지 스타일)
+- [x] DB: autobiographies, autobiographyChapters 테이블 추가
+- [x] autobiographyRouter (AI 대화 + 챕터 글 생성 + PDF 생성)
+- [x] AutobiographyPage (/life-story/autobiography) — 6챕터 AI 대화 + 음성 입력 + 사진 그림
+- [x] LifeStoryPage에 "나의 자서전" 탭 추가 (→ /life-story/autobiography 링크)
+- [x] LetterWrite.tsx에 음성 입력 모드 통합 (각 단계별 음성/텍스트 전환)
+- [x] LetterWrite.tsx에 사진 그림 추가 기능 통합 (AI 수채화 변환)
+- [x] App.tsx 라우트 등록 (/life-story/autobiography)

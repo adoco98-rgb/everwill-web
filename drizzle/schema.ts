@@ -895,3 +895,59 @@ export const legacyLetters = mysqlTable("legacyLetters", {
 });
 export type LegacyLetter = typeof legacyLetters.$inferSelect;
 export type InsertLegacyLetter = typeof legacyLetters.$inferInsert;
+
+/**
+ * 나의 자서전 테이블
+ * 사용자가 AI와 대화하며 작성하는 자서전
+ */
+export const autobiographies = mysqlTable("autobiographies", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 작성자 사용자 ID */
+  userId: int("userId").notNull(),
+  /** 자서전 제목 */
+  title: varchar("title", { length: 256 }).default("나의 자서전"),
+  /** 전체 상태 (draft=작성중, completed=완성, published=공개) */
+  status: mysqlEnum("status", ["draft", "completed", "published"]).default("draft").notNull(),
+  /** 완성된 챕터 수 (0~6) */
+  completedChapters: int("completedChapters").default(0).notNull(),
+  /** PDF S3 키 */
+  pdfKey: varchar("pdfKey", { length: 512 }),
+  /** PDF URL */
+  pdfUrl: text("pdfUrl"),
+  /** 공유 링크 토큰 (가족 공유용) */
+  shareToken: varchar("shareToken", { length: 64 }).unique(),
+  /** 공유 여부 */
+  isShared: tinyint("isShared").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type Autobiography = typeof autobiographies.$inferSelect;
+export type InsertAutobiography = typeof autobiographies.$inferInsert;
+
+/**
+ * 자서전 챕터 테이블
+ * 각 챕터별 AI 대화 내용 및 생성된 글 저장
+ */
+export const autobiographyChapters = mysqlTable("autobiographyChapters", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 자서전 ID */
+  autobiographyId: int("autobiographyId").notNull(),
+  /** 챕터 번호 (1~6) */
+  chapterNumber: int("chapterNumber").notNull(),
+  /** 챕터 제목 */
+  chapterTitle: varchar("chapterTitle", { length: 128 }),
+  /** AI와 나눈 대화 JSON (messages 배열) */
+  conversationJson: text("conversationJson"),
+  /** AI가 생성한 챕터 글 (에세이 형태) */
+  generatedText: text("generatedText"),
+  /** 업로드된 사진 S3 키 (콤마 구분) */
+  photoKeys: text("photoKeys"),
+  /** AI가 변환한 그림 URL (콤마 구분) */
+  artworkUrls: text("artworkUrls"),
+  /** 챕터 완성 여부 */
+  isCompleted: tinyint("isCompleted").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type AutobiographyChapter = typeof autobiographyChapters.$inferSelect;
+export type InsertAutobiographyChapter = typeof autobiographyChapters.$inferInsert;
