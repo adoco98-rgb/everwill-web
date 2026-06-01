@@ -14,7 +14,7 @@ import { signupTrackingRouter } from "./routers/signupTrackingRouter";
 import { phoneAuthRouter } from "./routers/phoneAuthRouter";
 import { qrRouter } from "./routers/qrRouter";
 import { assetVerifyRouter } from "./routers/assetVerifyRouter";
-import { adminRouter } from "./routers/adminRouter";
+import { adminRouter, adminCountryRouter } from "./routers/adminRouter";
 import { heirsRouter } from "./routers/heirsRouter";
 import { newsRouter } from "./routers/newsRouter";
 import { idScanRouter } from "./routers/idScanRouter";
@@ -69,6 +69,8 @@ export const appRouter = router({
   assetVerify: assetVerifyRouter,
   // 관리자 전용 라우터
   admin: adminRouter,
+  // 관리자 국가별 통합 관리 라우터
+  adminCountry: adminCountryRouter,
   // 상속자 관리 라우터
   heirs: heirsRouter,
   // 글로벌 뉴스 라우터

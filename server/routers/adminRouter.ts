@@ -407,3 +407,238 @@ export const adminRouter = router({
       return { success: true };
     }),
 });
+
+// =====================================================
+// 국가별 관리 API (14개국)
+// =====================================================
+
+export const adminCountryRouter = router({
+  /** 14개국 전체 요약 통계 */
+  getCountrySummary: adminProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+
+    // 국가별 가입자 수
+    const usersByCountry = await db
+      .select({
+        country: users.country,
+        count: sql<number>`COUNT(*)`,
+      })
+      .from(users)
+      .groupBy(users.country);
+
+    // 국가별 매출 (payments 테이블 + users JOIN)
+    const revenueByCountry = await db
+      .select({
+        country: users.country,
+        total: sql<number>`COALESCE(SUM(${payments.amountTotal}), 0)`,
+        count: sql<number>`COUNT(${payments.id})`,
+      })
+      .from(payments)
+      .leftJoin(users, eq(payments.userId, users.id))
+      .where(eq(payments.status, "completed"))
+      .groupBy(users.country);
+
+    // 국가별 문의 수
+    const inquiriesByCountry = await db
+      .select({
+        country: users.country,
+        total: sql<number>`COUNT(${inquiries.id})`,
+        pending: sql<number>`SUM(CASE WHEN ${inquiries.status} = 'pending' THEN 1 ELSE 0 END)`,
+      })
+      .from(inquiries)
+      .leftJoin(users, eq(inquiries.userId, users.id))
+      .groupBy(users.country);
+
+    // 국가별 유언장 수
+    const willsByCountry = await db
+      .select({
+        country: users.country,
+        count: sql<number>`COUNT(${wills.id})`,
+        certified: sql<number>`SUM(CASE WHEN ${wills.isCertified} = 1 THEN 1 ELSE 0 END)`,
+      })
+      .from(wills)
+      .leftJoin(users, eq(wills.userId, users.id))
+      .groupBy(users.country);
+
+    // 14개국 목록 정의
+    const countries = [
+      { code: "KR", name: "한국", flag: "🇰🇷", currency: "KRW" },
+      { code: "US", name: "미국", flag: "🇺🇸", currency: "USD" },
+      { code: "JP", name: "일본", flag: "🇯🇵", currency: "JPY" },
+      { code: "CN", name: "중국", flag: "🇨🇳", currency: "CNY" },
+      { code: "DE", name: "독일", flag: "🇩🇪", currency: "EUR" },
+      { code: "ES", name: "스페인", flag: "🇪🇸", currency: "EUR" },
+      { code: "SA", name: "사우디", flag: "🇸🇦", currency: "SAR" },
+      { code: "FR", name: "프랑스", flag: "🇫🇷", currency: "EUR" },
+      { code: "RU", name: "러시아", flag: "🇷🇺", currency: "RUB" },
+      { code: "IN", name: "인도", flag: "🇮🇳", currency: "INR" },
+      { code: "BR", name: "브라질", flag: "🇧🇷", currency: "BRL" },
+      { code: "CA", name: "캐나다", flag: "🇨🇦", currency: "CAD" },
+      { code: "AU", name: "호주", flag: "🇦🇺", currency: "AUD" },
+      { code: "NZ", name: "뉴질랜드", flag: "🇳🇿", currency: "NZD" },
+    ];
+
+    // 데이터 병합
+    const result = countries.map((c) => {
+      const userRow = usersByCountry.find((r) => r.country === c.code);
+      const revenueRow = revenueByCountry.find((r) => r.country === c.code);
+      const inquiryRow = inquiriesByCountry.find((r) => r.country === c.code);
+      const willRow = willsByCountry.find((r) => r.country === c.code);
+      return {
+        ...c,
+        users: Number(userRow?.count ?? 0),
+        revenue: Number(revenueRow?.total ?? 0),
+        paymentCount: Number(revenueRow?.count ?? 0),
+        inquiries: Number(inquiryRow?.total ?? 0),
+        pendingInquiries: Number(inquiryRow?.pending ?? 0),
+        wills: Number(willRow?.count ?? 0),
+        certifiedWills: Number(willRow?.certified ?? 0),
+      };
+    });
+
+    // null/undefined 국가 (기타)
+    const etcUsers = usersByCountry
+      .filter((r) => !countries.find((c) => c.code === r.country))
+      .reduce((sum, r) => sum + Number(r.count), 0);
+
+    return { countries: result, etcUsers };
+  }),
+
+  /** 특정 국가 회원 목록 */
+  getUsersByCountry: adminProcedure
+    .input(z.object({
+      country: z.string(),
+      page: z.number().default(1),
+      limit: z.number().default(20),
+      search: z.string().optional(),
+    }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      const offset = (input.page - 1) * input.limit;
+      const conditions: ReturnType<typeof eq>[] = [eq(users.country, input.country) as ReturnType<typeof eq>];
+      if (input.search) {
+        conditions.push(or(
+          like(users.name, `%${input.search}%`),
+          like(users.email, `%${input.search}%`),
+        ) as ReturnType<typeof eq>);
+      }
+      const whereClause = and(...conditions);
+      const list = await db.select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        phone: users.phone,
+        role: users.role,
+        country: users.country,
+        createdAt: users.createdAt,
+        lastSignedIn: users.lastSignedIn,
+        memberGrade: users.memberGrade,
+        kycStatus: users.kycStatus,
+      })
+        .from(users)
+        .where(whereClause)
+        .orderBy(desc(users.createdAt))
+        .limit(input.limit)
+        .offset(offset);
+      const [countResult] = await db.select({ count: sql<number>`COUNT(*)` })
+        .from(users)
+        .where(whereClause);
+      return { list, total: Number(countResult.count), page: input.page, limit: input.limit };
+    }),
+
+  /** 특정 국가 매출 내역 */
+  getRevenueByCountry: adminProcedure
+    .input(z.object({
+      country: z.string(),
+      page: z.number().default(1),
+      limit: z.number().default(20),
+    }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      const offset = (input.page - 1) * input.limit;
+      const list = await db.select({
+        id: payments.id,
+        userId: payments.userId,
+        amount: payments.amountTotal,
+        currency: payments.currency,
+        status: payments.status,
+        paidAt: payments.paidAt,
+        items: payments.items,
+        userName: users.name,
+        userEmail: users.email,
+        userCountry: users.country,
+      })
+        .from(payments)
+        .leftJoin(users, eq(payments.userId, users.id))
+        .where(and(eq(users.country, input.country), eq(payments.status, "completed")))
+        .orderBy(desc(payments.paidAt))
+        .limit(input.limit)
+        .offset(offset);
+      const [countResult] = await db.select({ count: sql<number>`COUNT(*)`, total: sql<number>`COALESCE(SUM(${payments.amountTotal}), 0)` })
+        .from(payments)
+        .leftJoin(users, eq(payments.userId, users.id))
+        .where(and(eq(users.country, input.country), eq(payments.status, "completed")));
+      return { list, total: Number(countResult.count), totalRevenue: Number(countResult.total), page: input.page, limit: input.limit };
+    }),
+
+  /** 특정 국가 문의 목록 */
+  getInquiriesByCountry: adminProcedure
+    .input(z.object({
+      country: z.string(),
+      page: z.number().default(1),
+      limit: z.number().default(20),
+      status: z.enum(["all", "pending", "answered"]).default("all"),
+    }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      const offset = (input.page - 1) * input.limit;
+      const conditions = [eq(users.country, input.country) as ReturnType<typeof eq>];
+      if (input.status !== "all") {
+        conditions.push(eq(inquiries.status, input.status) as ReturnType<typeof eq>);
+      }
+      const whereClause = and(...conditions);
+      const list = await db.select({
+        id: inquiries.id,
+        userId: inquiries.userId,
+        subject: inquiries.subject,
+        content: inquiries.content,
+        status: inquiries.status,
+        reply: inquiries.reply,
+        createdAt: inquiries.createdAt,
+        repliedAt: inquiries.repliedAt,
+        userName: users.name,
+        userEmail: users.email,
+        userCountry: users.country,
+      })
+        .from(inquiries)
+        .leftJoin(users, eq(inquiries.userId, users.id))
+        .where(whereClause)
+        .orderBy(desc(inquiries.createdAt))
+        .limit(input.limit)
+        .offset(offset);
+      const [countResult] = await db.select({ count: sql<number>`COUNT(*)` })
+        .from(inquiries)
+        .leftJoin(users, eq(inquiries.userId, users.id))
+        .where(whereClause);
+      return { list, total: Number(countResult.count), page: input.page, limit: input.limit };
+    }),
+
+  /** 문의 답변 (국가별 라우터에서도 사용) */
+  replyInquiry: adminProcedure
+    .input(z.object({
+      inquiryId: z.number(),
+      reply: z.string().min(1),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      await db.update(inquiries)
+        .set({ reply: input.reply, status: "answered", repliedAt: new Date() })
+        .where(eq(inquiries.id, input.inquiryId));
+      return { success: true };
+    }),
+});

@@ -16,10 +16,10 @@ import {
   TrendingUp, Shield, Clock, CheckCircle,
   Newspaper, Plus, Trash2, Eye, EyeOff, ExternalLink, Pencil, KeyRound,
   ShieldCheck, XCircle, AlertTriangle, ImageIcon, Link2, Save, Youtube, Instagram,
-  X, BookOpen, Mail, BookMarked, Wallet, ClipboardList
+  X, BookOpen, Mail, BookMarked, Wallet, ClipboardList, Globe, ArrowLeft, DollarSign
 } from "lucide-react";
 
-type Tab = "stats" | "users" | "payments" | "inquiries" | "news" | "socialLinks" | "videos";
+type Tab = "stats" | "users" | "payments" | "inquiries" | "news" | "socialLinks" | "videos" | "countries";
 
 function formatKRW(amount: number) {
   if (amount >= 100_000_000) return `${(amount / 100_000_000).toFixed(1)}억원`;
@@ -1481,6 +1481,366 @@ function VideosTab() {
   );
 }
 
+// =====================================================
+// 국가별 통합 관리 탭
+// =====================================================
+
+const COUNTRY_LIST = [
+  { code: "KR", name: "한국", flag: "🇰🇷" },
+  { code: "US", name: "미국", flag: "🇺🇸" },
+  { code: "JP", name: "일본", flag: "🇯🇵" },
+  { code: "CN", name: "중국", flag: "🇨🇳" },
+  { code: "DE", name: "독일", flag: "🇩🇪" },
+  { code: "ES", name: "스페인", flag: "🇪🇸" },
+  { code: "SA", name: "사우디", flag: "🇸🇦" },
+  { code: "FR", name: "프랑스", flag: "🇫🇷" },
+  { code: "RU", name: "러시아", flag: "🇷🇺" },
+  { code: "IN", name: "인도", flag: "🇮🇳" },
+  { code: "BR", name: "브라질", flag: "🇧🇷" },
+  { code: "CA", name: "캐나다", flag: "🇨🇦" },
+  { code: "AU", name: "호주", flag: "🇦🇺" },
+  { code: "NZ", name: "뉴질랜드", flag: "🇳🇿" },
+];
+
+type CountrySubTab = "users" | "revenue" | "inquiries";
+
+/** 국가 상세 뷰 */
+function CountryDetailView({ country, onBack }: { country: typeof COUNTRY_LIST[0]; onBack: () => void }) {
+  const [subTab, setSubTab] = useState<CountrySubTab>("users");
+  const [userPage, setUserPage] = useState(1);
+  const [revPage, setRevPage] = useState(1);
+  const [inqPage, setInqPage] = useState(1);
+  const [inqStatus, setInqStatus] = useState<"all" | "pending" | "answered">("all");
+  const [replyingId, setReplyingId] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const utils = trpc.useUtils();
+
+  const { data: usersData, isLoading: usersLoading } = trpc.adminCountry.getUsersByCountry.useQuery(
+    { country: country.code, page: userPage, limit: 20 }
+  );
+  const { data: revData, isLoading: revLoading } = trpc.adminCountry.getRevenueByCountry.useQuery(
+    { country: country.code, page: revPage, limit: 20 }
+  );
+  const { data: inqData, isLoading: inqLoading } = trpc.adminCountry.getInquiriesByCountry.useQuery(
+    { country: country.code, page: inqPage, limit: 20, status: inqStatus }
+  );
+  const replyMutation = trpc.adminCountry.replyInquiry.useMutation({
+    onSuccess: () => {
+      toast.success("답변이 저장되었습니다.");
+      setReplyingId(null);
+      setReplyText("");
+      utils.adminCountry.getInquiriesByCountry.invalidate();
+    },
+    onError: () => toast.error("답변 저장에 실패했습니다."),
+  });
+
+  const subTabs: { id: CountrySubTab; label: string; icon: React.ElementType }[] = [
+    { id: "users", label: "회원 목록", icon: Users },
+    { id: "revenue", label: "매출 내역", icon: DollarSign },
+    { id: "inquiries", label: "문의 관리", icon: MessageSquare },
+  ];
+
+  return (
+    <div className="space-y-5">
+      {/* 뒤로 가기 + 국가 헤더 */}
+      <div className="flex items-center gap-3">
+        <button onClick={onBack} className="p-2 rounded-xl hover:bg-gray-100 transition-colors">
+          <ArrowLeft className="w-5 h-5 text-[#1F3864]" />
+        </button>
+        <div className="flex items-center gap-2">
+          <span className="text-3xl">{country.flag}</span>
+          <div>
+            <h2 className="text-xl font-bold text-[#1F3864]">{country.name} 관리</h2>
+            <p className="text-xs text-gray-400">회원 · 매출 · 문의 통합 관리</p>
+          </div>
+        </div>
+      </div>
+
+      {/* 서브 탭 */}
+      <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+        {subTabs.map(t => (
+          <button
+            key={t.id}
+            onClick={() => setSubTab(t.id)}
+            className={`flex items-center gap-2 flex-1 justify-center px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              subTab === t.id ? "bg-white text-[#1F3864] shadow-sm" : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <t.icon className="w-4 h-4" />
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* 회원 목록 */}
+      {subTab === "users" && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-[#1F3864]">{country.flag} {country.name} 회원 <span className="text-sm font-normal text-gray-400">({usersData?.total ?? 0}명)</span></h3>
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium">이름</th>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium">이메일</th>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">등급</th>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">KYC</th>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">가입일</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {usersLoading ? (
+                    <tr><td colSpan={5} className="text-center py-10 text-gray-400">로딩 중...</td></tr>
+                  ) : usersData?.list.length === 0 ? (
+                    <tr><td colSpan={5} className="text-center py-10 text-gray-400">{country.name} 회원이 없습니다.</td></tr>
+                  ) : usersData?.list.map(u => (
+                    <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3 font-medium text-[#1F3864]">{u.name || "-"}</td>
+                      <td className="px-4 py-3 text-gray-500 text-xs">{u.email}</td>
+                      <td className="px-4 py-3 hidden md:table-cell">
+                        <span className="text-xs px-2 py-0.5 rounded-lg bg-[#C9A961]/10 text-[#C9A961] font-medium">{u.memberGrade ?? "일반"}</span>
+                      </td>
+                      <td className="px-4 py-3 hidden md:table-cell">
+                        <span className={`text-xs px-2 py-0.5 rounded-lg font-medium ${
+                          u.kycStatus === "verified" ? "bg-green-50 text-green-700" :
+                          u.kycStatus === "pending" ? "bg-yellow-50 text-yellow-700" :
+                          "bg-gray-50 text-gray-500"
+                        }`}>{u.kycStatus ?? "미인증"}</span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-400 text-xs hidden lg:table-cell">{formatDate(u.createdAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+              <span className="text-xs text-gray-400">{usersData?.total ?? 0}명</span>
+              <div className="flex gap-1">
+                <button onClick={() => setUserPage(p => Math.max(1, p - 1))} disabled={userPage === 1} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30"><ChevronLeft className="w-4 h-4" /></button>
+                <span className="px-3 py-1 text-sm">{userPage} / {Math.max(1, Math.ceil((usersData?.total ?? 0) / 20))}</span>
+                <button onClick={() => setUserPage(p => Math.min(Math.ceil((usersData?.total ?? 1) / 20), p + 1))} disabled={userPage >= Math.ceil((usersData?.total ?? 1) / 20)} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30"><ChevronRight className="w-4 h-4" /></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 매출 내역 */}
+      {subTab === "revenue" && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-[#1F3864]">{country.flag} {country.name} 매출 <span className="text-sm font-normal text-gray-400">({revData?.total ?? 0}건 / 총 {(revData?.totalRevenue ?? 0).toLocaleString()}원)</span></h3>
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium">회원</th>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium">금액</th>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">통화</th>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">상품</th>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">결제일</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {revLoading ? (
+                    <tr><td colSpan={5} className="text-center py-10 text-gray-400">로딩 중...</td></tr>
+                  ) : revData?.list.length === 0 ? (
+                    <tr><td colSpan={5} className="text-center py-10 text-gray-400">{country.name} 결제 내역이 없습니다.</td></tr>
+                  ) : revData?.list.map(p => (
+                    <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-[#1F3864]">{p.userName || "-"}</div>
+                        <div className="text-xs text-gray-400">{p.userEmail}</div>
+                      </td>
+                      <td className="px-4 py-3 font-bold text-[#C9A961]">{(p.amount ?? 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-gray-500 hidden md:table-cell">{p.currency ?? "KRW"}</td>
+                      <td className="px-4 py-3 text-gray-500 text-xs hidden md:table-cell truncate max-w-[120px]">{p.items ?? "-"}</td>
+                      <td className="px-4 py-3 text-gray-400 text-xs hidden lg:table-cell">{formatDate(p.paidAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+              <span className="text-xs text-gray-400">{revData?.total ?? 0}건</span>
+              <div className="flex gap-1">
+                <button onClick={() => setRevPage(p => Math.max(1, p - 1))} disabled={revPage === 1} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30"><ChevronLeft className="w-4 h-4" /></button>
+                <span className="px-3 py-1 text-sm">{revPage} / {Math.max(1, Math.ceil((revData?.total ?? 0) / 20))}</span>
+                <button onClick={() => setRevPage(p => Math.min(Math.ceil((revData?.total ?? 1) / 20), p + 1))} disabled={revPage >= Math.ceil((revData?.total ?? 1) / 20)} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30"><ChevronRight className="w-4 h-4" /></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 문의 관리 */}
+      {subTab === "inquiries" && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-[#1F3864]">{country.flag} {country.name} 문의 <span className="text-sm font-normal text-gray-400">({inqData?.total ?? 0}건)</span></h3>
+            <select
+              className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none"
+              value={inqStatus}
+              onChange={e => { setInqStatus(e.target.value as any); setInqPage(1); }}
+            >
+              <option value="all">전체</option>
+              <option value="pending">미답변</option>
+              <option value="answered">답변완료</option>
+            </select>
+          </div>
+          <div className="space-y-3">
+            {inqLoading ? (
+              <div className="text-center py-10 text-gray-400">로딩 중...</div>
+            ) : inqData?.list.length === 0 ? (
+              <div className="text-center py-10 text-gray-400 bg-white rounded-2xl border border-gray-100">{country.name} 문의가 없습니다.</div>
+            ) : inqData?.list.map(inq => (
+              <div key={inq.id} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-xs px-2 py-0.5 rounded-lg font-medium ${
+                        inq.status === "pending" ? "bg-orange-50 text-orange-700" : "bg-green-50 text-green-700"
+                      }`}>{inq.status === "pending" ? "미답변" : "답변완료"}</span>
+                      <span className="text-xs text-gray-400">{formatDate(inq.createdAt)}</span>
+                    </div>
+                    <h3 className="font-semibold text-[#1F3864]">{inq.subject}</h3>
+                    <p className="text-xs text-gray-500">{inq.userName} · {inq.userEmail}</p>
+                  </div>
+                  {inq.status === "pending" && (
+                    <button
+                      onClick={() => { setReplyingId(inq.id); setReplyText(""); }}
+                      className="shrink-0 px-3 py-1.5 bg-[#1F3864] text-white text-xs rounded-lg hover:bg-[#162a4e] transition-colors"
+                    >
+                      답변하기
+                    </button>
+                  )}
+                </div>
+                <p className="text-sm text-gray-600 bg-gray-50 rounded-xl p-3 mb-2">{inq.content}</p>
+                {inq.reply && (
+                  <div className="bg-blue-50 rounded-xl p-3">
+                    <p className="text-xs text-blue-600 font-semibold mb-1">관리자 답변</p>
+                    <p className="text-sm text-blue-800">{inq.reply}</p>
+                  </div>
+                )}
+                {replyingId === inq.id && (
+                  <div className="mt-3 space-y-2">
+                    <textarea
+                      value={replyText}
+                      onChange={e => setReplyText(e.target.value)}
+                      placeholder="답변을 입력하세요..."
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none h-24 focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => replyMutation.mutate({ inquiryId: inq.id, reply: replyText })}
+                        disabled={!replyText.trim() || replyMutation.isPending}
+                        className="px-4 py-2 bg-[#1F3864] text-white text-xs rounded-lg hover:bg-[#162a4e] disabled:opacity-50"
+                      >
+                        {replyMutation.isPending ? "저장 중..." : "답변 저장"}
+                      </button>
+                      <button onClick={() => setReplyingId(null)} className="px-4 py-2 bg-gray-100 text-gray-600 text-xs rounded-lg hover:bg-gray-200">
+                        취소
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-400">{inqData?.total ?? 0}건</span>
+            <div className="flex gap-1">
+              <button onClick={() => setInqPage(p => Math.max(1, p - 1))} disabled={inqPage === 1} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30"><ChevronLeft className="w-4 h-4" /></button>
+              <span className="px-3 py-1 text-sm">{inqPage} / {Math.max(1, Math.ceil((inqData?.total ?? 0) / 20))}</span>
+              <button onClick={() => setInqPage(p => Math.min(Math.ceil((inqData?.total ?? 1) / 20), p + 1))} disabled={inqPage >= Math.ceil((inqData?.total ?? 1) / 20)} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30"><ChevronRight className="w-4 h-4" /></button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** 국가별 통합 관리 탭 (메인) */
+function CountriesTab() {
+  const [selectedCountry, setSelectedCountry] = useState<typeof COUNTRY_LIST[0] | null>(null);
+  const { data, isLoading } = trpc.adminCountry.getCountrySummary.useQuery();
+
+  if (selectedCountry) {
+    return <CountryDetailView country={selectedCountry} onBack={() => setSelectedCountry(null)} />;
+  }
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <h2 className="text-lg font-bold text-[#1F3864]">14개국 통합 관리</h2>
+        <p className="text-sm text-gray-400 mt-0.5">국가를 클릭하면 해당 국가의 회원·매출·문의를 관리할 수 있습니다.</p>
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-16 text-gray-400">로딩 중...</div>
+      ) : (
+        <>
+          {/* 전체 요약 바 */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard icon={Users} label="총 가입자" value={`${(data?.countries.reduce((s, c) => s + c.users, 0) ?? 0).toLocaleString()}명`} color="bg-[#1F3864]" />
+            <StatCard icon={DollarSign} label="총 매출" value={formatKRW(data?.countries.reduce((s, c) => s + c.revenue, 0) ?? 0)} color="bg-[#C9A961]" />
+            <StatCard icon={FileText} label="총 유언장" value={`${(data?.countries.reduce((s, c) => s + c.wills, 0) ?? 0).toLocaleString()}건`} color="bg-green-500" />
+            <StatCard icon={MessageSquare} label="미답변 문의" value={`${(data?.countries.reduce((s, c) => s + c.pendingInquiries, 0) ?? 0)}건`} color="bg-orange-500" />
+          </div>
+
+          {/* 국가 카드 그리드 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {data?.countries.map(c => (
+              <button
+                key={c.code}
+                onClick={() => setSelectedCountry(c)}
+                className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:border-[#1F3864]/30 hover:shadow-md transition-all text-left group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{c.flag}</span>
+                    <span className="font-bold text-[#1F3864]">{c.name}</span>
+                  </div>
+                  <span className="text-xs text-gray-400 group-hover:text-[#1F3864] transition-colors">{c.code}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-gray-50 rounded-xl p-2.5">
+                    <p className="text-xs text-gray-400">가입자</p>
+                    <p className="font-bold text-[#1F3864] text-sm">{c.users.toLocaleString()}명</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-2.5">
+                    <p className="text-xs text-gray-400">매출</p>
+                    <p className="font-bold text-[#C9A961] text-sm">{formatKRW(c.revenue)}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-2.5">
+                    <p className="text-xs text-gray-400">유언장</p>
+                    <p className="font-bold text-green-600 text-sm">{c.wills}건</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-2.5">
+                    <p className="text-xs text-gray-400">미답변</p>
+                    <p className={`font-bold text-sm ${c.pendingInquiries > 0 ? "text-orange-500" : "text-gray-400"}`}>{c.pendingInquiries}건</p>
+                  </div>
+                </div>
+                {c.pendingInquiries > 0 && (
+                  <div className="mt-3 flex items-center gap-1.5 text-xs text-orange-500 font-medium">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    미답변 문의 {c.pendingInquiries}건
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 /** 메인 관리자 페이지 */
 export default function AdminPage() {
   const { user, loading } = useAuth();
@@ -1503,6 +1863,7 @@ export default function AdminPage() {
 
   const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: "stats", label: "통계 개요", icon: BarChart3 },
+    { id: "countries", label: "국가별 관리", icon: Globe },
     { id: "users", label: "회원 관리", icon: Users },
     { id: "payments", label: "결제/매출", icon: CreditCard },
     { id: "inquiries", label: "문의 관리", icon: MessageSquare },
@@ -1548,6 +1909,7 @@ export default function AdminPage() {
       {/* 콘텐츠 */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         {activeTab === "stats" && <StatsTab />}
+        {activeTab === "countries" && <CountriesTab />}
         {activeTab === "users" && <UsersTab />}
         {activeTab === "payments" && <PaymentsTab />}
         {activeTab === "inquiries" && <InquiriesTab />}

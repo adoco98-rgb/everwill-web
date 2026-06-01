@@ -815,3 +815,12 @@
 - [x] LetterWrite.tsx에 음성 입력 모드 통합 (각 단계별 음성/텍스트 전환)
 - [x] LetterWrite.tsx에 사진 그림 추가 기능 통합 (AI 수채화 변환)
 - [x] App.tsx 라우트 등록 (/life-story/autobiography)
+
+## 국가별 통합 관리 (관리자)
+- [x] adminRouter.ts: adminCountryRouter 추가 (getCountrySummary, getUsersByCountry, getRevenueByCountry, getInquiriesByCountry, replyInquiry)
+- [x] routers.ts: adminCountry 라우터 등록
+- [x] AdminPage.tsx: Tab 타입에 "countries" 추가
+- [x] AdminPage.tsx: COUNTRY_LIST 14개국 정의
+- [x] AdminPage.tsx: CountriesTab 컴포넌트 (14개국 카드 그리드 + 전체 요약 통계)
+- [x] AdminPage.tsx: CountryDetailView 컴포넌트 (회원/매출/문의 서브탭)
+- [x] 관리자 탭 네비게이션에 "국가별 관리" 탭 추가 (Globe 아이콘)
