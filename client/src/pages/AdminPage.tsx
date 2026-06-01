@@ -15,10 +15,11 @@ import {
   BarChart3, Search, ChevronLeft, ChevronRight,
   TrendingUp, Shield, Clock, CheckCircle,
   Newspaper, Plus, Trash2, Eye, EyeOff, ExternalLink, Pencil, KeyRound,
-  ShieldCheck, XCircle, AlertTriangle, ImageIcon, Link2, Save, Youtube, Instagram
+  ShieldCheck, XCircle, AlertTriangle, ImageIcon, Link2, Save, Youtube, Instagram,
+  X, BookOpen, Mail, BookMarked, Wallet, ClipboardList
 } from "lucide-react";
 
-type Tab = "stats" | "users" | "payments" | "wills" | "inquiries" | "news" | "assetVerify" | "socialLinks" | "videos";
+type Tab = "stats" | "users" | "payments" | "inquiries" | "news" | "socialLinks" | "videos";
 
 function formatKRW(amount: number) {
   if (amount >= 100_000_000) return `${(amount / 100_000_000).toFixed(1)}억원`;
@@ -68,6 +69,186 @@ function StatsTab() {
 }
 
 /** 회원 관리 탭 */
+/** 회원 상세 모달 */
+function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => void }) {
+  const { data, isLoading } = trpc.admin.getUserDetail.useQuery({ userId });
+
+  const formatDate = (d: Date | string | null | undefined) => {
+    if (!d) return "-";
+    return new Date(d).toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl my-8">
+        {/* 헤더 */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="text-lg font-bold text-[#1F3864]">
+            {isLoading ? "로딩 중..." : `${data?.user?.name ?? "-"} 회원 상세`}
+          </h2>
+          <button onClick={onClose} className="p-2 rounded-xl hover:bg-gray-100">
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20 text-gray-400">불러오는 중...</div>
+        ) : data ? (
+          <div className="p-6 space-y-6">
+            {/* 기본 정보 */}
+            <div className="bg-gray-50 rounded-xl p-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div><span className="text-gray-400 block text-xs mb-1">이름</span><span className="font-semibold">{data.user.name || "-"}</span></div>
+              <div><span className="text-gray-400 block text-xs mb-1">이메일</span><span className="font-semibold truncate block">{data.user.email || "-"}</span></div>
+              <div><span className="text-gray-400 block text-xs mb-1">전화번호</span><span className="font-semibold">{(data.user as any).phone || "-"}</span></div>
+              <div><span className="text-gray-400 block text-xs mb-1">가입일</span><span className="font-semibold">{formatDate(data.user.createdAt)}</span></div>
+              <div><span className="text-gray-400 block text-xs mb-1">등급</span><span className="font-semibold">{(data.user as any).memberGrade || "일반"}</span></div>
+              <div><span className="text-gray-400 block text-xs mb-1">국가</span><span className="font-semibold">{(data.user as any).country || "KR"}</span></div>
+              <div><span className="text-gray-400 block text-xs mb-1">역할</span><span className={`font-semibold ${data.user.role === "admin" ? "text-purple-600" : "text-gray-600"}`}>{data.user.role === "admin" ? "관리자" : "일반"}</span></div>
+            </div>
+
+            {/* 요약 카드 */}
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+              {[
+                { icon: FileText, label: "유언장", count: data.wills.length, color: "text-blue-600 bg-blue-50" },
+                { icon: Wallet, label: "결제", count: data.payments.length, color: "text-green-600 bg-green-50" },
+                { icon: ShieldCheck, label: "자산인증", count: data.assets.length, color: "text-orange-600 bg-orange-50" },
+                { icon: Mail, label: "편지", count: data.letters.length, color: "text-pink-600 bg-pink-50" },
+                { icon: BookOpen, label: "일기", count: data.journals.length, color: "text-purple-600 bg-purple-50" },
+                { icon: BookMarked, label: "자서전", count: data.autobiographies.length, color: "text-amber-600 bg-amber-50" },
+              ].map(item => (
+                <div key={item.label} className="bg-white border border-gray-100 rounded-xl p-3 text-center">
+                  <div className={`w-8 h-8 rounded-lg ${item.color} flex items-center justify-center mx-auto mb-1`}>
+                    <item.icon className="w-4 h-4" />
+                  </div>
+                  <div className="text-lg font-bold text-[#1F3864]">{item.count}</div>
+                  <div className="text-xs text-gray-400">{item.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* 유언장 목록 */}
+            {data.wills.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-[#1F3864] mb-2 flex items-center gap-2"><FileText className="w-4 h-4" /> 유언장 ({data.wills.length}건)</h3>
+                <div className="space-y-2">
+                  {data.wills.map((w: any) => (
+                    <div key={w.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 text-sm">
+                      <span className="font-medium">{w.title || `유언장 #${w.id}`}</span>
+                      <div className="flex items-center gap-3">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          w.status === "certified" ? "bg-green-100 text-green-700" :
+                          w.status === "draft" ? "bg-gray-100 text-gray-600" : "bg-yellow-100 text-yellow-700"
+                        }`}>{w.status === "certified" ? "인증완료" : w.status === "draft" ? "초안" : w.status}</span>
+                        <span className="text-gray-400">{formatDate(w.createdAt)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 자산 인증 */}
+            {data.assets.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-[#1F3864] mb-2 flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> 자산 인증 ({data.assets.length}건)</h3>
+                <div className="space-y-2">
+                  {data.assets.map((a: any) => (
+                    <div key={a.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 text-sm">
+                      <span className="font-medium">{a.assetType || "자산"} — {a.description || "-"}</span>
+                      <div className="flex items-center gap-3">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          a.status === "approved" ? "bg-green-100 text-green-700" :
+                          a.status === "rejected" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700"
+                        }`}>{a.status === "approved" ? "승인" : a.status === "rejected" ? "거절" : "검토중"}</span>
+                        <span className="text-gray-400">{formatDate(a.createdAt)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 편지 */}
+            {data.letters.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-[#1F3864] mb-2 flex items-center gap-2"><Mail className="w-4 h-4" /> 소중한 편지 ({data.letters.length}건)</h3>
+                <div className="space-y-2">
+                  {data.letters.map((l: any) => (
+                    <div key={l.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 text-sm">
+                      <span className="font-medium">{l.title || `편지 #${l.id}`}</span>
+                      <span className="text-gray-400">{formatDate(l.createdAt)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 일기 */}
+            {data.journals.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-[#1F3864] mb-2 flex items-center gap-2"><BookOpen className="w-4 h-4" /> AI 일기 ({data.journals.length}건)</h3>
+                <div className="space-y-2">
+                  {data.journals.map((j: any) => (
+                    <div key={j.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 text-sm">
+                      <span className="font-medium">{j.title || `일기 #${j.id}`}</span>
+                      <span className="text-gray-400">{formatDate(j.createdAt)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 자서전 */}
+            {data.autobiographies.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-[#1F3864] mb-2 flex items-center gap-2"><BookMarked className="w-4 h-4" /> 나의 자서전 ({data.autobiographies.length}건)</h3>
+                <div className="space-y-2">
+                  {data.autobiographies.map((ab: any) => (
+                    <div key={ab.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 text-sm">
+                      <span className="font-medium">{ab.title || `자서전 #${ab.id}`}</span>
+                      <span className="text-gray-400">{formatDate(ab.createdAt)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 결제 내역 */}
+            {data.payments.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-[#1F3864] mb-2 flex items-center gap-2"><Wallet className="w-4 h-4" /> 결제 내역 ({data.payments.length}건)</h3>
+                <div className="space-y-2">
+                  {data.payments.map((p: any) => (
+                    <div key={p.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 text-sm">
+                      <span className="font-medium">{p.productName || "결제"}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="font-semibold text-[#1F3864]">{formatKRW(p.amountTotal || 0)}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                          p.status === "completed" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+                        }`}>{p.status === "completed" ? "완료" : p.status}</span>
+                        <span className="text-gray-400">{formatDate(p.paidAt)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 자료 없음 */}
+            {data.wills.length === 0 && data.payments.length === 0 && data.assets.length === 0 &&
+             data.letters.length === 0 && data.journals.length === 0 && data.autobiographies.length === 0 && (
+              <div className="text-center py-10 text-gray-400">
+                <ClipboardList className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                <p>아직 등록된 자료가 없습니다.</p>
+              </div>
+            )}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 function UsersTab() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -76,6 +257,7 @@ function UsersTab() {
   const [resetTarget, setResetTarget] = useState<{ id: number; name: string } | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const utils = trpc.useUtils();
 
   const { data, isLoading } = trpc.admin.getUsers.useQuery({ page, limit: 20, search, role: roleFilter });
@@ -243,11 +425,17 @@ function UsersTab() {
           </div>
         </div>
       </div>
+      {/* 회원 상세 모달 */}
+      {selectedUserId !== null && (
+        <UserDetailModal userId={selectedUserId} onClose={() => setSelectedUserId(null)} />
+      )}
     </div>
   );
 }
 
-/** 결제/매출 탭 */
+
+
+/** 결제/매입 탭 */
 function PaymentsTab() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "completed" | "failed" | "refunded">("all");
@@ -1162,10 +1350,8 @@ export default function AdminPage() {
     { id: "stats", label: "통계 개요", icon: BarChart3 },
     { id: "users", label: "회원 관리", icon: Users },
     { id: "payments", label: "결제/매출", icon: CreditCard },
-    { id: "wills", label: "자료 관리", icon: FileText },
     { id: "inquiries", label: "문의 관리", icon: MessageSquare },
     { id: "news", label: "뉴스 관리", icon: Newspaper },
-    { id: "assetVerify", label: "자산 인증 검토", icon: ShieldCheck },
     { id: "socialLinks", label: "SNS 소셜 링크", icon: Link2 },
     { id: "videos", label: "국가별 영상", icon: Youtube },
   ];
@@ -1209,10 +1395,8 @@ export default function AdminPage() {
         {activeTab === "stats" && <StatsTab />}
         {activeTab === "users" && <UsersTab />}
         {activeTab === "payments" && <PaymentsTab />}
-        {activeTab === "wills" && <WillsTab />}
         {activeTab === "inquiries" && <InquiriesTab />}
         {activeTab === "news" && <NewsTab />}
-        {activeTab === "assetVerify" && <AssetVerifyTab />}
         {activeTab === "socialLinks" && <SocialLinksTab />}
         {activeTab === "videos" && <VideosTab />}
       </div>

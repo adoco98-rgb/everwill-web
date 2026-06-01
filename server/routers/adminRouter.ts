@@ -10,7 +10,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { adminProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
-import { users, payments, wills, inquiries } from "../../drizzle/schema";
+import { users, payments, wills, inquiries, assetVerifications, legacyLetters, lifeJournals, autobiographies } from "../../drizzle/schema";
 import type { Will } from "../../drizzle/schema";
 import { desc, eq, like, or, sql, and, gte } from "drizzle-orm";
 
@@ -266,6 +266,38 @@ export const adminRouter = router({
         .leftJoin(users, eq(inquiries.userId, users.id))
         .where(whereClause);
       return { list, total: countResult.count };
+    }),
+
+  /** 회원 상세 조회 - 모든 자료 통합 */
+  getUserDetail: adminProcedure
+    .input(z.object({ userId: z.number() }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      // 회원 기본 정보
+      const [user] = await db.select().from(users).where(eq(users.id, input.userId)).limit(1);
+      if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "회원을 찾을 수 없습니다" });
+      // 유언장 목록
+      const userWills = await db.select().from(wills).where(eq(wills.userId, input.userId)).orderBy(desc(wills.createdAt));
+      // 결제 내역
+      const userPayments = await db.select().from(payments).where(eq(payments.userId, input.userId)).orderBy(desc(payments.paidAt));
+      // 자산 인증
+      const userAssets = await db.select().from(assetVerifications).where(eq(assetVerifications.userId, input.userId)).orderBy(desc(assetVerifications.createdAt));
+      // 편지
+      const userLetters = await db.select().from(legacyLetters).where(eq(legacyLetters.userId, input.userId)).orderBy(desc(legacyLetters.createdAt));
+      // 일기
+      const userJournals = await db.select().from(lifeJournals).where(eq(lifeJournals.userId, input.userId)).orderBy(desc(lifeJournals.createdAt));
+      // 자서전
+      const userAutobiographies = await db.select().from(autobiographies).where(eq(autobiographies.userId, input.userId)).orderBy(desc(autobiographies.createdAt));
+      return {
+        user,
+        wills: userWills,
+        payments: userPayments,
+        assets: userAssets,
+        letters: userLetters,
+        journals: userJournals,
+        autobiographies: userAutobiographies,
+      };
     }),
 
   /** 문의 답변 */
