@@ -8,6 +8,7 @@
 import { trpc } from "@/lib/trpc";
 import { motion } from "framer-motion";
 import { Play } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // 언어 코드 → 영상 키 매핑 (전체 국가)
 const LANG_TO_VIDEO_KEY: Record<string, string> = {
@@ -22,7 +23,6 @@ const LANG_TO_VIDEO_KEY: Record<string, string> = {
   ru: "video_ru",
   hi: "video_in",
   pt: "video_br",
-  // 추가 국가 (영어권 fallback)
   ca: "video_ca",
   au: "video_au",
   nz: "video_nz",
@@ -33,6 +33,19 @@ const LANG_TO_VIDEO_KEY: Record<string, string> = {
   th: "video_th",
   vi: "video_vn",
   tl: "video_ph",
+};
+
+// 언어별 섹션 텍스트 번역
+const VIDEO_SECTION_TEXT: Record<string, { label: string; title: string; subtitle: string; version: string; preparing: string }> = {
+  ko: { label: "EVERWILL 영상", title: "EverWill 전자인증은 사랑의 실천입니다", subtitle: "유언 작성의 중요성과 EverWill 서비스를 영상으로 확인하세요.", version: "버전", preparing: "현재 선택된 국가의 영상이 준비 중입니다." },
+  en: { label: "EVERWILL VIDEO", title: "EverWill: A Digital Act of Love", subtitle: "Watch how EverWill helps you protect your loved ones.", version: "version", preparing: "Video for this country is coming soon." },
+  ja: { label: "EVERWILL 動画", title: "EverWillで大切な人への愛を形に", subtitle: "遺言作成の重要性とEverWillサービスを動画でご確認ください。", version: "バージョン", preparing: "この国の動画は準備中です。" },
+  zh: { label: "EVERWILL 视频", title: "EverWill：数字时代的爱的传承", subtitle: "通过视频了解遗嘱的重要性和EverWill服务。", version: "版本", preparing: "该国家的视频正在准备中。" },
+  de: { label: "EVERWILL VIDEO", title: "EverWill: Ein digitaler Liebesbeweis", subtitle: "Erfahren Sie mehr über EverWill und die Bedeutung eines Testaments.", version: "Version", preparing: "Video für dieses Land wird vorbereitet." },
+  es: { label: "VIDEO EVERWILL", title: "EverWill: Un acto de amor digital", subtitle: "Descubra la importancia del testamento y el servicio EverWill.", version: "versión", preparing: "El video para este país está en preparación." },
+  ar: { label: "فيديو EverWill", title: "EverWill: فعل محبة رقمي", subtitle: "شاهد كيف يساعدك EverWill على حماية أحبائك.", version: "نسخة", preparing: "الفيديو الخاص بهذا البلد قيد الإعداد." },
+  fr: { label: "VIDÉO EVERWILL", title: "EverWill : Un acte d'amour numérique", subtitle: "Découvrez l'importance du testament et le service EverWill.", version: "version", preparing: "La vidéo pour ce pays est en préparation." },
+  ru: { label: "ВИДЕО EVERWILL", title: "EverWill: Цифровой акт любви", subtitle: "Узнайте о важности завещания и сервисе EverWill.", version: "версия", preparing: "Видео для этой страны готовится." },
 };
 
 const COUNTRY_LABELS: Record<string, string> = {
@@ -75,21 +88,13 @@ function toEmbedUrl(url: string): string {
 
 export default function CountryVideoSection() {
   const { data: videos } = trpc.siteSettings.getVideos.useQuery();
+  const { language } = useLanguage();
 
-  // 현재 선택 언어 감지 (localStorage 또는 브라우저 언어)
-  const currentLang = (() => {
-    try {
-      const saved = localStorage.getItem("everwill_lang");
-      if (saved) return saved;
-    } catch {}
-    const browserLang = navigator.language.split("-")[0];
-    return browserLang;
-  })();
-
-  const videoKey = LANG_TO_VIDEO_KEY[currentLang] ?? "video_kr";
+  const videoKey = LANG_TO_VIDEO_KEY[language] ?? "video_kr";
   const rawUrl = videos?.[videoKey] ?? videos?.["video_kr"] ?? null;
   const embedUrl = rawUrl ? toEmbedUrl(rawUrl) : null;
   const countryLabel = COUNTRY_LABELS[videoKey] ?? COUNTRY_LABELS["video_kr"];
+  const txt = VIDEO_SECTION_TEXT[language] ?? VIDEO_SECTION_TEXT["en"];
 
   // 영상이 하나도 없으면 섹션 자체를 숨김
   if (!videos || Object.values(videos).every((v) => !v)) return null;
@@ -106,13 +111,13 @@ export default function CountryVideoSection() {
           className="text-center mb-10"
         >
           <p className="text-xs font-bold tracking-widest text-[#C9A961] uppercase mb-2">
-            ── EverWill 영상 ──
+            ── {txt.label} ──
           </p>
           <h2 className="text-3xl md:text-4xl font-extrabold text-[#1F3864]">
-            EverWill 전자인증은 사랑의 실천입니다
+            {txt.title}
           </h2>
           <p className="text-gray-500 mt-3 text-sm md:text-base">
-            유언 작성의 중요성과 EverWill 서비스를 영상으로 확인하세요.
+            {txt.subtitle}
           </p>
         </motion.div>
 
@@ -141,13 +146,13 @@ export default function CountryVideoSection() {
               <div className="w-16 h-16 rounded-full bg-[#1F3864]/10 flex items-center justify-center">
                 <Play className="w-8 h-8 text-[#1F3864]/40" />
               </div>
-              <p className="text-[#1F3864]/40 text-sm">현재 선택된 국가의 영상이 준비 중입니다.</p>
+              <p className="text-[#1F3864]/40 text-sm">{txt.preparing}</p>
             </div>
           )}
 
           {/* 국가 라벨 */}
           <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full">
-            {countryLabel} 버전
+            {countryLabel} {txt.version}
           </div>
         </motion.div>
 

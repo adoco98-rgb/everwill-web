@@ -8,7 +8,8 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Footer() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const isKorean = language === "ko";
 
   const serviceLinks = [
     t.services.s1Title,
@@ -51,18 +52,35 @@ export default function Footer() {
                 {t.footer.tagline}
               </p>
               <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-[#C9A961]" />
-                  <span>Seoul, Korea</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-[#C9A961]" />
-                  <span>hello@saram.io</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-[#C9A961]" />
-                  <span>1588-0000</span>
-                </div>
+                {isKorean ? (
+                  // 한국: 전체 회사 정보 표시
+                  <>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-[#C9A961]" />
+                      <span>경기도 안성시 | 주식회사 사람</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Mail className="w-4 h-4 text-[#C9A961] mt-0.5" />
+                      <div>
+                        <div>everwill@everwill.co.kr</div>
+                        <div className="text-white/40 text-xs mt-0.5">사업자등록번호: 621-81-61690</div>
+                        <div className="text-white/40 text-xs">대표: 라수환</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-[#C9A961]" />
+                      <span>1588-0000</span>
+                    </div>
+                  </>
+                ) : (
+                  // 해외: 회사명 + 이메일만
+                  <>
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-[#C9A961]" />
+                      <span>everwill@everwill.co.kr</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
