@@ -23,22 +23,38 @@ import {
   Users,
   Lock,
   Heart,
+  PenLine,
+  BookMarked,
+  Mail,
+  BookOpen,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 
-const menuItems = [
+/** 유언장 관련 메뉴 */
+const mainMenuItems = [
   { icon: Home, label: "대시보드", path: "/dashboard" },
   { icon: FileText, label: "내 유언장", path: "/dashboard/wills" },
-  { icon: CreditCard, label: "결제 내역", path: "/dashboard/payments" },
+  { icon: Users, label: "상속자 등록", path: "/dashboard/heirs" },
   { icon: Award, label: "Badge 관리", path: "/dashboard/badge" },
   { icon: Shield, label: "인증 현황", path: "/dashboard/certification" },
   { icon: QrCode, label: "멤버십 카드", path: "/dashboard/membership" },
   { icon: ShieldCheck, label: "자산 인증", path: "/dashboard/asset-verify" },
-  { icon: MessageSquare, label: "1:1 문의", path: "/dashboard/inquiries" },
-  { icon: User, label: "프로필 설정", path: "/dashboard/profile" },
-  { icon: Users, label: "상속자 등록", path: "/dashboard/heirs" },
   { icon: Heart, label: "연명치료·기증", path: "/dashboard/medical-directive" },
+];
+
+/** Life Story PRO 메뉴 */
+const lifeStoryMenuItems = [
+  { icon: PenLine, label: "AI 일기 쓰기", path: "/life-story" },
+  { icon: BookMarked, label: "나의 자서전", path: "/life-story/autobiography" },
+  { icon: Mail, label: "소중한 편지 쓰기", path: "/letter" },
+];
+
+/** 기타 메뉴 */
+const etcMenuItems = [
+  { icon: MessageSquare, label: "1:1 문의", path: "/dashboard/inquiries" },
+  { icon: CreditCard, label: "결제 내역", path: "/dashboard/payments" },
+  { icon: User, label: "프로필 설정", path: "/dashboard/profile" },
 ];
 
 export default function SaramDashboardLayout({ children }: { children: React.ReactNode }) {
@@ -94,6 +110,31 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
     ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
     : "U";
 
+  /** 메뉴 아이템 렌더링 헬퍼 */
+  function renderMenuItems(items: typeof mainMenuItems) {
+    return items.map((item) => {
+      const isActive = item.path === "/dashboard"
+        ? location === item.path
+        : location.startsWith(item.path);
+      return (
+        <Link
+          key={item.path}
+          href={item.path}
+          onClick={() => setMobileOpen(false)}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+            isActive
+              ? "bg-white/15 text-white"
+              : "text-white/60 hover:text-white hover:bg-white/10"
+          }`}
+        >
+          <item.icon className="w-4 h-4 shrink-0" />
+          <span>{item.label}</span>
+          {isActive && <ChevronRight className="w-3.5 h-3.5 ml-auto" />}
+        </Link>
+      );
+    });
+  }
+
   return (
     <div className="min-h-screen bg-[#FAFAF8] flex">
       {/* 모바일 오버레이 */}
@@ -131,29 +172,41 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
         </div>
 
         {/* 메뉴 */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {menuItems.map((item) => {
-            // /dashboard는 정확 매칭, 나머지는 prefix 매칭 (하위 경로도 활성화)
-            const isActive = item.path === "/dashboard"
-              ? location === item.path
-              : location.startsWith(item.path);
-            return (
-              <Link
-                key={item.path}
-                href={item.path}
-                onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  isActive
-                    ? "bg-white/15 text-white"
-                    : "text-white/60 hover:text-white hover:bg-white/10"
-                }`}
-              >
-                <item.icon className="w-4 h-4 shrink-0" />
-                <span>{item.label}</span>
-                {isActive && <ChevronRight className="w-3.5 h-3.5 ml-auto" />}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 p-4 overflow-y-auto space-y-1">
+          {/* 유언장 관련 */}
+          {renderMenuItems(mainMenuItems)}
+
+          {/* Life Story PRO 그룹 */}
+          <div className="pt-3 mt-2 border-t border-white/10">
+            <div className="flex items-center gap-2 px-3 mb-2">
+              <BookOpen className="w-3.5 h-3.5 text-[#C9A961]" />
+              <span className="text-[10px] font-bold text-[#C9A961] uppercase tracking-widest">Life Story PRO</span>
+            </div>
+            {lifeStoryMenuItems.map((item) => {
+              const isActive = location.startsWith(item.path);
+              return (
+                <Link
+                  key={item.path}
+                  href={item.path}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    isActive
+                      ? "bg-[#C9A961]/20 text-[#C9A961]"
+                      : "text-white/60 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  <item.icon className="w-4 h-4 shrink-0" />
+                  <span>{item.label}</span>
+                  {isActive && <ChevronRight className="w-3.5 h-3.5 ml-auto text-[#C9A961]" />}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* 기타 */}
+          <div className="pt-3 mt-2 border-t border-white/10">
+            {renderMenuItems(etcMenuItems)}
+          </div>
 
           {/* 관리자 전용 메뉴 */}
           {user.role === "admin" && (
@@ -196,7 +249,7 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
             className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-white/60 hover:text-white hover:bg-white/10 text-sm transition-all"
           >
             <LogOut className="w-4 h-4" />
-            <span>\ub85c\uadf8\uc544\uc6c3</span>
+            <span>로그아웃</span>
           </button>
         </div>
       </aside>
