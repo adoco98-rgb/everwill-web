@@ -159,10 +159,8 @@ export default function DashboardHome() {
             </div>
             <p className="text-white/70 text-xs">자산 서류 검토가 완료되었습니다. 유언장 인증으로 진행하세요.</p>
           </div>
-          <Link href="/dashboard/asset-verify">
-            <a className="shrink-0 bg-white hover:bg-gray-100 text-green-700 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap">
+          <Link href="/dashboard/asset-verify" className="shrink-0 bg-white hover:bg-gray-100 text-green-700 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap">
               인증 확인 →
-            </a>
           </Link>
         </motion.div>
       )}
@@ -205,10 +203,8 @@ export default function DashboardHome() {
               인증일: {new Date(certifiedWill.updatedAt ?? certifiedWill.createdAt).toLocaleDateString("ko-KR")}
             </p>
           </div>
-          <Link href="/dashboard/wills">
-            <a className="shrink-0 bg-[#C9A961] hover:bg-[#b8944f] text-[#1F3864] px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap">
+          <Link href="/dashboard/wills" className="shrink-0 bg-[#C9A961] hover:bg-[#b8944f] text-[#1F3864] px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap">
               유언장 보기 →
-            </a>
           </Link>
         </motion.div>
       )}
@@ -402,8 +398,7 @@ export default function DashboardHome() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 + i * 0.05 }}
             >
-              <Link href={card.href}>
-                <a className="block bg-white rounded-2xl border border-gray-100 p-4 hover:border-[#1F3864]/20 hover:shadow-sm transition-all">
+              <Link href={card.href} className="block bg-white rounded-2xl border border-gray-100 p-4 hover:border-[#1F3864]/20 hover:shadow-sm transition-all">
                   <div className="flex items-center justify-between mb-3">
                     <card.icon className="w-4 h-4 text-[#1F3864]/40" />
                     {card.status === "draft" && <Clock className="w-3.5 h-3.5 text-amber-400" />}
@@ -413,7 +408,6 @@ export default function DashboardHome() {
                   <p className="text-xs text-gray-400">{card.label}</p>
                   <p className="font-bold text-[#1F3864] text-sm mt-0.5">{card.value}</p>
                   <p className="text-xs text-gray-300 mt-0.5">{card.sub}</p>
-                </a>
               </Link>
             </motion.div>
           ))}
@@ -445,10 +439,8 @@ export default function DashboardHome() {
                 : "자산 등록 → 상속자 등록 → 유언장 작성 순서로 진행하면 가장 쉽습니다."}
           </p>
         </div>
-        <Link href={user?.role === "admin" ? "/799805" : assetList.length > 0 ? "/write" : "/assets"}>
-          <a className="shrink-0 bg-[#C9A961] hover:bg-[#b8944f] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap">
+        <Link href={user?.role === "admin" ? "/799805" : assetList.length > 0 ? "/write" : "/assets"} className="shrink-0 bg-[#C9A961] hover:bg-[#b8944f] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap">
             {user?.role === "admin" ? "관리자 패널 →" : assetList.length > 0 ? "유언장 작성 →" : "자산 등록 →"}
-          </a>
         </Link>
         </div>
       </motion.div>

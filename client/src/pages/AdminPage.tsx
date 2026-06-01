@@ -511,7 +511,7 @@ function UsersTab() {
                 <tr><td colSpan={6} className="text-center py-10 text-gray-400">검색 결과가 없습니다.</td></tr>
               ) : data?.list.map(u => (
                 <tr key={u.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-[#1F3864]">{u.name || "-"}</td>
+                  <td className="px-4 py-3 font-medium text-[#1F3864] cursor-pointer hover:underline" onClick={() => setSelectedUserId(u.id)}>{u.name || "-"}</td>
                   <td className="px-4 py-3 text-gray-600 truncate max-w-[160px]">{u.email || "-"}</td>
                   <td className="px-4 py-3 text-gray-600 hidden md:table-cell">{u.phone || "-"}</td>
                   <td className="px-4 py-3 text-gray-600 hidden lg:table-cell">{u.country || "KR"}</td>
@@ -542,14 +542,24 @@ function UsersTab() {
                     </select>
                   </td>
                   <td className="px-4 py-3">
-                    <button
-                      className="flex items-center gap-1 text-xs text-gray-500 border border-gray-200 hover:bg-gray-50 px-2 py-1 rounded-lg"
-                      onClick={() => setResetTarget({ id: u.id, name: u.name || "회원" })}
-                      title="비밀번호 초기화"
-                    >
-                      <KeyRound className="w-3 h-3" />
-                      비번
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        className="flex items-center gap-1 text-xs text-[#1F3864] border border-[#1F3864]/30 hover:bg-[#1F3864]/5 px-2 py-1 rounded-lg font-medium"
+                        onClick={() => setSelectedUserId(u.id)}
+                        title="회원 상세 보기"
+                      >
+                        <Eye className="w-3 h-3" />
+                        상세
+                      </button>
+                      <button
+                        className="flex items-center gap-1 text-xs text-gray-500 border border-gray-200 hover:bg-gray-50 px-2 py-1 rounded-lg"
+                        onClick={() => setResetTarget({ id: u.id, name: u.name || "회원" })}
+                        title="비밀번호 초기화"
+                      >
+                        <KeyRound className="w-3 h-3" />
+                        비번
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

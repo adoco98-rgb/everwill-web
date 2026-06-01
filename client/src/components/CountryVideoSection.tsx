@@ -38,6 +38,20 @@ const COUNTRY_LABELS: Record<string, string> = {
   video_br: "🇧🇷 브라질",
 };
 
+// YouTube URL을 embed URL로 변환
+function toEmbedUrl(url: string): string {
+  if (!url) return url;
+  // 이미 embed URL인 경우
+  if (url.includes('youtube.com/embed/')) return url;
+  // youtu.be 단축 URL
+  const shortMatch = url.match(/youtu\.be\/([^?&]+)/);
+  if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
+  // 일반 youtube.com/watch?v= URL
+  const watchMatch = url.match(/[?&]v=([^?&]+)/);
+  if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`;
+  return url;
+}
+
 export default function CountryVideoSection() {
   const { data: videos } = trpc.siteSettings.getVideos.useQuery();
 
@@ -52,7 +66,8 @@ export default function CountryVideoSection() {
   })();
 
   const videoKey = LANG_TO_VIDEO_KEY[currentLang] ?? "video_kr";
-  const embedUrl = videos?.[videoKey] ?? videos?.["video_kr"] ?? null;
+  const rawUrl = videos?.[videoKey] ?? videos?.["video_kr"] ?? null;
+  const embedUrl = rawUrl ? toEmbedUrl(rawUrl) : null;
   const countryLabel = COUNTRY_LABELS[videoKey] ?? COUNTRY_LABELS["video_kr"];
 
   // 영상이 하나도 없으면 섹션 자체를 숨김
