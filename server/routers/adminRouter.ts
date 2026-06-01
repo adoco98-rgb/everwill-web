@@ -300,6 +300,97 @@ export const adminRouter = router({
       };
     }),
 
+  /** 회원 법적 인증 정보 업데이트 (kycStatus, 주민번호 마스킹 등) */
+  updateUserLegal: adminProcedure
+    .input(z.object({
+      userId: z.number(),
+      kycStatus: z.enum(["none", "pending", "verified", "failed", "expired"]).optional(),
+      kycProvider: z.string().optional(),
+      kycReferenceId: z.string().optional(),
+      identityVerified: z.number().optional(),
+      signatureVerified: z.number().optional(),
+      voiceVerified: z.number().optional(),
+      residentNumberMasked: z.string().optional(),
+      residentNumberEnc: z.string().optional(),
+      passportNumberEnc: z.string().optional(),
+      passportExpiry: z.string().optional(),
+      foreignerNumberEnc: z.string().optional(),
+      address: z.string().optional(),
+      addressDetail: z.string().optional(),
+      city: z.string().optional(),
+      zipCode: z.string().optional(),
+      adminNote: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      const updateData: Record<string, unknown> = {};
+      if (input.kycStatus !== undefined) {
+        updateData.kycStatus = input.kycStatus;
+        if (input.kycStatus === "verified") {
+          updateData.kycVerifiedAt = new Date();
+          updateData.identityVerified = 1;
+          // eKYC 인증 만료일: 1년 후
+          const expires = new Date();
+          expires.setFullYear(expires.getFullYear() + 1);
+          updateData.kycExpiresAt = expires;
+        }
+      }
+      if (input.kycProvider !== undefined) updateData.kycProvider = input.kycProvider;
+      if (input.kycReferenceId !== undefined) updateData.kycReferenceId = input.kycReferenceId;
+      if (input.identityVerified !== undefined) updateData.identityVerified = input.identityVerified;
+      if (input.signatureVerified !== undefined) {
+        updateData.signatureVerified = input.signatureVerified;
+        if (input.signatureVerified === 1) updateData.signatureVerifiedAt = new Date();
+      }
+      if (input.voiceVerified !== undefined) {
+        updateData.voiceVerified = input.voiceVerified;
+        if (input.voiceVerified === 1) updateData.voiceVerifiedAt = new Date();
+      }
+      if (input.residentNumberMasked !== undefined) updateData.residentNumberMasked = input.residentNumberMasked;
+      if (input.residentNumberEnc !== undefined) updateData.residentNumberEnc = input.residentNumberEnc;
+      if (input.passportNumberEnc !== undefined) updateData.passportNumberEnc = input.passportNumberEnc;
+      if (input.passportExpiry !== undefined) updateData.passportExpiry = input.passportExpiry;
+      if (input.foreignerNumberEnc !== undefined) updateData.foreignerNumberEnc = input.foreignerNumberEnc;
+      if (input.address !== undefined) updateData.address = input.address;
+      if (input.addressDetail !== undefined) updateData.addressDetail = input.addressDetail;
+      if (input.city !== undefined) updateData.city = input.city;
+      if (input.zipCode !== undefined) updateData.zipCode = input.zipCode;
+      if (input.adminNote !== undefined) updateData.adminNote = input.adminNote;
+      if (Object.keys(updateData).length > 0) {
+        await db.update(users).set(updateData).where(eq(users.id, input.userId));
+      }
+      return { success: true };
+    }),
+
+  /** 관리자 메모 저장 */
+  updateAdminNote: adminProcedure
+    .input(z.object({ userId: z.number(), note: z.string() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      await db.update(users).set({ adminNote: input.note }).where(eq(users.id, input.userId));
+      return { success: true };
+    }),
+
+  /** 계정 정지/해제 */
+  updateSuspend: adminProcedure
+    .input(z.object({
+      userId: z.number(),
+      suspended: z.number(),
+      reason: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      await db.update(users).set({
+        suspended: input.suspended,
+        suspendReason: input.reason || null,
+        suspendedAt: input.suspended === 1 ? new Date() : null,
+      }).where(eq(users.id, input.userId));
+      return { success: true };
+    }),
+
   /** 문의 답변 */
   replyInquiry: adminProcedure
     .input(z.object({

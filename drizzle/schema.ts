@@ -87,6 +87,76 @@ export const users = mysqlTable("users", {
   faceVerifiedAt: timestamp("faceVerifiedAt"),
   /** AI 얼굴 인증 결과 메시지 */
   faceVerifyResult: text("faceVerifyResult"),
+
+  // ===== 법적 인증 필수 정보 =====
+  /** 주민등록번호 (AES-256 암호화 저장, 절대 평문 저장 금지) */
+  residentNumberEnc: varchar("residentNumberEnc", { length: 512 }),
+  /** 주민번호 마스킹 표시용 (앞 6자리만, 예: 800101-*******) */
+  residentNumberMasked: varchar("residentNumberMasked", { length: 32 }),
+  /** 외국인등록번호 (외국인 회원용, AES-256 암호화) */
+  foreignerNumberEnc: varchar("foreignerNumberEnc", { length: 512 }),
+  /** 여권번호 (해외 거주자용, AES-256 암호화) */
+  passportNumberEnc: varchar("passportNumberEnc", { length: 512 }),
+  /** 여권 만료일 */
+  passportExpiry: varchar("passportExpiry", { length: 16 }),
+  /** 상세 주소 (도로명주소 + 동/호수) */
+  addressDetail: text("addressDetail"),
+  /** 도시 */
+  city: varchar("city", { length: 64 }),
+
+  // ===== eKYC 본인인증 =====
+  /** eKYC 인증 상태 (none/pending/verified/failed/expired) */
+  kycStatus: mysqlEnum("kycStatus", ["none", "pending", "verified", "failed", "expired"]).default("none"),
+  /** eKYC 인증 완료 시각 */
+  kycVerifiedAt: timestamp("kycVerifiedAt"),
+  /** eKYC 인증 기관 (nice/ipin/kakao/naver/pass) */
+  kycProvider: varchar("kycProvider", { length: 32 }),
+  /** eKYC 인증 고유번호 (기관 발급) */
+  kycReferenceId: varchar("kycReferenceId", { length: 128 }),
+  /** eKYC 인증 만료일 */
+  kycExpiresAt: timestamp("kycExpiresAt"),
+  /** 본인인증 완료 여부 (0=미완료, 1=완료) */
+  identityVerified: int("identityVerified").default(0),
+
+  // ===== 전자서명 인증 =====
+  /** 전자서명 완료 여부 (0=미완료, 1=완료) */
+  signatureVerified: int("signatureVerified").default(0),
+  /** 전자서명 완료 시각 */
+  signatureVerifiedAt: timestamp("signatureVerifiedAt"),
+  /** 전자서명 공급자 (docusign/adobe/kakao) */
+  signatureProvider: varchar("signatureProvider", { length: 32 }),
+  /** 전자서명 문서 ID */
+  signatureDocId: varchar("signatureDocId", { length: 256 }),
+
+  // ===== 음성 의사 확인 =====
+  /** 음성 의사 확인 완료 여부 (0=미완료, 1=완료) */
+  voiceVerified: int("voiceVerified").default(0),
+  /** 음성 의사 확인 시각 */
+  voiceVerifiedAt: timestamp("voiceVerifiedAt"),
+  /** 음성 파일 스토리지 키 */
+  voiceFileKey: varchar("voiceFileKey", { length: 512 }),
+
+  // ===== 블록체인 인증 =====
+  /** 블록체인 해시 (Polygon, 유언장 무결성 증명) */
+  blockchainHash: varchar("blockchainHash", { length: 256 }),
+  /** 블록체인 트랜잭션 ID */
+  blockchainTxId: varchar("blockchainTxId", { length: 256 }),
+  /** 블록체인 기록 시각 */
+  blockchainAt: timestamp("blockchainAt"),
+  /** RFC 3161 타임스탬프 토큰 (법적 효력 시각 증명) */
+  timestampToken: text("timestampToken"),
+  /** 타임스탬프 발급 시각 */
+  timestampIssuedAt: timestamp("timestampIssuedAt"),
+
+  // ===== 관리자 메모 =====
+  /** 관리자 메모 (내부용) */
+  adminNote: text("adminNote"),
+  /** 계정 정지 여부 (0=정상, 1=정지) */
+  suspended: int("suspended").default(0),
+  /** 계정 정지 사유 */
+  suspendReason: text("suspendReason"),
+  /** 계정 정지 시각 */
+  suspendedAt: timestamp("suspendedAt"),
 });
 
 export type User = typeof users.$inferSelect;

@@ -234,6 +234,151 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
               </div>
             )}
 
+            {/* ===== 법적 인증 정보 ===== */}
+            <div className="border border-[#1F3864]/20 rounded-xl overflow-hidden">
+              <div className="bg-[#1F3864] px-4 py-3 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-[#C9A961]" />
+                <h3 className="font-bold text-white text-sm">법적 인증 정보 (유언 효력 필수)</h3>
+              </div>
+              <div className="p-4 space-y-4">
+                {/* 주소 정보 */}
+                <div>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">회원 주소 정보</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <span className="text-gray-400 block text-xs mb-1">주소 (도로명)</span>
+                      <span className="font-medium">{(data.user as any).address || <span className="text-red-400">미입력</span>}</span>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <span className="text-gray-400 block text-xs mb-1">상세 주소</span>
+                      <span className="font-medium">{(data.user as any).addressDetail || "-"}</span>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <span className="text-gray-400 block text-xs mb-1">우편번호</span>
+                      <span className="font-medium">{(data.user as any).zipCode || "-"}</span>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <span className="text-gray-400 block text-xs mb-1">도시</span>
+                      <span className="font-medium">{(data.user as any).city || "-"}</span>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <span className="text-gray-400 block text-xs mb-1">국가</span>
+                      <span className="font-medium">{(data.user as any).country || "KR"}</span>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <span className="text-gray-400 block text-xs mb-1">주(State)</span>
+                      <span className="font-medium">{(data.user as any).stateProvince || "-"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 신분 인증 */}
+                <div>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">신분 인증 (주민번호 / 여권)</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <span className="text-gray-400 block text-xs mb-1">주민등록번호</span>
+                      <span className="font-medium font-mono">
+                        {(data.user as any).residentNumberMasked
+                          ? <span className="text-green-700">{(data.user as any).residentNumberMasked}</span>
+                          : <span className="text-red-400">미등록</span>}
+                      </span>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <span className="text-gray-400 block text-xs mb-1">여권번호</span>
+                      <span className="font-medium">
+                        {(data.user as any).passportNumberEnc
+                          ? <span className="text-green-700">암호화 저장됨</span>
+                          : "-"}
+                      </span>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <span className="text-gray-400 block text-xs mb-1">여권 만료일</span>
+                      <span className="font-medium">{(data.user as any).passportExpiry || "-"}</span>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <span className="text-gray-400 block text-xs mb-1">외국인등록번호</span>
+                      <span className="font-medium">
+                        {(data.user as any).foreignerNumberEnc
+                          ? <span className="text-green-700">암호화 저장됨</span>
+                          : "-"}
+                      </span>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <span className="text-gray-400 block text-xs mb-1">생년월일</span>
+                      <span className="font-medium">{(data.user as any).birthDate || "-"}</span>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <span className="text-gray-400 block text-xs mb-1">국적</span>
+                      <span className="font-medium">{(data.user as any).nationality || "-"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 인증 상태 */}
+                <div>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">인증 상태 (유언 효력 요건)</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    {[
+                      { label: "eKYC 본인인증", value: (data.user as any).kycStatus, ok: (data.user as any).kycStatus === "verified", detail: (data.user as any).kycProvider },
+                      { label: "얼굴 인식", value: (data.user as any).faceVerified ? "완료" : "미완료", ok: !!(data.user as any).faceVerified, detail: formatDate((data.user as any).faceVerifiedAt) },
+                      { label: "전자서명", value: (data.user as any).signatureVerified ? "완료" : "미완료", ok: !!(data.user as any).signatureVerified, detail: (data.user as any).signatureProvider },
+                      { label: "음성 의사확인", value: (data.user as any).voiceVerified ? "완료" : "미완료", ok: !!(data.user as any).voiceVerified, detail: formatDate((data.user as any).voiceVerifiedAt) },
+                    ].map(item => (
+                      <div key={item.label} className={`rounded-xl p-3 border-2 ${item.ok ? "border-green-200 bg-green-50" : "border-red-100 bg-red-50"}`}>
+                        <div className="flex items-center gap-1 mb-1">
+                          <span className={`w-2 h-2 rounded-full ${item.ok ? "bg-green-500" : "bg-red-400"}`} />
+                          <span className="text-xs text-gray-500">{item.label}</span>
+                        </div>
+                        <div className={`font-bold text-sm ${item.ok ? "text-green-700" : "text-red-600"}`}>{item.value || "미완료"}</div>
+                        {item.detail && item.detail !== "-" && <div className="text-xs text-gray-400 mt-0.5">{item.detail}</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 블록체인 / 타임스탬프 */}
+                <div>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">블록체인 & 타임스탬프 (무결성 증명)</h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <span className="text-gray-400 block text-xs mb-1">블록체인 해시</span>
+                      <span className="font-mono text-xs break-all">
+                        {(data.user as any).blockchainHash
+                          ? <span className="text-green-700">{String((data.user as any).blockchainHash).substring(0, 20)}...</span>
+                          : <span className="text-gray-400">미등록</span>}
+                      </span>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <span className="text-gray-400 block text-xs mb-1">RFC 3161 타임스탬프</span>
+                      <span className="font-medium">
+                        {(data.user as any).timestampIssuedAt
+                          ? <span className="text-green-700">{formatDate((data.user as any).timestampIssuedAt)} 발급</span>
+                          : <span className="text-gray-400">미발급</span>}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 관리자 메모 */}
+                {(data.user as any).adminNote && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <span className="text-xs font-bold text-yellow-700 block mb-1">관리자 메모</span>
+                    <p className="text-sm text-yellow-800">{(data.user as any).adminNote}</p>
+                  </div>
+                )}
+
+                {/* 계정 정지 상태 */}
+                {(data.user as any).suspended === 1 && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <span className="text-xs font-bold text-red-700 block mb-1">⚠️ 계정 정지 중</span>
+                    <p className="text-sm text-red-700">{(data.user as any).suspendReason || "사유 미입력"}</p>
+                    <p className="text-xs text-red-500 mt-1">정지일: {formatDate((data.user as any).suspendedAt)}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* 자료 없음 */}
             {data.wills.length === 0 && data.payments.length === 0 && data.assets.length === 0 &&
              data.letters.length === 0 && data.journals.length === 0 && data.autobiographies.length === 0 && (
