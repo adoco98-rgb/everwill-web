@@ -1,0 +1,52 @@
+{
+  "query": "SELECT id, name, email, role FROM users LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2aTj4qahS4dKfPu.349ddf4404ef --database PhaVJexqfm3CAwoPdg4NhS --execute SELECT id, name, email, role FROM users LIMIT 10;",
+  "rows": [
+    {
+      "id": "1",
+      "name": "BAROCOOK FCS",
+      "email": "adoco98@gmail.com",
+      "role": "admin"
+    },
+    {
+      "id": "1770001",
+      "name": "라수환",
+      "email": "rasuhwan@naver.com",
+      "role": "user"
+    },
+    {
+      "id": "1920008",
+      "name": "adoco98",
+      "email": "adoco98@gmail.com",
+      "role": "admin"
+    },
+    {
+      "id": "3900001",
+      "name": "라진원",
+      "email": "NULL",
+      "role": "user"
+    },
+    {
+      "id": "4980025",
+      "name": "HQ Barocook",
+      "email": "baro@barocook.net",
+      "role": "user"
+    },
+    {
+      "id": "6420001",
+      "name": "BAROCOOK FCS",
+      "email": "adoco98@gmail.com",
+      "role": "user"
+    },
+    {
+      "id": "6480001",
+      "name": "백두",
+      "email": "adoco@hanmail.net",
+      "role": "user"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\temail\trole\n1\tBAROCOOK FCS\tadoco98@gmail.com\tadmin\n1770001\t라수환\trasuhwan@naver.com\tuser\n1920008\tadoco98\tadoco98@gmail.com\tadmin\n3900001\t라진원\tNULL\tuser\n4980025\tHQ Barocook\tbaro@barocook.net\tuser\n6420001\tBAROCOOK FCS\tadoco98@gmail.com\tuser\n6480001\t백두\tadoco@hanmail.net\tuser\n",
+  "stderr": "",
+  "execution_time_ms": 1732
+}
