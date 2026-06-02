@@ -7,6 +7,12 @@
 import { useEffect, useRef } from "react";
 import { useParams, Link } from "wouter";
 import { motion, useInView } from "framer-motion";
+import VideoIntroSection from "@/components/VideoIntroSection";
+import CountryVideoSection from "@/components/CountryVideoSection";
+import ServicesSection from "@/components/ServicesSection";
+import ComparisonSection from "@/components/ComparisonSection";
+import { LifeStorySection } from "@/components/LifeStorySection";
+import ReviewsSection from "@/components/ReviewsSection";
 import {
   ShieldCheck, FileText, Activity, Bell, Scale, CreditCard,
   CheckCircle, AlertTriangle, Globe, ArrowRight, Star, Users,
@@ -119,22 +125,7 @@ function CountryHero({ data }: { data: CountryPageData }) {
               {data.heroCtaText} <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
           </Link>
-          <Link href="/pricing">
-            <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 text-lg px-8 py-6 rounded-full">
-              {data.currency === "KRW" ? "가격 확인" : "View Pricing"}
-            </Button>
-          </Link>
         </motion.div>
-
-        {/* 가격 힌트 */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.9 }}
-          className="text-white/40 text-sm mt-6"
-        >
-          AI will drafting free · Certification {data.certPrice} · Renewal {data.renewPrice}
-        </motion.p>
       </div>
     </section>
   );
@@ -154,9 +145,16 @@ function LegalBasisSection({ data }: { data: CountryPageData }) {
           className="text-center mb-12"
         >
           <span className="text-[#C9A961] text-sm font-semibold tracking-widest uppercase">Legal Basis</span>
-          <h2 className="text-3xl font-bold text-[#1F3864] mt-2">Full Legal Validity</h2>
+          <h2 className="text-3xl font-bold text-[#1F3864] mt-2">
+            {data.legalStatus === "active" ? "Full Legal Validity" : data.legalStatus === "partial" ? "법적 근거" : "Legal Review in Progress"}
+          </h2>
           <p className="text-[#6B7280] mt-3 max-w-2xl mx-auto">
-            EverWill operates in full compliance with {data.countryCode} law. Every will is legally valid and immediately enforceable.
+            {data.legalStatus === "active"
+              ? `EverWill operates in full compliance with ${data.countryCode} law. Every will is legally valid and immediately enforceable.`
+              : data.legalStatus === "partial"
+              ? `EverWill은 한국 민법 및 전자서명법에 기반하여 서비스를 제공합니다. 현재 전자 유언 인증에 대한 세부 법률 검토가 진행 중입니다.`
+              : `Legal review is in progress for ${data.countryCode}. Service will be available upon completion.`
+            }
           </p>
         </motion.div>
         <div className="grid md:grid-cols-2 gap-4">
@@ -254,7 +252,6 @@ function PricingSection({ data }: { data: CountryPageData }) {
         "Electronic signature",
         "Blockchain hash record",
         "Certified PDF issued",
-        `Renewal at ${data.renewPrice}`,
       ],
       cta: "Get Certified",
       highlight: true,
@@ -351,7 +348,7 @@ function BadgeSection({ data }: { data: CountryPageData }) {
     { icon: QrCode, title: "QR Code", desc: "Emergency responders scan to access your medical info and family contacts instantly" },
     { icon: Wifi, title: "NFC Chip", desc: "Tap-to-read with any smartphone — no app required" },
     { icon: ShieldCheck, title: "Will Authentication", desc: "Courts and banks verify your will serial number in seconds" },
-    { icon: Bell, title: "Death Trigger", desc: "Hospitals and funeral homes scan the Badge to automatically notify your family" },
+    { icon: Bell, title: "Death Trigger", desc: "Hospitals and funeral homes scan the NFC card to automatically notify your family" },
   ];
 
   // 국가별 Badge 가격 매핑
@@ -386,10 +383,17 @@ function BadgeSection({ data }: { data: CountryPageData }) {
           transition={{ duration: 0.6 }}
           className="text-center mb-14"
         >
-          <span className="text-[#C9A961] text-sm font-semibold tracking-widest uppercase">EverWill Badge</span>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1F3864] mt-2">Physical Certification Card</h2>
+          <span className="text-[#C9A961] text-sm font-semibold tracking-widest uppercase">
+            {data.currency === "KRW" ? "NFC 내장 인증카드" : "EverWill NFC Card"}
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1F3864] mt-2">
+            {data.currency === "KRW" ? "NFC 내장 인증카드" : "Physical Certification Card"}
+          </h2>
           <p className="text-[#6B7280] mt-3 max-w-2xl mx-auto">
-            The world's first physical will certification badge. Wear it daily — it works as identity, emergency alert, and will authentication.
+            {data.currency === "KRW"
+              ? "QR·NFC 탑재 실물 인증 카드. 평소에 휴대하면 신원 확인, 응급 알림, 유언 인증에 활용됩니다."
+              : "The world's first physical will certification card. Carry it daily — it works as identity, emergency alert, and will authentication."
+            }
           </p>
         </motion.div>
 
@@ -571,13 +575,21 @@ export default function CountryPage() {
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
       <Navbar />
+      {/* 국가 고유 섹션 */}
       <CountryHero data={data} />
       <LegalBasisSection data={data} />
-      <FeaturesSection data={data} />
+      {/* 홈페이지 공통 섹션 */}
+      <VideoIntroSection />
+      <CountryVideoSection />
+      <ServicesSection />
+      <ComparisonSection />
+      <LifeStorySection />
+      {/* 국가별 가격 */}
       <PricingSection data={data} />
       <BadgeSection data={data} />
       <TargetSection data={data} />
       <TrustSection data={data} />
+      <ReviewsSection />
       <CtaSection data={data} />
       <Footer />
     </div>

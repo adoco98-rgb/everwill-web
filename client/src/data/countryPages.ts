@@ -43,7 +43,7 @@ export const countryPagesData: Record<string, CountryPageData> = {
   kr: {
     code: "kr", countryCode: "KR", lang: "한국어", langCode: "ko",
     flag: "🇰🇷", flagImg: "https://flagcdn.com/w80/kr.png",
-    legalStatus: "active", legalStatusLabel: "즉시 적용 가능",
+    legalStatus: "partial", legalStatusLabel: "법적 검토 진행 중",
     heroTitle: "누구나 한번은 꼭 해야할,\n나의 마지막 서명",
     heroSubtitle: "세계 최초 디지털 유언 OS",
     heroTagline: "유언 작성부터 사후 자동 집행까지, 전 과정을 책임지는 EverWill",
@@ -64,7 +64,7 @@ export const countryPagesData: Record<string, CountryPageData> = {
       { title: "4중 사망 감지", desc: "가족 신고·정부DB·Dead Man's Switch·응급 발견자 교차 확인", icon: "Activity" },
       { title: "상속자 자동 알림", desc: "사망 확인 후 상속자 전원에게 자동 알림 발송", icon: "Bell" },
       { title: "변호사 매칭", desc: "사후 집행 전담 변호사 자동 연결", icon: "Scale" },
-      { title: "EverWill Badge", desc: "QR·NFC 탑재 실물 인증 카드", icon: "CreditCard" },
+      { title: "NFC 내장 인증카드", desc: "QR·NFC 탑재 실물 인증 카드", icon: "CreditCard" },
     ],
     currency: "KRW", certPrice: "₩49,000", renewPrice: "₩15,000", membershipPrice: "₩29,000/년",
     paymentMethods: ["토스페이먼츠", "카카오페이", "네이버페이", "신용카드"],
