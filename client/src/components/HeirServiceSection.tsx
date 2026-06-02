@@ -722,6 +722,15 @@ export default function HeirServiceSection() {
 
   return (
     <section id="heir-service" className="py-20 lg:py-28 bg-[#F5F3EE]" ref={ref}>
+      {/* ── 배경 이미지 배너 ── */}
+      <div className="relative w-full h-64 lg:h-80 mb-12 overflow-hidden">
+        <img
+          src="/manus-storage/heir-couple-bg_96a3b9bb.png"
+          alt="상속인 부부"
+          className="w-full h-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#F5F3EE] via-[#F5F3EE]/20 to-transparent" />
+      </div>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* ── 헤더 ── */}

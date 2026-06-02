@@ -76,7 +76,7 @@ export default function ComparisonSection() {
           traditional: "가족이 직접 진행",
           traditionalSub: "가정법원 검인(공정증서 제외) → 변호사 선임 → 상속 절차 → 수개월",
           everwill: "자동 집행",
-          everwillSub: "다층 안심 확인 → 상속자 자동 알림 → 변호사 자동 매칭",
+          everwillSub: "다층 안심 확인 → 상속자 자동 알림 → 소송 발생 시 최고 상속전문 변호사 매칭",
           highlight: false,
         },
       ],

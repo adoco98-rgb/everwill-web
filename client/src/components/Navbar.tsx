@@ -153,15 +153,15 @@ export default function Navbar() {
     ? t.nav.manager
     : user?.name?.split(" ")[0] || t.nav.myPage;
 
-  // 네비게이션 메뉴
+  // 네비게이션 메뉴 (섹션 순서대로 정렬)
   const navLinks = [
     { label: t.nav.services, href: "#services" },
-    { label: t.nav.badge, href: "#badge" },
     { label: t.nav.global, href: "#global" },
     { label: t.nav.lawyers, href: "#lawyers" },
+    { label: t.nav.pricing, href: "#pricing" },
+    { label: t.nav.badge, href: "#badge" },
     { label: t.nav.taxCalc, href: "/tax", isPage: true },
     { label: t.nav.letter ?? "사회기부", href: "/charity", isPage: true },
-    { label: t.nav.pricing, href: "#pricing" },
     { label: "Life Story", href: "/life-story", isPage: true, isPremium: true },
   ];
 
