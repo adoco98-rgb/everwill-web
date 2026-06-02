@@ -839,3 +839,16 @@
 - [ ] KYC 완료 후 결제 버튼 활성화 로직
 - [ ] 관리자 페이지: KYC 신청 목록 + 승인/거절 처리 UI
 - [ ] 관리자 페이지: 신분증/셀카 사진 확인 (보안 접근)
+
+## 챗봇 비회원/회원 분리 전담 AI 시스템
+
+- [ ] DB: chatMessages 테이블 추가 (userId, sessionId, role, content, createdAt)
+- [ ] DB: chatSessions 테이블 추가 (id, userId, createdAt, updatedAt)
+- [ ] 백엔드: 비회원용 publicChat 프로시저 (3턴 제한, 서비스 안내 전용 시스템 프롬프트, 다국어 자동)
+- [ ] 백엔드: 회원용 memberChat 프로시저 (무제한, 유언·상속·자서전·편지 통합 전문 AI 시스템 프롬프트)
+- [ ] 백엔드: 회원 채팅 히스토리 저장/조회 프로시저 (saveMessage, getHistory)
+- [ ] 프론트: ChatbotWidget 비회원/회원 분기 처리 (useAuth 기반)
+- [ ] 프론트: 비회원 3턴 초과 시 가입 유도 UI (로그인/회원가입 버튼)
+- [ ] 프론트: 회원 챗봇 - 현재 선택 언어 자동 연동
+- [ ] 프론트: 회원 챗봇 - 이전 대화 히스토리 불러오기
+- [ ] 프론트: 회원 챗봇 헤더 "나의 전담 AI" 표시 + 전문 영역 뱃지

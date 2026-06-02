@@ -1,99 +1,471 @@
 /**
  * EverWill AI 챗봇 라우터
- * - 전문가 페르소나: 따뜻하고 전문적인 유언/상속 전문 상담사
- * - 사이트 사용법, 자산 등록, 결제/인증, 유언 작성 안내
- * - 스트리밍 응답 지원
+ * - 비회원: 서비스 안내 전용 (3턴 제한, 다국어 자동)
+ * - 회원: 유언·상속·자서전·편지 통합 전담 AI (히스토리 저장, 무제한)
  */
 
 import { z } from "zod";
-import { publicProcedure, router } from "../_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { invokeLLM } from "../_core/llm";
+import { getDb } from "../db";
+import { chatSessions, chatMessages } from "../../drizzle/schema";
+import { eq, and, desc } from "drizzle-orm";
+import { v4 as uuidv4 } from "uuid";
 
-// EverWill 전문가 페르소나 시스템 프롬프트
-const EVERWILL_SYSTEM_PROMPT = `당신은 EverWill의 전문 상담사 '에버'입니다.
+// ─── 비회원 안내 봇 시스템 프롬프트 ───
+const PUBLIC_BOT_SYSTEM_PROMPT = `당신은 EverWill 서비스 안내 봇 '에버'입니다.
+
+[역할]
+- EverWill 플랫폼의 서비스 안내 및 회원가입 유도
+- 간단한 FAQ 답변 (가격, 기능, 사용법)
+- 법률 상담, 자서전, 편지 작성 등 심층 기능은 "회원 전용"임을 안내
+
+[절대 하지 말 것]
+- 구체적인 법률 상담, 상속 분쟁 분석
+- 유언장 내용 작성 도움
+- 자서전·편지 작성 도움
+- 이 모든 기능은 "회원 가입 후 이용 가능"으로 안내
+
+[EverWill 핵심 정보]
+- 세계 최초 디지털 유언 OS
+- 유언 작성 무료, 전자 인증 ₩49,000
+- 11개 언어 지원 (한국어·영어·일본어·중국어·독일어·스페인어·아랍어·프랑스어·러시아어·힌디어·포르투갈어)
+- EverWill Badge: 응급 신원 확인 + 유언 인증 카드
+- 회원 가입: 무료 (이메일 또는 휴대폰 OTP)
+- 회원 전담 AI: 유언·상속 법률 상담, 자서전 작성, 편지·일기 작성 지원
+
+[답변 규칙]
+1. 사용자가 쓰는 언어로 답변 (자동 감지)
+2. 3~5문장 이내로 간결하게
+3. 심층 기능 문의 시: "회원 가입 후 전담 AI에서 도움받으실 수 있어요 😊"
+4. 친근하고 따뜻한 톤
+5. 어르신도 이해할 수 있는 쉬운 표현`;
+
+// ─── 회원 전담 AI 시스템 프롬프트 ───
+const MEMBER_AI_SYSTEM_PROMPT = `당신은 EverWill 회원 전담 AI '에버'입니다.
 
 [페르소나]
 - 이름: 에버 (Ever)
-- 역할: EverWill 플랫폼 전문 안내사 + 유언·상속 전문 상담사
-- 톤: 따뜻하고 친근하지만 전문적. 어르신도 이해할 수 있도록 쉽게 설명.
-- 언어: 사용자가 쓰는 언어로 답변 (기본 한국어)
+- 역할: 유언·상속 전문 법률 정보 제공 + 자서전 작가 + 편지·일기 작성 도우미
+- 톤: 따뜻하고 전문적. 어르신도 이해할 수 있는 쉬운 표현
+- 언어: 사용자가 쓰는 언어로 자동 답변
 
-[EverWill 서비스 핵심 정보]
+[전문 영역 1: 유언·상속 법률 정보]
+아래 11개국 유언·상속법을 깊이 알고 있습니다:
 
-**서비스 개요**
-- 세계 최초 디지털 유언 OS
-- 유언 작성부터 사후 자동 집행까지 전 과정 지원
-- 운영사: 주식회사 사람 (대표: 라수환)
+한국 (민법):
+- 자필증서유언(제1066조): 전문 자필, 날짜, 서명, 날인 필수
+- 녹음유언(제1067조): 유언자 구술 + 증인 1인 성명 기재
+- 공정증서유언(제1068조): 공증인 + 증인 2인
+- 유류분(제1112조~제1118조): 직계비속·배우자 법정상속분의 1/2, 직계존속·형제자매 1/3
+- 상속 순위: 직계비속(1순위) > 직계존속(2순위) > 형제자매(3순위) > 4촌이내방계혈족(4순위)
+- 배우자: 직계비속과 공동상속 시 1.5배
+- 상속세: 10억 이하 10%, 10~30억 20%, 30~50억 30%, 50~100억 40%, 100억 초과 50%
 
-**가격 정책**
-- 회원가입: 무료
-- AI 유언장 작성: 무료
-- 전자 인증: ₩49,000 (1회, 무료 수정 1회 포함)
-- 전자 인증 프리미엄: ₩69,000 (무료 수정 2회 포함)
-- 영구 보관: ₩199,000 (무제한 수정 무료)
-- 유언장 추가 수정: ₩5,000/회 (무료 횟수 초과 시)
-- 영상 유언장: +₩29,000 (전자인증 고객 전용)
-- 자필 유언장 스캔: +₩19,000 (전자인증 고객 전용)
-- 공식 인증 통합 문서 발급: $1 (한글/영문 선택)
-- EverWill Badge 실버: ₩49,000
-- EverWill Badge 골드: ₩79,000
-- EverWill Badge 플래티넘: ₩99,000
-- EverWill Badge VIP 프리미엄: ₩299,000
+미국 (UPC):
+- 전자유언: 20개 주 이상 UEWA 적용
+- 자필유언: 전문 자필 + 서명 (증인 불필요 주 다수)
+- 공식유언: 서명 + 증인 2인
+- 유류분: 배우자 선택적 지분 1/3~1/2 (주마다 다름)
+- 상속세: 연방 면제 한도 $13.61M(2024), 초과분 18~40%
 
-**유언장 작성 방법 (10단계)**
-1. 기본 정보 입력 (자동 채움)
-2. 가족관계 선택
-3. 상속자 등록
-4. 부동산 자산 등록
-5. 금융 자산 등록
-6. 기타 자산 등록
-7. 특별 지시 (장례 방식, 집행자, 후견인)
-8. 부가 서비스 선택 (영상/자필)
-9. 미리보기 및 확인
-10. 결제 및 전자 인증
+일본 (민법):
+- 자필증서유언(제968조): 전문 자필, 날짜, 서명, 날인
+- 공정증서유언(제969조): 공증인 + 증인 2인
+- 2025년 10월: 공정증서 디지털화 시행
+- 유류분(제1042조): 직계비속·배우자 법정상속분의 1/2, 직계존속 1/3
+- 상속세: 3,000만엔 + 600만엔×법정상속인수 기초공제
 
-**자산 등록 방법**
-- 부동산: 주소, 종류(아파트/주택/토지 등), 시세, 상속 비율 입력
-- 금융: 은행명, 계좌번호(선택), 금액, 상속 비율 입력
-- 기타: 차량, 귀금속, 지적재산권 등 자유 입력
-- 분배: % 또는 금액 직접 입력 방식 선택 가능
+중국 (민법):
+- 자서유언: 전문 자필, 날짜, 서명
+- 공증유언: 공증기관 공증
+- 유류분: 2021년 민법 개정으로 도입 (직계비속·배우자·부모)
 
-**EverWill Badge 기능**
-- QR 신원 인증: 응급 시 의료진이 QR 스캔 → 가족 연락처·의료정보 확인
-- NFC 태그: 스마트폰 태그 → 의료정보 자동 표시
-- 유언 인증 번호: 법원·은행에서 일련번호로 유언 확인
-- 사망 트리거: 카드 발견 시 자동 사망 알림 발송
+독일 (BGB):
+- 자필유언(§2247): 전문 자필, 날짜, 서명
+- 공정증서유언(§2232): 공증인 앞 구술
+- 유류분(§2303): 법정상속분의 1/2
 
-**회원가입 방법**
-- 이메일 OTP 또는 휴대폰 SMS OTP로 가입
-- 소셜 로그인: Google, Kakao, Naver, LINE
-- 가입 후 이름·생년월일·주소 등 프로필 입력
+스페인 (민법):
+- 자필유언(Art.688): 자필, 날짜, 서명
+- 유류분(Art.806): 자녀 2/3, 배우자 usufruct
 
-**자주 묻는 질문**
-Q: 유언장이 법적 효력이 있나요?
-A: EverWill은 전자서명법에 따른 인증 서비스를 제공합니다. AI로 작성된 유언장을 전자 인증하면 법적 근거가 강화됩니다. 단, 최종 법적 효력은 법원이 판단합니다.
+아랍권 (샤리아 상속법):
+- 남성:여성 = 2:1 상속 원칙
+- UAE: 비무슬림은 DIFC법원에서 서양식 유언 가능
+- 사우디: 비무슬림 외국인 자산 제한적
 
-Q: 개인정보는 안전한가요?
-A: E2E 암호화, 블록체인 해시 기록으로 보호됩니다. 개인정보처리방침을 확인해 주세요.
+프랑스 (민법):
+- 자필유언(Art.970): 전문 자필, 날짜, 서명
+- 유류분(réserve héréditaire): 자녀 1인 1/2, 2인 2/3, 3인 이상 3/4
 
-Q: 수정은 언제든지 가능한가요?
-A: 플랜별 무료 수정 횟수 내에서는 무료, 초과 시 ₩5,000/회입니다. 영구 보관 플랜은 무제한 무료입니다.
+러시아 (민법):
+- 공증 유언 필수 (자필유언 제한적)
+- 유류분: 미성년자녀·장애인·부양가족 법정상속분의 1/2
 
-Q: 해외에 자산이 있어도 되나요?
-A: 네, 글로벌 멀티관할권을 지원합니다. 한국·미국·일본·중국 등 여러 나라 자산을 동시에 관리할 수 있습니다.
+인도 (Succession Act):
+- 힌두교: Hindu Succession Act 1956
+- 무슬림: Muslim Personal Law (Shariat)
+- 자필유언: 서명 + 증인 2인
+
+브라질 (민법):
+- 자필유언(Art.1876): 자필, 날짜, 서명 + 증인 3인
+- 유류분(Art.1846): 법정상속분의 1/2
+
+[주요 분쟁 사례 유형]
+- 유류분 침해 분쟁: 특정 상속인에게 전재산 유증 시 나머지 유류분 청구
+- 유언 무효 분쟁: 형식 요건 불비, 유언 능력 부재, 강박·사기
+- 상속 포기 vs 한정승인: 채무 초과 상속재산 처리
+- 기여분 분쟁: 특별 기여한 상속인의 추가 취득 주장
+- 국제 상속: 복수 국적, 해외 자산 처리
+
+[전문 영역 2: 자서전 작성]
+- 사용자의 인생 이야기를 챕터별로 기록
+- 6개 챕터: 유년기·청소년기·사랑과 결혼·직업과 성취·인생의 지혜·미래 세대에게
+- 대화를 통해 기억을 이끌어내고 아름다운 문장으로 변환
+- 사용자의 감정과 경험을 존중하며 기록
+
+[전문 영역 3: 편지·일기 작성]
+- 가족·지인에게 남기는 감성 편지 초안 작성
+- 미래 특정 시점에 전달될 메시지 작성 (성인식, 결혼식, 생일 등)
+- 일상 일기를 아름다운 문학적 표현으로 다듬기
+- 사용자의 감정과 의도를 충실히 반영
 
 [답변 규칙]
-1. 항상 친근하고 따뜻하게 답변
-2. 어르신도 이해할 수 있도록 쉬운 말 사용
-3. 법률 자문이 아닌 정보 제공임을 명심
-4. 복잡한 법률 문제는 "전문 변호사 상담을 권장합니다" 안내
-5. 답변은 간결하게 (3~5문장 이내, 필요시 목록 사용)
-6. 모르는 내용은 솔직하게 "확인이 필요합니다"라고 안내
-7. 결제/인증 관련 문의는 /payment 페이지로 안내
-8. 유언장 작성 시작은 /write 페이지로 안내`;
+1. 사용자가 쓰는 언어로 자동 답변
+2. 법률 정보는 정확하게, 단 "법률 자문이 아닌 정보 제공"임을 명시
+3. 복잡한 분쟁은 "전문 변호사 상담 권장" 안내
+4. 자서전·편지 작성 시 따뜻하고 문학적인 표현 사용
+5. 사용자의 이전 대화 맥락을 항상 기억하고 연결
+6. 유언장 작성은 /will/create 페이지로 안내
+7. 답변 길이: 질문 복잡도에 따라 조절`;
 
 export const chatRouter = router({
-  // AI 챗봇 메시지 전송 (일반 응답)
+  // ─── 비회원 안내 봇 (3턴 제한) ───
+  publicChat: publicProcedure
+    .input(
+      z.object({
+        messages: z.array(
+          z.object({
+            role: z.enum(["user", "assistant"]),
+            content: z.string(),
+          })
+        ),
+        language: z.string().optional().default("ko"),
+        turnCount: z.number().optional().default(0),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { messages, language, turnCount } = input;
+
+      // 3턴 초과 시 가입 유도 메시지
+      if (turnCount >= 3) {
+        const signupMessages: Record<string, string> = {
+          ko: "더 많은 상담을 원하시나요? 😊\n\n**회원 가입 후 전담 AI**에서 유언·상속 법률 상담, 자서전 작성, 가족 편지 작성까지 모두 도움받으실 수 있어요!\n\n지금 무료로 가입하세요 →",
+          en: "Want more consultation? 😊\n\n**Join as a member** to access our dedicated AI for will & inheritance legal consultation, autobiography writing, and family letter writing!\n\nSign up for free now →",
+          ja: "もっと相談したいですか？😊\n\n**会員登録後の専任AI**で、遺言・相続の法律相談、自伝作成、家族への手紙作成まですべてサポートします！\n\n今すぐ無料登録 →",
+          zh: "想要更多咨询吗？😊\n\n**注册会员后**，专属AI将为您提供遗嘱·继承法律咨询、自传写作、家书写作等全方位帮助！\n\n立即免费注册 →",
+          de: "Möchten Sie mehr Beratung? 😊\n\n**Nach der Registrierung** hilft Ihnen unsere KI bei Testament & Erbrecht-Beratung, Autobiografie-Schreiben und Familienbriefen!\n\nJetzt kostenlos registrieren →",
+          es: "¿Quieres más consultas? 😊\n\n**Regístrate** para acceder a nuestra IA dedicada para consultas legales de testamentos, escritura de autobiografías y cartas familiares!\n\nRegístrate gratis ahora →",
+          ar: "هل تريد المزيد من الاستشارات؟ 😊\n\n**بعد التسجيل**، يمكنك الحصول على استشارات قانونية للوصايا والميراث، وكتابة السيرة الذاتية والرسائل العائلية!\n\nسجّل مجاناً الآن →",
+          fr: "Vous souhaitez plus de conseils? 😊\n\n**Après inscription**, notre IA dédiée vous aidera pour les consultations juridiques testamentaires, l'écriture d'autobiographie et les lettres familiales!\n\nInscrivez-vous gratuitement →",
+          ru: "Хотите больше консультаций? 😊\n\n**После регистрации** наш ИИ поможет с юридическими консультациями по завещаниям, написанием автобиографии и семейными письмами!\n\nЗарегистрируйтесь бесплатно →",
+          hi: "क्या आप अधिक परामर्श चाहते हैं? 😊\n\n**सदस्यता के बाद** हमारा AI वसीयत और विरासत कानूनी परामर्श, आत्मकथा लेखन और पारिवारिक पत्र लेखन में मदद करेगा!\n\nअभी मुफ़्त में साइन अप करें →",
+          pt: "Quer mais consultas? 😊\n\n**Após o registro**, nossa IA dedicada ajudará com consultas jurídicas sobre testamentos, escrita de autobiografia e cartas familiares!\n\nCadastre-se gratuitamente →",
+        };
+        return {
+          content: signupMessages[language] || signupMessages["ko"],
+          success: true,
+          showSignup: true,
+        };
+      }
+
+      const langNote =
+        language !== "ko"
+          ? `\n\n[언어 설정] 사용자 언어: ${language}. 반드시 해당 언어로만 답변하세요.`
+          : "";
+
+      try {
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: PUBLIC_BOT_SYSTEM_PROMPT + langNote },
+            ...messages.map((m) => ({
+              role: m.role as "user" | "assistant",
+              content: m.content,
+            })),
+          ],
+        });
+        const content =
+          response.choices?.[0]?.message?.content ||
+          "죄송합니다. 잠시 후 다시 시도해 주세요.";
+        return { content, success: true, showSignup: false };
+      } catch (error) {
+        console.error("[PublicChat] LLM 오류:", error);
+        return {
+          content: "현재 상담 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+          success: false,
+          showSignup: false,
+        };
+      }
+    }),
+
+  // ─── 회원 전담 AI (무제한, 히스토리 저장) ───
+  memberChat: protectedProcedure
+    .input(
+      z.object({
+        message: z.string().min(1).max(2000),
+        sessionKey: z.string().optional(),
+        language: z.string().optional().default("ko"),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { message, language } = input;
+      const userId = ctx.user.id;
+
+      const db = await getDb();
+      if (!db) throw new Error("DB 연결 실패");
+
+      // 세션 조회 또는 생성
+      let sessionId: number;
+      let sessionKey = input.sessionKey;
+
+      if (sessionKey) {
+        const existing = await db
+          .select()
+          .from(chatSessions)
+          .where(
+            and(
+              eq(chatSessions.sessionKey, sessionKey),
+              eq(chatSessions.userId as any, userId)
+            )
+          )
+          .limit(1);
+        if (existing.length > 0) {
+          sessionId = existing[0].id;
+        } else {
+          // 세션 없으면 새로 생성
+          sessionKey = uuidv4();
+          const inserted = await db.insert(chatSessions).values({
+            userId,
+            sessionKey,
+          });
+          sessionId = (inserted as any).insertId;
+        }
+      } else {
+        // 새 세션 생성
+        sessionKey = uuidv4();
+        const inserted = await db.insert(chatSessions).values({
+          userId,
+          sessionKey,
+        });
+        sessionId = (inserted as any).insertId;
+      }
+
+      // 최근 20개 히스토리 조회
+      const history = await db
+        .select()
+        .from(chatMessages)
+        .where(eq(chatMessages.sessionId, sessionId))
+        .orderBy(desc(chatMessages.createdAt))
+        .limit(20);
+
+      const historyMessages = history.reverse().map((m: { role: string; content: string }) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+      }));
+
+      const langNote =
+        language !== "ko"
+          ? `\n\n[언어 설정] 사용자 언어: ${language}. 반드시 해당 언어로만 답변하세요.`
+          : "";
+
+      try {
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: MEMBER_AI_SYSTEM_PROMPT + langNote },
+            ...historyMessages,
+            { role: "user", content: message },
+          ],
+        });
+
+        const rawContent = response.choices?.[0]?.message?.content;
+        const aiContent: string = typeof rawContent === "string"
+          ? rawContent
+          : "죄송합니다. 잠시 후 다시 시도해 주세요.";
+
+        // 사용자 메시지 저장
+        await db!.insert(chatMessages).values({
+          sessionId,
+          userId,
+          role: "user" as const,
+          content: message,
+        });
+
+        // AI 응답 저장
+        await db!.insert(chatMessages).values({
+          sessionId,
+          userId,
+          role: "assistant" as const,
+          content: aiContent,
+        });
+
+        return { content: aiContent, success: true, sessionKey };
+      } catch (error) {
+        console.error("[MemberChat] LLM 오류:", error);
+        return {
+          content: "현재 상담 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+          success: false,
+          sessionKey,
+        };
+      }
+    }),
+
+  // ─── 회원 채팅 히스토리 조회 ───
+  getHistory: protectedProcedure
+    .input(z.object({ sessionKey: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const userId = ctx.user.id;
+      const db = await getDb();
+      if (!db) return { messages: [], sessionKey: input.sessionKey };
+
+      const session = await db
+        .select()
+        .from(chatSessions)
+        .where(
+          and(
+            eq(chatSessions.sessionKey, input.sessionKey),
+            eq(chatSessions.userId as any, userId)
+          )
+        )
+        .limit(1);
+
+      if (session.length === 0) return { messages: [], sessionKey: input.sessionKey };
+
+      const messages = await db
+        .select()
+        .from(chatMessages)
+        .where(eq(chatMessages.sessionId, session[0].id))
+        .orderBy(chatMessages.createdAt)
+        .limit(50);
+
+      return {
+        messages: messages.map((m: { role: string; content: string; createdAt: Date }) => ({
+          role: m.role,
+          content: m.content,
+          createdAt: m.createdAt,
+        })),
+        sessionKey: input.sessionKey,
+      };
+    }),
+
+  // ─── 최근 세션 조회 (회원) ───
+  getLatestSession: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.user.id;
+    const db = await getDb();
+    if (!db) return { sessionKey: null };
+
+    const session = await db
+      .select()
+      .from(chatSessions)
+      .where(eq(chatSessions.userId as any, userId))
+      .orderBy(desc(chatSessions.updatedAt))
+      .limit(1);
+
+    if (session.length === 0) return { sessionKey: null };
+    return { sessionKey: session[0].sessionKey };
+  }),
+
+  // ─── 빠른 질문 목록 (비회원용) ───
+  getQuickQuestions: publicProcedure
+    .input(z.object({ language: z.string().optional().default("ko") }))
+    .query(({ input }) => {
+      const questions: Record<string, string[]> = {
+        ko: [
+          "유언장 작성은 어떻게 시작하나요?",
+          "전자 인증이 뭔가요?",
+          "EverWill Badge는 무엇인가요?",
+          "가격이 얼마인가요?",
+          "개인정보는 안전한가요?",
+          "회원 전담 AI는 무엇을 도와주나요?",
+        ],
+        en: [
+          "How do I start writing a will?",
+          "What is electronic certification?",
+          "What is the EverWill Badge?",
+          "How much does it cost?",
+          "Is my personal information safe?",
+          "What can the member AI help with?",
+        ],
+        ja: [
+          "遺言書の作成はどうすればいいですか？",
+          "電子認証とは何ですか？",
+          "EverWill Badgeとは何ですか？",
+          "料金はいくらですか？",
+          "会員専用AIは何を手伝ってくれますか？",
+        ],
+        zh: [
+          "如何开始写遗嘱？",
+          "什么是电子认证？",
+          "EverWill徽章是什么？",
+          "费用是多少？",
+          "会员专属AI能帮什么？",
+        ],
+        de: [
+          "Wie beginne ich ein Testament zu schreiben?",
+          "Was ist elektronische Zertifizierung?",
+          "Was ist das EverWill Badge?",
+          "Was kostet es?",
+          "Was kann die Mitglieder-KI helfen?",
+        ],
+        es: [
+          "¿Cómo empiezo a escribir un testamento?",
+          "¿Qué es la certificación electrónica?",
+          "¿Qué es el EverWill Badge?",
+          "¿Cuánto cuesta?",
+          "¿Con qué puede ayudar la IA para miembros?",
+        ],
+        ar: [
+          "كيف أبدأ في كتابة وصية؟",
+          "ما هو التوثيق الإلكتروني؟",
+          "ما هو شارة EverWill؟",
+          "كم يكلف؟",
+          "بماذا يمكن للذكاء الاصطناعي للأعضاء المساعدة؟",
+        ],
+        fr: [
+          "Comment commencer à rédiger un testament?",
+          "Qu'est-ce que la certification électronique?",
+          "Qu'est-ce que le Badge EverWill?",
+          "Combien ça coûte?",
+          "En quoi l'IA membre peut-elle aider?",
+        ],
+        ru: [
+          "Как начать писать завещание?",
+          "Что такое электронная сертификация?",
+          "Что такое значок EverWill?",
+          "Сколько это стоит?",
+          "Чем может помочь ИИ для участников?",
+        ],
+        hi: [
+          "वसीयत लिखना कैसे शुरू करें?",
+          "इलेक्ट्रॉनिक प्रमाणीकरण क्या है?",
+          "EverWill Badge क्या है?",
+          "इसकी कीमत कितनी है?",
+          "सदस्य AI क्या मदद कर सकता है?",
+        ],
+        pt: [
+          "Como começar a escrever um testamento?",
+          "O que é certificação eletrônica?",
+          "O que é o EverWill Badge?",
+          "Quanto custa?",
+          "Com o que a IA de membro pode ajudar?",
+        ],
+      };
+      return {
+        questions: questions[input.language] || questions["ko"],
+      };
+    }),
+
+  // ─── 기존 sendMessage (하위 호환) ───
   sendMessage: publicProcedure
     .input(
       z.object({
@@ -103,86 +475,35 @@ export const chatRouter = router({
             content: z.string(),
           })
         ),
-        language: z.string().optional().default("ko"), // 사용자 언어
+        language: z.string().optional().default("ko"),
       })
     )
     .mutation(async ({ input }) => {
       const { messages, language } = input;
-
-      // 언어별 시스템 프롬프트 보완
       const langNote =
         language !== "ko"
-          ? `\n\n[언어 설정] 사용자의 언어: ${language}. 해당 언어로 답변하세요.`
+          ? `\n\n[언어 설정] 사용자 언어: ${language}. 해당 언어로 답변하세요.`
           : "";
-
       try {
         const response = await invokeLLM({
           messages: [
-            {
-              role: "system",
-              content: EVERWILL_SYSTEM_PROMPT + langNote,
-            },
+            { role: "system", content: PUBLIC_BOT_SYSTEM_PROMPT + langNote },
             ...messages.map((m) => ({
               role: m.role as "user" | "assistant",
               content: m.content,
             })),
           ],
         });
-
         const content =
           response.choices?.[0]?.message?.content ||
           "죄송합니다. 잠시 후 다시 시도해 주세요.";
-
         return { content, success: true };
       } catch (error) {
         console.error("[ChatBot] LLM 오류:", error);
         return {
-          content:
-            "현재 상담 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+          content: "현재 상담 서비스에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
           success: false,
         };
       }
-    }),
-
-  // 빠른 질문 목록 (챗봇 시작 시 표시)
-  getQuickQuestions: publicProcedure
-    .input(z.object({ language: z.string().optional().default("ko") }))
-    .query(({ input }) => {
-      const questions: Record<string, string[]> = {
-        ko: [
-          "유언장 작성은 어떻게 시작하나요?",
-          "자산 등록 방법을 알려주세요",
-          "전자 인증이 뭔가요?",
-          "EverWill Badge는 무엇인가요?",
-          "가격이 얼마인가요?",
-          "개인정보는 안전한가요?",
-        ],
-        en: [
-          "How do I start writing a will?",
-          "How do I register my assets?",
-          "What is electronic certification?",
-          "What is the EverWill Badge?",
-          "How much does it cost?",
-          "Is my personal information safe?",
-        ],
-        ja: [
-          "遺言書の作成はどうすればいいですか？",
-          "資産の登録方法を教えてください",
-          "電子認証とは何ですか？",
-          "EverWill Badgeとは何ですか？",
-          "料金はいくらですか？",
-        ],
-        zh: [
-          "如何开始写遗嘱？",
-          "如何登记资产？",
-          "什么是电子认证？",
-          "EverWill徽章是什么？",
-          "费用是多少？",
-        ],
-      };
-
-      return {
-        questions: questions[input.language] || questions["ko"],
-      };
     }),
 });

@@ -1023,3 +1023,40 @@ export const autobiographyChapters = mysqlTable("autobiographyChapters", {
 });
 export type AutobiographyChapter = typeof autobiographyChapters.$inferSelect;
 export type InsertAutobiographyChapter = typeof autobiographyChapters.$inferInsert;
+
+/**
+ * 챗봇 세션 테이블
+ * 회원의 AI 상담 세션 관리
+ */
+export const chatSessions = mysqlTable("chatSessions", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 회원 ID (null이면 비회원 세션) */
+  userId: int("userId"),
+  /** 세션 고유 식별자 (UUID) */
+  sessionKey: varchar("sessionKey", { length: 64 }).notNull().unique(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ChatSession = typeof chatSessions.$inferSelect;
+export type InsertChatSession = typeof chatSessions.$inferInsert;
+
+/**
+ * 챗봇 메시지 테이블
+ * 회원 전담 AI 대화 히스토리 저장
+ */
+export const chatMessages = mysqlTable("chatMessages", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 세션 ID */
+  sessionId: int("sessionId").notNull(),
+  /** 회원 ID */
+  userId: int("userId").notNull(),
+  /** 메시지 역할 (user / assistant) */
+  role: mysqlEnum("role", ["user", "assistant"]).notNull(),
+  /** 메시지 내용 */
+  content: text("content").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type InsertChatMessage = typeof chatMessages.$inferInsert;
