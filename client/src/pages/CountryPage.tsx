@@ -1,112 +1,108 @@
 /**
- * 국가별 랜딩 페이지 컴포넌트
- * 한국판 구조를 기준으로 각 나라 법률에 맞게 현지화
- * 한국판 코드는 절대 변경하지 않음
+ * 국가별 전용 랜딩 페이지 (NZ / AU / CA)
+ * - 각 국가 법률 기준 반영
+ * - 풀 랜딩 페이지 구조: Hero → 법적근거 → 서비스 → 가격 → Badge → 신뢰 → CTA
+ * - 언어 자동 전환 (countryPages.ts의 langCode 기준)
  */
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useParams, Link } from "wouter";
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import {
   ShieldCheck, FileText, Activity, Bell, Scale, CreditCard,
   CheckCircle, AlertTriangle, Globe, ArrowRight, Star, Users,
-  Lock, Zap, Heart
+  Lock, Zap, Heart, QrCode, Wifi, Check, Sparkles, ChevronRight,
+  BookOpen, Video, Scroll, RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { countryPagesData, type CountryPageData, type LegalStatus } from "@/data/countryPages";
+import { useLanguage } from "@/contexts/LanguageContext";
+import type { Language } from "@/i18n";
 
 // 아이콘 매핑
 const iconMap: Record<string, React.ElementType> = {
   FileText, ShieldCheck, Activity, Bell, Scale, CreditCard,
-  Globe, Lock, Zap, Heart, Users, Star,
+  Globe, Lock, Zap, Heart, Users, Star, QrCode, Wifi, BookOpen, Video, Scroll, RefreshCw
 };
 
 // 법적 상태 배지
 function LegalStatusBadge({ status, label }: { status: LegalStatus; label: string }) {
-  const colors = {
+  const colors: Record<LegalStatus, string> = {
     active: "bg-green-500/20 text-green-300 border-green-500/40",
     partial: "bg-yellow-500/20 text-yellow-300 border-yellow-500/40",
     review: "bg-gray-500/20 text-gray-300 border-gray-500/40",
   };
-  const icons = {
+  const icons: Record<LegalStatus, React.ReactNode> = {
     active: <CheckCircle className="w-3.5 h-3.5" />,
     partial: <AlertTriangle className="w-3.5 h-3.5" />,
     review: <AlertTriangle className="w-3.5 h-3.5" />,
   };
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${colors[status]}`}>
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${colors[status]}`}>
       {icons[status]}
       {label}
     </span>
   );
 }
 
-// Hero 섹션
+// ─── Hero 섹션 ───────────────────────────────────────────────────────────────
 function CountryHero({ data }: { data: CountryPageData }) {
   return (
     <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#0d1f3c] via-[#1F3864] to-[#0d1f3c]">
       {/* 배경 장식 */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-[#C9A961]/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#C9A961]/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#C9A961]/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
       </div>
-
-      <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
-        {/* 국기 + 국가 코드 */}
+      <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
+        {/* 국가 배지 */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="flex items-center justify-center gap-3 mb-6"
         >
-          <img
-            src={data.flagImg}
-            alt={data.countryCode}
-            className="w-12 h-8 rounded object-cover shadow-lg"
-          />
-          <span className="text-white/60 text-sm font-mono tracking-widest uppercase">
-            {data.countryCode} · EverWill
+          <img src={data.flagImg} alt={data.lang} className="w-10 h-7 rounded object-cover shadow-lg" />
+          <span className="text-[#C9A961] font-semibold text-lg tracking-widest uppercase">
+            {data.countryCode} · EVERWILL
           </span>
         </motion.div>
 
         {/* 법적 상태 배지 */}
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="flex justify-center mb-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="flex justify-center mb-8"
         >
           <LegalStatusBadge status={data.legalStatus} label={data.legalStatusLabel} />
         </motion.div>
 
         {/* 메인 타이틀 */}
         <motion.h1
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-4xl md:text-6xl font-bold text-white leading-tight mb-4"
-          style={{ whiteSpace: "pre-line" }}
+          transition={{ delay: 0.3, duration: 0.8 }}
+          className="text-4xl md:text-6xl font-bold text-white mb-4 leading-tight whitespace-pre-line"
         >
           {data.heroTitle}
         </motion.h1>
 
-        {/* 서브타이틀 */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="text-xl md:text-2xl text-[#C9A961] font-semibold mb-4"
+          transition={{ delay: 0.5 }}
+          className="text-[#C9A961] text-xl font-semibold mb-4"
         >
           {data.heroSubtitle}
         </motion.p>
 
-        {/* 태그라인 */}
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="text-white/60 text-base md:text-lg max-w-2xl mx-auto mb-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="text-white/70 text-lg mb-10 max-w-2xl mx-auto"
         >
           {data.heroTagline}
         </motion.p>
@@ -115,16 +111,16 @@ function CountryHero({ data }: { data: CountryPageData }) {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center"
+          transition={{ delay: 0.7 }}
+          className="flex flex-col sm:flex-row gap-4 justify-center items-center"
         >
-          <Link href="/write">
-            <Button className="bg-[#C9A961] text-[#1F3864] hover:bg-[#d4b56e] font-bold px-10 py-4 rounded-full text-lg shadow-xl shadow-[#C9A961]/30">
+          <Link href="/register">
+            <Button className="bg-[#C9A961] hover:bg-[#b8954f] text-[#1F3864] font-bold text-lg px-10 py-6 rounded-full shadow-xl">
               {data.heroCtaText} <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
           </Link>
           <Link href="/pricing">
-            <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 px-8 py-4 rounded-full text-lg">
+            <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 text-lg px-8 py-6 rounded-full">
               {data.currency === "KRW" ? "가격 확인" : "View Pricing"}
             </Button>
           </Link>
@@ -134,110 +130,96 @@ function CountryHero({ data }: { data: CountryPageData }) {
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.7 }}
-          className="text-white/30 text-sm mt-6"
+          transition={{ delay: 0.9 }}
+          className="text-white/40 text-sm mt-6"
         >
-          {data.currency === "KRW"
-            ? `AI 유언장 작성 무료 · 인증 ${data.certPrice} · 재인증 ${data.renewPrice}`
-            : `AI will drafting free · Certification ${data.certPrice} · Renewal ${data.renewPrice}`}
+          AI will drafting free · Certification {data.certPrice} · Renewal {data.renewPrice}
         </motion.p>
       </div>
     </section>
   );
 }
 
-// 법률 근거 섹션
+// ─── 법적 근거 섹션 ──────────────────────────────────────────────────────────
 function LegalBasisSection({ data }: { data: CountryPageData }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
   return (
-    <section className="py-20 bg-[#FAFAFA]">
-      <div className="max-w-4xl mx-auto px-6">
+    <section ref={ref} className="py-20 bg-[#FAFAFA]">
+      <div className="max-w-5xl mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <span className="text-[#C9A961] text-sm font-semibold tracking-widest uppercase mb-3 block">
-            {data.currency === "KRW" ? "법적 근거" : "Legal Basis"}
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1F3864] mb-4">
-            {data.currency === "KRW" ? "완전한 법적 효력" : "Full Legal Validity"}
-          </h2>
-          <p className="text-[#6B7280] max-w-xl mx-auto">
-            {data.legalNote}
+          <span className="text-[#C9A961] text-sm font-semibold tracking-widest uppercase">Legal Basis</span>
+          <h2 className="text-3xl font-bold text-[#1F3864] mt-2">Full Legal Validity</h2>
+          <p className="text-[#6B7280] mt-3 max-w-2xl mx-auto">
+            EverWill operates in full compliance with {data.countryCode} law. Every will is legally valid and immediately enforceable.
           </p>
         </motion.div>
-
-        {/* 법적 경고 (부분 적용 국가) */}
-        {data.legalWarning && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="bg-yellow-50 border border-yellow-200 rounded-2xl p-5 mb-8 flex gap-3"
-          >
-            <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-            <p className="text-yellow-800 text-sm leading-relaxed">{data.legalWarning}</p>
-          </motion.div>
-        )}
-
-        <div className="grid gap-3">
-          {data.legalBasis.map((item, i) => (
+        <div className="grid md:grid-cols-2 gap-4">
+          {data.legalBasis.map((law, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.08 }}
-              className="flex items-start gap-3 bg-white rounded-xl p-4 shadow-sm border border-[#1F3864]/8"
+              animate={inView ? { opacity: 1, x: 0 } : {}}
+              transition={{ delay: i * 0.1 }}
+              className="flex items-start gap-3 bg-white rounded-xl p-4 shadow-sm border border-gray-100"
             >
-              <CheckCircle className="w-5 h-5 text-[#C9A961] flex-shrink-0 mt-0.5" />
-              <span className="text-[#1A1A1A] text-sm leading-relaxed">{item}</span>
+              <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
+              <span className="text-[#1A1A1A] text-sm font-medium">{law}</span>
             </motion.div>
           ))}
         </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ delay: 0.6 }}
+          className="mt-8 text-center"
+        >
+          <p className="text-xs text-[#6B7280] bg-white rounded-full px-6 py-2 inline-block border border-gray-200">
+            {data.legalNote}
+          </p>
+        </motion.div>
       </div>
     </section>
   );
 }
 
-// 서비스 기능 섹션
+// ─── 서비스 기능 섹션 ────────────────────────────────────────────────────────
 function FeaturesSection({ data }: { data: CountryPageData }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
   return (
-    <section className="py-20 bg-white">
+    <section ref={ref} className="py-20 bg-white">
       <div className="max-w-6xl mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
           className="text-center mb-14"
         >
-          <span className="text-[#C9A961] text-sm font-semibold tracking-widest uppercase mb-3 block">
-            {data.currency === "KRW" ? "핵심 서비스" : "Core Services"}
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1F3864] mb-4">
-            {data.serviceTitle}
-          </h2>
-          <p className="text-[#6B7280] max-w-2xl mx-auto">{data.serviceDesc}</p>
+          <span className="text-[#C9A961] text-sm font-semibold tracking-widest uppercase">Services</span>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1F3864] mt-2">{data.serviceTitle}</h2>
+          <p className="text-[#6B7280] mt-3 max-w-2xl mx-auto">{data.serviceDesc}</p>
         </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {data.features.map((feature, i) => {
-            const Icon = iconMap[feature.icon] || ShieldCheck;
+            const Icon = iconMap[feature.icon] || FileText;
             return (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.08 }}
-                className="bg-gradient-to-br from-[#1F3864]/5 to-[#C9A961]/5 rounded-2xl p-6 border border-[#1F3864]/10 hover:shadow-lg transition-shadow"
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: i * 0.1 }}
+                className="bg-[#FAFAFA] rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-shadow"
               >
-                <div className="w-12 h-12 bg-[#1F3864] rounded-xl flex items-center justify-center mb-4">
-                  <Icon className="w-6 h-6 text-[#C9A961]" />
+                <div className="w-12 h-12 bg-[#1F3864]/10 rounded-xl flex items-center justify-center mb-4">
+                  <Icon className="w-6 h-6 text-[#1F3864]" />
                 </div>
-                <h3 className="text-[#1F3864] font-bold text-lg mb-2">{feature.title}</h3>
+                <h3 className="text-lg font-bold text-[#1F3864] mb-2">{feature.title}</h3>
                 <p className="text-[#6B7280] text-sm leading-relaxed">{feature.desc}</p>
               </motion.div>
             );
@@ -248,106 +230,221 @@ function FeaturesSection({ data }: { data: CountryPageData }) {
   );
 }
 
-// 가격 섹션
-function PricingSnippet({ data }: { data: CountryPageData }) {
+// ─── 가격 섹션 ───────────────────────────────────────────────────────────────
+function PricingSection({ data }: { data: CountryPageData }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
+
+  const plans = [
+    {
+      name: "Free",
+      price: "Free",
+      desc: "AI will drafting, unlimited revisions",
+      features: ["AI will drafting", "10-step wizard", "PDF preview", "Unlimited edits"],
+      cta: "Start Free",
+      highlight: false,
+    },
+    {
+      name: "Certification",
+      price: data.certPrice,
+      desc: "Legally certified, blockchain secured",
+      features: [
+        "Everything in Free",
+        "eKYC identity verification",
+        "Electronic signature",
+        "Blockchain hash record",
+        "Certified PDF issued",
+        `Renewal at ${data.renewPrice}`,
+      ],
+      cta: "Get Certified",
+      highlight: true,
+    },
+    {
+      name: "Membership",
+      price: data.membershipPrice,
+      desc: "Annual plan with all features",
+      features: [
+        "Everything in Certification",
+        "Unlimited re-certification",
+        "Video will recording",
+        "Handwritten will scan",
+        "Priority support",
+        "4-layer death detection",
+      ],
+      cta: "Join Membership",
+      highlight: false,
+    },
+  ];
+
   return (
-    <section className="py-20 bg-gradient-to-br from-[#1F3864] to-[#0d1f3c]">
-      <div className="max-w-4xl mx-auto px-6 text-center">
+    <section ref={ref} className="py-20 bg-gradient-to-br from-[#1F3864] to-[#0d1f3c]">
+      <div className="max-w-6xl mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-14"
         >
-          <span className="text-[#C9A961] text-sm font-semibold tracking-widest uppercase mb-3 block">
-            {data.currency === "KRW" ? "가격 정책" : "Pricing"}
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-10">
-            {data.currency === "KRW" ? "투명한 가격, 숨겨진 비용 없음" : "Transparent Pricing, No Hidden Fees"}
-          </h2>
+          <span className="text-[#C9A961] text-sm font-semibold tracking-widest uppercase">Pricing</span>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mt-2">Transparent Pricing, No Hidden Fees</h2>
+          <p className="text-white/60 mt-3">All prices in {data.currency}. Payment via {data.paymentMethods.join(", ")}.</p>
         </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          {[
-            {
-              label: data.currency === "KRW" ? "AI 유언장 작성" : "AI Will Drafting",
-              price: data.currency === "KRW" ? "무료" : "Free",
-              desc: data.currency === "KRW" ? "제한 없음" : "Unlimited",
-              highlight: false,
-            },
-            {
-              label: data.currency === "KRW" ? "최초 전자 인증" : "First Certification",
-              price: data.certPrice,
-              desc: data.currency === "KRW" ? "1회 결제" : "One-time",
-              highlight: true,
-            },
-            {
-              label: data.currency === "KRW" ? "재인증 (수정)" : "Re-certification",
-              price: data.renewPrice,
-              desc: data.currency === "KRW" ? "횟수 무제한" : "Unlimited times",
-              highlight: false,
-            },
-          ].map((item, i) => (
+        <div className="grid md:grid-cols-3 gap-6">
+          {plans.map((plan, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className={`rounded-2xl p-6 ${item.highlight
-                ? "bg-[#C9A961] text-[#1F3864]"
-                : "bg-white/10 text-white border border-white/20"
-                }`}
+              initial={{ opacity: 0, y: 30 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: i * 0.15 }}
+              className={`rounded-2xl p-8 flex flex-col ${
+                plan.highlight
+                  ? "bg-[#C9A961] text-[#1F3864]"
+                  : "bg-white/10 text-white border border-white/20"
+              }`}
             >
-              <p className={`text-sm font-medium mb-2 ${item.highlight ? "text-[#1F3864]/70" : "text-white/60"}`}>
-                {item.label}
-              </p>
-              <p className={`text-3xl font-bold mb-1 ${item.highlight ? "text-[#1F3864]" : "text-white"}`}>
-                {item.price}
-              </p>
-              <p className={`text-xs ${item.highlight ? "text-[#1F3864]/60" : "text-white/40"}`}>
-                {item.desc}
-              </p>
+              {plan.highlight && (
+                <div className="flex items-center gap-1 mb-3">
+                  <Star className="w-4 h-4 fill-[#1F3864]" />
+                  <span className="text-xs font-bold uppercase tracking-wider">Most Popular</span>
+                </div>
+              )}
+              <h3 className={`text-xl font-bold mb-1 ${plan.highlight ? "text-[#1F3864]" : "text-white"}`}>
+                {plan.name}
+              </h3>
+              <div className={`text-3xl font-bold mb-2 ${plan.highlight ? "text-[#1F3864]" : "text-[#C9A961]"}`}>
+                {plan.price}
+              </div>
+              <p className={`text-sm mb-6 ${plan.highlight ? "text-[#1F3864]/70" : "text-white/60"}`}>{plan.desc}</p>
+              <ul className="space-y-2 flex-1 mb-8">
+                {plan.features.map((f, j) => (
+                  <li key={j} className="flex items-start gap-2 text-sm">
+                    <Check className={`w-4 h-4 mt-0.5 shrink-0 ${plan.highlight ? "text-[#1F3864]" : "text-[#C9A961]"}`} />
+                    <span className={plan.highlight ? "text-[#1F3864]" : "text-white/80"}>{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link href="/register">
+                <Button
+                  className={`w-full rounded-full font-bold ${
+                    plan.highlight
+                      ? "bg-[#1F3864] text-white hover:bg-[#0d1f3c]"
+                      : "bg-white/20 text-white hover:bg-white/30 border border-white/30"
+                  }`}
+                >
+                  {plan.cta} <ChevronRight className="ml-1 w-4 h-4" />
+                </Button>
+              </Link>
             </motion.div>
           ))}
         </div>
-
-        {/* 결제 수단 */}
-        <div className="flex flex-wrap justify-center gap-2 mb-10">
-          {data.paymentMethods.map((method, i) => (
-            <span key={i} className="bg-white/10 text-white/70 text-xs px-3 py-1.5 rounded-full border border-white/20">
-              {method}
-            </span>
-          ))}
-        </div>
-
-        <Link href="/write">
-          <Button className="bg-[#C9A961] text-[#1F3864] hover:bg-[#d4b56e] font-bold px-10 py-4 rounded-full text-lg">
-            {data.ctaButton} <ArrowRight className="ml-2 w-5 h-5" />
-          </Button>
-        </Link>
-        <p className="text-white/30 text-xs mt-4">{data.ctaDesc}</p>
       </div>
     </section>
   );
 }
 
-// 신뢰 지표 섹션
-function TrustSection({ data }: { data: CountryPageData }) {
+// ─── EverWill Badge 섹션 ─────────────────────────────────────────────────────
+function BadgeSection({ data }: { data: CountryPageData }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
+
+  const badgeFeatures = [
+    { icon: QrCode, title: "QR Code", desc: "Emergency responders scan to access your medical info and family contacts instantly" },
+    { icon: Wifi, title: "NFC Chip", desc: "Tap-to-read with any smartphone — no app required" },
+    { icon: ShieldCheck, title: "Will Authentication", desc: "Courts and banks verify your will serial number in seconds" },
+    { icon: Bell, title: "Death Trigger", desc: "Hospitals and funeral homes scan the Badge to automatically notify your family" },
+  ];
+
+  const badgePlans = [
+    { name: "Essential", material: "Stainless Steel Card", price: data.currency === "NZD" ? "NZ$59" : data.currency === "AUD" ? "A$55" : "C$49" },
+    { name: "Wearable", material: "Silicone / Titanium Bracelet", price: data.currency === "NZD" ? "NZ$95" : data.currency === "AUD" ? "A$89" : "C$79" },
+    { name: "Necklace", material: "Stainless / Rose Gold", price: data.currency === "NZD" ? "NZ$119" : data.currency === "AUD" ? "A$109" : "C$99" },
+    { name: "Premium", material: "Titanium / Platinum", price: data.currency === "NZD" ? "NZ$359" : data.currency === "AUD" ? "A$329" : "C$299", highlight: true },
+  ];
+
   return (
-    <section className="py-16 bg-[#FAFAFA]">
-      <div className="max-w-4xl mx-auto px-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <section ref={ref} className="py-20 bg-[#FAFAFA]">
+      <div className="max-w-6xl mx-auto px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-14"
+        >
+          <span className="text-[#C9A961] text-sm font-semibold tracking-widest uppercase">EverWill Badge</span>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1F3864] mt-2">Physical Certification Card</h2>
+          <p className="text-[#6B7280] mt-3 max-w-2xl mx-auto">
+            The world's first physical will certification badge. Wear it daily — it works as identity, emergency alert, and will authentication.
+          </p>
+        </motion.div>
+
+        {/* 4가지 기능 */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 mb-14">
+          {badgeFeatures.map((f, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: i * 0.1 }}
+              className="bg-white rounded-2xl p-6 text-center border border-gray-100 shadow-sm"
+            >
+              <div className="w-12 h-12 bg-[#1F3864]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <f.icon className="w-6 h-6 text-[#1F3864]" />
+              </div>
+              <h3 className="font-bold text-[#1F3864] mb-2">{f.title}</h3>
+              <p className="text-[#6B7280] text-xs leading-relaxed">{f.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* 배지 라인업 */}
+        <div className="grid md:grid-cols-4 gap-4">
+          {badgePlans.map((b, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.4 + i * 0.1 }}
+              className={`rounded-2xl p-6 text-center border ${
+                b.highlight
+                  ? "bg-[#1F3864] border-[#C9A961] text-white"
+                  : "bg-white border-gray-100"
+              }`}
+            >
+              {b.highlight && (
+                <div className="flex items-center justify-center gap-1 mb-2">
+                  <Sparkles className="w-3.5 h-3.5 text-[#C9A961]" />
+                  <span className="text-[#C9A961] text-xs font-bold">PREMIUM</span>
+                </div>
+              )}
+              <h3 className={`font-bold text-lg mb-1 ${b.highlight ? "text-white" : "text-[#1F3864]"}`}>{b.name}</h3>
+              <p className={`text-xs mb-3 ${b.highlight ? "text-white/60" : "text-[#6B7280]"}`}>{b.material}</p>
+              <div className={`text-2xl font-bold ${b.highlight ? "text-[#C9A961]" : "text-[#1F3864]"}`}>{b.price}</div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── 신뢰 지표 섹션 ──────────────────────────────────────────────────────────
+function TrustSection({ data }: { data: CountryPageData }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
+  return (
+    <section ref={ref} className="py-16 bg-white">
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="flex flex-wrap justify-center gap-4">
           {data.trustPoints.map((point, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08 }}
-              className="bg-white rounded-xl p-4 text-center shadow-sm border border-[#1F3864]/8"
+              animate={inView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ delay: i * 0.1 }}
+              className="flex items-center gap-2 bg-[#FAFAFA] border border-gray-200 rounded-full px-5 py-2.5"
             >
-              <ShieldCheck className="w-6 h-6 text-[#C9A961] mx-auto mb-2" />
-              <p className="text-[#1F3864] text-xs font-semibold leading-tight">{point}</p>
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              <span className="text-[#1F3864] text-sm font-medium">{point}</span>
             </motion.div>
           ))}
         </div>
@@ -356,43 +453,87 @@ function TrustSection({ data }: { data: CountryPageData }) {
   );
 }
 
-// CTA 섹션
-function CtaSection({ data }: { data: CountryPageData }) {
+// ─── 타깃 고객 섹션 ──────────────────────────────────────────────────────────
+function TargetSection({ data }: { data: CountryPageData }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
   return (
-    <section className="py-24 bg-white">
-      <div className="max-w-3xl mx-auto px-6 text-center">
+    <section ref={ref} className="py-16 bg-[#FAFAFA]">
+      <div className="max-w-4xl mx-auto px-6 text-center">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
         >
-          <img src={data.flagImg} alt={data.countryCode} className="w-16 h-11 rounded object-cover mx-auto mb-6 shadow-lg" />
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1F3864] mb-4">{data.ctaTitle}</h2>
-          <p className="text-[#6B7280] text-lg mb-8">{data.ctaDesc}</p>
-          <Link href="/write">
-            <Button className="bg-[#1F3864] text-white hover:bg-[#162d52] font-bold px-12 py-4 rounded-full text-lg shadow-xl">
-              {data.ctaButton} <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-          </Link>
-          <p className="text-[#6B7280]/50 text-xs mt-4">{data.targetAudience}</p>
+          <span className="text-[#C9A961] text-sm font-semibold tracking-widest uppercase">Who It's For</span>
+          <h2 className="text-2xl md:text-3xl font-bold text-[#1F3864] mt-2 mb-6">Built for {data.countryCode} Residents</h2>
+          <div className="flex flex-wrap justify-center gap-3">
+            {data.targetAudience.split(" · ").map((t, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: i * 0.1 }}
+                className="flex items-center gap-2 bg-white border border-[#C9A961]/30 rounded-full px-5 py-2.5 shadow-sm"
+              >
+                <Users className="w-4 h-4 text-[#C9A961]" />
+                <span className="text-[#1F3864] text-sm font-medium">{t}</span>
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
       </div>
     </section>
   );
 }
 
-// 메인 CountryPage 컴포넌트
+// ─── 최종 CTA 섹션 ───────────────────────────────────────────────────────────
+function CtaSection({ data }: { data: CountryPageData }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
+  return (
+    <section ref={ref} className="py-24 bg-gradient-to-br from-[#1F3864] to-[#0d1f3c]">
+      <div className="max-w-3xl mx-auto px-6 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+        >
+          <img src={data.flagImg} alt={data.countryCode} className="w-16 h-11 rounded mx-auto mb-6 shadow-lg object-cover" />
+          <h2 className="text-4xl font-bold text-white mb-4">{data.ctaTitle}</h2>
+          <p className="text-white/70 text-lg mb-8">{data.ctaDesc}</p>
+          <Link href="/register">
+            <Button className="bg-[#C9A961] hover:bg-[#b8954f] text-[#1F3864] font-bold text-lg px-12 py-6 rounded-full shadow-xl">
+              {data.ctaButton} <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+          </Link>
+          <p className="text-white/40 text-sm mt-6">{data.targetAudience}</p>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ─── 메인 컴포넌트 ───────────────────────────────────────────────────────────
 export default function CountryPage() {
   const params = useParams<{ code: string }>();
   const code = params.code?.toLowerCase();
-
   const data = code ? countryPagesData[code] : null;
+  const { setLanguage } = useLanguage();
 
+  // 국가 페이지 접속 시 해당 국가 언어로 자동 전환
   useEffect(() => {
     if (data) {
       document.title = data.metaTitle;
+      const langMap: Record<string, Language> = {
+        en: "en", ko: "ko", ja: "ja", zh: "zh",
+        de: "de", es: "es", ar: "ar", fr: "fr",
+        ru: "ru", hi: "hi", pt: "pt",
+      };
+      const targetLang = langMap[data.langCode];
+      if (targetLang) setLanguage(targetLang);
     }
-  }, [data]);
+  }, [data, setLanguage]);
 
   if (!data) {
     return (
@@ -417,8 +558,10 @@ export default function CountryPage() {
       <CountryHero data={data} />
       <LegalBasisSection data={data} />
       <FeaturesSection data={data} />
+      <PricingSection data={data} />
+      <BadgeSection data={data} />
+      <TargetSection data={data} />
       <TrustSection data={data} />
-      <PricingSnippet data={data} />
       <CtaSection data={data} />
       <Footer />
     </div>
