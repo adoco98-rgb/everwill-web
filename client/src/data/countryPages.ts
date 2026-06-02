@@ -63,7 +63,7 @@ export const countryPagesData: Record<string, CountryPageData> = {
       { title: "전자 인증 (eKYC)", desc: "NICE평가정보 본인인증 + 블록체인 해시 기록", icon: "ShieldCheck" },
       { title: "4중 사망 감지", desc: "가족 신고·정부DB·Dead Man's Switch·응급 발견자 교차 확인", icon: "Activity" },
       { title: "상속자 자동 알림", desc: "사망 확인 후 상속자 전원에게 자동 알림 발송", icon: "Bell" },
-      { title: "변호사 매칭", desc: "사후 집행 전담 변호사 자동 연결", icon: "Scale" },
+      { title: "상속전문 변호사 매칭", desc: "소송 발생 시 최고 상속전문 변호사 연결", icon: "Scale" },
       { title: "NFC 내장 인증카드", desc: "QR·NFC 탑재 실물 인증 카드", icon: "CreditCard" },
     ],
     currency: "KRW", certPrice: "₩49,000", renewPrice: "₩15,000", membershipPrice: "₩29,000/년",
