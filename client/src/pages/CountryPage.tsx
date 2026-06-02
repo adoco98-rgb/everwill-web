@@ -354,11 +354,27 @@ function BadgeSection({ data }: { data: CountryPageData }) {
     { icon: Bell, title: "Death Trigger", desc: "Hospitals and funeral homes scan the Badge to automatically notify your family" },
   ];
 
+  // 국가별 Badge 가격 매핑
+  const badgePriceMap: Record<string, { e: string; w: string; n: string; p: string }> = {
+    KRW:     { e: "₩59,000",  w: "₩99,000",  n: "₩129,000", p: "₩399,000" },
+    USD:     { e: "$49",      w: "$79",      n: "$99",      p: "$299" },
+    JPY:     { e: "¥7,800",   w: "¥12,500",  n: "¥15,800",  p: "¥47,500" },
+    "HKD/TWD": { e: "HK$379",  w: "HK$609",  n: "HK$769",  p: "HK$2,299" },
+    EUR:     { e: "€49",      w: "€79",      n: "€99",      p: "€299" },
+    SAR:     { e: "SAR 184",  w: "SAR 296",  n: "SAR 371",  p: "SAR 1,121" },
+    RUB:     { e: "₽4,500",   w: "₽7,200",   n: "₽9,000",   p: "₽27,000" },
+    INR:     { e: "₹4,000",   w: "₹6,500",   n: "₹8,100",   p: "₹24,500" },
+    BRL:     { e: "R$249",    w: "R$399",    n: "R$499",    p: "R$1,499" },
+    AUD:     { e: "A$55",     w: "A$89",     n: "A$109",    p: "A$329" },
+    NZD:     { e: "NZ$59",    w: "NZ$95",    n: "NZ$119",   p: "NZ$359" },
+    CAD:     { e: "C$49",     w: "C$79",     n: "C$99",     p: "C$299" },
+  };
+  const bp = badgePriceMap[data.currency] ?? badgePriceMap["USD"];
   const badgePlans = [
-    { name: "Essential", material: "Stainless Steel Card", price: data.currency === "NZD" ? "NZ$59" : data.currency === "AUD" ? "A$55" : "C$49" },
-    { name: "Wearable", material: "Silicone / Titanium Bracelet", price: data.currency === "NZD" ? "NZ$95" : data.currency === "AUD" ? "A$89" : "C$79" },
-    { name: "Necklace", material: "Stainless / Rose Gold", price: data.currency === "NZD" ? "NZ$119" : data.currency === "AUD" ? "A$109" : "C$99" },
-    { name: "Premium", material: "Titanium / Platinum", price: data.currency === "NZD" ? "NZ$359" : data.currency === "AUD" ? "A$329" : "C$299", highlight: true },
+    { name: "Essential", material: "Stainless Steel Card", price: bp.e },
+    { name: "Wearable", material: "Silicone / Titanium Bracelet", price: bp.w },
+    { name: "Necklace", material: "Stainless / Rose Gold", price: bp.n },
+    { name: "Premium", material: "Titanium / Platinum", price: bp.p, highlight: true },
   ];
 
   return (

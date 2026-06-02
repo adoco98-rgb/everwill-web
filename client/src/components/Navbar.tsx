@@ -97,7 +97,7 @@ export default function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const { language, setLanguage, t } = useLanguage();
 
   // 스크롤 감지
@@ -123,11 +123,23 @@ export default function Navbar() {
     // (IP 감지 제거 — 새드박스/서버 IP가 SA로 오감지되는 문제 방지)
   }, []);
 
+  // 언어 → 국가 코드 매핑 (국가 페이지에서 사용)
+  const langToCountry: Record<Language, string> = {
+    ko: "kr", en: "us", ja: "jp", zh: "cn",
+    de: "de", es: "es", ar: "sa", fr: "fr",
+    ru: "ru", hi: "in", pt: "br",
+  };
+
   // 언어 수동 변경 핸들러
   const handleSetLanguage = (code: Language) => {
     setLanguage(code);
     localStorage.setItem("everwill-lang-manual", code);
     setMobileOpen(false);
+    // 국가 페이지(/country/xx)에 있을 때 해당 언어의 국가 페이지로 이동
+    if (location.startsWith("/country/")) {
+      const targetCountry = langToCountry[code];
+      if (targetCountry) navigate(`/country/${targetCountry}`);
+    }
   };
 
   const handleNavClick = (href: string) => {
