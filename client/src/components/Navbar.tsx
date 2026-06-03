@@ -196,11 +196,12 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* 로고 */}
-          <a href="/" className="flex items-center group">
+          <a href="/" className="flex items-center group shrink-0">
             <img
               src="/everwill-logo.png"
               alt="EverWill Logo"
-              className="h-14 w-auto object-contain"
+              className="h-14 object-contain"
+              style={{ width: '180px', minWidth: '180px' }}
             />
           </a>
 
