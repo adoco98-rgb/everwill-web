@@ -721,17 +721,20 @@ export default function HeirServiceSection() {
   const icons = [UserCheck, FileText, Scale, CheckCircle];
 
   return (
-    <section id="heir-service" className="py-20 lg:py-28 bg-[#F5F3EE]" ref={ref}>
-      {/* ── 배경 이미지 배너 ── */}
-      <div className="relative w-full h-64 lg:h-80 mb-12 overflow-hidden">
-        <img
-          src="/manus-storage/heir-couple-bg_96a3b9bb.png"
-          alt="상속인 부부"
-          className="w-full h-full object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#F5F3EE] via-[#F5F3EE]/20 to-transparent" />
-      </div>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section
+      id="heir-service"
+      className="relative py-20 lg:py-28"
+      ref={ref}
+      style={{
+        backgroundImage: 'url(/manus-storage/heir-couple-bg_96a3b9bb.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      {/* 오버레이: 상단은 이미지 선명, 하단은 크림색 배경으로 전환 */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-[#F5F3EE]" />
+      <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* ── 헤더 ── */}
         <motion.div
@@ -741,17 +744,17 @@ export default function HeirServiceSection() {
           className="text-center mb-14"
         >
           <div className="section-divider mx-auto mb-6" />
-          <div className="inline-flex items-center gap-2 bg-[#1F3864]/10 border border-[#1F3864]/20 rounded-full px-4 py-1.5 mb-4">
-            <UserCheck className="w-4 h-4 text-[#1F3864]" />
-            <span className="text-[#1F3864] text-sm font-bold">{t.badge}</span>
+          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/40 rounded-full px-4 py-1.5 mb-4">
+            <UserCheck className="w-4 h-4 text-white" />
+            <span className="text-white text-sm font-bold drop-shadow">{t.badge}</span>
           </div>
           <h2
-            className="text-3xl lg:text-5xl font-bold text-[#1F3864] mb-4"
+            className="text-3xl lg:text-5xl font-bold text-white mb-4 drop-shadow-lg"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             {t.title}
           </h2>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
+          <p className="text-white/90 text-lg max-w-2xl mx-auto leading-relaxed drop-shadow">
             {t.subtitle}
           </p>
         </motion.div>
