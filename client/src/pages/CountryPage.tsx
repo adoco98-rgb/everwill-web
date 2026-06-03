@@ -53,14 +53,20 @@ function LegalStatusBadge({ status, label }: { status: LegalStatus; label: strin
 }
 
 // ─── Hero 섹션 ───────────────────────────────────────────────────────────────
+const HERO_BG_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/hero-global-elders-v2-DB4mTEuKjbV7DYjdv5fYBA.webp";
+
 function CountryHero({ data }: { data: CountryPageData }) {
   return (
-    <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#0d1f3c] via-[#1F3864] to-[#0d1f3c]">
-      {/* 배경 장식 */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#C9A961]/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
-      </div>
+    <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-[#0d1f3c]">
+      {/* 배경 이미지 - 글로벌 노인 그룹 */}
+      <img
+        src={HERO_BG_URL}
+        alt="Global seniors"
+        className="absolute inset-0 w-full h-full object-cover object-center"
+        loading="eager"
+      />
+      {/* 어두운 오버레이 */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0d1f3c]/70 via-[#1F3864]/60 to-[#0d1f3c]/80" />
       <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
         {/* 국가 배지 */}
         <motion.div

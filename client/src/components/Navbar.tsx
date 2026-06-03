@@ -130,6 +130,13 @@ export default function Navbar() {
     ru: "ru", hi: "in", pt: "br",
   };
 
+  // 현재 URL이 /country/nz, /country/au, /country/ca 인지 확인
+  const activeCountryCode = location.startsWith("/country/")
+    ? location.split("/country/")[1]?.toLowerCase()
+    : null;
+  const extraCountryCodes = ["nz", "au", "ca"];
+  const isExtraCountryActive = activeCountryCode && extraCountryCodes.includes(activeCountryCode);
+
   // 언어 수동 변경 핸들러
   const handleSetLanguage = (code: Language) => {
     setLanguage(code);
@@ -363,84 +370,114 @@ export default function Navbar() {
       <div className="border-t border-[#C9A961]/20 bg-[#162d52]">
         <div className="w-full overflow-x-auto scrollbar-none" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="flex items-center justify-start gap-1 py-2.5 px-4 min-w-max mx-auto" style={{ justifyContent: 'safe center' }}>
-            {/* 현재 선택 언어를 맹 앞에 표시하고 나머지 언어 순서대로 정렬 */}
+            {/* 현재 선택 언어를 맨 앞에 표시하고 나머지 언어 순서대로 정렬 */}
+            {/* NZ·AU·CA 전용 페이지에서는 언어 기반 국기 활성화 비활성화 */}
             {[
               ...languages.filter(l => l.code === language),
               ...languages.filter(l => l.code !== language),
-            ].map((lang) => (
-              <motion.button
-                key={lang.code}
-                layout
-                onClick={() => handleSetLanguage(lang.code)}
-                title={lang.label}
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.92 }}
-                transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                className={`relative flex flex-col items-center gap-0.5 rounded-xl whitespace-nowrap flex-shrink-0 transition-all ${
-                  language === lang.code
-                    ? "px-3 py-1.5 bg-[#C9A961]/25 ring-2 ring-[#C9A961] shadow-lg shadow-[#C9A961]/30"
-                    : "px-2 py-1 hover:bg-white/10"
-                }`}
-              >
-                {language === lang.code && (
-                  <motion.div
-                    layoutId="activeLang"
-                    className="absolute inset-0 rounded-xl bg-[#C9A961]/15"
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
-                )}
-                <img
-                  src={lang.flagImg}
-                  alt={lang.label}
-                  loading="eager"
-                  decoding="async"
-                  className={`relative z-10 rounded-sm flex-shrink-0 transition-all ${
-                    language === lang.code
-                      ? "ring-2 ring-[#C9A961] shadow-md shadow-[#C9A961]/40"
-                      : "opacity-75 hover:opacity-100"
+            ].map((lang) => {
+              // NZ·AU·CA 페이지에 있을 때는 언어 기반 활성화 표시 안 함
+              const isLangActive = !isExtraCountryActive && language === lang.code;
+              return (
+                <motion.button
+                  key={lang.code}
+                  layout
+                  onClick={() => handleSetLanguage(lang.code)}
+                  title={lang.label}
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.92 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  className={`relative flex flex-col items-center gap-0.5 rounded-xl whitespace-nowrap flex-shrink-0 transition-all ${
+                    isLangActive
+                      ? "px-3 py-1.5 bg-[#C9A961]/25 ring-2 ring-[#C9A961] shadow-lg shadow-[#C9A961]/30"
+                      : "px-2 py-1 hover:bg-white/10"
                   }`}
-                  style={{
-                    width: language === lang.code ? 54 : 40,
-                    height: language === lang.code ? 36 : 27,
-                    objectFit: "cover",
-                    display: "block",
-                  }}
-                />
-                <span className={`relative z-10 text-[9px] font-bold mt-0.5 leading-none tracking-wide ${
-                  language === lang.code ? "text-[#C9A961]" : "text-white/70"
-                }`}>
-                  {lang.countryCode}
-                </span>
-              </motion.button>
-            ))}
+                >
+                  {isLangActive && (
+                    <motion.div
+                      layoutId="activeLang"
+                      className="absolute inset-0 rounded-xl bg-[#C9A961]/15"
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  )}
+                  <img
+                    src={lang.flagImg}
+                    alt={lang.label}
+                    loading="eager"
+                    decoding="async"
+                    className={`relative z-10 rounded-sm flex-shrink-0 transition-all ${
+                      isLangActive
+                        ? "ring-2 ring-[#C9A961] shadow-md shadow-[#C9A961]/40"
+                        : "opacity-75 hover:opacity-100"
+                    }`}
+                    style={{
+                      width: isLangActive ? 54 : 40,
+                      height: isLangActive ? 36 : 27,
+                      objectFit: "cover",
+                      display: "block",
+                    }}
+                  />
+                  <span className={`relative z-10 text-[9px] font-bold mt-0.5 leading-none tracking-wide ${
+                    isLangActive ? "text-[#C9A961]" : "text-white/70"
+                  }`}>
+                    {lang.countryCode}
+                  </span>
+                </motion.button>
+              );
+            })}
             {/* 뉴질랜드·호주·캐나다: 국가 전용 페이지로 이동 */}
             {[
               { code: "nz", label: "New Zealand", flagImg: "https://flagcdn.com/w80/nz.png", countryCode: "NZ" },
               { code: "au", label: "Australia", flagImg: "https://flagcdn.com/w80/au.png", countryCode: "AU" },
               { code: "ca", label: "Canada", flagImg: "https://flagcdn.com/w80/ca.png", countryCode: "CA" },
-            ].map((extra) => (
-              <motion.button
-                key={extra.code}
-                onClick={() => { navigate(`/country/${extra.code}`); setMobileOpen(false); }}
-                title={extra.label}
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.92 }}
-                transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                className="relative flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl whitespace-nowrap flex-shrink-0 hover:bg-white/10"
-              >
-                <img
-                  src={extra.flagImg}
-                  alt={extra.label}
-                  loading="eager"
-                  decoding="async"
-                  className="relative z-10 rounded-sm flex-shrink-0 opacity-75 hover:opacity-100"
-                  style={{ width: 40, height: 27, objectFit: "cover", display: "block" }}
-                />
-                <span className="relative z-10 text-[9px] font-bold mt-0.5 leading-none tracking-wide text-white/70">
-                  {extra.countryCode}
-                </span>
-              </motion.button>
-            ))}
+            ].map((extra) => {
+              const isActive = activeCountryCode === extra.code;
+              return (
+                <motion.button
+                  key={extra.code}
+                  onClick={() => { navigate(`/country/${extra.code}`); setMobileOpen(false); }}
+                  title={extra.label}
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.92 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  className={`relative flex flex-col items-center gap-0.5 rounded-xl whitespace-nowrap flex-shrink-0 transition-all ${
+                    isActive
+                      ? "px-3 py-1.5 bg-[#C9A961]/25 ring-2 ring-[#C9A961] shadow-lg shadow-[#C9A961]/30"
+                      : "px-2 py-1 hover:bg-white/10"
+                  }`}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeLang"
+                      className="absolute inset-0 rounded-xl bg-[#C9A961]/15"
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  )}
+                  <img
+                    src={extra.flagImg}
+                    alt={extra.label}
+                    loading="eager"
+                    decoding="async"
+                    className={`relative z-10 rounded-sm flex-shrink-0 transition-all ${
+                      isActive
+                        ? "ring-2 ring-[#C9A961] shadow-md shadow-[#C9A961]/40"
+                        : "opacity-75 hover:opacity-100"
+                    }`}
+                    style={{
+                      width: isActive ? 54 : 40,
+                      height: isActive ? 36 : 27,
+                      objectFit: "cover",
+                      display: "block",
+                    }}
+                  />
+                  <span className={`relative z-10 text-[9px] font-bold mt-0.5 leading-none tracking-wide ${
+                    isActive ? "text-[#C9A961]" : "text-white/70"
+                  }`}>
+                    {extra.countryCode}
+                  </span>
+                </motion.button>
+              );
+            })}
           </div>
         </div>
       </div>
