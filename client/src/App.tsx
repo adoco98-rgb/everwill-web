@@ -50,6 +50,7 @@ import CertificationPage from "./pages/dashboard/CertificationPage";
 import CountryPage from "./pages/CountryPage";
 import AutobiographyPage from "./pages/AutobiographyPage";
 import { ChatbotWidget } from "./components/ChatbotWidget";
+import { LanguageProvider } from "./contexts/LanguageContext";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -140,11 +141,13 @@ function App() {
         defaultTheme="light"
         // switchable
       >
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-          <ChatbotWidget />
-        </TooltipProvider>
+        <LanguageProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+            <ChatbotWidget />
+          </TooltipProvider>
+        </LanguageProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

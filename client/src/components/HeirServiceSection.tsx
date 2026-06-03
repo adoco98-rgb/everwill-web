@@ -728,7 +728,7 @@ export default function HeirServiceSection() {
       style={{
         backgroundImage: 'url(/manus-storage/heir-couple-bg_96a3b9bb.png)',
         backgroundSize: 'cover',
-        backgroundPosition: 'center top',
+        backgroundPosition: 'center center',
         backgroundRepeat: 'no-repeat',
       }}
     >
