@@ -27,16 +27,28 @@ import {
   BookMarked,
   Mail,
   BookOpen,
+  ClipboardList,
+  Calculator,
+  Pencil,
+  NotebookPen,
+  Sparkles,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
+
+/** 유언 완성 플로우 메뉴 */
+const willFlowMenuItems = [
+  { icon: Sparkles, label: "유언 완성하기", path: "/dashboard/will-wizard", highlight: true },
+];
 
 /** 유언장 관련 메뉴 */
 const mainMenuItems = [
   { icon: Home, label: "대시보드", path: "/dashboard" },
   { icon: FileText, label: "내 유언장", path: "/dashboard/wills" },
   { icon: Users, label: "상속자 등록", path: "/dashboard/heirs" },
-  { icon: Award, label: "Badge 관리", path: "/dashboard/badge" },
+  { icon: ClipboardList, label: "자산 등록", path: "/assets" },
+  { icon: Calculator, label: "상속세 계산", path: "/tax" },
+  { icon: Award, label: "인증 카드", path: "/dashboard/badge" },
   { icon: Shield, label: "인증 현황", path: "/dashboard/certification" },
   { icon: QrCode, label: "멤버십 카드", path: "/dashboard/membership" },
   { icon: ShieldCheck, label: "자산 인증", path: "/dashboard/asset-verify" },
@@ -48,6 +60,8 @@ const lifeStoryMenuItems = [
   { icon: PenLine, label: "AI 일기 쓰기", path: "/life-story" },
   { icon: BookMarked, label: "나의 자서전", path: "/life-story/autobiography" },
   { icon: Mail, label: "소중한 편지 쓰기", path: "/letter" },
+  { icon: NotebookPen, label: "자서전 만들기", path: "/life-story/autobiography" },
+  { icon: Pencil, label: "일기 쓰기", path: "/life-story" },
 ];
 
 /** 기타 메뉴 */
@@ -173,6 +187,27 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
 
         {/* 메뉴 */}
         <nav className="flex-1 p-4 overflow-y-auto space-y-1">
+          {/* 유언 완성하기 - 핵심 CTA */}
+          {willFlowMenuItems.map((item) => {
+            const isActive = location.startsWith(item.path);
+            return (
+              <Link
+                key={item.path}
+                href={item.path}
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all mb-2 ${
+                  isActive
+                    ? "bg-[#C9A961] text-white"
+                    : "bg-[#C9A961]/20 text-[#C9A961] hover:bg-[#C9A961]/30"
+                }`}
+              >
+                <item.icon className="w-4 h-4 shrink-0" />
+                <span>{item.label}</span>
+                <ChevronRight className="w-3.5 h-3.5 ml-auto" />
+              </Link>
+            );
+          })}
+
           {/* 유언장 관련 */}
           {renderMenuItems(mainMenuItems)}
 
