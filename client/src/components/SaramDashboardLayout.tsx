@@ -52,7 +52,7 @@ const mainMenuItems = [
   { icon: Users, label: "상속자 등록", path: "/dashboard/heirs" },
   { icon: FileText, label: "유언장 작성", path: "/dashboard/wills" },
   { icon: BadgeCheck, label: "서명 인증", path: "/dashboard/certification" },
-  { icon: ScrollText, label: "유언 인증서 확인", path: "/dashboard/asset-verify" },
+  { icon: ScrollText, label: "유언인증서 신청·발급", path: "/dashboard/will-certificate" },
 ];
 
 /** 멤버십 / 카드 메뉴 */
