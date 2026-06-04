@@ -11,9 +11,11 @@ import {
   Building2, Landmark, TrendingUp, Shield, Bitcoin,
   Car, Briefcase, PiggyBank, Gem, Package,
   Plus, Trash2, Edit3, Users, ChevronRight,
-  Home, ArrowLeft, CheckCircle2, AlertCircle,
-  ScanLine, FileText, Eye, Loader2,
+  ArrowLeft, CheckCircle2, AlertCircle,
+  ScanLine, FileText, Eye, Loader2, Upload, Sparkles, X,
+  Camera,
 } from "lucide-react";
+import { useRef } from "react";
 import { Link } from "wouter";
 import { HelpTooltip } from "@/components/HelpTooltip";
 
@@ -112,6 +114,30 @@ const emptyHeirForm = {
   sharePercent: 0,
 };
 
+// ─── 자산 문서 유형 ───
+const ASSET_DOC_TYPES = [
+  { value: "bank_balance",          label: "은행 잔액증명서" },
+  { value: "real_estate_registry",  label: "부동산 등기부등본" },
+  { value: "stock_certificate",     label: "주식보유증명서" },
+  { value: "insurance_policy",      label: "보험증권" },
+  { value: "pension_statement",     label: "연금 수급 확인서" },
+  { value: "vehicle_registration",  label: "자동차 등록증" },
+  { value: "business_registration", label: "사업자등록증" },
+  { value: "other",                 label: "기타 자산 서류" },
+];
+
+// 스캔 결과 → 자산 유형 매핑
+function mapDocTypeToAssetType(docType: string): AssetType {
+  if (docType.includes("real_estate")) return "real_estate";
+  if (docType.includes("bank")) return "bank";
+  if (docType.includes("stock")) return "stock";
+  if (docType.includes("insurance")) return "insurance";
+  if (docType.includes("pension")) return "pension";
+  if (docType.includes("vehicle")) return "vehicle";
+  if (docType.includes("business")) return "business";
+  return "other";
+}
+
 export default function AssetsPage() {
   const { user, isAuthenticated, loading } = useAuth();
   const [tab, setTab] = useState<"assets" | "heirs" | "scans">("assets");
@@ -120,7 +146,59 @@ export default function AssetsPage() {
   const [assetForm, setAssetForm] = useState(emptyAssetForm);
   const [heirForm, setHeirForm] = useState(emptyHeirForm);
 
+  // ── 자산 스캔 OCR 상태 ──
+  const [scanDocType, setScanDocType] = useState("bank_balance");
+  const [scanPreview, setScanPreview] = useState<string | null>(null);
+  const [scanResult, setScanResult] = useState<any | null>(null);
+  const [showScanPanel, setShowScanPanel] = useState(false);
+  const scanFileInputRef = useRef<HTMLInputElement>(null);
+
   const utils = trpc.useUtils();
+
+  // ── 자산 스캔 OCR 뮤테이션 ──
+  const assetScanMutation = trpc.willAuto.scanAndSaveAssetDocument.useMutation({
+    onSuccess: (data) => {
+      const d = data.data;
+      setScanResult(d);
+      // 자산 폼 자동 채움
+      const assetType = mapDocTypeToAssetType(d.detectedDocType || scanDocType);
+      const rawAmount = d.amount ? d.amount.replace(/[^0-9]/g, "") : "";
+      setAssetForm({
+        type: assetType,
+        name: d.assetName || d.issuer || "",
+        description: [
+          d.issuer ? `발급기관: ${d.issuer}` : "",
+          d.location ? `소재지: ${d.location}` : "",
+          d.assetCode ? `코드: ${d.assetCode}` : "",
+          d.additionalInfo || "",
+        ].filter(Boolean).join(" / "),
+        estimatedValue: rawAmount ? Number(rawAmount).toLocaleString() : "",
+        estimatedValueRaw: rawAmount,
+        currency: "KRW",
+        country: "KR",
+      });
+      setShowAssetForm(true);
+      setShowScanPanel(false);
+      toast.success(`${d.docTypeLabel} 인식 완료! 아래 정보를 확인 후 등록하세요.`);
+    },
+    onError: (err) => {
+      toast.error(err.message || "자산 서류 인식에 실패했습니다. 다시 시도해 주세요.");
+    },
+  });
+
+  // ── 스캔 이미지 처리 ──
+  function handleScanImageSelect(file: File) {
+    if (!file.type.startsWith("image/")) { toast.error("이미지 파일만 업로드 가능합니다."); return; }
+    if (file.size > 20 * 1024 * 1024) { toast.error("파일 크기는 20MB 이하여야 합니다."); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      setScanPreview(dataUrl);
+      setScanResult(null);
+      assetScanMutation.mutate({ imageUrl: dataUrl, docTypeHint: scanDocType as any });
+    };
+    reader.readAsDataURL(file);
+  }
 
   // ── 재산 쿼리 ──
   const { data: assetList = [], isLoading: assetsLoading } = trpc.asset.listAssets.useQuery(
@@ -264,14 +342,156 @@ export default function AssetsPage() {
         {/* ══════════════ 재산 탭 ══════════════ */}
         {tab === "assets" && (
           <div>
-            {/* 재산 추가 버튼 */}
-            <button
-              onClick={() => setShowAssetForm(!showAssetForm)}
-              className="w-full bg-white border-2 border-dashed border-[#C9A961]/40 rounded-2xl p-4 flex items-center justify-center gap-3 text-[#C9A961] font-semibold hover:border-[#C9A961] hover:bg-[#C9A961]/5 transition-all mb-4"
-            >
-              <Plus className="w-5 h-5" />
-              재산 추가하기
-            </button>
+            {/* 스캔 OCR 버튼 */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <button
+                onClick={() => { setShowScanPanel(!showScanPanel); setShowAssetForm(false); setScanPreview(null); setScanResult(null); }}
+                className="bg-gradient-to-r from-[#1F3864] to-[#243d72] rounded-2xl p-4 flex items-center justify-center gap-2 text-white font-semibold hover:opacity-90 transition-all"
+              >
+                <ScanLine className="w-5 h-5" />
+                서류 스캔으로 자동 등록
+              </button>
+              <button
+                onClick={() => { setShowAssetForm(!showAssetForm); setShowScanPanel(false); }}
+                className="bg-white border-2 border-dashed border-[#C9A961]/40 rounded-2xl p-4 flex items-center justify-center gap-2 text-[#C9A961] font-semibold hover:border-[#C9A961] hover:bg-[#C9A961]/5 transition-all"
+              >
+                <Plus className="w-5 h-5" />
+                직접 입력
+              </button>
+            </div>
+
+            {/* 자산 스캔 OCR 패널 */}
+            {showScanPanel && (
+              <div className="bg-white rounded-2xl border border-[#1F3864]/20 shadow-sm p-6 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-[#1F3864]" />
+                    <h3 className="font-bold text-[#1F3864]">AI 자산 서류 자동 인식</h3>
+                  </div>
+                  <button onClick={() => { setShowScanPanel(false); setScanPreview(null); setScanResult(null); }}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mb-4">
+                  은행 잔액증명서, 부동산 등기부등본, 보험증권 등을 촬영하거나 업로드하면
+                  AI가 자동으로 자산 정보를 인식해 등록 폼에 채워드립니다.
+                </p>
+
+                {/* 서류 유형 선택 */}
+                <div className="mb-4">
+                  <label className="text-sm font-semibold text-gray-700 mb-2 block">서류 유형 선택</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {ASSET_DOC_TYPES.map((dt) => (
+                      <button
+                        key={dt.value}
+                        onClick={() => setScanDocType(dt.value)}
+                        className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                          scanDocType === dt.value
+                            ? "bg-[#1F3864] text-white border-[#1F3864]"
+                            : "bg-white text-gray-600 border-gray-200 hover:border-[#1F3864]/30"
+                        }`}
+                      >
+                        {dt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 업로드 영역 */}
+                <input
+                  ref={scanFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleScanImageSelect(f); e.target.value = ""; }}
+                />
+
+                {scanPreview ? (
+                  <div className="relative">
+                    <img src={scanPreview} alt="스캔 미리보기" className="w-full max-h-48 object-contain rounded-xl border border-gray-100 bg-gray-50" />
+                    {assetScanMutation.isPending && (
+                      <div className="absolute inset-0 bg-white/80 rounded-xl flex flex-col items-center justify-center gap-2">
+                        <Loader2 className="w-8 h-8 text-[#1F3864] animate-spin" />
+                        <p className="text-sm font-semibold text-[#1F3864]">AI 인식 중...</p>
+                        <p className="text-xs text-gray-400">서류 내용을 분석하고 있습니다</p>
+                      </div>
+                    )}
+                    {!assetScanMutation.isPending && (
+                      <button
+                        onClick={() => { setScanPreview(null); setScanResult(null); }}
+                        className="absolute top-2 right-2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center text-gray-500 hover:text-red-500 shadow"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => scanFileInputRef.current?.click()}
+                    className="border-2 border-dashed border-[#1F3864]/20 rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-[#1F3864]/40 hover:bg-[#1F3864]/3 transition-all"
+                  >
+                    <div className="w-14 h-14 rounded-2xl bg-[#1F3864]/10 flex items-center justify-center">
+                      <Upload className="w-7 h-7 text-[#1F3864]" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-[#1F3864]">서류 이미지 업로드</p>
+                      <p className="text-xs text-gray-400 mt-1">JPG, PNG, HEIC · 최대 20MB</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); scanFileInputRef.current?.click(); }}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-[#1F3864] text-white rounded-full text-xs font-semibold"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        파일 선택
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const input = document.createElement("input");
+                          input.type = "file";
+                          input.accept = "image/*";
+                          input.capture = "environment";
+                          input.onchange = (ev) => {
+                            const f = (ev.target as HTMLInputElement).files?.[0];
+                            if (f) handleScanImageSelect(f);
+                          };
+                          input.click();
+                        }}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-white border border-[#1F3864]/20 text-[#1F3864] rounded-full text-xs font-semibold"
+                      >
+                        <Camera className="w-3.5 h-3.5" />
+                        카메라 촬영
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 인식 완료 결과 미리보기 */}
+                {scanResult && !assetScanMutation.isPending && (
+                  <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      <p className="text-sm font-bold text-green-800">인식 완료 — 아래 폼에 자동 채워졌습니다</p>
+                    </div>
+                    <div className="space-y-1 text-xs text-green-700">
+                      {scanResult.docTypeLabel && <p>서류 유형: <strong>{scanResult.docTypeLabel}</strong></p>}
+                      {scanResult.assetName && <p>자산명: <strong>{scanResult.assetName}</strong></p>}
+                      {scanResult.issuer && <p>발급기관: <strong>{scanResult.issuer}</strong></p>}
+                      {scanResult.amount && <p>금액: <strong>{Number(scanResult.amount.replace(/[^0-9]/g, "") || 0).toLocaleString()}원</strong></p>}
+                      {scanResult.location && <p>소재지: <strong>{scanResult.location}</strong></p>}
+                      <p className={`font-semibold ${
+                        scanResult.confidence === "high" ? "text-green-700" :
+                        scanResult.confidence === "medium" ? "text-yellow-700" : "text-red-700"
+                      }`}>
+                        인식 신뢰도: {scanResult.confidence === "high" ? "높음" : scanResult.confidence === "medium" ? "보통" : "낮음"}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* 재산 추가 폼 */}
             {showAssetForm && (
