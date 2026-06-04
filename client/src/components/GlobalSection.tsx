@@ -239,12 +239,12 @@ export default function GlobalSection() {
           </p>
         </motion.div>
 
-        {/* 세계지도 + 국기 핀 */}
+        {/* 세계지도 + 국기 핀 - 데스크탑만 표시 */}
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={isInView ? { opacity: 1, scale: 1 } : {}}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="relative w-full mb-10"
+          className="relative w-full mb-10 hidden sm:block"
           style={{ aspectRatio: '2/1', paddingBottom: undefined }}
         >
           {/* 지도 - 실제 세계지도 이미지 */}
@@ -413,7 +413,42 @@ export default function GlobalSection() {
           )}
         </AnimatePresence>
 
-        {/* 안내 문구 (핀 선택 전) */}
+        {/* 모바일 전용: 국기 그리드 목록 (sm 미만에서만 표시) */}
+        <div className="sm:hidden mb-10">
+          <div className="grid grid-cols-4 gap-2">
+            {countryPins.map((pin) => {
+              const isActive = selectedPin === pin.code || (!selectedPin && pin.code === language);
+              return (
+                <button
+                  key={pin.code}
+                  onClick={() => handlePinClick(pin.code)}
+                  className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
+                    isActive
+                      ? "bg-[#C9A961]/25 ring-2 ring-[#C9A961]"
+                      : "bg-white/5 hover:bg-white/10"
+                  }`}
+                >
+                  <img
+                    src={pin.flagImg}
+                    alt={pin.label}
+                    className="rounded-sm"
+                    style={{ width: 36, height: 24, objectFit: "cover" }}
+                  />
+                  <span className={`text-[9px] font-bold leading-none ${
+                    isActive ? "text-[#C9A961]" : "text-white/60"
+                  }`}>
+                    {pin.label.length > 6 ? pin.label.slice(0, 5) + "…" : pin.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-white/40 text-xs text-center mt-3">
+            {language === "ko" ? "국기를 탭하면 해당 국가 정보를 확인할 수 있습니다" : "Tap a flag to see country details"}
+          </p>
+        </div>
+
+        {/* 안내 문구 (핀 선택 전) - 데스크탑만 */}
         {!selectedPin && (
           <motion.div
             initial={{ opacity: 0 }}
