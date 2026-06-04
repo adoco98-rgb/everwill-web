@@ -371,7 +371,7 @@ export default function Navbar() {
       <div className="border-t border-[#C9A961]/20 bg-[#162d52]">
         {/* 모바일: flex-wrap 2줄 / 데스크탑: overflow-x-auto 한 줄 */}
         <div className="sm:overflow-x-auto sm:scrollbar-none">
-          <div className="flex flex-wrap sm:flex-nowrap items-center justify-center sm:justify-start gap-0.5 sm:gap-1 py-1.5 sm:py-2.5 px-2 sm:px-4 sm:min-w-max">
+          <div className="flex flex-wrap sm:flex-nowrap items-center justify-center gap-0.5 sm:gap-1 py-1.5 sm:py-2.5 px-2 sm:px-4 sm:min-w-max sm:mx-auto">
             {/* 현재 선택 언어를 맨 앞에 표시하고 나머지 언어 순서대로 정렬 */}
             {/* NZ·AU·CA 전용 페이지에서는 언어 기반 국기 활성화 비활성화 */}
             {[
