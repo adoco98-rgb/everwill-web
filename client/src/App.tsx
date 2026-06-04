@@ -38,6 +38,7 @@ import PricingPage from "./pages/PricingPage";
 import WillFormatsPage from "./pages/WillFormatsPage";
 import PublicProfilePage from "./pages/PublicProfilePage";
 import MembershipCardPage from "./pages/dashboard/MembershipCardPage";
+import MembershipPage from "./pages/dashboard/MembershipPage";
 import AssetVerifyPage from "./pages/dashboard/AssetVerifyPage";
 import HeirsPage from "./pages/dashboard/HeirsPage";
 import MedicalDirectivePage from "./pages/dashboard/MedicalDirectivePage";
@@ -77,7 +78,8 @@ function Router() {
       <Route path={"/dashboard"} component={() => <SaramDashboardLayout><DashboardHome /></SaramDashboardLayout>} />
       <Route path={"/dashboard/payments"} component={() => <SaramDashboardLayout><PaymentsPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/profile"} component={() => <SaramDashboardLayout><ProfilePage /></SaramDashboardLayout>} />
-      <Route path={"/dashboard/membership"} component={() => <SaramDashboardLayout><MembershipCardPage /></SaramDashboardLayout>} />
+      <Route path={"/dashboard/membership"} component={() => <SaramDashboardLayout><MembershipPage /></SaramDashboardLayout>} />
+      <Route path={"/dashboard/membership-card"} component={() => <SaramDashboardLayout><MembershipCardPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/asset-verify"} component={() => <SaramDashboardLayout><AssetVerifyPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/inquiries"} component={() => <SaramDashboardLayout><InquiriesPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/heirs"} component={() => <SaramDashboardLayout><HeirsPage /></SaramDashboardLayout>} />

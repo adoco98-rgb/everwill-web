@@ -85,9 +85,9 @@ export function MemberGradeBadge({ size = "md", showNextInfo = false, className 
       </div>
 
       {/* 다음 등급 안내 */}
-      {showNextInfo && data.nextGradeInfo && (
+      {showNextInfo && data.upgradePlans && data.upgradePlans.length > 0 && (
         <p className="text-xs text-gray-500 leading-relaxed">
-          {data.nextGradeInfo.requirement}
+          {data.upgradePlans[0].nameKo}으로 승급 가능 (₩{data.upgradePlans[0].upgradePrice?.total.toLocaleString()})
         </p>
       )}
     </div>
@@ -164,11 +164,11 @@ export function MemberGradeCard({ className }: { className?: string }) {
       )}
 
       {/* 다음 등급 안내 */}
-      {data.nextGradeInfo && (
+      {data.upgradePlans && data.upgradePlans.length > 0 && (
         <div className="rounded-xl bg-white/60 p-3 text-xs text-gray-600 leading-relaxed">
-          <span className="font-semibold text-gray-700">다음 등급: {data.nextGradeInfo.nextLabel}</span>
+          <span className="font-semibold text-gray-700">다음 등급: {data.upgradePlans[0].nameKo}</span>
           <br />
-          {data.nextGradeInfo.requirement}
+          차액 결제로 승급 가능 (₩{data.upgradePlans[0].upgradePrice?.total.toLocaleString()})
         </div>
       )}
     </div>
