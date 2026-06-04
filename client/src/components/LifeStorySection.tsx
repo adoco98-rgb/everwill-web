@@ -142,7 +142,7 @@ export function LifeStorySection() {
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
             {/* 왼쪽: 일기 미리보기 */}
-            <div className="p-10 border-b md:border-b-0 md:border-r border-white/10">
+            <div className="p-5 sm:p-10 border-b md:border-b-0 md:border-r border-white/10">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
                   <BookOpen className="w-5 h-5 text-blue-400" />
@@ -170,7 +170,7 @@ export function LifeStorySection() {
             </div>
 
             {/* 오른쪽: 편지 미리보기 */}
-            <div className="p-10">
+            <div className="p-5 sm:p-10">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
                   <Mail className="w-5 h-5 text-amber-400" />
@@ -204,7 +204,7 @@ export function LifeStorySection() {
           className="text-center"
         >
           <Link href="/life-story">
-            <button className="inline-flex items-center gap-3 px-10 py-4 rounded-full bg-[#C9A961] text-[#1F3864] font-bold text-lg hover:bg-[#d4b56e] transition-all duration-200 shadow-lg shadow-[#C9A961]/20 hover:shadow-[#C9A961]/40 hover:scale-105">
+            <button className="inline-flex items-center gap-3 px-6 sm:px-10 py-3 sm:py-4 rounded-full bg-[#C9A961] text-[#1F3864] font-bold text-base sm:text-lg hover:bg-[#d4b56e] transition-all duration-200 shadow-lg shadow-[#C9A961]/20 hover:shadow-[#C9A961]/40 hover:scale-105">
               <Sparkles className="w-5 h-5" />
               {ls.ctaBtn}
             </button>

@@ -370,7 +370,7 @@ export default function Navbar() {
       {/* 국기 언어 선택 바 - 네비게이션 바 하단에 항상 표시 */}
       <div className="border-t border-[#C9A961]/20 bg-[#162d52]">
         <div className="w-full overflow-x-auto scrollbar-none" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <div className="flex items-center justify-start gap-1 py-2.5 px-4 min-w-max mx-auto" style={{ justifyContent: 'safe center' }}>
+          <div className="flex items-center justify-start gap-0.5 sm:gap-1 py-1.5 sm:py-2.5 px-2 sm:px-4 min-w-max mx-auto" style={{ justifyContent: 'safe center' }}>
             {/* 현재 선택 언어를 맨 앞에 표시하고 나머지 언어 순서대로 정렬 */}
             {/* NZ·AU·CA 전용 페이지에서는 언어 기반 국기 활성화 비활성화 */}
             {[
@@ -390,8 +390,8 @@ export default function Navbar() {
                   transition={{ type: "spring", stiffness: 400, damping: 20 }}
                   className={`relative flex flex-col items-center gap-0.5 rounded-xl whitespace-nowrap flex-shrink-0 transition-all ${
                     isLangActive
-                      ? "px-3 py-1.5 bg-[#C9A961]/25 ring-2 ring-[#C9A961] shadow-lg shadow-[#C9A961]/30"
-                      : "px-2 py-1 hover:bg-white/10"
+                      ? "px-2 sm:px-3 py-1 sm:py-1.5 bg-[#C9A961]/25 ring-2 ring-[#C9A961] shadow-lg shadow-[#C9A961]/30"
+                      : "px-1.5 sm:px-2 py-0.5 sm:py-1 hover:bg-white/10"
                   }`}
                 >
                   {isLangActive && (
@@ -412,13 +412,13 @@ export default function Navbar() {
                         : "opacity-75 hover:opacity-100"
                     }`}
                     style={{
-                      width: isLangActive ? 54 : 40,
-                      height: isLangActive ? 36 : 27,
+                      width: isLangActive ? 44 : 30,
+                      height: isLangActive ? 30 : 20,
                       objectFit: "cover",
                       display: "block",
                     }}
                   />
-                  <span className={`relative z-10 text-[9px] font-bold mt-0.5 leading-none tracking-wide ${
+                  <span className={`relative z-10 text-[8px] sm:text-[9px] font-bold mt-0.5 leading-none tracking-wide ${
                     isLangActive ? "text-[#C9A961]" : "text-white/70"
                   }`}>
                     {lang.countryCode}
@@ -443,8 +443,8 @@ export default function Navbar() {
                   transition={{ type: "spring", stiffness: 400, damping: 20 }}
                   className={`relative flex flex-col items-center gap-0.5 rounded-xl whitespace-nowrap flex-shrink-0 transition-all ${
                     isActive
-                      ? "px-3 py-1.5 bg-[#C9A961]/25 ring-2 ring-[#C9A961] shadow-lg shadow-[#C9A961]/30"
-                      : "px-2 py-1 hover:bg-white/10"
+                      ? "px-2 sm:px-3 py-1 sm:py-1.5 bg-[#C9A961]/25 ring-2 ring-[#C9A961] shadow-lg shadow-[#C9A961]/30"
+                      : "px-1.5 sm:px-2 py-0.5 sm:py-1 hover:bg-white/10"
                   }`}
                 >
                   {isActive && (
@@ -465,13 +465,13 @@ export default function Navbar() {
                         : "opacity-75 hover:opacity-100"
                     }`}
                     style={{
-                      width: isActive ? 54 : 40,
-                      height: isActive ? 36 : 27,
+                      width: isActive ? 44 : 30,
+                      height: isActive ? 30 : 20,
                       objectFit: "cover",
                       display: "block",
                     }}
                   />
-                  <span className={`relative z-10 text-[9px] font-bold mt-0.5 leading-none tracking-wide ${
+                  <span className={`relative z-10 text-[8px] sm:text-[9px] font-bold mt-0.5 leading-none tracking-wide ${
                     isActive ? "text-[#C9A961]" : "text-white/70"
                   }`}>
                     {extra.countryCode}

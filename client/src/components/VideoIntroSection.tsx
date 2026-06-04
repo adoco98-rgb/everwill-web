@@ -179,7 +179,7 @@ export default function VideoIntroSection() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
               transition={{ duration: 0.55, ease: "easeOut" }}
-              className="absolute inset-0 flex flex-col justify-end px-10 pb-12 pointer-events-none"
+              className="absolute inset-0 flex flex-col justify-end px-4 sm:px-10 pb-6 sm:pb-12 pointer-events-none"
             >
               {/* 태그 */}
               <span
@@ -194,7 +194,7 @@ export default function VideoIntroSection() {
               </span>
               {/* 메인 제목 */}
               <h3
-                className="text-white text-4xl md:text-6xl font-extrabold leading-tight mb-3 drop-shadow-2xl whitespace-pre-line"
+                className="text-white text-2xl sm:text-4xl md:text-6xl font-extrabold leading-tight mb-2 sm:mb-3 drop-shadow-2xl whitespace-pre-line"
                 style={{ textShadow: "0 2px 16px rgba(0,0,0,0.7)" }}
               >
                 {slide.title}

@@ -334,7 +334,7 @@ export default function GlobalSection() {
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               className="max-w-2xl mx-auto mb-12"
             >
-              <div className="bg-white/10 backdrop-blur-sm border border-[#C9A961]/30 rounded-3xl p-8 hover:bg-white/12 transition-all shadow-xl shadow-black/20">
+              <div               className="bg-white/10 backdrop-blur-sm border border-[#C9A961]/30 rounded-3xl p-5 sm:p-8 hover:bg-white/12 transition-all shadow-xl shadow-black/20">
                 {/* 상단: 단계 배지 + 상태 */}
                 <div className="flex items-center justify-between mb-6">
                   <span className="text-[#C9A961] text-sm font-bold bg-[#C9A961]/15 px-3 py-1.5 rounded-full border border-[#C9A961]/30">

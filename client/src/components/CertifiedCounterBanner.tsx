@@ -114,10 +114,10 @@ export default function CertifiedCounterBanner() {
         ) : (
           <div className="flex items-end gap-3">
             <div className="text-right">
-              <span className="text-6xl font-extrabold text-[#C9A961] tabular-nums">
+              <span className="text-4xl sm:text-6xl font-extrabold text-[#C9A961] tabular-nums">
                 {animated.toLocaleString()}
               </span>
-              <span className="text-white/70 text-2xl font-bold ml-1">
+              <span className="text-white/70 text-xl sm:text-2xl font-bold ml-1">
                 {isKo ? "명" : ""}
               </span>
             </div>

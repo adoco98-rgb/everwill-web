@@ -232,7 +232,7 @@ export default function ReferralSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="bg-white/8 border border-[#C9A961]/25 rounded-3xl p-8"
+          className="bg-white/8 border border-[#C9A961]/25 rounded-3xl p-5 sm:p-8"
         >
           {isAuthenticated && referralData ? (
             <>
@@ -240,7 +240,7 @@ export default function ReferralSection() {
               <div className="text-center mb-8">
                 <p className="text-white/50 text-sm mb-2">{isKo ? "내 추천 코드" : "My Referral Code"}</p>
                 <div className="inline-flex items-center gap-3 bg-[#C9A961]/10 border border-[#C9A961]/40 rounded-2xl px-6 py-3">
-                  <span className="text-[#C9A961] font-mono font-bold text-2xl tracking-widest">
+                  <span className="text-[#C9A961] font-mono font-bold text-xl sm:text-2xl tracking-widest">
                     {referralData.referralCode}
                   </span>
                   <button

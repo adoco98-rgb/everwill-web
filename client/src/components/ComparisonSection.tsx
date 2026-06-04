@@ -850,25 +850,25 @@ export default function ComparisonSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.7 }}
-          className="mt-10 bg-[#1F3864] rounded-2xl p-10 text-center"
+          className="mt-10 bg-[#1F3864] rounded-2xl p-5 sm:p-10 text-center"
         >
-          <div className="text-white/70 text-base mb-5 font-semibold">
+          <div className="text-white/70 text-sm sm:text-base mb-4 sm:mb-5 font-semibold">
             {d.summaryLabel}
           </div>
-          <div className="flex justify-center gap-16 flex-wrap">
+          <div className="flex justify-center gap-6 sm:gap-16 flex-wrap">
             <div>
-              <div className="text-6xl font-extrabold text-[#C9A961]">97%</div>
-              <div className="text-white text-lg font-bold mt-2">{d.costSaving}</div>
+              <div className="text-4xl sm:text-6xl font-extrabold text-[#C9A961]">97%</div>
+              <div className="text-white text-sm sm:text-lg font-bold mt-1 sm:mt-2">{d.costSaving}</div>
             </div>
             <div className="w-px bg-white/20 hidden sm:block" />
             <div>
-              <div className="text-6xl font-extrabold text-[#C9A961]">99%</div>
-              <div className="text-white text-lg font-bold mt-2">{d.timeSaving}</div>
+              <div className="text-4xl sm:text-6xl font-extrabold text-[#C9A961]">99%</div>
+              <div className="text-white text-sm sm:text-lg font-bold mt-1 sm:mt-2">{d.timeSaving}</div>
             </div>
             <div className="w-px bg-white/20 hidden sm:block" />
             <div>
-              <div className="text-6xl font-extrabold text-[#C9A961]">100%</div>
-              <div className="text-white text-lg font-bold mt-2">{d.zeroLoss}</div>
+              <div className="text-4xl sm:text-6xl font-extrabold text-[#C9A961]">100%</div>
+              <div className="text-white text-sm sm:text-lg font-bold mt-1 sm:mt-2">{d.zeroLoss}</div>
             </div>
           </div>
         </motion.div>

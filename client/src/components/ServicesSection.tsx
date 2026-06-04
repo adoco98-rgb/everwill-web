@@ -186,8 +186,8 @@ export default function ServicesSection() {
                     {service.tag}
                   </span>
                 </div>
-                <h3 className="font-extrabold text-[#1F3864] text-lg mb-2 leading-tight">{service.title}</h3>
-                <p className="text-gray-700 text-sm leading-relaxed">{service.description}</p>
+                <h3 className="font-extrabold text-[#1F3864] text-sm sm:text-lg mb-1.5 sm:mb-2 leading-tight">{service.title}</h3>
+                <p className="text-gray-700 text-xs sm:text-sm leading-relaxed">{service.description}</p>
               </motion.div>
             );
           })}
@@ -226,8 +226,8 @@ export default function ServicesSection() {
                     {service.tag}
                   </span>
                 </div>
-                <h3 className="font-extrabold text-[#1F3864] text-lg mb-2 leading-tight">{service.title}</h3>
-                <p className="text-gray-700 text-sm leading-relaxed">{service.description}</p>
+                <h3 className="font-extrabold text-[#1F3864] text-sm sm:text-lg mb-1.5 sm:mb-2 leading-tight">{service.title}</h3>
+                <p className="text-gray-700 text-xs sm:text-sm leading-relaxed">{service.description}</p>
               </motion.div>
             );
           })}
