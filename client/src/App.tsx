@@ -50,6 +50,8 @@ import BadgePage from "./pages/dashboard/BadgePage";
 import CertificationPage from "./pages/dashboard/CertificationPage";
 import WillWizardPage from "./pages/dashboard/WillWizardPage";
 import WillCertificatePage from "./pages/dashboard/WillCertificatePage";
+import PhoneVerifyPage from "./pages/dashboard/PhoneVerifyPage";
+import InheritanceTaxPage from "./pages/dashboard/InheritanceTaxPage";
 import CountryPage from "./pages/CountryPage";
 import AutobiographyPage from "./pages/AutobiographyPage";
 import { ChatbotWidget } from "./components/ChatbotWidget";
@@ -92,6 +94,10 @@ function Router() {
       <Route path={"/dashboard/will-wizard"} component={() => <SaramDashboardLayout><WillWizardPage /></SaramDashboardLayout>} />
       {/* 유언인증서 신청·발급 */}
       <Route path={"/dashboard/will-certificate"} component={() => <SaramDashboardLayout><WillCertificatePage /></SaramDashboardLayout>} />
+      {/* 휴대폰 인증 */}
+      <Route path={"/dashboard/phone-verify"} component={() => <SaramDashboardLayout><PhoneVerifyPage /></SaramDashboardLayout>} />
+      {/* 상속세 계산기 (대시보드 전용) */}
+      <Route path={"/dashboard/inheritance-tax"} component={() => <SaramDashboardLayout><InheritanceTaxPage /></SaramDashboardLayout>} />
       {/* 연명치료 거부·장기기증 */}
       <Route path={"/dashboard/medical-directive"} component={MedicalDirectivePage} />
       {/* 내 유언장 목록 */}

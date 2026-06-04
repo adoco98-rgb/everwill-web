@@ -59,18 +59,16 @@ const mainMenuItems = [
 const membershipMenuItems = [
   { icon: QrCode, label: "멤버십 카드", path: "/dashboard/membership" },
   { icon: Award, label: "인증 카드", path: "/dashboard/badge" },
-  { icon: Calculator, label: "상속세 계산", path: "/tax" },
+  { icon: Calculator, label: "상속세 계산", path: "/dashboard/inheritance-tax" },
   { icon: ShieldCheck, label: "자산 인증", path: "/dashboard/asset-verify" },
   { icon: Heart, label: "연명치료·기증", path: "/dashboard/medical-directive" },
 ];
 
 /** Life Story PRO 메뉴 */
 const lifeStoryMenuItems = [
-  { icon: PenLine, label: "AI 일기 쓰기", path: "/life-story" },
   { icon: BookMarked, label: "나의 자서전", path: "/life-story/autobiography" },
+  { icon: PenLine, label: "AI 일기 쓰기", path: "/life-story" },
   { icon: Mail, label: "소중한 편지 쓰기", path: "/letter" },
-  { icon: NotebookPen, label: "자서전 만들기", path: "/life-story/autobiography" },
-  { icon: Pencil, label: "일기 쓰기", path: "/life-story" },
 ];
 
 /** 내 정보 관리 메뉴 */
