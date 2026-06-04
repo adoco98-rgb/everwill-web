@@ -32,6 +32,9 @@ import {
   Pencil,
   NotebookPen,
   Sparkles,
+  Smartphone,
+  BadgeCheck,
+  ScrollText,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -41,16 +44,22 @@ const willFlowMenuItems = [
   { icon: Sparkles, label: "유언 완성하기", path: "/dashboard/will-wizard", highlight: true },
 ];
 
-/** 유언장 관련 메뉴 */
+/** 유언 작성 단계별 메뉴 (순서대로) */
 const mainMenuItems = [
   { icon: Home, label: "대시보드", path: "/dashboard" },
-  { icon: FileText, label: "내 유언장", path: "/dashboard/wills" },
-  { icon: Users, label: "상속자 등록", path: "/dashboard/heirs" },
+  { icon: User, label: "개인 인증", path: "/dashboard/profile" },
   { icon: ClipboardList, label: "자산 등록", path: "/assets" },
-  { icon: Calculator, label: "상속세 계산", path: "/tax" },
-  { icon: Award, label: "인증 카드", path: "/dashboard/badge" },
-  { icon: Shield, label: "인증 현황", path: "/dashboard/certification" },
+  { icon: Users, label: "상속자 등록", path: "/dashboard/heirs" },
+  { icon: FileText, label: "유언장 작성", path: "/dashboard/wills" },
+  { icon: BadgeCheck, label: "서명 인증", path: "/dashboard/certification" },
+  { icon: ScrollText, label: "유언 인증서 확인", path: "/dashboard/asset-verify" },
+];
+
+/** 멤버십 / 카드 메뉴 */
+const membershipMenuItems = [
   { icon: QrCode, label: "멤버십 카드", path: "/dashboard/membership" },
+  { icon: Award, label: "인증 카드", path: "/dashboard/badge" },
+  { icon: Calculator, label: "상속세 계산", path: "/tax" },
   { icon: ShieldCheck, label: "자산 인증", path: "/dashboard/asset-verify" },
   { icon: Heart, label: "연명치료·기증", path: "/dashboard/medical-directive" },
 ];
@@ -64,11 +73,12 @@ const lifeStoryMenuItems = [
   { icon: Pencil, label: "일기 쓰기", path: "/life-story" },
 ];
 
-/** 기타 메뉴 */
-const etcMenuItems = [
+/** 내 정보 관리 메뉴 */
+const myInfoMenuItems = [
+  { icon: Smartphone, label: "휴대폰 인증", path: "/dashboard/phone-verify" },
+  { icon: Shield, label: "내 정보 관리", path: "/dashboard/profile" },
   { icon: MessageSquare, label: "1:1 문의", path: "/dashboard/inquiries" },
   { icon: CreditCard, label: "결제 내역", path: "/dashboard/payments" },
-  { icon: User, label: "프로필 설정", path: "/dashboard/profile" },
 ];
 
 export default function SaramDashboardLayout({ children }: { children: React.ReactNode }) {
@@ -208,8 +218,17 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
             );
           })}
 
-          {/* 유언장 관련 */}
+          {/* 유언 작성 단계 */}
+          <div className="pt-1 mb-1">
+            <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3">유언 작성 단계</span>
+          </div>
           {renderMenuItems(mainMenuItems)}
+
+          {/* 멤버십 / 부가 서비스 */}
+          <div className="pt-3 mt-2 border-t border-white/10">
+            <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3">멤버십 · 서비스</span>
+            <div className="mt-1">{renderMenuItems(membershipMenuItems)}</div>
+          </div>
 
           {/* Life Story PRO 그룹 */}
           <div className="pt-3 mt-2 border-t border-white/10">
@@ -238,9 +257,10 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
             })}
           </div>
 
-          {/* 기타 */}
+          {/* 내 정보 관리 */}
           <div className="pt-3 mt-2 border-t border-white/10">
-            {renderMenuItems(etcMenuItems)}
+            <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3">내 정보 관리</span>
+            <div className="mt-1">{renderMenuItems(myInfoMenuItems)}</div>
           </div>
 
           {/* 관리자 전용 메뉴 */}
