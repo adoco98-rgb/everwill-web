@@ -332,6 +332,14 @@ export const heirs = mysqlTable("heirs", {
   heirPaid: int("heirPaid").default(0).notNull(),
   /** 상속인 가입 요금 (원) */
   heirFee: int("heirFee").default(0).notNull(),
+  /** KakaoTalk ID */
+  kakaoId: varchar("kakaoId", { length: 128 }),
+  /** LINE ID */
+  lineId: varchar("lineId", { length: 128 }),
+  /** WhatsApp 번호 (+국가코드 포함) */
+  whatsappId: varchar("whatsappId", { length: 64 }),
+  /** WeChat ID */
+  wechatId: varchar("wechatId", { length: 128 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -1060,3 +1068,51 @@ export const chatMessages = mysqlTable("chatMessages", {
 
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = typeof chatMessages.$inferInsert;
+
+// ─────────────────────────────────────────────
+// 사전의료의향서 / 장기기증 동의서
+// ─────────────────────────────────────────────
+export const medicalDirectives = mysqlTable("medicalDirectives", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 회원 ID */
+  userId: int("userId").notNull(),
+  /** 유형: advance=사전연명의료의향서, organ=장기기증 */
+  type: mysqlEnum("type", ["advance", "organ"]).notNull(),
+  /** 선택된 항목 JSON (체크박스 상태) */
+  selections: text("selections").notNull(), // JSON string
+  /** 저장 일시 */
+  savedAt: timestamp("savedAt").defaultNow().notNull(),
+  /** 마지막 수정 일시 */
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+export type MedicalDirective = typeof medicalDirectives.$inferSelect;
+export type InsertMedicalDirective = typeof medicalDirectives.$inferInsert;
+
+// ─────────────────────────────────────────────
+// 유언인증서 발급 내역
+// ─────────────────────────────────────────────
+export const willCertificates = mysqlTable("willCertificates", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 회원 ID */
+  userId: int("userId").notNull(),
+  /** 유언장 ID */
+  willId: int("willId").notNull(),
+  /** 인증 날짜 (유언 인증 기준일) */
+  certDate: varchar("certDate", { length: 20 }).notNull(),
+  /** 발급 목적 */
+  purpose: varchar("purpose", { length: 200 }).notNull(),
+  /** 상태: pending=처리중, issued=발급완료, rejected=거부 */
+  status: mysqlEnum("status", ["pending", "issued", "rejected"]).default("pending").notNull(),
+  /** 발급 번호 (issued 상태일 때 생성) */
+  issueNumber: varchar("issueNumber", { length: 50 }),
+  /** 결제 ID */
+  paymentId: varchar("paymentId", { length: 100 }),
+  /** 신청 일시 */
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  /** 처리 일시 */
+  processedAt: timestamp("processedAt"),
+});
+
+export type WillCertificate = typeof willCertificates.$inferSelect;
+export type InsertWillCertificate = typeof willCertificates.$inferInsert;

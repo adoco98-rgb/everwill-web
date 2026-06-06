@@ -29,6 +29,8 @@ import { lifeStoryRouter } from "./routers/lifeStoryRouter";
 import { voiceRouter } from "./routers/voiceRouter";
 import { artworkRouter } from "./routers/artworkRouter";
 import { autobiographyRouter } from "./routers/autobiographyRouter";
+import { medicalDirectiveRouter } from "./routers/medicalDirectiveRouter";
+import { willCertificateRouter } from "./routers/willCertificateRouter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -99,6 +101,10 @@ export const appRouter = router({
   artwork: artworkRouter,
   // 나의 자서전 (AI 대화 + 챕터 생성 + PDF)
   autobiography: autobiographyRouter,
+  // 사전의료의향서 / 장기기증 동의서
+  medicalDirective: medicalDirectiveRouter,
+  // 유언인증서 발급 내역
+  willCertificate: willCertificateRouter,
 });
 
 export type AppRouter = typeof appRouter;

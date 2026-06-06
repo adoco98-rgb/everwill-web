@@ -852,3 +852,16 @@
 - [ ] 프론트: 회원 챗봇 - 현재 선택 언어 자동 연동
 - [ ] 프론트: 회원 챗봇 - 이전 대화 히스토리 불러오기
 - [ ] 프론트: 회원 챗봇 헤더 "나의 전담 AI" 표시 + 전문 영역 뱃지
+
+## 2026-06-06 완료 항목
+- [x] MedicalDirectivePage - medicalDirectives 테이블 추가 + DB 저장 연동 (saveMedicalDirective 프로시저)
+- [x] WillCertificatePage - willCertificates 테이블 추가 + trpc 연동 (발급 내역 조회 + 인증 완료 유언장 선택 드롭다운)
+- [x] InquiriesPage - 대시보드 내 인라인 문의 폼 추가 (모달 방식, trpc.inquiry.create 연동)
+- [x] HeirsPage - 거주 국가 선택 드롭다운 추가 (11개 국가)
+- [x] HeirsPage - SNS 연락처 필드 추가 (KakaoTalk / LINE / WhatsApp / WeChat)
+- [x] heirs 테이블 - kakaoId, lineId, whatsappId, wechatId 컬럼 추가 + DB 마이그레이션
+- [x] heirsRouter - addHeir/updateHeir에 SNS 필드 저장 지원
+- [x] AssetsPage - AI 자산 서류 스캔 OCR 기능 추가 (이미지 업로드 → AI 인식 → 폼 자동 채움)
+- [x] WillCertificatePage - 라우트 등록 (/dashboard/will-certificate)
+- [x] PhoneVerifyPage - 생성 및 라우트 등록 (/dashboard/phone-verify)
+- [x] InheritanceTaxPage - 상속세 계산기 생성 및 라우트 등록 (/dashboard/inheritance-tax)

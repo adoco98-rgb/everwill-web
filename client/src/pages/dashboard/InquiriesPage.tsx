@@ -7,10 +7,10 @@ import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageSquare, Clock, CheckCircle2, AlertCircle, ChevronDown,
-  ChevronUp, PlusCircle, Loader2, Star, Tag
+  ChevronUp, PlusCircle, Loader2, Star, Tag, X, Send
 } from "lucide-react";
-import { Link } from "wouter";
 import { toast } from "sonner";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 const CATEGORY_LABELS: Record<string, string> = {
   general: "일반 문의",
@@ -47,7 +47,38 @@ function SatisfactionStars({ score }: { score: number | null | undefined }) {
 
 export default function InquiriesPage() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [showNewForm, setShowNewForm] = useState(false);
+  const [formData, setFormData] = useState({
+    category: "general" as "general" | "service" | "payment" | "badge" | "lawyer" | "other",
+    subject: "",
+    content: "",
+  });
+  const { user } = useAuth();
   const { data: inquiries, isLoading, isError, refetch } = trpc.inquiry.myList.useQuery();
+
+  const createMutation = trpc.inquiry.create.useMutation({
+    onSuccess: () => {
+      toast.success("문의가 접수되었습니다. 영업일 기준 1~2일 내 답변 드립니다.");
+      setShowNewForm(false);
+      setFormData({ category: "general", subject: "", content: "" });
+      refetch();
+    },
+    onError: (err) => toast.error(err.message || "문의 접수에 실패했습니다."),
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.subject.trim()) return toast.error("제목을 입력해주세요.");
+    if (formData.content.length < 10) return toast.error("내용을 10자 이상 입력해주세요.");
+    createMutation.mutate({
+      name: user?.name || "사용자",
+      email: user?.email || "",
+      category: formData.category,
+      subject: formData.subject,
+      content: formData.content,
+      userId: user?.id,
+    });
+  };
 
   function toggleExpand(id: number) {
     setExpandedId(prev => prev === id ? null : id);
@@ -86,13 +117,75 @@ export default function InquiriesPage() {
           </h1>
           <p className="text-gray-400 text-sm mt-1">접수한 문의와 답변을 확인하세요.</p>
         </div>
-        <Link href="/#contact">
-          <a className="flex items-center gap-2 bg-[#1F3864] hover:bg-[#162a4e] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-all shadow-sm hover:shadow-md">
-            <PlusCircle className="w-4 h-4" />
-            새 문의
-          </a>
-        </Link>
+        <button
+          onClick={() => setShowNewForm(v => !v)}
+          className="flex items-center gap-2 bg-[#1F3864] hover:bg-[#162a4e] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-all shadow-sm hover:shadow-md"
+        >
+          {showNewForm ? <X className="w-4 h-4" /> : <PlusCircle className="w-4 h-4" />}
+          {showNewForm ? "닫기" : "새 문의"}
+        </button>
       </div>
+
+      {/* 새 문의 폼 */}
+      <AnimatePresence>
+        {showNewForm && (
+          <motion.form
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            onSubmit={handleSubmit}
+            className="bg-white rounded-2xl border border-[#1F3864]/20 shadow-sm p-6 mb-6 space-y-4"
+          >
+            <h2 className="font-bold text-[#1F3864] text-sm">1:1 문의 작성</h2>
+            {/* 카테고리 */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5">문의 유형</label>
+              <select
+                value={formData.category}
+                onChange={e => setFormData(p => ({ ...p, category: e.target.value as typeof formData.category }))}
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864]"
+              >
+                {Object.entries(CATEGORY_LABELS).map(([v, l]) => (
+                  <option key={v} value={v}>{l}</option>
+                ))}
+              </select>
+            </div>
+            {/* 제목 */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5">제목</label>
+              <input
+                type="text"
+                value={formData.subject}
+                onChange={e => setFormData(p => ({ ...p, subject: e.target.value }))}
+                placeholder="문의 제목을 입력하세요"
+                maxLength={200}
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864]"
+              />
+            </div>
+            {/* 내용 */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5">문의 내용</label>
+              <textarea
+                value={formData.content}
+                onChange={e => setFormData(p => ({ ...p, content: e.target.value }))}
+                placeholder="문의 내용을 상세히 입력해주세요 (10자 이상)"
+                rows={4}
+                maxLength={5000}
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864] resize-none"
+              />
+              <p className="text-xs text-gray-400 mt-1 text-right">{formData.content.length}/5000</p>
+            </div>
+            <button
+              type="submit"
+              disabled={createMutation.isPending}
+              className="w-full flex items-center justify-center gap-2 bg-[#1F3864] text-white py-3 rounded-xl text-sm font-semibold hover:bg-[#162a4e] transition-all disabled:opacity-50"
+            >
+              {createMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              {createMutation.isPending ? "접수 중..." : "문의 접수"}
+            </button>
+          </motion.form>
+        )}
+      </AnimatePresence>
 
       {/* 문의 없음 */}
       {(!inquiries || inquiries.length === 0) && (
@@ -104,12 +197,13 @@ export default function InquiriesPage() {
           <MessageSquare className="w-12 h-12 text-gray-200 mx-auto mb-4" />
           <p className="text-gray-400 font-medium mb-2">접수한 문의가 없습니다.</p>
           <p className="text-gray-300 text-sm mb-6">궁금한 점이 있으시면 언제든 문의해주세요.</p>
-          <Link href="/#contact">
-            <a className="inline-flex items-center gap-2 bg-[#1F3864] text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-[#162a4e] transition-all">
-              <PlusCircle className="w-4 h-4" />
-              문의하기
-            </a>
-          </Link>
+          <button
+            onClick={() => setShowNewForm(true)}
+            className="inline-flex items-center gap-2 bg-[#1F3864] text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-[#162a4e] transition-all"
+          >
+            <PlusCircle className="w-4 h-4" />
+            문의하기
+          </button>
         </motion.div>
       )}
 

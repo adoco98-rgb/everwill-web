@@ -4,9 +4,11 @@
  * - 시신기부 동의서 (장기등 이식에 관한 법률)
  * - 법적 효력: 각 기관 공식 등록 필수 안내
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SaramDashboardLayout from "@/components/SaramDashboardLayout";
 import { Heart, ExternalLink, CheckSquare, Square, AlertTriangle, Info, ChevronDown, ChevronUp } from "lucide-react";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 
 type DirectiveTab = "advance" | "organ";
 
@@ -37,6 +39,39 @@ export default function MedicalDirectivePage() {
   const [organSaved, setOrganSaved] = useState(false);
   const [showAdvanceDetail, setShowAdvanceDetail] = useState(false);
   const [showOrganDetail, setShowOrganDetail] = useState(false);
+
+  // 기존 저장 데이터 조회
+  const { data: savedAdvance } = trpc.medicalDirective.get.useQuery({ type: "advance" });
+  const { data: savedOrgan } = trpc.medicalDirective.get.useQuery({ type: "organ" });
+
+  // 저장된 데이터 적용
+  useEffect(() => {
+    if (savedAdvance?.selections) {
+      setAdvanceChecks(savedAdvance.selections as typeof advanceChecks);
+      setAdvanceSaved(true);
+    }
+  }, [savedAdvance]);
+
+  useEffect(() => {
+    if (savedOrgan?.selections) {
+      setOrganChecks(savedOrgan.selections as typeof organChecks);
+      setOrganSaved(true);
+    }
+  }, [savedOrgan]);
+
+  // 저장 뮤테이션
+  const saveMutation = trpc.medicalDirective.save.useMutation({
+    onSuccess: (_, variables) => {
+      if (variables.type === "advance") {
+        setAdvanceSaved(true);
+        toast.success("사전연명의료의향서가 저장되었습니다");
+      } else {
+        setOrganSaved(true);
+        toast.success("장기기증 동의 의사가 저장되었습니다");
+      }
+    },
+    onError: () => toast.error("저장에 실패했습니다. 다시 시도해주세요."),
+  });
 
   const toggleAdvance = (key: keyof typeof advanceChecks) => {
     setAdvanceChecks((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -209,15 +244,16 @@ export default function MedicalDirectivePage() {
               ) : (
                 <button
                   type="button"
-                  disabled={!advanceAllChecked}
-                  onClick={() => setAdvanceSaved(true)}
+                  disabled={!advanceAllChecked || saveMutation.isPending}
+                  onClick={() => saveMutation.mutate({ type: "advance", selections: advanceChecks })}
                   className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${
                     advanceAllChecked
                       ? "bg-[#1F3864] text-white hover:bg-[#162d52]"
                       : "bg-gray-100 text-gray-400 cursor-not-allowed"
                   }`}
                 >
-                  {advanceAllChecked ? "EverWill에 의사 표시 저장" : "모든 항목을 확인 후 저장할 수 있습니다"}
+                  {saveMutation.isPending ? "저장 중..."
+                    : advanceAllChecked ? "EverWill에 의사 표시 저장" : "모든 항목을 확인 후 저장할 수 있습니다"}
                 </button>
               )}
             </div>
@@ -343,8 +379,8 @@ export default function MedicalDirectivePage() {
               ) : (
                 <button
                   type="button"
-                  disabled={!organAllChecked}
-                  onClick={() => setOrganSaved(true)}
+                  disabled={!organAllChecked || saveMutation.isPending}
+                  onClick={() => saveMutation.mutate({ type: "organ", selections: organChecks })}
                   className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${
                     organAllChecked
                       ? "bg-rose-600 text-white hover:bg-rose-700"

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 /** 인증서 상태 라벨 */
 const STATUS_LABEL: Record<string, { label: string; color: string; icon: React.ElementType }> = {
@@ -35,26 +36,41 @@ export default function WillCertificatePage() {
   });
   const [purpose, setPurpose] = useState("");
 
-  // 발급 내역 (추후 API 연동)
-  const [certificates] = useState<any[]>([]);
-  const isLoading = false;
-  const refetch = () => {};
+  const [selectedWillId, setSelectedWillId] = useState<number | null>(null);
 
-  // 인증서 신청 (추후 결제 연동)
-  const applyMutation = {
-    mutate: (_args: any) => {
-      toast.success("유언인증서 신청이 완료됐습니다. 결제 후 발급됩니다.");
+  // 인증 완료된 유언장 목록
+  const { data: certifiedWills } = trpc.willCertificate.getMyCertifiedWills.useQuery();
+
+  // 발급 내역 조회
+  const { data: certificates, isLoading, refetch } = trpc.willCertificate.getMyList.useQuery();
+
+  // 인증서 신청
+  const applyMutation = trpc.willCertificate.requestCertificate.useMutation({
+    onSuccess: () => {
+      toast.success("유언인증서 신청이 완료되었습니다.");
       setShowApplyModal(false);
+      setPurpose("");
+      setSelectedWillId(null);
+      refetch();
     },
-    isPending: false,
-  };
+    onError: (err) => toast.error(err.message || "신청에 실패했습니다."),
+  });
 
   const handleApply = () => {
     if (!purpose.trim()) {
-      toast.error("발급 목적을 입력해주세요.");
+      toast.error("발급 목적을 선택해주세요.");
       return;
     }
-    applyMutation.mutate?.({ certDate: selectedDate, purpose });
+    if (!selectedWillId && certifiedWills && certifiedWills.length > 0) {
+      toast.error("유언장을 선택해주세요.");
+      return;
+    }
+    const willId = selectedWillId ?? certifiedWills?.[0]?.id;
+    if (!willId) {
+      toast.error("인증 완료된 유언장이 없습니다. 먼저 유언장 인증을 완료해주세요.");
+      return;
+    }
+    applyMutation.mutate({ willId, certDate: selectedDate, purpose });
   };
 
   return (
@@ -208,6 +224,26 @@ export default function WillCertificatePage() {
               <ScrollText className="w-5 h-5 text-[#1F3864]" />
               <h3 className="font-bold text-[#1F3864] text-base">유언인증서 신청</h3>
             </div>
+
+            {/* 유언장 선택 (인증 완료된 것만) */}
+            {certifiedWills && certifiedWills.length > 1 && (
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-[#1F3864] mb-2">
+                  유언장 선택
+                </label>
+                <select
+                  value={selectedWillId ?? ""}
+                  onChange={(e) => setSelectedWillId(e.target.value ? Number(e.target.value) : null)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864]"
+                >
+                  {certifiedWills.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.title || `유언장 #${w.id}`} — {w.certifiedAt ? new Date(w.certifiedAt).toLocaleDateString("ko-KR") : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* 인증 날짜 선택 */}
             <div className="mb-4">

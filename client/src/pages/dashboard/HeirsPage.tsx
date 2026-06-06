@@ -450,14 +450,77 @@ function HeirForm({
         </div>
       </div>
 
-      {/* 주소 */}
-      <div>
-        <Label className="text-xs font-medium text-gray-600 mb-1 block">주소</Label>
-        <Input
-          placeholder="서울시 강남구 테헤란로 123"
-          value={form.address}
-          onChange={(e) => update("address", e.target.value)}
-        />
+      {/* 국가 + 주소 */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label className="text-xs font-medium text-gray-600 mb-1 block">거주 국가</Label>
+          <Select value={form.country} onValueChange={(v) => update("country", v)}>
+            <SelectTrigger>
+              <SelectValue placeholder="국가 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="KR">🇰🇷 한국</SelectItem>
+              <SelectItem value="US">🇺🇸 미국</SelectItem>
+              <SelectItem value="JP">🇯🇵 일본</SelectItem>
+              <SelectItem value="CN">🇨🇳 중국</SelectItem>
+              <SelectItem value="DE">🇩🇪 독일</SelectItem>
+              <SelectItem value="GB">🇬🇧 영국</SelectItem>
+              <SelectItem value="CA">🇨🇦 캐나다</SelectItem>
+              <SelectItem value="AU">🇦🇺 호주</SelectItem>
+              <SelectItem value="SG">🇸🇬 싱가포르</SelectItem>
+              <SelectItem value="AE">🇦🇪 UAE</SelectItem>
+              <SelectItem value="OTHER">🌐 기타</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-xs font-medium text-gray-600 mb-1 block">주소</Label>
+          <Input
+            placeholder="서울시 강남구 테헤란로 123"
+            value={form.address}
+            onChange={(e) => update("address", e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* SNS 연락처 */}
+      <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 space-y-2">
+        <Label className="text-xs font-semibold text-gray-700 block">SNS 연락처 (선택)</Label>
+        <p className="text-xs text-gray-500">사망 후 자동 알림 발송에 사용됩니다.</p>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <Label className="text-xs text-gray-500 mb-1 block">KakaoTalk ID</Label>
+            <Input
+              placeholder="카카오톡 ID"
+              value={(form as any).kakaoId ?? ""}
+              onChange={(e) => update("kakaoId" as any, e.target.value)}
+            />
+          </div>
+          <div>
+            <Label className="text-xs text-gray-500 mb-1 block">LINE ID</Label>
+            <Input
+              placeholder="LINE ID"
+              value={(form as any).lineId ?? ""}
+              onChange={(e) => update("lineId" as any, e.target.value)}
+            />
+          </div>
+          <div>
+            <Label className="text-xs text-gray-500 mb-1 block">WhatsApp (+국가코드)</Label>
+            <Input
+              placeholder="+1 234 567 8900"
+              value={(form as any).whatsappId ?? ""}
+              onChange={(e) => update("whatsappId" as any, e.target.value)}
+            />
+          </div>
+          <div>
+            <Label className="text-xs text-gray-500 mb-1 block">WeChat ID</Label>
+            <Input
+              placeholder="WeChat ID"
+              value={(form as any).wechatId ?? ""}
+              onChange={(e) => update("wechatId" as any, e.target.value)}
+            />
+          </div>
+        </div>
       </div>
 
       {/* 자산 분배 */}

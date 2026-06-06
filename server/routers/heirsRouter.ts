@@ -44,6 +44,10 @@ export const heirsRouter = router({
         smsConsent: z.number().min(0).max(1).default(0),
         isExecutor: z.number().min(0).max(1).default(0),
         accessLevel: z.enum(["own_only", "full"]).default("own_only"),
+        kakaoId: z.string().optional(),
+        lineId: z.string().optional(),
+        whatsappId: z.string().optional(),
+        wechatId: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -88,6 +92,10 @@ export const heirsRouter = router({
         accessLevel,
         heirFee,
         heirPaid: 0,
+        kakaoId: input.kakaoId ?? null,
+        lineId: input.lineId ?? null,
+        whatsappId: input.whatsappId ?? null,
+        wechatId: input.wechatId ?? null,
       });
 
       // 제1상속자이고 SMS 동의한 경우 즉시 알림 발송
@@ -121,6 +129,10 @@ export const heirsRouter = router({
         smsConsent: z.number().min(0).max(1).optional(),
         isExecutor: z.number().min(0).max(1).optional(),
         accessLevel: z.enum(["own_only", "full"]).optional(),
+        kakaoId: z.string().optional(),
+        lineId: z.string().optional(),
+        whatsappId: z.string().optional(),
+        wechatId: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
