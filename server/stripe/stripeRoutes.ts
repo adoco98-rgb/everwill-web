@@ -49,10 +49,17 @@ export function registerStripeRoutes(app: Express) {
 
       const origin = req.headers.origin || "http://localhost:3000";
 
+      // 소문자 key를 SARAM_PRODUCTS 대문자 키로 변환하는 헬퍼
+      // 예: "certification" → SARAM_PRODUCTS.CERTIFICATION
+      const findProductByKey = (k: string) => {
+        // 소문자 key 기준으로 SARAM_PRODUCTS 에서 일치하는 항목 찾기
+        return Object.values(SARAM_PRODUCTS).find((p) => p.key === k) || null;
+      };
+
       // line_items 구성
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const lineItems: any[] = (items as { key: ProductKey; quantity?: number }[]).map(({ key, quantity = 1 }) => {
-        const product = SARAM_PRODUCTS[key];
+      const lineItems: any[] = (items as { key: string; quantity?: number }[]).map(({ key, quantity = 1 }) => {
+        const product = findProductByKey(key);
         if (!product) throw new Error(`알 수 없는 상품: ${key}`);
         return {
           price_data: {
@@ -153,9 +160,10 @@ export function registerStripeRoutes(app: Express) {
               console.log(`[Webhook] 결제 DB 저장 완료: ${session.id}`);
 
               // ─── 인증 상품 결제 시 유언장 상태 자동 업데이트 ───
-              const purchasedItems = (session.metadata?.items || "").split(",");
+              // 주의: metadata.items에는 소문자 키가 저장됨 (예: "certification", "certification_premium")
+              const purchasedItems = (session.metadata?.items || "").split(",").map((k: string) => k.trim().toLowerCase());
               const isCertPurchase = purchasedItems.some((k: string) =>
-                ["CERTIFICATION", "CERTIFICATION_PREMIUM", "STORAGE_LIFETIME"].includes(k)
+                ["certification", "certification_premium", "storage_lifetime"].includes(k)
               );
               const metaWillId = session.metadata?.will_id;
 
@@ -170,17 +178,17 @@ export function registerStripeRoutes(app: Express) {
 
                   // 플랜별 무료 수정 횟수 설정
                   let freeRevisionCount = 1; // 기본 전자인증
-                  if (purchasedItems.includes("CERTIFICATION_PREMIUM")) freeRevisionCount = 2;
-                  if (purchasedItems.includes("STORAGE_LIFETIME")) freeRevisionCount = -1; // 무제한
+                  if (purchasedItems.includes("certification_premium")) freeRevisionCount = 2;
+                  if (purchasedItems.includes("storage_lifetime")) freeRevisionCount = -1; // 무제한
 
                   // 보관 만료일 설정
                   let storageExpiresAt: Date | null = null;
-                  if (purchasedItems.includes("CERTIFICATION")) {
+                  if (purchasedItems.includes("certification") && !purchasedItems.includes("certification_premium")) {
                     storageExpiresAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 1년
-                  } else if (purchasedItems.includes("CERTIFICATION_PREMIUM")) {
+                  } else if (purchasedItems.includes("certification_premium")) {
                     storageExpiresAt = new Date(now.getTime() + 3 * 365 * 24 * 60 * 60 * 1000); // 3년
                   }
-                  // STORAGE_LIFETIME: null = 영구
+                  // storage_lifetime: null = 영구
 
                   await db.update(wills)
                     .set({

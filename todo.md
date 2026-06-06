@@ -102,7 +102,7 @@
 - [x] 로그인 페이지 (/login)
 - [x] 사용자 대시보드 (/dashboard)
 - [ ] 결제 내역 페이지 (/dashboard/payments)
-- [ ] Stripe Webhook 결제-계정 연결 로직
+- [x] Stripe Webhook 결제-계정 연결 로직 (소문자 키 버그 수정 완료)
 - [x] Navbar 로그인 상태 반영
 
 ## 예정

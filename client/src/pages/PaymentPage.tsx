@@ -2,11 +2,11 @@
  * EverWill 결제 페이지 (/payment)
  * Stripe Checkout으로 글로벌 결제 (카드, 구글페이, 애플페이)
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Check, CreditCard, Globe, Shield, ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { Link } from "wouter";
+import { Link, useSearch } from "wouter";
 
 type ProductKey =
   | "certification"
@@ -53,6 +53,21 @@ export default function PaymentPage() {
   const [activeCategory, setActiveCategory] = useState("인증");
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
+  const search = useSearch();
+
+  // URL 파라미터에서 willId, product 추출
+  const params = new URLSearchParams(search);
+  const willIdParam = params.get("willId");
+  const willId = willIdParam ? parseInt(willIdParam, 10) : null;
+  const productParam = params.get("product") as ProductKey | null;
+
+  // 유언장 인증 페이지에서 진입 시 자동으로 인증 상품 장바구니에 추가
+  useEffect(() => {
+    if (productParam && PRODUCTS.find((p) => p.key === productParam)) {
+      setCart([{ key: productParam, name: PRODUCTS.find((p) => p.key === productParam)!.name, amount: PRODUCTS.find((p) => p.key === productParam)!.amount, quantity: 1 }]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);  // 최초 1회만 실행
 
   const addToCart = (key: ProductKey) => {
     const product = PRODUCTS.find((p) => p.key === key)!;
@@ -84,6 +99,7 @@ export default function PaymentPage() {
         body: JSON.stringify({
           items: cart.map((i) => ({ key: i.key, quantity: i.quantity })),
           customerEmail: email || undefined,
+          willId: willId || undefined,  // 유언장 ID 전달 (인증 결제 시 자동 상태 업데이트)
         }),
       });
       const data = await res.json();

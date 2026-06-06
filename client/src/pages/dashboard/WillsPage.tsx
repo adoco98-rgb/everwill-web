@@ -23,6 +23,7 @@ import {
   AlertCircle,
   Loader2,
   CreditCard,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -266,6 +267,19 @@ export default function WillsPage() {
                     )}
                     디지털 카드
                   </Button>
+
+                  {/* 전자 인증하기 버튼 - 초안만 표시 */}
+                  {will.status === "draft" && (
+                    <Link href={`/payment?willId=${will.id}&product=certification`}>
+                      <Button
+                        size="sm"
+                        className="gap-1.5 text-xs bg-[#C9A961] hover:bg-[#b8923f] text-white font-semibold shadow-sm"
+                      >
+                        <ShieldCheck className="w-3 h-3" />
+                        전자 인증하기 ₩49,000
+                      </Button>
+                    </Link>
+                  )}
 
                   {/* 수정 버튼 - 초안: 바로 수정, 인증완료: 수정 정책 안내 후 수정 */}
                   {will.status === "draft" ? (

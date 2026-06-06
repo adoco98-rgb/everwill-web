@@ -78,12 +78,13 @@ export default function PaymentSuccess() {
               )}
 
               <div className="space-y-3 pt-2">
-                <Link href="/write" className="w-full bg-[#C9A961] hover:bg-[#b8944f] text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all">
-                    유언장 작성 시작하기
+                {/* 인증 결제 완료 후: 내 유언장으로 이동하여 PDF 출력 */}
+                <Link href="/dashboard/wills" className="w-full bg-[#C9A961] hover:bg-[#b8944f] text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all">
+                    내 유언장 확인 → PDF 출력
                     <ArrowRight className="w-4 h-4" />
                   </Link>
-                <Link href="/" className="w-full border-2 border-[#1F3864] text-[#1F3864] py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-[#1F3864]/5 transition-all">
-                    홈으로 돌아가기
+                <Link href="/write" className="w-full border-2 border-[#1F3864] text-[#1F3864] py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-[#1F3864]/5 transition-all">
+                    새 유언장 작성
                   </Link>
               </div>
             </div>
