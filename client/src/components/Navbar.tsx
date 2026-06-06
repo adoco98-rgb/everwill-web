@@ -285,7 +285,7 @@ export default function Navbar() {
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#1F3864]/5 hover:text-[#1F3864] transition-colors"
                         >
                           <LayoutDashboard className="w-4 h-4 text-gray-400" />
-                          내 대시보드
+                          마이홈
                         </button>
                         <button
                           onClick={() => { setUserMenuOpen(false); navigate("/write"); }}
@@ -320,7 +320,7 @@ export default function Navbar() {
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#1F3864]/5 hover:text-[#1F3864] transition-colors"
                         >
                           <Settings className="w-4 h-4 text-gray-400" />
-                          내 정보 수정
+                          내 정보
                         </button>
                       </div>
 
@@ -536,14 +536,14 @@ export default function Navbar() {
                       className="w-full text-white/80 py-2.5 text-sm font-medium border border-white/20 rounded-lg flex items-center justify-center gap-2"
                     >
                       <Settings className="w-4 h-4" />
-                      내 정보 보기 / 수정
+                      내 정보
                     </button>
                     <button
                       onClick={() => { setMobileOpen(false); navigate("/dashboard"); }}
                       className="w-full text-white/80 py-2.5 text-sm font-medium border border-white/20 rounded-lg flex items-center justify-center gap-2"
                     >
                       <LayoutDashboard className="w-4 h-4" />
-                      내 대시보드
+                      마이홈
                     </button>
                     <button
                       onClick={() => { setMobileOpen(false); navigate("/write"); }}
