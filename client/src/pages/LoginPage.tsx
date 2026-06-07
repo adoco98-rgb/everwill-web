@@ -518,6 +518,15 @@ export default function LoginPage() {
               <div className="space-y-2.5">
                 {/* Google */}
                 <a href="/api/auth/google"
+                  onClick={(e) => {
+                    // WebView(인앱 브라우저) 감지 — Google 정책상 WebView에서 OAuth 차단됨
+                    const ua = navigator.userAgent.toLowerCase();
+                    const isWebView = /kakaotalk|naver|instagram|fban|fbav|line\/|; wv\)|webview/.test(ua);
+                    if (isWebView) {
+                      e.preventDefault();
+                      alert('Google 로그인은 인앱 브라우저에서 지원되지 않습니다.\n\n오른쪽 상단 \u22ee 메뉴 → "Chrome으로 열기" 또는 "외부 브라우저로 열기"를 선택해 주세요.');
+                    }
+                  }}
                   className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 transition text-sm font-medium text-gray-700 shadow-sm min-h-[44px]">
                   <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
