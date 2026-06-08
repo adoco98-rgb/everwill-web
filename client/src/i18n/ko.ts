@@ -16,6 +16,7 @@ export const ko = {
     login: "로그인",
     logout: "로그아웃",
     myPage: "마이페이지",
+    partnerJoin: "파트너 등록",
   },
 
   // Hero Section

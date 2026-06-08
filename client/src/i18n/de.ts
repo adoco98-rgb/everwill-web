@@ -15,6 +15,7 @@ export const de = {
     login: "Anmelden",
     logout: "Abmelden",
     myPage: "Meine Seite",
+    partnerJoin: "Partner werden",
   },
   hero: {
     badge: "Weltweit erstes digitales Testament-OS",

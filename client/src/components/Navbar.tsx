@@ -346,6 +346,12 @@ export default function Navbar() {
               </button>
             )}
             <button
+              onClick={() => navigate("/partner")}
+              className="text-[#C9A961] hover:text-[#e8c97a] text-xs xl:text-sm font-medium transition-colors px-3 py-1.5 rounded-full whitespace-nowrap border border-[#C9A961]/50 hover:border-[#C9A961] hover:bg-[#C9A961]/10"
+            >
+              {t.nav.partnerJoin ?? "파트너 등록"}
+            </button>
+            <button
               onClick={() => {
                 const el = document.querySelector("#pricing");
                 if (el) el.scrollIntoView({ behavior: "smooth" });

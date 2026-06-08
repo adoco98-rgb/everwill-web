@@ -15,6 +15,7 @@ export const es = {
     login: "Iniciar Sesión",
     logout: "Cerrar Sesión",
     myPage: "Mi Página",
+    partnerJoin: "Registro de socio",
   },
   hero: {
     badge: "El Primer OS Digital de Testamentos del Mundo",

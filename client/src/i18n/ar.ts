@@ -15,6 +15,7 @@ export const ar = {
     login: "تسجيل الدخول",
     logout: "تسجيل الخروج",
     myPage: "صفحتي",
+    partnerJoin: "تسجيل الشريك",
   },
   hero: {
     badge: "أول نظام وصايا رقمي في العالم",

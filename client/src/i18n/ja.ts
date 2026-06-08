@@ -15,6 +15,7 @@ export const ja = {
     login: "ログイン",
     logout: "ログアウト",
     myPage: "マイページ",
+    partnerJoin: "パートナー登録",
   },
   hero: {
     badge: "世界初デジタル遺言OS",

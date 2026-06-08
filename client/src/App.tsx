@@ -54,6 +54,13 @@ import PhoneVerifyPage from "./pages/dashboard/PhoneVerifyPage";
 import InheritanceTaxPage from "./pages/dashboard/InheritanceTaxPage";
 import CountryPage from "./pages/CountryPage";
 import AutobiographyPage from "./pages/AutobiographyPage";
+import PartnerPage from "./pages/PartnerPage";
+import PartnerLandingPage from "./pages/PartnerLandingPage";
+import PartnerProfessionalPage from "./pages/PartnerProfessionalPage";
+import PartnerHelperPage from "./pages/PartnerHelperPage";
+import PartnerPolicyPage from "./pages/PartnerPolicyPage";
+import PartnerVerificationPage from "./pages/PartnerVerificationPage";
+import PartnerDashboardPage from "./pages/PartnerDashboardPage";
 import { ChatbotWidget } from "./components/ChatbotWidget";
 import { LanguageProvider } from "./contexts/LanguageContext";
 
@@ -132,6 +139,14 @@ function Router() {
       <Route path={"/feedback"} component={Feedback} />
       {/* 국가별 전용 랜딩 페이지 (/country/kr, /country/us, /country/jp 등) */}
       <Route path={"/country/:code"} component={CountryPage} />
+      {/* 파트너센터 라우트 */}
+      <Route path={"/partner"} component={PartnerLandingPage} />
+      <Route path={"/partner/join"} component={PartnerPage} />
+      <Route path={"/partner/professional"} component={PartnerProfessionalPage} />
+      <Route path={"/partner/helper"} component={PartnerHelperPage} />
+      <Route path={"/partner/policy"} component={PartnerPolicyPage} />
+      <Route path={"/partner/verify"} component={PartnerVerificationPage} />
+      <Route path={"/partner/dashboard"} component={PartnerDashboardPage} />
       {/* 관리자 대시보드 */}
       <Route path={"/799805"} component={AdminPage} />
       {/* 내부 기밀 사업기획서 - 비공개 URL */}

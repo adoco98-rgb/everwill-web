@@ -15,6 +15,7 @@ export const zh = {
     login: "登录",
     logout: "退出",
     myPage: "我的页面",
+    partnerJoin: "合作伙伴注册",
   },
   hero: {
     badge: "全球首个数字遗嘱OS",

@@ -15,6 +15,7 @@ export const pt = {
     login: "Entrar",
     logout: "Sair",
     myPage: "Minha página",
+    partnerJoin: "Cadastro de parceiro",
   },
   hero: {
     badge: "Primeiro OS de testamento digital do mundo",

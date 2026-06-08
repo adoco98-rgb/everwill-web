@@ -15,6 +15,7 @@ export const fr = {
     login: "Connexion",
     logout: "Déconnexion",
     myPage: "Ma page",
+    partnerJoin: "Inscription partenaire",
   },
   hero: {
     badge: "Premier OS de testament numérique au monde",

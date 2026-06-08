@@ -15,6 +15,7 @@ export const ru = {
     login: "Войти",
     logout: "Выйти",
     myPage: "Моя страница",
+    partnerJoin: "Регистрация партнёра",
   },
   hero: {
     badge: "Первая в мире цифровая ОС завещания",

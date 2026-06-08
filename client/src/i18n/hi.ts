@@ -15,6 +15,7 @@ export const hi = {
     login: "लॉग इन",
     logout: "लॉग आउट",
     myPage: "मेरा पेज",
+    partnerJoin: "पार्टनर पंजीकरण",
   },
   hero: {
     badge: "दुनिया का पहला डिजिटल वसीयत OS",

@@ -18,6 +18,7 @@ export const en = {
     login: "Log In",
     logout: "Log Out",
     myPage: "My Page",
+    partnerJoin: "Partner Sign Up",
   },
   hero: {
     badge: "World's First Digital Will OS",

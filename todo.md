@@ -865,3 +865,11 @@
 - [x] WillCertificatePage - 라우트 등록 (/dashboard/will-certificate)
 - [x] PhoneVerifyPage - 생성 및 라우트 등록 (/dashboard/phone-verify)
 - [x] InheritanceTaxPage - 상속세 계산기 생성 및 라우트 등록 (/dashboard/inheritance-tax)
+
+## 파트너 페이지 통합 (2026-06-08)
+- [x] 파트너 페이지 7개 파일 client/src/pages/ 복사 완료
+- [x] App.tsx에 파트너 라우트 7개 추가 완료 (/partner, /partner/join, /partner/professional, /partner/helper, /partner/policy, /partner/verify, /partner/dashboard)
+- [x] Navbar에 "파트너 등록" 버튼 추가 완료 (골드 테두리 스타일)
+- [x] 11개 언어 파일에 partnerJoin 번역 키 추가 완료
+- [x] LawyersSection에 "전문가 파트너 등록하기" CTA 버튼 추가 완료 (골드 버튼, /partner/professional 이동)
+- [x] TypeScript 에러 0개 확인
