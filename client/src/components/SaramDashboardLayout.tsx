@@ -107,9 +107,12 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
             <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <Shield className="w-8 h-8 text-[#C9A961]" />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
-              SARAM
-            </h1>
+            <img
+              src="/everwill-logo.png"
+              alt="EverWill"
+              className="h-10 object-contain mx-auto mb-2"
+              style={{ filter: 'brightness(0) invert(1)', maxWidth: '140px' }}
+            />
             <p className="text-white/60 text-sm">로그인이 필요한 페이지입니다.</p>
           </div>
           <div className="p-6 space-y-3">
@@ -176,13 +179,13 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
         {/* 로고 */}
         <div className="p-6 border-b border-white/10">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-[#C9A961] rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">S</span>
-                </div>
-                <span className="text-white font-bold text-lg" style={{ fontFamily: "'Playfair Display', serif" }}>
-                  SARAM
-                </span>
+            <Link href="/" className="flex items-center">
+                <img
+                  src="/everwill-logo.png"
+                  alt="EverWill"
+                  className="h-10 object-contain"
+                  style={{ filter: 'brightness(0) invert(1)', maxWidth: '140px' }}
+                />
               </Link>
             <button
               onClick={() => setMobileOpen(false)}
@@ -317,9 +320,12 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
           >
             <Menu className="w-5 h-5 text-[#1F3864]" />
           </button>
-          <span className="font-bold text-[#1F3864]" style={{ fontFamily: "'Playfair Display', serif" }}>
-            SARAM
-          </span>
+          <img
+            src="/everwill-logo.png"
+            alt="EverWill"
+            className="h-9 object-contain"
+            style={{ maxWidth: '130px' }}
+          />
         </header>
 
         {/* 페이지 콘텐츠 */}
