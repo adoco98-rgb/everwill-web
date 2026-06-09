@@ -18,12 +18,12 @@ export default function HeroSection() {
   const { t } = useLanguage();
   const { isAuthenticated } = useAuth();
 
-  // 로그인 상태면 바로 /write, 비로그인이면 /login 후 /write 리다이렉트
+  // 로그인 상태면 대시보드, 비로그인이면 회원가입 페이지로
   const handleStart = () => {
     if (isAuthenticated) {
-      navigate("/write");
+      navigate("/dashboard");
     } else {
-      navigate("/login?returnTo=/write");
+      navigate("/login?mode=signup");
     }
   };
 

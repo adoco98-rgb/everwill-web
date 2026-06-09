@@ -352,10 +352,7 @@ export default function Navbar() {
               {t.nav.partnerJoin ?? "파트너 등록"}
             </button>
             <button
-              onClick={() => {
-                const el = document.querySelector("#pricing");
-                if (el) el.scrollIntoView({ behavior: "smooth" });
-              }}
+              onClick={() => navigate("/login?mode=signup")}
               className="btn-gold px-4 py-2 rounded-full text-xs xl:text-sm font-semibold whitespace-nowrap"
             >
               {t.nav.startFree}
@@ -598,8 +595,8 @@ export default function Navbar() {
                 <button
                   onClick={() => {
                     setMobileOpen(false);
-                    const el = document.querySelector("#pricing");
-                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                    navigate("/login?mode=signup");
+                    setMobileOpen(false);
                   }}
                   className="w-full btn-gold py-2.5 rounded-lg text-sm font-semibold"
                 >
