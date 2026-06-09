@@ -211,6 +211,11 @@ export default function PartnerPage() {
               </tbody>
             </table>
           </div>
+          {/* 1년간 유지 안내 */}
+          <div className="mt-6 flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-[#1F3864]/5 border border-[#1F3864]/20 rounded-xl px-6 py-4">
+            <span className="text-[#C9A961] text-xl">&#9432;</span>
+            <p className="text-sm text-[#6B7280] leading-relaxed">{texts.tierNote}</p>
+          </div>
         </div>
       </section>
 
@@ -385,16 +390,17 @@ const partnerTexts: Record<string, any> = {
       { name: "Gold", condition: "2,000만원+", fee: "$199/년", commission: "25%", benefit: "상위 노출", color: "bg-yellow-500" },
       { name: "Premium", condition: "5,000만원+", fee: "$299/년", commission: "30%", benefit: "독점 지역권", color: "bg-purple-600" },
     ],
+    tierNote: "• 등급은 연매출 달성 시 자동 승급되며, 해당 등급은 최소 1년간 유지됩니다.  • 연간 유지비 미납 시 이전 등급으로 자동 하향 조정됩니다.  • Bronze 등급은 연간 유지비 없이 영구 유지됩니다.",
     revenueTitle: "파트너 수익 구조",
     revenueSubtitle: "3가지 수익원으로 안정적인 수입을 만드세요",
     revenueCards: [
       { title: "고객 유치 커미션", desc: "고객이 인증비·Badge 등을 결제할 때마다 등급별 커미션 지급", highlight: "최대 30%" },
       { title: "사후 집행 수임", desc: "전문가 그룹 한정. 관리 고객 사망 시 자동으로 수임 연결", highlight: "보수의 75~85%" },
-      { title: "글로벌 활동", desc: "11개 언어, 전 세계 어디서나 파트너 활동 가능", highlight: "11개국" },
+      { title: "글로벌 활동", desc: "14개국 지원, 전 세계 어디서나 파트너 활동 가능 (추후 25개국 확장)", highlight: "14개국" },
     ],
     globalTitle: "전 세계에서 활동하세요",
-    globalSubtitle: "EverWill은 11개 언어를 지원합니다. 어느 나라에서든 파트너로 활동할 수 있습니다.",
-    globalCountries: ["🇰🇷 한국", "🇺🇸 미국", "🇯🇵 일본", "🇨🇳 중국", "🇩🇪 독일", "🇪🇸 스페인", "🇸🇦 아랍", "🇫🇷 프랑스", "🇷🇺 러시아", "🇮🇳 인도", "🇧🇷 브라질"],
+    globalSubtitle: "EverWill은 14개국에서 파트너를 모집합니다. 추후 25개국으로 확장할 예정입니다.",
+    globalCountries: ["🇰🇷 한국", "🇺🇸 미국", "🇯🇵 일본", "🇨🇳 중국", "🇩🇪 독일", "🇪🇸 스페인", "🇸🇦 사우디", "🇫🇷 프랑스", "🇷🇺 러시아", "🇮🇳 인도", "🇧🇷 브라질", "🇳🇿 뉴질랜드", "🇦🇺 호주", "🇨🇦 캐나다"],
     ctaTitle: "지금 파트너가 되세요",
     ctaSubtitle: "초기 파트너에게는 특별한 혜택이 제공됩니다. 함께 글로벌 유언 시장을 선도하세요.",
   },
@@ -440,16 +446,17 @@ const partnerTexts: Record<string, any> = {
       { name: "Gold", condition: "$15,000+", fee: "$199/yr", commission: "25%", benefit: "Featured listing", color: "bg-yellow-500" },
       { name: "Premium", condition: "$38,000+", fee: "$299/yr", commission: "30%", benefit: "Exclusive territory", color: "bg-purple-600" },
     ],
+    tierNote: "• Tier upgrades automatically when annual revenue target is met, and the tier is maintained for at least 1 year.  • Failure to pay annual maintenance fee results in automatic downgrade.  • Bronze tier is maintained permanently with no annual fee.",
     revenueTitle: "Partner Revenue Structure",
     revenueSubtitle: "Build stable income with 3 revenue streams",
     revenueCards: [
       { title: "Client Acquisition Commission", desc: "Earn tier-based commission every time your client pays for certification or Badge", highlight: "Up to 30%" },
       { title: "Post-Death Case Assignment", desc: "Professional group only. Automatically assigned when managed client passes away", highlight: "75-85% of fees" },
-      { title: "Global Activity", desc: "Operate as a partner anywhere in the world with 11 language support", highlight: "11 Countries" },
+      { title: "Global Activity", desc: "Active in 14 countries, partner anywhere in the world (expanding to 25 countries)", highlight: "14 Countries" },
     ],
     globalTitle: "Operate Globally",
-    globalSubtitle: "EverWill supports 11 languages. You can be a partner in any country.",
-    globalCountries: ["🇰🇷 Korea", "🇺🇸 USA", "🇯🇵 Japan", "🇨🇳 China", "🇩🇪 Germany", "🇪🇸 Spain", "🇸🇦 Arabia", "🇫🇷 France", "🇷🇺 Russia", "🇮🇳 India", "🇧🇷 Brazil"],
+    globalSubtitle: "EverWill recruits partners in 14 countries. Expanding to 25 countries soon.",
+    globalCountries: ["🇰🇷 Korea", "🇺🇸 USA", "🇯🇵 Japan", "🇨🇳 China", "🇩🇪 Germany", "🇪🇸 Spain", "🇸🇦 Saudi Arabia", "🇫🇷 France", "🇷🇺 Russia", "🇮🇳 India", "🇧🇷 Brazil", "🇳🇿 New Zealand", "🇦🇺 Australia", "🇨🇦 Canada"],
     ctaTitle: "Become a Partner Today",
     ctaSubtitle: "Early partners receive special benefits. Lead the global will market together.",
   },
@@ -495,16 +502,17 @@ const partnerTexts: Record<string, any> = {
       { name: "Gold", condition: "2,000万ウォン+", fee: "$199/年", commission: "25%", benefit: "上位表示", color: "bg-yellow-500" },
       { name: "Premium", condition: "5,000万ウォン+", fee: "$299/年", commission: "30%", benefit: "独占地域権", color: "bg-purple-600" },
     ],
+    tierNote: "• 年間売上目標達成時に自動昇級され、該当ランクは最低1年間維持されます。  • 年間維持費未納付の場合、自動的に一つ下のランクに降格されます。  • Bronzeランクは年間維持費なしで永久維持されます。",
     revenueTitle: "パートナー収益構造",
     revenueSubtitle: "3つの収益源で安定した収入を作りましょう",
     revenueCards: [
       { title: "顧客獲得コミッション", desc: "顧客が認証費・Badgeなどを支払うたびにランク別コミッション支給", highlight: "最大30%" },
       { title: "死後執行受任", desc: "専門家グループ限定。管理顧客の死亡時に自動受任連携", highlight: "報酬の75〜85%" },
-      { title: "グローバル活動", desc: "11言語対応、世界中どこでもパートナー活動可能", highlight: "11カ国" },
+      { title: "グローバル活動", desc: "14カ国対応、世界中どこでもパートナー活動可能（25カ国へ拡大予定）", highlight: "14カ国" },
     ],
     globalTitle: "世界中で活動しましょう",
-    globalSubtitle: "EverWillは11言語をサポートしています。どの国でもパートナーとして活動できます。",
-    globalCountries: ["🇰🇷 韓国", "🇺🇸 アメリカ", "🇯🇵 日本", "🇨🇳 中国", "🇩🇪 ドイツ", "🇪🇸 スペイン", "🇸🇦 アラブ", "🇫🇷 フランス", "🇷🇺 ロシア", "🇮🇳 インド", "🇧🇷 ブラジル"],
+    globalSubtitle: "EverWillは14カ国でパートナーを募集しています。今後25カ国へ拡大予定です。",
+    globalCountries: ["🇰🇷 韓国", "🇺🇸 アメリカ", "🇯🇵 日本", "🇨🇳 中国", "🇩🇪 ドイツ", "🇪🇸 スペイン", "🇸🇦 サウジ", "🇫🇷 フランス", "🇷🇺 ロシア", "🇮🇳 インド", "🇧🇷 ブラジル", "🇳🇿 ニュージーランド", "🇦🇺 オーストラリア", "🇨🇦 カナダ"],
     ctaTitle: "今すぐパートナーになりましょう",
     ctaSubtitle: "初期パートナーには特別な特典が提供されます。共にグローバル遺言市場をリードしましょう。",
   },
@@ -550,16 +558,17 @@ const partnerTexts: Record<string, any> = {
       { name: "Gold", condition: "2,000万韩元+", fee: "$199/年", commission: "25%", benefit: "优先展示", color: "bg-yellow-500" },
       { name: "Premium", condition: "5,000万韩元+", fee: "$299/年", commission: "30%", benefit: "独占区域权", color: "bg-purple-600" },
     ],
+    tierNote: "• 年销售额达标时自动升级，该等级至少维持一年。  • 未缴年度维护费时自动降级。  • Bronze等级无需年度维护费，永久维持。",
     revenueTitle: "合作伙伴收益结构",
     revenueSubtitle: "通过3种收入来源创造稳定收入",
     revenueCards: [
       { title: "客户获取佣金", desc: "客户每次支付认证费·Badge等时按等级支付佣金", highlight: "最高30%" },
       { title: "死后执行承接", desc: "仅限专家组。管理客户去世时自动承接案件", highlight: "报酬的75~85%" },
-      { title: "全球活动", desc: "支持11种语言，在世界任何地方都可以作为合作伙伴活动", highlight: "11个国家" },
+      { title: "全球活动", desc: "支持14个国家，在世界任何地方都可以作为合作伙伴活动（将扩展至25个国家）", highlight: "14个国家" },
     ],
     globalTitle: "在全球范围内活动",
-    globalSubtitle: "EverWill支持11种语言。您可以在任何国家作为合作伙伴活动。",
-    globalCountries: ["🇰🇷 韩国", "🇺🇸 美国", "🇯🇵 日本", "🇨🇳 中国", "🇩🇪 德国", "🇪🇸 西班牙", "🇸🇦 阿拉伯", "🇫🇷 法国", "🇷🇺 俄罗斯", "🇮🇳 印度", "🇧🇷 巴西"],
+    globalSubtitle: "EverWill在14个国家招募合作伙伴。将来扩展至25个国家。",
+    globalCountries: ["🇰🇷 韩国", "🇺🇸 美国", "🇯🇵 日本", "🇨🇳 中国", "🇩🇪 德国", "🇪🇸 西班牙", "🇸🇦 沙特", "🇫🇷 法国", "🇷🇺 俄罗斯", "🇮🇳 印度", "🇧🇷 巴西", "🇳🇿 新西兰", "🇦🇺 澳大利亚", "🇨🇦 加拿大"],
     ctaTitle: "立即成为合作伙伴",
     ctaSubtitle: "早期合作伙伴将获得特别优惠。一起引领全球遗嘱市场。",
   },
