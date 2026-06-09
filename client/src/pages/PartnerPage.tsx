@@ -111,11 +111,7 @@ export default function PartnerPage() {
                   </li>
                 ))}
               </ul>
-              <div className="flex items-center justify-between border-t pt-6">
-                <div>
-                  <span className="text-sm text-[#6B7280]">{texts.joinFeeLabel}</span>
-                  <p className="text-2xl font-bold text-[#1F3864]">$99</p>
-                </div>
+              <div className="flex items-center justify-end border-t pt-6">
                 <button
                   onClick={() => navigate("/partner/professional")}
                   className="px-6 py-3 bg-[#1F3864] hover:bg-[#162b50] text-white font-semibold rounded-xl transition-all flex items-center gap-2"
@@ -146,11 +142,7 @@ export default function PartnerPage() {
                   </li>
                 ))}
               </ul>
-              <div className="flex items-center justify-between border-t pt-6">
-                <div>
-                  <span className="text-sm text-[#6B7280]">{texts.joinFeeLabel}</span>
-                  <p className="text-2xl font-bold text-[#C9A961]">$49</p>
-                </div>
+              <div className="flex items-center justify-end border-t pt-6">
                 <button
                   onClick={() => navigate("/partner/helper")}
                   className="px-6 py-3 bg-[#C9A961] hover:bg-[#b8953a] text-[#1F3864] font-semibold rounded-xl transition-all flex items-center gap-2"
@@ -164,7 +156,7 @@ export default function PartnerPage() {
         </div>
       </section>
 
-      {/* 등급 체계 섹션 */}
+      {/* 비전·사업성 섹션 (등급/수익 구조는 승인 후 대시보드에서 공개) */}
       <section className="py-20 px-6 bg-white">
         <div className="max-w-6xl mx-auto">
           <motion.div
@@ -174,89 +166,61 @@ export default function PartnerPage() {
             className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-4xl font-bold text-[#1A1A1A] mb-4">
-              {texts.tierTitle}
+              {texts.visionTitle}
             </h2>
-            <p className="text-lg text-[#6B7280]">
-              {texts.tierSubtitle}
+            <p className="text-lg text-[#6B7280] max-w-3xl mx-auto">
+              {texts.visionSubtitle}
             </p>
           </motion.div>
 
-          {/* 등급 테이블 */}
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-[#1F3864] text-white">
-                  <th className="px-6 py-4 text-left rounded-tl-xl">{texts.tierCol1}</th>
-                  <th className="px-6 py-4 text-center">{texts.tierCol2}</th>
-                  <th className="px-6 py-4 text-center">{texts.tierCol3}</th>
-                  <th className="px-6 py-4 text-center">{texts.tierCol4}</th>
-                  <th className="px-6 py-4 text-center rounded-tr-xl">{texts.tierCol5}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {texts.tiers.map((tier: any, i: number) => (
-                  <tr key={i} className={`border-b ${i % 2 === 0 ? 'bg-[#FAFAFA]' : 'bg-white'}`}>
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-3">
-                        <span className={`w-3 h-3 rounded-full ${tier.color}`} />
-                        <span className="font-bold text-[#1A1A1A]">{tier.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 text-center text-[#6B7280]">{tier.condition}</td>
-                    <td className="px-6 py-5 text-center font-semibold text-[#1F3864]">{tier.fee}</td>
-                    <td className="px-6 py-5 text-center font-semibold text-[#C9A961]">{tier.commission}</td>
-                    <td className="px-6 py-5 text-center text-[#6B7280]">{tier.benefit}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {/* 1년간 유지 안내 */}
-          <div className="mt-6 flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-[#1F3864]/5 border border-[#1F3864]/20 rounded-xl px-6 py-4">
-            <span className="text-[#C9A961] text-xl">&#9432;</span>
-            <p className="text-sm text-[#6B7280] leading-relaxed">{texts.tierNote}</p>
-          </div>
-        </div>
-      </section>
-
-      {/* 수익 구조 섹션 */}
-      <section className="py-20 px-6">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-[#1A1A1A] mb-4">
-              {texts.revenueTitle}
-            </h2>
-            <p className="text-lg text-[#6B7280]">
-              {texts.revenueSubtitle}
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {texts.revenueCards.map((card: any, i: number) => (
+          {/* 시장 기회 숫자 */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+            {texts.visionStats.map((stat: any, i: number) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 text-center"
+                className="text-center p-6 bg-[#1F3864]/5 rounded-2xl border border-[#1F3864]/10"
               >
-                <div className="w-16 h-16 bg-[#1F3864]/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                  {i === 0 && <DollarSign className="w-8 h-8 text-[#C9A961]" />}
-                  {i === 1 && <TrendingUp className="w-8 h-8 text-[#C9A961]" />}
-                  {i === 2 && <Globe className="w-8 h-8 text-[#C9A961]" />}
-                </div>
-                <h3 className="text-xl font-bold text-[#1A1A1A] mb-3">{card.title}</h3>
-                <p className="text-[#6B7280] mb-4">{card.desc}</p>
-                <p className="text-2xl font-bold text-[#1F3864]">{card.highlight}</p>
+                <p className="text-3xl md:text-4xl font-bold text-[#1F3864] mb-2">{stat.value}</p>
+                <p className="text-sm text-[#6B7280] font-medium">{stat.label}</p>
               </motion.div>
             ))}
           </div>
+
+          {/* 핵심 비전 카드 3개 */}
+          <div className="grid md:grid-cols-3 gap-8">
+            {texts.visionCards.map((card: any, i: number) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-gradient-to-br from-[#1F3864] to-[#162b50] rounded-2xl p-8 text-white"
+              >
+                <div className="text-4xl mb-4">{card.icon}</div>
+                <h3 className="text-xl font-bold mb-3">{card.title}</h3>
+                <p className="text-white/80 leading-relaxed">{card.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* 승인 후 공개 안내 배너 */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-12 bg-[#C9A961]/10 border border-[#C9A961]/30 rounded-2xl px-8 py-6 flex flex-col sm:flex-row items-center gap-4"
+          >
+            <span className="text-3xl">🔒</span>
+            <div>
+              <p className="font-bold text-[#1F3864] text-lg">{texts.visionLockTitle}</p>
+              <p className="text-[#6B7280] text-sm mt-1">{texts.visionLockDesc}</p>
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -635,6 +599,21 @@ const partnerTexts: Record<string, any> = {
     globalTitle: "전 세계에서 활동하세요",
     globalSubtitle: "EverWill은 14개국에서 파트너를 모집합니다. 추후 25개국으로 확장할 예정입니다.",
     globalCountries: ["🇰🇷 한국", "🇺🇸 미국", "🇯🇵 일본", "🇨🇳 중국", "🇩🇪 독일", "🇪🇸 스페인", "🇸🇦 사우디", "🇫🇷 프랑스", "🇷🇺 러시아", "🇮🇳 인도", "🇧🇷 브라질", "🇳🇿 뉴질랜드", "🇦🇺 호주", "🇨🇦 캐나다"],
+    visionTitle: "EverWill과 함께 성장하세요",
+    visionSubtitle: "세계 최초 디지털 유언 OS, EverWill은 지금 글로벌 파트너를 모집합니다. 시장이 열리기 전에 선점하세요.",
+    visionStats: [
+      { value: "700만+", label: "재외한인 타겟 고객" },
+      { value: "14개국", label: "글로벌 진출 국가" },
+      { value: "$5,500", label: "고객 1인당 LTV" },
+      { value: "25개국", label: "추후 확장 목표" },
+    ],
+    visionCards: [
+      { icon: "🌍", title: "세계 최초 디지털 유언 OS", desc: "Trust & Will, Farewill 등 글로벌 경쟁사를 능가하는 올인원 글로벌 유언 플랫폼. 유언 작성부터 사후 집행까지 전 과정을 자동화합니다." },
+      { icon: "💰", title: "안정적인 장기 수익", desc: "고객이 인증만 해도 수익이 발생합니다. 고객이 사망하면 사후 집행 수임까지 자동 연결되는 지속적 수익 구조입니다." },
+      { icon: "🏆", title: "탑 리더 배지 시스템", desc: "매년 국가·지역별 최우수 파트너를 선정하여 공식 배지를 수여합니다. 글로벌 콘퍼런스 초청 + 커미션 보너스 +5% 등 특별 혜택이 제공됩니다." },
+    ],
+    visionLockTitle: "커미션·등급 세부 정보는 승인 후 공개됩니다",
+    visionLockDesc: "가입 신청 후 관리자 검토를 거치면, 대시보드에서 등급별 커미션율과 수익 구조를 확인하실 수 있습니다.",
     ctaTitle: "지금 파트너가 되세요",
     ctaSubtitle: "초기 파트너에게는 특별한 혜택이 제공됩니다. 함께 글로벌 유언 시장을 선도하세요.",
   },
@@ -701,6 +680,21 @@ const partnerTexts: Record<string, any> = {
     globalTitle: "Operate Globally",
     globalSubtitle: "EverWill recruits partners in 14 countries. Expanding to 25 countries soon.",
     globalCountries: ["🇰🇷 Korea", "🇺🇸 USA", "🇯🇵 Japan", "🇨🇳 China", "🇩🇪 Germany", "🇪🇸 Spain", "🇸🇦 Saudi Arabia", "🇫🇷 France", "🇷🇺 Russia", "🇮🇳 India", "🇧🇷 Brazil", "🇳🇿 New Zealand", "🇦🇺 Australia", "🇨🇦 Canada"],
+    visionTitle: "Grow With EverWill",
+    visionSubtitle: "The world's first Digital Will OS is recruiting global partners. Be a pioneer before the market opens.",
+    visionStats: [
+      { value: "7M+", label: "Overseas Korean Target Customers" },
+      { value: "14", label: "Countries" },
+      { value: "$5,500", label: "LTV per Customer" },
+      { value: "25", label: "Expansion Target Countries" },
+    ],
+    visionCards: [
+      { icon: "🌍", title: "World's First Digital Will OS", desc: "An all-in-one global will platform surpassing Trust & Will, Farewill and other competitors. Automates the entire process from will creation to post-death execution." },
+      { icon: "💰", title: "Stable Long-term Income", desc: "Revenue is generated when clients complete certification. When clients pass away, post-execution cases are automatically assigned — a continuous income structure." },
+      { icon: "🏆", title: "Top Leader Badge System", desc: "Each year, the top-performing partner per country and region receives an official badge. Special benefits include global conference invitation + commission bonus +5%." },
+    ],
+    visionLockTitle: "Commission & Tier Details Revealed After Approval",
+    visionLockDesc: "After your application is reviewed by an admin, you can view tier-based commission rates and revenue structure in your dashboard.",
     ctaTitle: "Become a Partner Today",
     ctaSubtitle: "Early partners receive special benefits. Lead the global will market together.",
   },
@@ -767,6 +761,21 @@ const partnerTexts: Record<string, any> = {
     globalTitle: "世界中で活動しましょう",
     globalSubtitle: "EverWillは14カ国でパートナーを募集しています。今後25カ国へ拡大予定です。",
     globalCountries: ["🇰🇷 韓国", "🇺🇸 アメリカ", "🇯🇵 日本", "🇨🇳 中国", "🇩🇪 ドイツ", "🇪🇸 スペイン", "🇸🇦 サウジ", "🇫🇷 フランス", "🇷🇺 ロシア", "🇮🇳 インド", "🇧🇷 ブラジル", "🇳🇿 ニュージーランド", "🇦🇺 オーストラリア", "🇨🇦 カナダ"],
+    visionTitle: "EverWillと共に成長しましょう",
+    visionSubtitle: "世界初のデジタル遺言OS、EverWillはグローバルパートナーを募集しています。市場が開く前に先行者になりましょう。",
+    visionStats: [
+      { value: "700万+", label: "在外韓国人ターゲット顧客" },
+      { value: "14カ国", label: "グローバル進出国" },
+      { value: "$5,500", label: "顧客1人当たりLTV" },
+      { value: "25カ国", label: "将来の拡張目標" },
+    ],
+    visionCards: [
+      { icon: "🌍", title: "世界初のデジタル遺言OS", desc: "Trust & Will、Farewillなどグローバル競合を上回るオールインワン遺言プラットフォーム。遺言作成から死後執行まで全プロセスを自動化します。" },
+      { icon: "💰", title: "安定した長期収益", desc: "顧客が認証するだけで収益が発生します。顧客が亡くなると死後執行案件まで自動連携される継続的な収益構造です。" },
+      { icon: "🏆", title: "トップリーダーバッジシステム", desc: "毎年、国・地域別の最優秀パートナーを選定し公式バッジを授与します。グローバルカンファレンス招待＋コミッションボーナス+5%などの特典があります。" },
+    ],
+    visionLockTitle: "コミッション・等級の詳細は承認後に公開されます",
+    visionLockDesc: "申請後に管理者審査を経ると、ダッシュボードで等級別コミッション率と収益構造をご確認いただけます。",
     ctaTitle: "今すぐパートナーになりましょう",
     ctaSubtitle: "初期パートナーには特別な特典が提供されます。共にグローバル遺言市場をリードしましょう。",
   },
@@ -833,6 +842,21 @@ const partnerTexts: Record<string, any> = {
     globalTitle: "在全球范围内活动",
     globalSubtitle: "EverWill在14个国家招募合作伙伴。将来扩展至25个国家。",
     globalCountries: ["🇰🇷 韩国", "🇺🇸 美国", "🇯🇵 日本", "🇨🇳 中国", "🇩🇪 德国", "🇪🇸 西班牙", "🇸🇦 沙特", "🇫🇷 法国", "🇷🇺 俄罗斯", "🇮🇳 印度", "🇧🇷 巴西", "🇳🇿 新西兰", "🇦🇺 澳大利亚", "🇨🇦 加拿大"],
+    visionTitle: "与EverWill共同成长",
+    visionSubtitle: "世界首个数字遗嘱OS，EverWill正在招募全球合作伙伴。市场开放之前成为先行者。",
+    visionStats: [
+      { value: "700万+", label: "海外韩国人目标客户" },
+      { value: "14个国家", label: "全球进出国家" },
+      { value: "$5,500", label: "每位客户LTV" },
+      { value: "25个国家", label: "未来扩展目标" },
+    ],
+    visionCards: [
+      { icon: "🌍", title: "世界首个数字遗嘱OS", desc: "超越Trust & Will、Farewill等全球竞争对手的一站式遗嘱平台。从遗嘱制作到死后执行，全流程自动化。" },
+      { icon: "💰", title: "稳定的长期收益", desc: "客户完成认证即可产生收益。客户去世后自动承接死后执行案件，持续稳定的收益结构。" },
+      { icon: "🏆", title: "顶尖领袖徽章系统", desc: "每年按国家和地区选出最优秀合作伙伴授予官方徽章。全球大会邀请+佣金奖金+5%等特别福利。" },
+    ],
+    visionLockTitle: "佣金和等级详细信息将在审批后公开",
+    visionLockDesc: "申请经管理员审核后，可在仔表板查看各等级佣金率和收益结构。",
     ctaTitle: "立即成为合作伙伴",
     ctaSubtitle: "早期合作伙伴将获得特别优惠。一起引领全球遗嘱市场。",
   },
