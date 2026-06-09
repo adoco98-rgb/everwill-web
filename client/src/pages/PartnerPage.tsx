@@ -337,6 +337,179 @@ export default function PartnerPage() {
         </div>
       </section>
 
+      {/* 명예의 전당 섹션 */}
+      <section className="py-24 px-6 bg-[#FAFAFA]">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <div className="inline-flex items-center gap-2 bg-[#C9A961]/15 border border-[#C9A961]/30 rounded-full px-5 py-2 mb-6">
+              <Award className="w-4 h-4 text-[#C9A961]" />
+              <span className="text-[#C9A961] text-sm font-semibold">
+                {language === 'ko' ? '2025 연간 수상자' : language === 'ja' ? '2025年度受賞者' : language === 'zh' ? '2025年度获奖者' : '2025 Annual Award Winners'}
+              </span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-[#1A1A1A] mb-4">
+              {language === 'ko' ? '명예의 전당' : language === 'ja' ? '名誉の殿堂・ホール・オブ・フェイム' : language === 'zh' ? '荣誉殿堂' : 'Hall of Fame'}
+            </h2>
+            <p className="text-lg text-[#6B7280] max-w-2xl mx-auto">
+              {language === 'ko' ? '2025년 각 국가와 지역에서 가장 높은 기여도를 보인 파트너들입니다.' : language === 'ja' ? '2025年度に各国・地域で最💡高の貢献を示したパートナー。' : language === 'zh' ? '2025年度在各国和地区贡献最大的合作伙伴。' : 'Partners who showed the highest contribution in each country and region in 2025.'}
+            </p>
+          </motion.div>
+
+          {/* 글로벌 탑 리더 */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-12"
+          >
+            <div className="relative bg-gradient-to-br from-[#1F3864] to-[#0f1e36] rounded-3xl p-8 md:p-12 overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#C9A961]/10 rounded-full -translate-y-32 translate-x-32" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#C9A961]/5 rounded-full translate-y-24 -translate-x-24" />
+              <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                <div className="flex-shrink-0 text-center">
+                  <div className="relative inline-block">
+                    <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#C9A961] to-[#a07830] flex items-center justify-center text-5xl shadow-2xl">
+                      👑
+                    </div>
+                    <div className="absolute -bottom-2 -right-2 bg-[#C9A961] rounded-full px-2 py-0.5 text-[#1F3864] text-xs font-bold shadow">
+                      #1 GLOBAL
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <div className="flex justify-center gap-1 mb-1">
+                      {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 fill-[#C9A961] text-[#C9A961]" />)}
+                    </div>
+                    <span className="text-[#C9A961] text-xs font-semibold">Global Top Leader</span>
+                  </div>
+                </div>
+                <div className="flex-1 text-center md:text-left">
+                  <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-3">
+                    <span className="px-3 py-1 bg-[#C9A961]/20 border border-[#C9A961]/40 rounded-full text-[#C9A961] text-xs font-semibold">👑 2025 글로벌 탑 리더</span>
+                    <span className="px-3 py-1 bg-white/10 rounded-full text-white/70 text-xs">🇰🇷 한국</span>
+                    <span className="px-3 py-1 bg-white/10 rounded-full text-white/70 text-xs">변호사</span>
+                  </div>
+                  <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">Kim Ji-hoon <span className="text-[#C9A961]">(김지훈)</span></h3>
+                  <p className="text-white/70 mb-4 leading-relaxed">
+                    {language === 'ko'
+                      ? 'EverWill을 통해 고객 847명의 유언 집행을 도왔습니다. 단순한 수수료가 아니라 진정한 의미 있는 일을 한다는 보람이 있습니다.'
+                      : 'Through EverWill, I helped 847 clients execute their wills. Truly meaningful work.'}
+                  </p>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="bg-white/10 rounded-xl p-3 text-center">
+                      <div className="text-2xl font-bold text-[#C9A961]">847</div>
+                      <div className="text-white/60 text-xs mt-1">{language === 'ko' ? '유언 집행' : 'Wills Executed'}</div>
+                    </div>
+                    <div className="bg-white/10 rounded-xl p-3 text-center">
+                      <div className="text-2xl font-bold text-[#C9A961]">₩184M</div>
+                      <div className="text-white/60 text-xs mt-1">{language === 'ko' ? '연간 수입' : 'Annual Revenue'}</div>
+                    </div>
+                    <div className="bg-white/10 rounded-xl p-3 text-center">
+                      <div className="text-2xl font-bold text-[#C9A961]">4.98</div>
+                      <div className="text-white/60 text-xs mt-1">{language === 'ko' ? '고객 평점' : 'Client Rating'}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* 국가별 탑 리더 그리드 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {[
+              { flag: "🇺🇸", country: language === 'ko' ? '미국' : 'USA', name: "Sarah Mitchell", title: language === 'ko' ? '미국 탑 리더' : 'USA Top Leader', role: language === 'ko' ? '유언 전문 변호사' : 'Estate Attorney', badge: "🏆", stats: { a: "612", b: "$142K", c: "4.97" }, quote: language === 'ko' ? '"EverWill로 매달 새로운 고객을 만납니다."' : '"I meet new clients every month through EverWill."', color: "from-blue-900 to-blue-800" },
+              { flag: "🇯🇵", country: language === 'ko' ? '일본' : 'Japan', name: "Tanaka Hiroshi", title: language === 'ko' ? '일본 탑 리더' : 'Japan Top Leader', role: language === 'ko' ? '사법서사' : 'Judicial Scrivener', badge: "🏆", stats: { a: "534", b: "¥18.2M", c: "4.96" }, quote: language === 'ko' ? '"2025년 일본 유언 시장의 선두주자로 서있습니다."' : '"Standing at the forefront of Japan\'s 2025 will market."', color: "from-red-900 to-red-800" },
+              { flag: "🇨🇳", country: language === 'ko' ? '중국' : 'China', name: "Li Wei (리 웨이)", title: language === 'ko' ? '중국 탑 리더' : 'China Top Leader', role: language === 'ko' ? '법률 컴설턴트' : 'Legal Consultant', badge: "🏆", stats: { a: "489", b: "¥1.1M", c: "4.95" }, quote: language === 'ko' ? '"EverWill은 중국 상속 시장의 게임체인저입니다."' : '"EverWill is a game-changer for China\'s inheritance market."', color: "from-yellow-900 to-yellow-800" },
+              { flag: "🇩🇪", country: language === 'ko' ? '독일' : 'Germany', name: "Klaus Weber", title: language === 'ko' ? '독일 탑 리더' : 'Germany Top Leader', role: language === 'ko' ? '노타리우스' : 'Notary', badge: "🏆", stats: { a: "401", b: "€98K", c: "4.94" }, quote: language === 'ko' ? '"독일 고객들에게 신뢰할 수 있는 유언 서비스를 제공합니다."' : '"Providing trustworthy will services to German clients."', color: "from-gray-800 to-gray-700" },
+              { flag: "🇦🇺", country: language === 'ko' ? '호주' : 'Australia', name: "Emma Thompson", title: language === 'ko' ? '호주 탑 리더' : 'Australia Top Leader', role: language === 'ko' ? '유언 전문 변호사' : 'Wills & Estates Lawyer', badge: "🏆", stats: { a: "378", b: "A$128K", c: "4.96" }, quote: language === 'ko' ? '"EverWill로 호주 전역 고객들을 돕고 있습니다."' : '"Helping clients across all of Australia with EverWill."', color: "from-green-900 to-green-800" },
+              { flag: "🇸🇦", country: language === 'ko' ? '사우디' : 'Saudi Arabia', name: "Ahmed Al-Rashid", title: language === 'ko' ? '사우디 탑 리더' : 'Saudi Top Leader', role: language === 'ko' ? '이슬람 법률 전문가' : 'Islamic Law Specialist', badge: "🏆", stats: { a: "356", b: "$118K", c: "4.93" }, quote: language === 'ko' ? '"샤리아법 기반 상속 서비스를 제공합니다."' : '"Providing Sharia-based inheritance services."', color: "from-emerald-900 to-emerald-800" },
+            ].map((leader, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className={`bg-gradient-to-br ${leader.color} rounded-2xl p-6 border border-white/10 hover:border-[#C9A961]/40 transition-all`}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-2xl">
+                      {leader.flag}
+                    </div>
+                    <div>
+                      <div className="text-white font-bold text-sm">{leader.name}</div>
+                      <div className="text-white/60 text-xs">{leader.role}</div>
+                    </div>
+                  </div>
+                  <div className="text-2xl">{leader.badge}</div>
+                </div>
+                <div className="mb-4">
+                  <span className="px-2 py-1 bg-[#C9A961]/20 border border-[#C9A961]/30 rounded-full text-[#C9A961] text-xs font-semibold">
+                    {leader.title}
+                  </span>
+                </div>
+                <p className="text-white/70 text-sm italic mb-4 leading-relaxed">{leader.quote}</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-white/10 rounded-lg p-2 text-center">
+                    <div className="text-[#C9A961] font-bold text-sm">{leader.stats.a}</div>
+                    <div className="text-white/50 text-xs">{language === 'ko' ? '집행' : 'Cases'}</div>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-2 text-center">
+                    <div className="text-[#C9A961] font-bold text-sm">{leader.stats.b}</div>
+                    <div className="text-white/50 text-xs">{language === 'ko' ? '수입' : 'Revenue'}</div>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-2 text-center">
+                    <div className="text-[#C9A961] font-bold text-sm">{leader.stats.c}</div>
+                    <div className="text-white/50 text-xs">{language === 'ko' ? '평점' : 'Rating'}</div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* 헬퍼 그룹 탑 리더 */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-gradient-to-r from-[#1F3864] to-[#2a4a7f] rounded-3xl p-8 border border-[#C9A961]/20"
+          >
+            <div className="text-center mb-8">
+              <span className="px-4 py-1.5 bg-[#C9A961]/20 border border-[#C9A961]/40 text-[#C9A961] rounded-full text-sm font-semibold">
+                {language === 'ko' ? '헬퍼 그룹 탑 리더' : 'Helper Group Top Leaders'}
+              </span>
+              <h3 className="text-2xl font-bold text-white mt-4 mb-2">
+                {language === 'ko' ? '다양한 직종에서 말마를 이어가는 사람들' : 'People from Diverse Fields Carrying the Legacy'}
+              </h3>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { emoji: "👩‍⚕️", name: language === 'ko' ? '박수연 간호사' : 'Park Suyeon, RN', country: "🇰🇷", badge: language === 'ko' ? '한국 헬퍼 탑' : 'KR Helper Top', cases: "312", rating: "4.99" },
+                { emoji: "👨‍💼", name: language === 'ko' ? 'James Park 자영업자' : 'James Park, Self-Employed', country: "🇺🇸", badge: language === 'ko' ? '미국 헬퍼 탑' : 'US Helper Top', cases: "287", rating: "4.97" },
+                { emoji: "👩‍🏫", name: language === 'ko' ? '스즈키 유카리' : 'Suzuki Yukari, SW', country: "🇯🇵", badge: language === 'ko' ? '일본 헬퍼 탑' : 'JP Helper Top', cases: "265", rating: "4.96" },
+                { emoji: "🎥", name: language === 'ko' ? 'Chen Mei 유튜버' : 'Chen Mei, YouTuber', country: "🇨🇳", badge: language === 'ko' ? '중국 헬퍼 탑' : 'CN Helper Top', cases: "243", rating: "4.95" },
+              ].map((h, i) => (
+                <div key={i} className="bg-white/10 rounded-2xl p-5 text-center border border-white/10 hover:border-[#C9A961]/30 transition-all">
+                  <div className="text-4xl mb-3">{h.emoji}</div>
+                  <div className="text-lg mb-1">{h.country}</div>
+                  <div className="text-white font-semibold text-sm mb-1">{h.name}</div>
+                  <div className="px-2 py-0.5 bg-[#C9A961]/20 rounded-full text-[#C9A961] text-xs mb-3">{h.badge}</div>
+                  <div className="flex justify-center gap-3 text-xs">
+                    <span className="text-white/60">{h.cases} {language === 'ko' ? '코드' : 'codes'}</span>
+                    <span className="text-[#C9A961]">★ {h.rating}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* 최종 CTA 섹션 */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
