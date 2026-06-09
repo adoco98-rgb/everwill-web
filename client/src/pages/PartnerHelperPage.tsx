@@ -5,11 +5,12 @@
  */
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Users, ArrowLeft, ArrowRight, CheckCircle, Upload, User, Mail, Phone, MapPin, Globe, Tag } from "lucide-react";
+import { Users, ArrowLeft, ArrowRight, CheckCircle, Upload, User, MapPin, Globe, Tag } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { PhoneVerifyField, EmailVerifyField } from "@/components/PartnerVerifyFields";
 
 // 헬퍼 유형 목록
 const HELPER_TYPES = {
@@ -44,6 +45,8 @@ export default function PartnerHelperPage() {
   const texts = helperTexts[lang] || helperTexts.en;
 
   const [step, setStep] = useState(1);
+  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
   const [formData, setFormData] = useState({
     // Step 1: 기본 정보
     name: "",
@@ -138,26 +141,22 @@ export default function PartnerHelperPage() {
                   placeholder={texts.namePlaceholder}
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-[#1A1A1A] mb-2">{texts.emailLabel} *</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={e => updateField("email", e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#C9A961] focus:border-transparent outline-none"
-                  placeholder={texts.emailPlaceholder}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-[#1A1A1A] mb-2">{texts.phoneLabel} *</label>
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={e => updateField("phone", e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#C9A961] focus:border-transparent outline-none"
-                  placeholder={texts.phonePlaceholder}
-                />
-              </div>
+              <EmailVerifyField
+                email={formData.email}
+                onEmailChange={v => updateField("email", v)}
+                verified={emailVerified}
+                onVerified={() => setEmailVerified(true)}
+                label={texts.emailLabel}
+                placeholder={texts.emailPlaceholder}
+              />
+              <PhoneVerifyField
+                phone={formData.phone}
+                onPhoneChange={v => updateField("phone", v)}
+                verified={phoneVerified}
+                onVerified={() => setPhoneVerified(true)}
+                label={texts.phoneLabel}
+                placeholder={texts.phonePlaceholder}
+              />
               <div>
                 <label className="block text-sm font-medium text-[#1A1A1A] mb-2">{texts.passwordLabel} *</label>
                 <input
@@ -342,7 +341,9 @@ export default function PartnerHelperPage() {
           {step < 3 ? (
             <button
               onClick={() => setStep(step + 1)}
-              className="px-6 py-3 bg-[#C9A961] hover:bg-[#b8953a] text-[#1F3864] font-medium rounded-xl transition-all flex items-center gap-2"
+              disabled={step === 1 && (!emailVerified || !phoneVerified)}
+              title={step === 1 && (!emailVerified || !phoneVerified) ? "이메일과 전화번호 인증을 완료해주세요" : undefined}
+              className="px-6 py-3 bg-[#C9A961] hover:bg-[#b8953a] disabled:bg-gray-300 disabled:cursor-not-allowed text-[#1F3864] font-medium rounded-xl transition-all flex items-center gap-2"
             >
               {texts.nextBtn}
               <ArrowRight className="w-4 h-4" />
