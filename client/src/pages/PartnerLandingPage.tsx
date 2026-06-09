@@ -7,18 +7,20 @@ import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const COUNTRIES = [
-  { code: "KR", flag: "🇰🇷", lang: "ko", name: "한국", nameEn: "Korea" },
-  { code: "US", flag: "🇺🇸", lang: "en", name: "미국", nameEn: "United States" },
-  { code: "JP", flag: "🇯🇵", lang: "ja", name: "일본", nameEn: "Japan" },
-  { code: "CN", flag: "🇨🇳", lang: "zh", name: "중국", nameEn: "China" },
-  { code: "DE", flag: "🇩🇪", lang: "en", name: "독일", nameEn: "Germany" },
-  { code: "ES", flag: "🇪🇸", lang: "en", name: "스페인", nameEn: "Spain" },
-  { code: "FR", flag: "🇫🇷", lang: "en", name: "프랑스", nameEn: "France" },
-  { code: "GB", flag: "🇬🇧", lang: "en", name: "영국", nameEn: "United Kingdom" },
-  { code: "AU", flag: "🇦🇺", lang: "en", name: "호주", nameEn: "Australia" },
-  { code: "CA", flag: "🇨🇦", lang: "en", name: "캐나다", nameEn: "Canada" },
-  { code: "SA", flag: "🇸🇦", lang: "en", name: "사우디", nameEn: "Saudi Arabia" },
-  { code: "IN", flag: "🇮🇳", lang: "en", name: "인도", nameEn: "India" },
+  { code: "KR", flagImg: "https://flagcdn.com/w80/kr.png", lang: "ko", name: "한국", nameEn: "Korea" },
+  { code: "US", flagImg: "https://flagcdn.com/w80/us.png", lang: "en", name: "미국", nameEn: "United States" },
+  { code: "JP", flagImg: "https://flagcdn.com/w80/jp.png", lang: "ja", name: "일본", nameEn: "Japan" },
+  { code: "CN", flagImg: "https://flagcdn.com/w80/cn.png", lang: "zh", name: "중국", nameEn: "China" },
+  { code: "DE", flagImg: "https://flagcdn.com/w80/de.png", lang: "en", name: "독일", nameEn: "Germany" },
+  { code: "ES", flagImg: "https://flagcdn.com/w80/es.png", lang: "en", name: "스페인", nameEn: "Spain" },
+  { code: "SA", flagImg: "https://flagcdn.com/w80/sa.png", lang: "en", name: "사우디", nameEn: "Saudi Arabia" },
+  { code: "FR", flagImg: "https://flagcdn.com/w80/fr.png", lang: "en", name: "프랑스", nameEn: "France" },
+  { code: "RU", flagImg: "https://flagcdn.com/w80/ru.png", lang: "en", name: "러시아", nameEn: "Russia" },
+  { code: "IN", flagImg: "https://flagcdn.com/w80/in.png", lang: "en", name: "인도", nameEn: "India" },
+  { code: "BR", flagImg: "https://flagcdn.com/w80/br.png", lang: "en", name: "브라질", nameEn: "Brazil" },
+  { code: "NZ", flagImg: "https://flagcdn.com/w80/nz.png", lang: "en", name: "뉴질랜드", nameEn: "New Zealand" },
+  { code: "AU", flagImg: "https://flagcdn.com/w80/au.png", lang: "en", name: "호주", nameEn: "Australia" },
+  { code: "CA", flagImg: "https://flagcdn.com/w80/ca.png", lang: "en", name: "캐나다", nameEn: "Canada" },
 ];
 
 export default function PartnerLandingPage() {
@@ -64,7 +66,7 @@ export default function PartnerLandingPage() {
             onClick={() => handleCountrySelect(country.lang)}
             className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all border border-white/10 hover:border-[#C9A961]/50"
           >
-            <span className="text-5xl md:text-6xl">{country.flag}</span>
+            <img src={country.flagImg} alt={country.nameEn} className="w-14 h-10 object-cover rounded-sm" />
             <span className="text-white text-xs font-medium">{country.nameEn}</span>
           </motion.button>
         ))}

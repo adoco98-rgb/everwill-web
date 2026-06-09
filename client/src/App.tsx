@@ -141,6 +141,7 @@ function Router() {
       <Route path={"/country/:code"} component={CountryPage} />
       {/* 파트너센터 라우트 */}
       <Route path={"/partner"} component={PartnerLandingPage} />
+      <Route path={"/partner/home"} component={PartnerPage} />
       <Route path={"/partner/join"} component={PartnerPage} />
       <Route path={"/partner/professional"} component={PartnerProfessionalPage} />
       <Route path={"/partner/helper"} component={PartnerHelperPage} />
