@@ -260,6 +260,57 @@ export default function PartnerPage() {
         </div>
       </section>
 
+      {/* 탑 리더 배지 섹션 */}
+      <section className="py-20 px-6 bg-gradient-to-br from-[#1A1A1A] to-[#2D2D2D]">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-14"
+          >
+            <div className="inline-flex items-center gap-2 bg-[#C9A961]/20 border border-[#C9A961]/40 rounded-full px-5 py-2 mb-6">
+              <Star className="w-4 h-4 text-[#C9A961]" />
+              <span className="text-[#C9A961] text-sm font-semibold">{texts.topLeaderBadge}</span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              {texts.topLeaderTitle}
+            </h2>
+            <p className="text-lg text-white/70 max-w-2xl mx-auto">
+              {texts.topLeaderSubtitle}
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {texts.topLeaderCards.map((card: any, i: number) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center hover:border-[#C9A961]/50 transition-colors"
+              >
+                <div className="text-5xl mb-4">{card.icon}</div>
+                <h3 className="text-xl font-bold text-[#C9A961] mb-3">{card.title}</h3>
+                <p className="text-white/70 text-sm leading-relaxed">{card.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-12 bg-[#C9A961]/10 border border-[#C9A961]/30 rounded-2xl p-8 text-center"
+          >
+            <Award className="w-12 h-12 text-[#C9A961] mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-white mb-3">{texts.topLeaderHonorTitle}</h3>
+            <p className="text-white/70 max-w-2xl mx-auto">{texts.topLeaderHonorDesc}</p>
+          </motion.div>
+        </div>
+      </section>
+
       {/* 글로벌 지원 섹션 */}
       <section className="py-20 px-6 bg-[#1F3864]">
         <div className="max-w-6xl mx-auto text-center">
@@ -398,6 +449,16 @@ const partnerTexts: Record<string, any> = {
       { title: "사후 집행 수임", desc: "전문가 그룹 한정. 관리 고객 사망 시 자동으로 수임 연결", highlight: "보수의 75~85%" },
       { title: "글로벌 활동", desc: "14개국 지원, 전 세계 어디서나 파트너 활동 가능 (추후 25개국 확장)", highlight: "14개국" },
     ],
+    topLeaderBadge: "EverWill Top Leader Award",
+    topLeaderTitle: "탑 리더 배지",
+    topLeaderSubtitle: "매년 말, 각 국가와 지역에서 가장 높은 기여도를 보인 파트너를 선정하여 탑 리더 배지를 수여합니다.",
+    topLeaderCards: [
+      { icon: "🏆", title: "국가 탑 리더", desc: "각 진출 국가(14개국)에서 연간 최다 실적을 올린 파트너 1인에게 수여. 국가를 대표하는 업적 인증서" },
+      { icon: "🏡", title: "지역 탑 리더", desc: "각 국가 내 주요 도시 및 지역에서 가장 높은 기여도를 보인 파트너에게 수여. 지역 독점 마케팅 권한" },
+      { icon: "👑", title: "글로벌 탑 리더", desc: "전 세계 모든 국가를 통합한 연간 최다 실적자에게 수여. EverWill 공식 타이틀 + 특별 보너스" },
+    ],
+    topLeaderHonorTitle: "탑 리더 배지는 단순한 상이 아닙니다",
+    topLeaderHonorDesc: "탑 리더로 선정되면 EverWill 공식 파트너 프로필에 배지가 표시되며, 신규 고객 유치 시 우선 노출 혜택과 함께 연간 커미션 보너스(+5%)가 적용됩니다. 또한 EverWill 연간 콘퍼런스에 초청되어 글로벌 네트워크를 확장할 수 있습니다.",
     globalTitle: "전 세계에서 활동하세요",
     globalSubtitle: "EverWill은 14개국에서 파트너를 모집합니다. 추후 25개국으로 확장할 예정입니다.",
     globalCountries: ["🇰🇷 한국", "🇺🇸 미국", "🇯🇵 일본", "🇨🇳 중국", "🇩🇪 독일", "🇪🇸 스페인", "🇸🇦 사우디", "🇫🇷 프랑스", "🇷🇺 러시아", "🇮🇳 인도", "🇧🇷 브라질", "🇳🇿 뉴질랜드", "🇦🇺 호주", "🇨🇦 캐나다"],
@@ -454,6 +515,16 @@ const partnerTexts: Record<string, any> = {
       { title: "Post-Death Case Assignment", desc: "Professional group only. Automatically assigned when managed client passes away", highlight: "75-85% of fees" },
       { title: "Global Activity", desc: "Active in 14 countries, partner anywhere in the world (expanding to 25 countries)", highlight: "14 Countries" },
     ],
+    topLeaderBadge: "EverWill Top Leader Award",
+    topLeaderTitle: "Top Leader Badge",
+    topLeaderSubtitle: "Every year, the partner with the highest contribution in each country and region is selected and awarded the Top Leader Badge.",
+    topLeaderCards: [
+      { icon: "🏆", title: "Country Top Leader", desc: "Awarded to the top-performing partner in each of the 14 countries annually. Official achievement certificate representing the country." },
+      { icon: "🏡", title: "Regional Top Leader", desc: "Awarded to the highest-contributing partner in major cities and regions within each country. Exclusive regional marketing rights." },
+      { icon: "👑", title: "Global Top Leader", desc: "Awarded to the top annual performer across all countries worldwide. Official EverWill title + special bonus." },
+    ],
+    topLeaderHonorTitle: "The Top Leader Badge is more than just an award",
+    topLeaderHonorDesc: "Top Leaders receive a badge on their official EverWill partner profile, priority exposure when attracting new clients, an annual commission bonus (+5%), and an invitation to the EverWill Annual Conference to expand their global network.",
     globalTitle: "Operate Globally",
     globalSubtitle: "EverWill recruits partners in 14 countries. Expanding to 25 countries soon.",
     globalCountries: ["🇰🇷 Korea", "🇺🇸 USA", "🇯🇵 Japan", "🇨🇳 China", "🇩🇪 Germany", "🇪🇸 Spain", "🇸🇦 Saudi Arabia", "🇫🇷 France", "🇷🇺 Russia", "🇮🇳 India", "🇧🇷 Brazil", "🇳🇿 New Zealand", "🇦🇺 Australia", "🇨🇦 Canada"],
@@ -510,6 +581,16 @@ const partnerTexts: Record<string, any> = {
       { title: "死後執行受任", desc: "専門家グループ限定。管理顧客の死亡時に自動受任連携", highlight: "報酬の75〜85%" },
       { title: "グローバル活動", desc: "14カ国対応、世界中どこでもパートナー活動可能（25カ国へ拡大予定）", highlight: "14カ国" },
     ],
+    topLeaderBadge: "EverWill トップリーダー賞",
+    topLeaderTitle: "トップリーダーバッジ",
+    topLeaderSubtitle: "毎年末、各国・地域で最も高い貢献度を示したパートナーを選出し、トップリーダーバッジを授与します。",
+    topLeaderCards: [
+      { icon: "🏆", title: "国別トップリーダー", desc: "各進出国（14カ国）で年間最多実績を上げたパートナー1名に授与。国を代表する実績証明書。" },
+      { icon: "🏡", title: "地域トップリーダー", desc: "各国内の主要都市・地域で最も高い貢献度を示したパートナーに授与。地域独占マーケティング権限。" },
+      { icon: "👑", title: "グローバルトップリーダー", desc: "全世界全国を統合した年間最多実績者に授与。EverWill公式タイトル＋特別ボーナス。" },
+    ],
+    topLeaderHonorTitle: "トップリーダーバッジは単なる賞ではありません",
+    topLeaderHonorDesc: "トップリーダーに選出されると、EverWill公式パートナープロフィールにバッジが表示され、新規顧客獲得時の優先表示特典と年間コミッションボーナス（+5%）が適用されます。またEverWill年次カンファレンスに招待され、グローバルネットワークを拡大できます。",
     globalTitle: "世界中で活動しましょう",
     globalSubtitle: "EverWillは14カ国でパートナーを募集しています。今後25カ国へ拡大予定です。",
     globalCountries: ["🇰🇷 韓国", "🇺🇸 アメリカ", "🇯🇵 日本", "🇨🇳 中国", "🇩🇪 ドイツ", "🇪🇸 スペイン", "🇸🇦 サウジ", "🇫🇷 フランス", "🇷🇺 ロシア", "🇮🇳 インド", "🇧🇷 ブラジル", "🇳🇿 ニュージーランド", "🇦🇺 オーストラリア", "🇨🇦 カナダ"],
@@ -566,6 +647,16 @@ const partnerTexts: Record<string, any> = {
       { title: "死后执行承接", desc: "仅限专家组。管理客户去世时自动承接案件", highlight: "报酬的75~85%" },
       { title: "全球活动", desc: "支持14个国家，在世界任何地方都可以作为合作伙伴活动（将扩展至25个国家）", highlight: "14个国家" },
     ],
+    topLeaderBadge: "EverWill 顶尖领袖奖",
+    topLeaderTitle: "顶尖领袖徽章",
+    topLeaderSubtitle: "每年年底，在每个国家和地区选出贡献最大的合作伙伴，授予顶尖领袖徽章。",
+    topLeaderCards: [
+      { icon: "🏆", title: "国家顶尖领袖", desc: "对每个进入国家（14个国家）年度业绩最佳的合作伙伴授予。代表该国的业绩证书。" },
+      { icon: "🏡", title: "地区顶尖领袖", desc: "对各国内主要城市和地区贡献最大的合作伙伴授予。地区独家营销权限。" },
+      { icon: "👑", title: "全球顶尖领袖", desc: "对全球所有国家年度业绩最佳者授予。EverWill官方称号＋特别奖金。" },
+    ],
+    topLeaderHonorTitle: "顶尖领袖徽章不仅仅是一个奖项",
+    topLeaderHonorDesc: "入选顶尖领袖后，EverWill官方合作伙伴资料上展示徽章，吸引新客户时优先展示，年度佣金奖金（+5%）以及受邀参加EverWill年度大会，拓展全球业务网络。",
     globalTitle: "在全球范围内活动",
     globalSubtitle: "EverWill在14个国家招募合作伙伴。将来扩展至25个国家。",
     globalCountries: ["🇰🇷 韩国", "🇺🇸 美国", "🇯🇵 日本", "🇨🇳 中国", "🇩🇪 德国", "🇪🇸 西班牙", "🇸🇦 沙特", "🇫🇷 法国", "🇷🇺 俄罗斯", "🇮🇳 印度", "🇧🇷 巴西", "🇳🇿 新西兰", "🇦🇺 澳大利亚", "🇨🇦 加拿大"],

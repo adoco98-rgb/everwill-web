@@ -12,12 +12,58 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { PhoneVerifyField, EmailVerifyField } from "@/components/PartnerVerifyFields";
 
-// 헬퍼 유형 목록
+// 헬퍼 유형 목록 (다양한 직종 포함)
 const HELPER_TYPES = {
-  ko: ["보험설계사", "유튜버", "셀럽/인플루언서", "블로거", "재무설계사", "부동산중개사", "일반 영업", "기타"],
-  en: ["Insurance Agent", "YouTuber", "Celebrity/Influencer", "Blogger", "Financial Planner", "Real Estate Agent", "General Sales", "Other"],
-  ja: ["保険代理店", "YouTuber", "セレブ/インフルエンサー", "ブロガー", "ファイナンシャルプランナー", "不動産仲介", "一般営業", "その他"],
-  zh: ["保险代理人", "YouTuber", "名人/网红", "博主", "理财规划师", "房产中介", "一般销售", "其他"],
+  ko: [
+    // 의료·돌봄
+    "간호사", "요양보호사", "사회복지사", "의료코디네이터",
+    // 금융·보험
+    "보험설계사", "재무설계사", "세무사 보조", "금융상담사",
+    // 부동산·법률
+    "부동산중개사", "법무 보조",
+    // 미디어·마케팅
+    "유튜버", "셀럽/인플루언서", "블로거", "팟캐스터", "SNS 마케터",
+    // 자영업·서비스
+    "자영업자", "프리랜서", "웨딩플래너", "장례지도사", "종교인",
+    // 교육·상담
+    "강사/교사", "심리상담사", "코치",
+    // 기타
+    "일반 영업", "기타"
+  ],
+  en: [
+    // Medical & Care
+    "Nurse", "Caregiver", "Social Worker", "Medical Coordinator",
+    // Finance & Insurance
+    "Insurance Agent", "Financial Planner", "Tax Assistant", "Financial Consultant",
+    // Real Estate & Legal
+    "Real Estate Agent", "Legal Assistant",
+    // Media & Marketing
+    "YouTuber", "Celebrity/Influencer", "Blogger", "Podcaster", "SNS Marketer",
+    // Self-employed & Service
+    "Self-Employed", "Freelancer", "Wedding Planner", "Funeral Director", "Religious Leader",
+    // Education & Counseling
+    "Instructor/Teacher", "Counselor", "Coach",
+    // Other
+    "General Sales", "Other"
+  ],
+  ja: [
+    "看護師", "介護士", "社会福祉士", "医療コーディネーター",
+    "保険代理店", "ファイナンシャルプランナー", "税務補助", "金融コンサルタント",
+    "不動産仲介", "法務補助",
+    "YouTuber", "セレブ/インフルエンサー", "ブロガー", "ポッドキャスター", "SNSマーケター",
+    "自営業者", "フリーランサー", "ウェディングプランナー", "葬儀ディレクター", "宗教家",
+    "講師/教師", "カウンセラー", "コーチ",
+    "一般営業", "その他"
+  ],
+  zh: [
+    "护士", "护理员", "社会工作者", "医疗协调员",
+    "保险代理人", "理财规划师", "税务助理", "金融顾问",
+    "房产中介", "法律助理",
+    "YouTuber", "名人/网红", "博主", "播客主持人", "社媒营销师",
+    "自营业者", "自由职业者", "婚礼策划师", "殡仪主持人", "宗教人士",
+    "讲师/教师", "心理咨询师", "教练",
+    "一般销售", "其他"
+  ],
 };
 
 // 국가 목록
@@ -371,7 +417,7 @@ const helperTexts: Record<string, any> = {
   ko: {
     backToPartner: "파트너센터로 돌아가기",
     title: "헬퍼 그룹 가입",
-    subtitle: "보험설계사 · 유튜버 · 셀럽 · 블로거",
+    subtitle: "간호사 · 요양보호사 · 자영업자 · 보험설계사 · 유튜버 · 웨딩플래너 · 장례지도사 · 기타 다양한 직종",
     step1Title: "기본 정보",
     step2Title: "활동 정보",
     step3Title: "활동 지역 및 프로필",
@@ -407,7 +453,7 @@ const helperTexts: Record<string, any> = {
     feeNotice: "헬퍼 그룹 가입비",
     freeTrialBadge: "3개월 무료 체험",
     freeTrialDesc: "3개월간 무료로 활동 가능합니다. 이후 $49 결제 시 정식 파트너로 전환됩니다.",
-    commissionNotice: "※ 수수료는 무료 기간에도 적립되지만, 가입비 결제 후에만 출금 가능합니다.",
+    commissionNotice: "※ 커미션 조건은 전문가 그룹과 동일합니다. Bronze 15% → Silver 20% → Gold 25% → Premium 30% (등급별 자동 적용, 등급은 1년간 유지)",
     oneTime: "1회 결제",
     prevBtn: "이전",
     nextBtn: "다음",
@@ -417,7 +463,7 @@ const helperTexts: Record<string, any> = {
   en: {
     backToPartner: "Back to Partner Center",
     title: "Helper Group Registration",
-    subtitle: "Insurance Agent · YouTuber · Celebrity · Blogger",
+    subtitle: "Nurse · Caregiver · Self-Employed · Insurance Agent · YouTuber · Wedding Planner · Funeral Director · Any Profession",
     step1Title: "Basic Information",
     step2Title: "Activity Details",
     step3Title: "Location & Profile",
@@ -453,7 +499,7 @@ const helperTexts: Record<string, any> = {
     feeNotice: "Helper Group Registration Fee",
     freeTrialBadge: "3 Months Free Trial",
     freeTrialDesc: "Start free for 3 months. Pay $49 to become an official partner afterward.",
-    commissionNotice: "* Commissions are accrued during the free period, but can only be withdrawn after paying the registration fee.",
+    commissionNotice: "* Commission conditions are the same as the Professional Group: Bronze 15% → Silver 20% → Gold 25% → Premium 30% (auto-applied by tier, tier maintained for 1 year)",
     oneTime: "one-time payment",
     prevBtn: "Previous",
     nextBtn: "Next",
@@ -463,7 +509,7 @@ const helperTexts: Record<string, any> = {
   ja: {
     backToPartner: "パートナーセンターに戻る",
     title: "ヘルパーグループ登録",
-    subtitle: "保険代理店 · YouTuber · セレブ · ブロガー",
+    subtitle: "看護師 · 介護士 · 自営業者 · 保険代理店 · YouTuber · ウェディングプランナー · 葬儀ディレクター · あらゆる職種",
     step1Title: "基本情報",
     step2Title: "活動情報",
     step3Title: "活動地域・プロフィール",
