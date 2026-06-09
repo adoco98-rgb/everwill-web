@@ -197,12 +197,14 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-20">
           {/* 로고 */}
           <a href="/" className="flex items-center group shrink-0">
-            <img
-              src="/everwill-logo.png"
-              alt="EverWill Logo"
-              className="h-14 object-contain"
-              style={{ width: '180px', minWidth: '180px' }}
-            />
+            <div className="bg-white/90 rounded-xl px-3 py-1.5" style={{ minWidth: '210px' }}>
+              <img
+                src="/manus-storage/everwill-logo-transparent_03b85edf.png"
+                alt="EverWill Logo"
+                className="object-contain"
+                style={{ height: '52px', width: '190px' }}
+              />
+            </div>
           </a>
 
           {/* 데스크탑 메뉴 */}

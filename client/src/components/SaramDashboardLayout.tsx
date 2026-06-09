@@ -108,10 +108,10 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
               <Shield className="w-8 h-8 text-[#C9A961]" />
             </div>
             <img
-              src="/everwill-logo.png"
+              src="/manus-storage/everwill-logo-white-text2_1d48b8ab.png"
               alt="EverWill"
-              className="h-10 object-contain mx-auto mb-2"
-              style={{ filter: 'brightness(0) invert(1)', maxWidth: '140px' }}
+              className="object-contain mx-auto mb-2"
+              style={{ height: '48px', maxWidth: '180px' }}
             />
             <p className="text-white/60 text-sm">로그인이 필요한 페이지입니다.</p>
           </div>
@@ -177,15 +177,17 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
         }`}
       >
         {/* 로고 */}
-        <div className="p-6 border-b border-white/10">
+        <div className="px-4 py-5 border-b border-white/10">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center">
-                <img
-                  src="/everwill-logo.png"
-                  alt="EverWill"
-                  className="h-10 object-contain"
-                  style={{ filter: 'brightness(0) invert(1)', maxWidth: '140px' }}
-                />
+            <Link href="/" className="flex items-center flex-1">
+                <div className="bg-white/95 rounded-xl px-3 py-2 flex items-center" style={{ maxWidth: '210px' }}>
+                  <img
+                    src="/manus-storage/everwill-logo-transparent_03b85edf.png"
+                    alt="EverWill"
+                    className="object-contain"
+                    style={{ height: '52px', width: '180px' }}
+                  />
+                </div>
               </Link>
             <button
               onClick={() => setMobileOpen(false)}
