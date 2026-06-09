@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Check, CreditCard, Globe, Shield, ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Link, useSearch } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 type ProductKey =
   | "certification"
@@ -49,11 +50,17 @@ const PRODUCTS: { key: ProductKey; name: string; desc: string; amount: number; c
 const CATEGORIES = ["인증", "부가서비스", "보관", "Card"];
 
 export default function PaymentPage() {
+  const { user } = useAuth();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [activeCategory, setActiveCategory] = useState("인증");
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const search = useSearch();
+
+  // 로그인 사용자 이메일 자동 채우기
+  useEffect(() => {
+    if (user?.email) setEmail(user.email);
+  }, [user?.email]);
 
   // URL 파라미터에서 willId, product 추출
   const params = new URLSearchParams(search);
@@ -293,13 +300,21 @@ export default function PaymentPage() {
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">이메일 (영수증 발송)</label>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+                      이메일 (영수증 발송)
+                      {user?.email && <span className="ml-2 text-green-600 text-xs">✓ 자동 입력됨</span>}
+                    </label>
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="your@email.com"
-                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#1F3864] transition-all"
+                      readOnly={!!user?.email}
+                      className={`w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none transition-all ${
+                        user?.email
+                          ? "border-green-200 bg-green-50 text-gray-600 cursor-default"
+                          : "border-gray-200 focus:border-[#1F3864]"
+                      }`}
                     />
                   </div>
                 </>
