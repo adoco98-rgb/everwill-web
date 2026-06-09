@@ -11,7 +11,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 // 히어로 이미지
-const PARTNER_HERO = "/manus-storage/partner-hero_c6ad9518.jpg";
+const PARTNER_HERO = "/manus-storage/partner-hero_5c76b639.jpg";
 
 export default function PartnerPage() {
   const [, navigate] = useLocation();
