@@ -193,10 +193,10 @@ export default function Navbar() {
       }`}
     >
       {/* 메인 네비게이션 바 */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          {/* 로고 */}
-          <a href="/" className="flex items-center group shrink-0">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center h-20 gap-8">
+          {/* 로고 - 좌측 고정 */}
+          <a href="/" className="flex items-center group shrink-0 mr-4">
             <div className="bg-white/90 rounded-lg px-2 py-1" style={{ minWidth: '160px' }}>
               <img
                 src="/manus-storage/everwill-logo-transparent_03b85edf.png"
@@ -206,6 +206,8 @@ export default function Navbar() {
               />
             </div>
           </a>
+          {/* 메뉴+우측 버튼 전체를 flex-1로 나머지 공간 차지 */}
+          <div className="flex items-center justify-between flex-1">
 
           {/* 데스크탑 메뉴 */}
           <div className="hidden lg:flex items-center gap-4 xl:gap-6">
@@ -368,10 +370,10 @@ export default function Navbar() {
             aria-label="메뉴 열기"
           >
             {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+                    </button>
+          </div>{/* flex-1 end */}
         </div>
       </div>
-
       {/* 국기 언어 선택 바 - 네비게이션 바 하단에 항상 표시 */}
       <div className="border-t border-[#C9A961]/20 bg-[#162d52]">
         {/* 모바일: flex-wrap 2줄 / 데스크탑: overflow-x-auto 한 줄 */}
