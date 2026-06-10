@@ -106,37 +106,20 @@ function detectCountryCode(): string {
   return langMap[primary] || "US";
 }
 
-const AUTO_REDIRECT_SEC = 3;
-
 export default function PartnerLandingPage() {
   const [, navigate] = useLocation();
   const { setLanguage } = useLanguage();
   const [detectedCode, setDetectedCode] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState(AUTO_REDIRECT_SEC);
-  const [cancelled, setCancelled] = useState(false);
   const [search, setSearch] = useState("");
 
+  // 브라우저 언어 감지 → 해당 국가 하이라이트만 (자동 이동 없음)
   useEffect(() => {
     const code = detectCountryCode();
     setDetectedCode(code);
   }, []);
 
-  useEffect(() => {
-    if (!detectedCode || cancelled) return;
-    if (countdown <= 0) {
-      const country = COUNTRIES.find(c => c.code === detectedCode);
-      if (country) {
-        setLanguage(country.lang as "ko" | "en" | "ja" | "zh");
-        navigate("/partner/home");
-      }
-      return;
-    }
-    const timer = setTimeout(() => setCountdown(prev => prev - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [detectedCode, countdown, cancelled]);
-
+  // 국기 클릭 시 언어 설정 후 이동
   const handleCountrySelect = (lang: string) => {
-    setCancelled(true);
     setLanguage(lang as "ko" | "en" | "ja" | "zh");
     navigate("/partner/home");
   };
@@ -180,23 +163,19 @@ export default function PartnerLandingPage() {
         </p>
       </motion.div>
 
-      {/* 자동 감지 배너 */}
+      {/* 언어 자동 감지 안내 배너 (자동 이동 없음) */}
       <AnimatePresence>
-        {detectedCountry && !cancelled && (
+        {detectedCountry && (
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className="flex items-center gap-2 bg-[#C9A961]/20 border border-[#C9A961]/50 rounded-xl px-3 py-1.5 flex-shrink-0"
+            className="flex items-center gap-2 bg-[#C9A961]/15 border border-[#C9A961]/40 rounded-xl px-3 py-1.5 flex-shrink-0"
             style={{ fontSize: "clamp(9px, 0.9vw, 12px)", marginBottom: "clamp(6px, 1vh, 14px)" }}
           >
             <img src={detectedCountry.flagImg} alt={detectedCountry.name} className="w-6 h-4 object-cover rounded-sm" />
-            <span className="text-white">
+            <span className="text-white/80">
+              Your language detected:{" "}
               <span className="text-[#C9A961] font-semibold">{detectedCountry.name}</span>
-              {" "}detected — redirecting in{" "}
-              <span className="font-bold text-[#C9A961]">{countdown}s</span>
+              {" "}— click to continue
             </span>
-            <button onClick={() => setCancelled(true)}
-              className="ml-1 text-white/40 hover:text-white text-xs underline transition-colors">
-              Cancel
-            </button>
           </motion.div>
         )}
       </AnimatePresence>
