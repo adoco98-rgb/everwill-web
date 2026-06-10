@@ -319,7 +319,7 @@ export default function Step10Sign({ will }: StepProps) {
       }
       setKycErrorDetail(detail);
       if (newCount >= 5) {
-        toast.error("신분증 인식 5회 실패. 고객센터(1588-0000)로 문의해 주세요.");
+        toast.error("신분증 인식 5회 실패. 고객센터(070-4735-0834)로 문의해 주세요.");
       } else {
         toast.error(`신분증 인식 실패 (${newCount}/5회). ${detail}`);
       }
@@ -708,7 +708,7 @@ export default function Step10Sign({ will }: StepProps) {
                 {kycFailCount >= 5 && (
                   <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
                     <strong>⚠️ 신분증 인식 5회 실패</strong><br />
-                    고객센터 <strong>1588-0000</strong>으로 문의하시면 직접 지원드립니다.
+                    고객센터 <strong>070-4735-0834</strong>으로 문의하시면 직접 지원드립니다.
                   </div>
                 )}
                 {kycFailCount > 0 && kycFailCount < 5 && kycErrorDetail && (
