@@ -5,9 +5,11 @@
 import { motion } from "framer-motion";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { ArrowLeft, TrendingUp, Shield, DollarSign, Award, AlertCircle, CheckCircle } from "lucide-react";
+import { ArrowLeft, TrendingUp, Shield, DollarSign, Award, AlertCircle, CheckCircle, Lock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 
 const TEXTS: Record<string, any> = {
   ko: {
@@ -296,10 +298,90 @@ const TEXTS: Record<string, any> = {
   }
 };
 
+// 비로그인 잠금 화면 텍스트
+const LOCK_TEXTS: Record<string, any> = {
+  ko: {
+    title: "로그인 후 열람 가능합니다",
+    desc: "파트너 등급·커미션·정산 정책은 회원에게만 공개됩니다. 무료로 가입하고 확인하세요.",
+    login: "로그인 / 회원가입",
+    back: "파트너센터로 돌아가기",
+  },
+  en: {
+    title: "Please log in to view",
+    desc: "Partner tier, commission, and settlement policies are only available to members. Sign up for free.",
+    login: "Login / Sign Up",
+    back: "Back to Partner Center",
+  },
+  ja: {
+    title: "ログイン後に閲覧できます",
+    desc: "パートナーランク・コミッション・精算ポリシーは会員限定です。無料登録してご確認ください。",
+    login: "ログイン / 新規登録",
+    back: "パートナーセンターに戻る",
+  },
+  zh: {
+    title: "请登录后查看",
+    desc: "合作伙伴等级、佣金和结算政策仅对会员开放。免费注册即可查看。",
+    login: "登录 / 注册",
+    back: "返回合作伙伴中心",
+  },
+};
+
 export default function PartnerPolicyPage() {
   const [, navigate] = useLocation();
   const { language } = useLanguage();
   const texts = TEXTS[language] || TEXTS.ko;
+  const { isAuthenticated, loading } = useAuth();
+  const lockTexts = LOCK_TEXTS[language] || LOCK_TEXTS.ko;
+
+  // 로딩 중
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FAFAFA]">
+        <Navbar />
+        <div className="pt-24 pb-20 px-4 max-w-4xl mx-auto flex items-center justify-center min-h-[60vh]">
+          <div className="w-8 h-8 border-4 border-[#1F3864] border-t-transparent rounded-full animate-spin" />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // 비로그인 시 잠금 화면
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#FAFAFA]">
+        <Navbar />
+        <div className="pt-24 pb-20 px-4 max-w-4xl mx-auto">
+          <button
+            onClick={() => navigate("/partner")}
+            className="flex items-center gap-2 text-[#6B7280] hover:text-[#1F3864] mb-8 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {lockTexts.back}
+          </button>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center justify-center text-center py-24"
+          >
+            <div className="w-20 h-20 bg-[#1F3864]/10 rounded-full flex items-center justify-center mb-6">
+              <Lock className="w-10 h-10 text-[#1F3864]" />
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#1A1A1A] mb-4">{lockTexts.title}</h2>
+            <p className="text-[#6B7280] max-w-md mb-8 leading-relaxed">{lockTexts.desc}</p>
+            <button
+              onClick={() => window.location.href = getLoginUrl()}
+              className="px-8 py-4 bg-[#1F3864] hover:bg-[#162b50] text-white font-bold rounded-xl transition-all shadow-lg flex items-center gap-2"
+            >
+              <Lock className="w-5 h-5" />
+              {lockTexts.login}
+            </button>
+          </motion.div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
