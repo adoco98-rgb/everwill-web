@@ -1,9 +1,9 @@
 /**
- * 파트너센터 - 세계지도 위에 국기 핀 배치
- * - SVG 세계지도 배경 (메르카토르 좌표 기반)
- * - 각 국가 위치에 국기 핀
- * - 브라우저 언어 감지 → 해당 국가 하이라이트
- * - 클릭 시 해당 언어로 파트너 홈 이동
+ * 파트너센터 - 세계지도 SVG 배경 위에 국기 핀 배치
+ * - 직접 생성한 SVG 세계지도 (메르카토르 투영, 1000x500)
+ * - 각 국가 위경도 → 동일 투영 좌표로 핀 배치
+ * - 브라우저 언어 감지 → 해당 국가 골드 펄스 하이라이트
+ * - 클릭 시 이동, 호버 시 툴팁
  */
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
@@ -11,110 +11,122 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useEffect, useState } from "react";
 import { Search, X } from "lucide-react";
 
-// 메르카토르 투영 기준 % 좌표 (x: 0~100, y: 0~100)
-// 위경도 → x = (lon + 180) / 360 * 100, y = (90 - lat) / 180 * 100
-const COUNTRIES = [
+// 메르카토르 투영: viewBox 1000x500 기준 픽셀 좌표
+// x = (lon + 180) / 360 * 1000
+// y = 250 - ln(tan(π/4 + lat*π/360)) * 1000/(2π) * 0.85 + 30
+function mercator(lon: number, lat: number): [number, number] {
+  const x = (lon + 180) / 360 * 1000;
+  const latRad = lat * Math.PI / 180;
+  const mercN = Math.log(Math.tan(Math.PI / 4 + latRad / 2));
+  const y = 250 - mercN * 1000 / (2 * Math.PI) * 0.85 + 30;
+  return [x, y];
+}
+
+// 각 국가 수도/중심 위경도
+const COUNTRIES_GEO = [
   // 동아시아
-  { code: "KR", flagImg: "https://flagcdn.com/w80/kr.png", lang: "ko", name: "Korea",       x: 79.5, y: 30.5, locales: ["ko","ko-KR"] },
-  { code: "JP", flagImg: "https://flagcdn.com/w80/jp.png", lang: "ja", name: "Japan",        x: 81.5, y: 29.0, locales: ["ja","ja-JP"] },
-  { code: "CN", flagImg: "https://flagcdn.com/w80/cn.png", lang: "zh", name: "China",        x: 76.0, y: 31.5, locales: ["zh-CN","zh-Hans"] },
-  { code: "TW", flagImg: "https://flagcdn.com/w80/tw.png", lang: "zh", name: "Taiwan",       x: 79.0, y: 34.5, locales: ["zh-TW","zh-Hant"] },
-  { code: "HK", flagImg: "https://flagcdn.com/w80/hk.png", lang: "zh", name: "Hong Kong",   x: 78.0, y: 35.5, locales: ["zh-HK"] },
-  { code: "MN", flagImg: "https://flagcdn.com/w80/mn.png", lang: "en", name: "Mongolia",    x: 75.0, y: 26.0, locales: ["mn"] },
+  { code:"KR", flag:"https://flagcdn.com/w80/kr.png", lang:"ko", name:"Korea",        lon:127.0, lat:37.5,  locales:["ko","ko-KR"] },
+  { code:"JP", flag:"https://flagcdn.com/w80/jp.png", lang:"ja", name:"Japan",         lon:138.0, lat:36.0,  locales:["ja","ja-JP"] },
+  { code:"CN", flag:"https://flagcdn.com/w80/cn.png", lang:"zh", name:"China",         lon:104.0, lat:35.0,  locales:["zh-CN","zh-Hans"] },
+  { code:"TW", flag:"https://flagcdn.com/w80/tw.png", lang:"zh", name:"Taiwan",        lon:121.0, lat:23.5,  locales:["zh-TW","zh-Hant"] },
+  { code:"HK", flag:"https://flagcdn.com/w80/hk.png", lang:"zh", name:"Hong Kong",    lon:114.2, lat:22.3,  locales:["zh-HK"] },
+  { code:"MN", flag:"https://flagcdn.com/w80/mn.png", lang:"en", name:"Mongolia",     lon:105.0, lat:46.0,  locales:["mn"] },
   // 동남아
-  { code: "SG", flagImg: "https://flagcdn.com/w80/sg.png", lang: "en", name: "Singapore",   x: 75.5, y: 42.5, locales: ["en-SG"] },
-  { code: "MY", flagImg: "https://flagcdn.com/w80/my.png", lang: "en", name: "Malaysia",    x: 74.5, y: 41.0, locales: ["ms","ms-MY"] },
-  { code: "VN", flagImg: "https://flagcdn.com/w80/vn.png", lang: "en", name: "Vietnam",     x: 76.5, y: 38.5, locales: ["vi","vi-VN"] },
-  { code: "TH", flagImg: "https://flagcdn.com/w80/th.png", lang: "en", name: "Thailand",    x: 74.5, y: 38.0, locales: ["th","th-TH"] },
-  { code: "ID", flagImg: "https://flagcdn.com/w80/id.png", lang: "en", name: "Indonesia",   x: 76.5, y: 44.5, locales: ["id","id-ID"] },
-  { code: "PH", flagImg: "https://flagcdn.com/w80/ph.png", lang: "en", name: "Philippines", x: 79.5, y: 38.5, locales: ["fil","en-PH"] },
-  { code: "MM", flagImg: "https://flagcdn.com/w80/mm.png", lang: "en", name: "Myanmar",     x: 73.5, y: 36.5, locales: ["my"] },
-  { code: "KH", flagImg: "https://flagcdn.com/w80/kh.png", lang: "en", name: "Cambodia",   x: 75.5, y: 39.5, locales: ["km"] },
+  { code:"SG", flag:"https://flagcdn.com/w80/sg.png", lang:"en", name:"Singapore",    lon:103.8, lat:1.3,   locales:["en-SG"] },
+  { code:"MY", flag:"https://flagcdn.com/w80/my.png", lang:"en", name:"Malaysia",     lon:109.7, lat:4.2,   locales:["ms","ms-MY"] },
+  { code:"VN", flag:"https://flagcdn.com/w80/vn.png", lang:"en", name:"Vietnam",      lon:108.0, lat:14.0,  locales:["vi","vi-VN"] },
+  { code:"TH", flag:"https://flagcdn.com/w80/th.png", lang:"en", name:"Thailand",     lon:101.0, lat:15.0,  locales:["th","th-TH"] },
+  { code:"ID", flag:"https://flagcdn.com/w80/id.png", lang:"en", name:"Indonesia",    lon:113.9, lat:-2.5,  locales:["id","id-ID"] },
+  { code:"PH", flag:"https://flagcdn.com/w80/ph.png", lang:"en", name:"Philippines",  lon:122.0, lat:13.0,  locales:["fil","en-PH"] },
+  { code:"MM", flag:"https://flagcdn.com/w80/mm.png", lang:"en", name:"Myanmar",      lon:96.0,  lat:19.0,  locales:["my"] },
+  { code:"KH", flag:"https://flagcdn.com/w80/kh.png", lang:"en", name:"Cambodia",    lon:105.0, lat:12.0,  locales:["km"] },
   // 남아시아
-  { code: "IN", flagImg: "https://flagcdn.com/w80/in.png", lang: "en", name: "India",       x: 70.5, y: 37.0, locales: ["hi","en-IN"] },
-  { code: "PK", flagImg: "https://flagcdn.com/w80/pk.png", lang: "en", name: "Pakistan",    x: 67.5, y: 33.5, locales: ["ur"] },
-  { code: "BD", flagImg: "https://flagcdn.com/w80/bd.png", lang: "en", name: "Bangladesh",  x: 72.5, y: 36.0, locales: ["bn"] },
-  { code: "LK", flagImg: "https://flagcdn.com/w80/lk.png", lang: "en", name: "Sri Lanka",   x: 71.0, y: 41.5, locales: ["si"] },
+  { code:"IN", flag:"https://flagcdn.com/w80/in.png", lang:"en", name:"India",        lon:78.0,  lat:20.0,  locales:["hi","en-IN"] },
+  { code:"PK", flag:"https://flagcdn.com/w80/pk.png", lang:"en", name:"Pakistan",     lon:69.0,  lat:30.0,  locales:["ur"] },
+  { code:"BD", flag:"https://flagcdn.com/w80/bd.png", lang:"en", name:"Bangladesh",   lon:90.0,  lat:23.5,  locales:["bn"] },
+  { code:"LK", flag:"https://flagcdn.com/w80/lk.png", lang:"en", name:"Sri Lanka",    lon:80.7,  lat:7.9,   locales:["si"] },
   // 중앙아시아
-  { code: "KZ", flagImg: "https://flagcdn.com/w80/kz.png", lang: "en", name: "Kazakhstan",  x: 66.0, y: 26.0, locales: ["kk"] },
-  { code: "UZ", flagImg: "https://flagcdn.com/w80/uz.png", lang: "en", name: "Uzbekistan",  x: 64.5, y: 29.5, locales: ["uz"] },
+  { code:"KZ", flag:"https://flagcdn.com/w80/kz.png", lang:"en", name:"Kazakhstan",   lon:67.0,  lat:48.0,  locales:["kk"] },
+  { code:"UZ", flag:"https://flagcdn.com/w80/uz.png", lang:"en", name:"Uzbekistan",   lon:63.0,  lat:41.0,  locales:["uz"] },
   // 중동
-  { code: "AE", flagImg: "https://flagcdn.com/w80/ae.png", lang: "en", name: "UAE",         x: 63.5, y: 37.5, locales: ["ar-AE"] },
-  { code: "SA", flagImg: "https://flagcdn.com/w80/sa.png", lang: "en", name: "Saudi Arabia",x: 61.5, y: 37.0, locales: ["ar-SA"] },
-  { code: "QA", flagImg: "https://flagcdn.com/w80/qa.png", lang: "en", name: "Qatar",       x: 62.5, y: 37.5, locales: ["ar-QA"] },
-  { code: "KW", flagImg: "https://flagcdn.com/w80/kw.png", lang: "en", name: "Kuwait",      x: 61.0, y: 35.5, locales: ["ar-KW"] },
-  { code: "IL", flagImg: "https://flagcdn.com/w80/il.png", lang: "en", name: "Israel",      x: 57.5, y: 34.5, locales: ["he"] },
-  { code: "TR", flagImg: "https://flagcdn.com/w80/tr.png", lang: "en", name: "Turkey",      x: 56.5, y: 30.5, locales: ["tr"] },
+  { code:"AE", flag:"https://flagcdn.com/w80/ae.png", lang:"en", name:"UAE",          lon:54.0,  lat:24.0,  locales:["ar-AE"] },
+  { code:"SA", flag:"https://flagcdn.com/w80/sa.png", lang:"en", name:"Saudi Arabia", lon:45.0,  lat:24.0,  locales:["ar-SA"] },
+  { code:"QA", flag:"https://flagcdn.com/w80/qa.png", lang:"en", name:"Qatar",        lon:51.2,  lat:25.3,  locales:["ar-QA"] },
+  { code:"KW", flag:"https://flagcdn.com/w80/kw.png", lang:"en", name:"Kuwait",       lon:47.5,  lat:29.5,  locales:["ar-KW"] },
+  { code:"IL", flag:"https://flagcdn.com/w80/il.png", lang:"en", name:"Israel",       lon:35.0,  lat:31.5,  locales:["he"] },
+  { code:"TR", flag:"https://flagcdn.com/w80/tr.png", lang:"en", name:"Turkey",       lon:35.0,  lat:39.0,  locales:["tr"] },
   // 북미
-  { code: "US", flagImg: "https://flagcdn.com/w80/us.png", lang: "en", name: "United States",x: 22.0, y: 31.0, locales: ["en-US"] },
-  { code: "CA", flagImg: "https://flagcdn.com/w80/ca.png", lang: "en", name: "Canada",      x: 22.0, y: 24.0, locales: ["en-CA","fr-CA"] },
-  { code: "MX", flagImg: "https://flagcdn.com/w80/mx.png", lang: "en", name: "Mexico",      x: 19.5, y: 37.5, locales: ["es-MX"] },
+  { code:"US", flag:"https://flagcdn.com/w80/us.png", lang:"en", name:"United States",lon:-100.0,lat:38.0,  locales:["en-US"] },
+  { code:"CA", flag:"https://flagcdn.com/w80/ca.png", lang:"en", name:"Canada",       lon:-96.0, lat:56.0,  locales:["en-CA","fr-CA"] },
+  { code:"MX", flag:"https://flagcdn.com/w80/mx.png", lang:"en", name:"Mexico",       lon:-102.0,lat:23.0,  locales:["es-MX"] },
   // 중남미
-  { code: "BR", flagImg: "https://flagcdn.com/w80/br.png", lang: "en", name: "Brazil",      x: 30.0, y: 52.0, locales: ["pt-BR"] },
-  { code: "AR", flagImg: "https://flagcdn.com/w80/ar.png", lang: "en", name: "Argentina",   x: 27.5, y: 62.0, locales: ["es-AR"] },
-  { code: "CO", flagImg: "https://flagcdn.com/w80/co.png", lang: "en", name: "Colombia",    x: 24.5, y: 46.0, locales: ["es-CO"] },
-  { code: "CL", flagImg: "https://flagcdn.com/w80/cl.png", lang: "en", name: "Chile",       x: 25.5, y: 58.0, locales: ["es-CL"] },
-  { code: "PE", flagImg: "https://flagcdn.com/w80/pe.png", lang: "en", name: "Peru",        x: 23.5, y: 51.0, locales: ["es-PE"] },
+  { code:"BR", flag:"https://flagcdn.com/w80/br.png", lang:"en", name:"Brazil",       lon:-51.0, lat:-10.0, locales:["pt-BR"] },
+  { code:"AR", flag:"https://flagcdn.com/w80/ar.png", lang:"en", name:"Argentina",    lon:-64.0, lat:-34.0, locales:["es-AR"] },
+  { code:"CO", flag:"https://flagcdn.com/w80/co.png", lang:"en", name:"Colombia",     lon:-74.0, lat:4.0,   locales:["es-CO"] },
+  { code:"CL", flag:"https://flagcdn.com/w80/cl.png", lang:"en", name:"Chile",        lon:-71.0, lat:-30.0, locales:["es-CL"] },
+  { code:"PE", flag:"https://flagcdn.com/w80/pe.png", lang:"en", name:"Peru",         lon:-76.0, lat:-10.0, locales:["es-PE"] },
   // 서유럽
-  { code: "GB", flagImg: "https://flagcdn.com/w80/gb.png", lang: "en", name: "UK",          x: 46.5, y: 22.0, locales: ["en-GB"] },
-  { code: "DE", flagImg: "https://flagcdn.com/w80/de.png", lang: "en", name: "Germany",     x: 49.5, y: 23.5, locales: ["de","de-DE"] },
-  { code: "FR", flagImg: "https://flagcdn.com/w80/fr.png", lang: "en", name: "France",      x: 47.5, y: 25.5, locales: ["fr","fr-FR"] },
-  { code: "ES", flagImg: "https://flagcdn.com/w80/es.png", lang: "en", name: "Spain",       x: 46.0, y: 28.5, locales: ["es-ES"] },
-  { code: "IT", flagImg: "https://flagcdn.com/w80/it.png", lang: "en", name: "Italy",       x: 50.5, y: 27.5, locales: ["it","it-IT"] },
-  { code: "NL", flagImg: "https://flagcdn.com/w80/nl.png", lang: "en", name: "Netherlands", x: 48.5, y: 22.5, locales: ["nl"] },
-  { code: "BE", flagImg: "https://flagcdn.com/w80/be.png", lang: "en", name: "Belgium",     x: 48.0, y: 23.5, locales: ["nl-BE","fr-BE"] },
-  { code: "CH", flagImg: "https://flagcdn.com/w80/ch.png", lang: "en", name: "Switzerland", x: 49.0, y: 25.5, locales: ["de-CH"] },
-  { code: "AT", flagImg: "https://flagcdn.com/w80/at.png", lang: "en", name: "Austria",     x: 50.5, y: 24.5, locales: ["de-AT"] },
-  { code: "SE", flagImg: "https://flagcdn.com/w80/se.png", lang: "en", name: "Sweden",      x: 50.5, y: 18.0, locales: ["sv"] },
-  { code: "NO", flagImg: "https://flagcdn.com/w80/no.png", lang: "en", name: "Norway",      x: 49.0, y: 17.0, locales: ["nb"] },
-  { code: "DK", flagImg: "https://flagcdn.com/w80/dk.png", lang: "en", name: "Denmark",     x: 49.5, y: 20.5, locales: ["da"] },
-  { code: "FI", flagImg: "https://flagcdn.com/w80/fi.png", lang: "en", name: "Finland",     x: 52.5, y: 17.5, locales: ["fi"] },
-  { code: "PT", flagImg: "https://flagcdn.com/w80/pt.png", lang: "en", name: "Portugal",    x: 44.5, y: 28.0, locales: ["pt-PT"] },
-  { code: "PL", flagImg: "https://flagcdn.com/w80/pl.png", lang: "en", name: "Poland",      x: 52.0, y: 22.5, locales: ["pl"] },
-  { code: "GR", flagImg: "https://flagcdn.com/w80/gr.png", lang: "en", name: "Greece",      x: 53.0, y: 29.5, locales: ["el"] },
+  { code:"GB", flag:"https://flagcdn.com/w80/gb.png", lang:"en", name:"UK",           lon:-2.0,  lat:54.0,  locales:["en-GB"] },
+  { code:"DE", flag:"https://flagcdn.com/w80/de.png", lang:"en", name:"Germany",      lon:10.0,  lat:51.0,  locales:["de","de-DE"] },
+  { code:"FR", flag:"https://flagcdn.com/w80/fr.png", lang:"en", name:"France",       lon:2.0,   lat:46.0,  locales:["fr","fr-FR"] },
+  { code:"ES", flag:"https://flagcdn.com/w80/es.png", lang:"en", name:"Spain",        lon:-3.5,  lat:40.0,  locales:["es-ES"] },
+  { code:"IT", flag:"https://flagcdn.com/w80/it.png", lang:"en", name:"Italy",        lon:12.5,  lat:42.0,  locales:["it","it-IT"] },
+  { code:"NL", flag:"https://flagcdn.com/w80/nl.png", lang:"en", name:"Netherlands",  lon:5.3,   lat:52.3,  locales:["nl"] },
+  { code:"BE", flag:"https://flagcdn.com/w80/be.png", lang:"en", name:"Belgium",      lon:4.5,   lat:50.5,  locales:["nl-BE","fr-BE"] },
+  { code:"CH", flag:"https://flagcdn.com/w80/ch.png", lang:"en", name:"Switzerland",  lon:8.2,   lat:46.8,  locales:["de-CH"] },
+  { code:"AT", flag:"https://flagcdn.com/w80/at.png", lang:"en", name:"Austria",      lon:14.5,  lat:47.5,  locales:["de-AT"] },
+  { code:"SE", flag:"https://flagcdn.com/w80/se.png", lang:"en", name:"Sweden",       lon:18.0,  lat:62.0,  locales:["sv"] },
+  { code:"NO", flag:"https://flagcdn.com/w80/no.png", lang:"en", name:"Norway",       lon:10.0,  lat:64.0,  locales:["nb"] },
+  { code:"DK", flag:"https://flagcdn.com/w80/dk.png", lang:"en", name:"Denmark",      lon:10.0,  lat:56.0,  locales:["da"] },
+  { code:"FI", flag:"https://flagcdn.com/w80/fi.png", lang:"en", name:"Finland",      lon:26.0,  lat:64.0,  locales:["fi"] },
+  { code:"PT", flag:"https://flagcdn.com/w80/pt.png", lang:"en", name:"Portugal",     lon:-8.0,  lat:39.5,  locales:["pt-PT"] },
+  { code:"PL", flag:"https://flagcdn.com/w80/pl.png", lang:"en", name:"Poland",       lon:20.0,  lat:52.0,  locales:["pl"] },
+  { code:"GR", flag:"https://flagcdn.com/w80/gr.png", lang:"en", name:"Greece",       lon:22.0,  lat:39.0,  locales:["el"] },
   // 동유럽
-  { code: "RU", flagImg: "https://flagcdn.com/w80/ru.png", lang: "en", name: "Russia",      x: 63.0, y: 18.5, locales: ["ru","ru-RU"] },
-  { code: "UA", flagImg: "https://flagcdn.com/w80/ua.png", lang: "en", name: "Ukraine",     x: 55.5, y: 24.5, locales: ["uk"] },
+  { code:"RU", flag:"https://flagcdn.com/w80/ru.png", lang:"en", name:"Russia",       lon:60.0,  lat:60.0,  locales:["ru","ru-RU"] },
+  { code:"UA", flag:"https://flagcdn.com/w80/ua.png", lang:"en", name:"Ukraine",      lon:32.0,  lat:49.0,  locales:["uk"] },
   // 오세아니아
-  { code: "AU", flagImg: "https://flagcdn.com/w80/au.png", lang: "en", name: "Australia",   x: 80.0, y: 57.0, locales: ["en-AU"] },
-  { code: "NZ", flagImg: "https://flagcdn.com/w80/nz.png", lang: "en", name: "New Zealand", x: 85.5, y: 61.0, locales: ["en-NZ"] },
+  { code:"AU", flag:"https://flagcdn.com/w80/au.png", lang:"en", name:"Australia",    lon:134.0, lat:-25.0, locales:["en-AU"] },
+  { code:"NZ", flag:"https://flagcdn.com/w80/nz.png", lang:"en", name:"New Zealand",  lon:172.0, lat:-41.0, locales:["en-NZ"] },
   // 아프리카
-  { code: "ZA", flagImg: "https://flagcdn.com/w80/za.png", lang: "en", name: "South Africa",x: 54.0, y: 62.0, locales: ["en-ZA"] },
-  { code: "NG", flagImg: "https://flagcdn.com/w80/ng.png", lang: "en", name: "Nigeria",     x: 50.0, y: 46.5, locales: ["en-NG"] },
-  { code: "EG", flagImg: "https://flagcdn.com/w80/eg.png", lang: "en", name: "Egypt",       x: 56.0, y: 35.5, locales: ["ar-EG"] },
-  { code: "KE", flagImg: "https://flagcdn.com/w80/ke.png", lang: "en", name: "Kenya",       x: 57.5, y: 47.5, locales: ["sw"] },
-  { code: "MA", flagImg: "https://flagcdn.com/w80/ma.png", lang: "en", name: "Morocco",     x: 45.5, y: 33.5, locales: ["ar-MA"] },
+  { code:"ZA", flag:"https://flagcdn.com/w80/za.png", lang:"en", name:"South Africa", lon:25.0,  lat:-29.0, locales:["en-ZA"] },
+  { code:"NG", flag:"https://flagcdn.com/w80/ng.png", lang:"en", name:"Nigeria",      lon:8.0,   lat:9.0,   locales:["en-NG"] },
+  { code:"EG", flag:"https://flagcdn.com/w80/eg.png", lang:"en", name:"Egypt",        lon:30.0,  lat:26.0,  locales:["ar-EG"] },
+  { code:"KE", flag:"https://flagcdn.com/w80/ke.png", lang:"en", name:"Kenya",        lon:38.0,  lat:0.0,   locales:["sw"] },
+  { code:"MA", flag:"https://flagcdn.com/w80/ma.png", lang:"en", name:"Morocco",      lon:-7.0,  lat:32.0,  locales:["ar-MA"] },
 ];
+
+// 메르카토르 투영 계산 (viewBox 1000x500)
+const COUNTRIES = COUNTRIES_GEO.map(c => {
+  const [px, py] = mercator(c.lon, c.lat);
+  return { ...c, px, py };
+});
 
 function detectCountryCode(): string {
   const langs = navigator.languages?.length ? navigator.languages : [navigator.language];
   for (const lang of langs) {
     const lower = lang.toLowerCase();
-    for (const country of COUNTRIES) {
-      if (country.locales.some(l => lower.startsWith(l.toLowerCase()))) return country.code;
+    for (const c of COUNTRIES) {
+      if (c.locales.some(l => lower.startsWith(l.toLowerCase()))) return c.code;
     }
   }
   const primary = (langs[0] || "en").split("-")[0].toLowerCase();
-  const langMap: Record<string, string> = {
-    ko:"KR", ja:"JP", zh:"CN", de:"DE", es:"ES", ar:"SA", fr:"FR",
-    ru:"RU", hi:"IN", pt:"BR", vi:"VN", th:"TH", id:"ID", ms:"MY", tr:"TR",
-    it:"IT", nl:"NL", sv:"SE", pl:"PL", uk:"UA",
-  };
-  return langMap[primary] || "US";
+  const m: Record<string,string> = { ko:"KR",ja:"JP",zh:"CN",de:"DE",es:"ES",ar:"SA",fr:"FR",ru:"RU",hi:"IN",pt:"BR",vi:"VN",th:"TH",id:"ID",ms:"MY",tr:"TR",it:"IT",nl:"NL",sv:"SE",pl:"PL",uk:"UA" };
+  return m[primary] || "US";
 }
+
+const MAP_W = 1000, MAP_H = 500;
 
 export default function PartnerLandingPage() {
   const [, navigate] = useLocation();
   const { setLanguage } = useLanguage();
   const [detectedCode, setDetectedCode] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [tooltip, setTooltip] = useState<{ code: string; x: number; y: number } | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
 
-  useEffect(() => {
-    setDetectedCode(detectCountryCode());
-  }, []);
+  useEffect(() => { setDetectedCode(detectCountryCode()); }, []);
 
-  const handleCountrySelect = (lang: string) => {
+  const handleSelect = (lang: string) => {
     setLanguage(lang as "ko" | "en" | "ja" | "zh");
     navigate("/partner/home");
   };
@@ -126,173 +138,163 @@ export default function PartnerLandingPage() {
   const detectedCountry = COUNTRIES.find(c => c.code === detectedCode);
 
   return (
-    <div className="w-screen h-screen overflow-hidden relative flex flex-col"
-      style={{ background: "linear-gradient(135deg, #0d1f3c 0%, #1F3864 40%, #2a4a7a 70%, #1a3055 100%)" }}
+    <div className="w-screen h-screen overflow-hidden flex flex-col"
+      style={{ background: "linear-gradient(160deg, #0b1a30 0%, #1F3864 50%, #162d52 100%)" }}
     >
-      {/* 세계지도 SVG 배경 */}
-      <div className="absolute inset-0 opacity-20 pointer-events-none select-none flex items-center justify-center">
-        <img
-          src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/World_map_-_low_resolution.svg/2560px-World_map_-_low_resolution.svg.png"
-          alt="world map"
-          className="w-full h-full object-cover"
-          style={{ filter: "brightness(0.6) sepia(0.3) hue-rotate(200deg)" }}
-        />
-      </div>
-
-      {/* 상단 헤더 */}
-      <div className="relative z-10 text-center flex-shrink-0 pt-4 pb-2 px-4">
-        <p className="text-[#C9A961] font-semibold uppercase tracking-widest" style={{ fontSize: "clamp(9px, 0.85vw, 12px)", marginBottom: "3px" }}>
+      {/* 헤더 */}
+      <div className="flex-shrink-0 text-center z-10 pt-3 pb-1 px-4">
+        <p className="text-[#C9A961] font-semibold uppercase tracking-widest" style={{ fontSize: "clamp(9px, 0.8vw, 11px)" }}>
           Welcome to EverWill
         </p>
-        <h1 className="font-bold text-white" style={{ fontSize: "clamp(18px, 2.8vw, 38px)", lineHeight: 1.15 }}>
+        <h1 className="font-bold text-white" style={{ fontSize: "clamp(16px, 2.4vw, 34px)", lineHeight: 1.15 }}>
           EverWill <span className="text-[#C9A961]">Partner Center</span>
         </h1>
-        <p className="text-white/50 italic" style={{ fontSize: "clamp(9px, 0.9vw, 13px)", marginTop: "2px" }}>
+        <p className="text-white/45 italic" style={{ fontSize: "clamp(9px, 0.8vw, 12px)" }}>
           We always stand beside our neighbors, practicing a life of warmth and care.
         </p>
 
-        {/* 언어 감지 배너 */}
-        <AnimatePresence>
-          {detectedCountry && (
-            <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              className="inline-flex items-center gap-2 bg-[#C9A961]/20 border border-[#C9A961]/40 rounded-full px-3 py-1 mt-2"
-              style={{ fontSize: "clamp(9px, 0.85vw, 12px)" }}
-            >
-              <img src={detectedCountry.flagImg} alt={detectedCountry.name} className="w-5 h-3.5 object-cover rounded-sm" />
-              <span className="text-white/80">
-                Your language: <span className="text-[#C9A961] font-semibold">{detectedCountry.name}</span> — click the flag to continue
-              </span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <div className="flex items-center justify-center gap-3 mt-1.5 flex-wrap">
+          {/* 언어 감지 배너 */}
+          <AnimatePresence>
+            {detectedCountry && (
+              <motion.div initial={{ opacity:0, y:-6 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }}
+                className="inline-flex items-center gap-1.5 bg-[#C9A961]/20 border border-[#C9A961]/40 rounded-full px-2.5 py-1"
+                style={{ fontSize:"clamp(9px,0.8vw,11px)" }}
+              >
+                <img src={detectedCountry.flag} alt={detectedCountry.name} className="w-5 h-3.5 object-cover rounded-sm" />
+                <span className="text-white/80">
+                  Detected: <span className="text-[#C9A961] font-semibold">{detectedCountry.name}</span> — click flag
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-        {/* 검색창 */}
-        <div className="relative inline-flex mt-2" style={{ width: "min(260px, 80vw)" }}>
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 w-3.5 h-3.5" />
-          <input
-            type="text"
-            placeholder="Search country..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full bg-white/10 border border-white/20 rounded-full text-white placeholder-white/40 pl-8 pr-8 py-1.5 outline-none focus:border-[#C9A961]/60 transition-colors"
-            style={{ fontSize: "clamp(10px, 0.9vw, 13px)" }}
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
-              <X className="w-3 h-3" />
-            </button>
-          )}
+          {/* 검색 */}
+          <div className="relative" style={{ width:"min(220px,60vw)" }}>
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/40 w-3 h-3" />
+            <input type="text" placeholder="Search country..." value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full bg-white/10 border border-white/20 rounded-full text-white placeholder-white/40 pl-7 pr-6 py-1 outline-none focus:border-[#C9A961]/60 transition-colors"
+              style={{ fontSize:"clamp(9px,0.8vw,12px)" }}
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* 세계지도 + 국기 핀 영역 */}
-      <div className="relative z-10 flex-1 w-full" style={{ minHeight: 0 }}>
-        <div className="relative w-full h-full">
-          {/* 지도 이미지 (클릭 불가, 배경용) */}
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/World_map_-_low_resolution.svg/2560px-World_map_-_low_resolution.svg.png"
-            alt="world map"
-            className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
-            style={{ opacity: 0.15, filter: "brightness(1.2) saturate(0.3)" }}
+      {/* 지도 영역 */}
+      <div className="flex-1 relative z-10 w-full" style={{ minHeight:0 }}>
+        <svg
+          viewBox={`0 0 ${MAP_W} ${MAP_H}`}
+          className="w-full h-full"
+          style={{ display:"block" }}
+        >
+          {/* 바다 배경 */}
+          <rect width={MAP_W} height={MAP_H} fill="#0d2240" />
+
+          {/* 세계지도 SVG (업로드된 파일) */}
+          <image
+            href="/manus-storage/world_map_3584276f.svg"
+            x="0" y="0"
+            width={MAP_W} height={MAP_H}
+            preserveAspectRatio="xMidYMid meet"
           />
 
           {/* 국기 핀들 */}
           {filtered.map((country, index) => {
             const isDetected = country.code === detectedCode;
-            const isTooltipOpen = tooltip?.code === country.code;
+            const isHovered = hovered === country.code;
+            const px = country.px;
+            const py = country.py;
+            const fw = 28, fh = 18;
+
             return (
-              <motion.div
-                key={country.code}
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.2, delay: Math.min(0.02 * index, 0.6) }}
-                className="absolute"
-                style={{
-                  left: `${country.x}%`,
-                  top: `${country.y}%`,
-                  transform: "translate(-50%, -50%)",
-                  zIndex: isDetected ? 20 : isTooltipOpen ? 15 : 10,
-                }}
+              <g key={country.code} style={{ cursor:"pointer" }}
+                onClick={() => handleSelect(country.lang)}
+                onMouseEnter={() => setHovered(country.code)}
+                onMouseLeave={() => setHovered(null)}
               >
-                {/* 감지된 국가 펄스 링 */}
+                {/* 감지된 국가 펄스 */}
                 {isDetected && (
-                  <div className="absolute inset-0 rounded-full"
-                    style={{
-                      width: "clamp(32px, 4vw, 52px)",
-                      height: "clamp(32px, 4vw, 52px)",
-                      transform: "translate(-50%, -50%) translate(50%, 50%)",
-                      background: "rgba(201,169,97,0.3)",
-                      animation: "ping 1.5s cubic-bezier(0,0,0.2,1) infinite",
-                    }}
-                  />
+                  <>
+                    <circle cx={px} cy={py} r="18" fill="rgba(201,169,97,0.15)">
+                      <animate attributeName="r" values="14;22;14" dur="2s" repeatCount="indefinite" />
+                      <animate attributeName="opacity" values="0.4;0;0.4" dur="2s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx={px} cy={py} r="12" fill="rgba(201,169,97,0.2)">
+                      <animate attributeName="r" values="10;16;10" dur="2s" begin="0.5s" repeatCount="indefinite" />
+                      <animate attributeName="opacity" values="0.3;0;0.3" dur="2s" begin="0.5s" repeatCount="indefinite" />
+                    </circle>
+                  </>
                 )}
 
-                <motion.button
-                  whileHover={{ scale: 1.3, zIndex: 30 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => handleCountrySelect(country.lang)}
-                  onMouseEnter={() => setTooltip({ code: country.code, x: country.x, y: country.y })}
-                  onMouseLeave={() => setTooltip(null)}
-                  className="relative flex flex-col items-center group"
-                  title={country.name}
-                >
-                  {/* 국기 이미지 */}
-                  <div
-                    className="rounded overflow-hidden shadow-lg"
-                    style={{
-                      width: "clamp(22px, 2.8vw, 40px)",
-                      height: "clamp(15px, 2vw, 28px)",
-                      border: isDetected ? "2px solid #C9A961" : "1.5px solid rgba(255,255,255,0.4)",
-                      boxShadow: isDetected
-                        ? "0 0 12px rgba(201,169,97,0.7), 0 2px 8px rgba(0,0,0,0.5)"
-                        : "0 2px 6px rgba(0,0,0,0.4)",
-                    }}
-                  >
-                    <img src={country.flagImg} alt={country.name} className="w-full h-full object-cover" />
-                  </div>
-                  {/* 핀 꼬리 */}
-                  <div style={{
-                    width: 0, height: 0,
-                    borderLeft: "3px solid transparent",
-                    borderRight: "3px solid transparent",
-                    borderTop: isDetected ? "5px solid #C9A961" : "5px solid rgba(255,255,255,0.5)",
-                  }} />
-                </motion.button>
+                {/* 국기 이미지 */}
+                <image
+                  href={country.flag}
+                  x={px - fw/2}
+                  y={py - fh - 4}
+                  width={fw}
+                  height={fh}
+                  style={{
+                    filter: isDetected ? "drop-shadow(0 0 4px #C9A961)" : isHovered ? "drop-shadow(0 0 3px rgba(255,255,255,0.6))" : "drop-shadow(0 1px 2px rgba(0,0,0,0.5))",
+                    transform: isHovered ? `scale(1.4) translate(${-px*(0.4/1.4)}px, ${-py*(0.4/1.4)}px)` : "none",
+                    transformOrigin: `${px}px ${py}px`,
+                    transition: "transform 0.15s",
+                  }}
+                />
+
+                {/* 국기 테두리 */}
+                <rect
+                  x={px - fw/2} y={py - fh - 4}
+                  width={fw} height={fh}
+                  fill="none"
+                  stroke={isDetected ? "#C9A961" : "rgba(255,255,255,0.35)"}
+                  strokeWidth={isDetected ? "1.5" : "0.8"}
+                  rx="1"
+                />
+
+                {/* 핀 꼬리 */}
+                <polygon
+                  points={`${px-3},${py-4} ${px+3},${py-4} ${px},${py+1}`}
+                  fill={isDetected ? "#C9A961" : "rgba(255,255,255,0.4)"}
+                />
 
                 {/* 툴팁 */}
-                {isTooltipOpen && (
-                  <div
-                    className="absolute bg-[#1F3864] border border-[#C9A961]/50 rounded-lg px-2 py-1 text-white font-medium whitespace-nowrap pointer-events-none"
-                    style={{
-                      fontSize: "clamp(9px, 0.85vw, 12px)",
-                      bottom: "calc(100% + 6px)",
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
-                      zIndex: 50,
-                    }}
-                  >
-                    {country.name}
-                  </div>
+                {isHovered && (
+                  <g>
+                    <rect
+                      x={px - 28} y={py - fh - 22}
+                      width="56" height="14"
+                      rx="3" fill="#1F3864"
+                      stroke="rgba(201,169,97,0.5)" strokeWidth="0.8"
+                    />
+                    <text
+                      x={px} y={py - fh - 12}
+                      textAnchor="middle"
+                      fill="white"
+                      fontSize="8"
+                      fontFamily="Inter, sans-serif"
+                    >
+                      {country.name}
+                    </text>
+                  </g>
                 )}
-              </motion.div>
+              </g>
             );
           })}
-        </div>
+        </svg>
       </div>
 
       {/* 하단 */}
-      <div className="relative z-10 text-center flex-shrink-0 pb-2">
-        <p className="text-white/25" style={{ fontSize: "clamp(8px, 0.75vw, 11px)" }}>
-          EverWill Partner Program — {COUNTRIES.length} countries worldwide &nbsp;·&nbsp; © 2026 SARAM Inc.
+      <div className="flex-shrink-0 text-center pb-1.5 z-10">
+        <p className="text-white/25" style={{ fontSize:"clamp(8px,0.7vw,10px)" }}>
+          EverWill Partner Program — {COUNTRIES.length} countries worldwide · © 2026 SARAM Inc.
         </p>
       </div>
-
-      <style>{`
-        @keyframes ping {
-          75%, 100% { transform: translate(-50%, -50%) translate(50%, 50%) scale(2); opacity: 0; }
-        }
-      `}</style>
     </div>
   );
 }
