@@ -349,12 +349,7 @@ export default function Navbar() {
                 {t.nav.login}
               </button>
             )}
-            <button
-              onClick={() => navigate("/partner")}
-              className="text-[#C9A961] hover:text-[#e8c97a] text-xs xl:text-sm font-medium transition-colors px-3 py-1.5 rounded-full whitespace-nowrap border border-[#C9A961]/50 hover:border-[#C9A961] hover:bg-[#C9A961]/10"
-            >
-              {t.nav.partnerJoin ?? "파트너 등록"}
-            </button>
+            {/* 파트너 등록 버튼: URL 직접 접근은 가능, 네비게이션에서는 숨김 */}
             <button
               onClick={() => navigate("/login?mode=signup")}
               className="btn-gold px-4 py-2 rounded-full text-xs xl:text-sm font-semibold whitespace-nowrap"
