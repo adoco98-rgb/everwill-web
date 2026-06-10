@@ -1,6 +1,7 @@
 /**
  * 파트너센터 국기 선택 첫 페이지
  * 국기를 클릭하면 해당 국가 언어로 파트너 프로그램 메인 페이지로 이동
+ * 화면 전체를 꽉 채우는 레이아웃 (여백 최소화)
  */
 import { motion } from "framer-motion";
 import { useLocation } from "wouter";
@@ -33,56 +34,84 @@ export default function PartnerLandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1F3864] via-[#2a4a7a] to-[#1F3864] flex flex-col items-center justify-center px-4">
-      {/* 로고 */}
+    <div
+      className="w-screen h-screen bg-gradient-to-br from-[#1F3864] via-[#2a4a7a] to-[#1F3864] flex flex-col items-center justify-center overflow-hidden"
+      style={{ padding: "clamp(16px, 3vh, 40px) clamp(16px, 4vw, 60px)" }}
+    >
+      {/* 타이틀 */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-center mb-12"
+        transition={{ duration: 0.5 }}
+        className="text-center"
+        style={{ marginBottom: "clamp(16px, 3vh, 36px)" }}
       >
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
+        <h1
+          className="font-bold text-white"
+          style={{ fontSize: "clamp(22px, 4vw, 48px)", lineHeight: 1.2 }}
+        >
           EverWill <span className="text-[#C9A961]">Partner Center</span>
         </h1>
-        <p className="text-white/70 text-lg">Select your country to get started</p>
-        <p className="text-white/50 text-sm mt-1">국가를 선택하세요</p>
+        <p
+          className="text-white/70"
+          style={{ fontSize: "clamp(12px, 1.5vw, 18px)", marginTop: "6px" }}
+        >
+          Select your country to get started &nbsp;·&nbsp; 국가를 선택하세요
+        </p>
       </motion.div>
 
-      {/* 국기 그리드 */}
+      {/* 국기 그리드 — 7열로 2행 배치 */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 md:gap-6 max-w-4xl"
+        transition={{ duration: 0.5, delay: 0.15 }}
+        className="grid w-full"
+        style={{
+          gridTemplateColumns: "repeat(7, 1fr)",
+          gap: "clamp(8px, 1.5vw, 20px)",
+          maxWidth: "900px",
+        }}
       >
         {COUNTRIES.map((country, index) => (
           <motion.button
             key={country.code}
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: 0.1 * index }}
-            whileHover={{ scale: 1.1, y: -5 }}
+            transition={{ duration: 0.25, delay: 0.05 * index }}
+            whileHover={{ scale: 1.08, y: -4 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => handleCountrySelect(country.lang)}
-            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all border border-white/10 hover:border-[#C9A961]/50"
+            className="flex flex-col items-center gap-1.5 rounded-xl bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all border border-white/10 hover:border-[#C9A961]/60"
+            style={{ padding: "clamp(8px, 1.5vw, 18px) clamp(4px, 0.8vw, 10px)" }}
           >
-            <img src={country.flagImg} alt={country.nameEn} className="w-14 h-10 object-cover rounded-sm" />
-            <span className="text-white text-xs font-medium">{country.nameEn}</span>
+            <img
+              src={country.flagImg}
+              alt={country.nameEn}
+              className="object-cover rounded-sm"
+              style={{ width: "clamp(36px, 5vw, 64px)", height: "clamp(26px, 3.5vw, 46px)" }}
+            />
+            <span
+              className="text-white font-medium text-center leading-tight"
+              style={{ fontSize: "clamp(9px, 0.9vw, 13px)" }}
+            >
+              {country.nameEn}
+            </span>
           </motion.button>
         ))}
       </motion.div>
 
-      {/* 하단 안내 */}
+      {/* 하단 카피 */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.8 }}
-        className="mt-16 text-center"
+        transition={{ duration: 0.5, delay: 0.7 }}
+        className="text-center"
+        style={{ marginTop: "clamp(12px, 2.5vh, 32px)" }}
       >
-        <p className="text-white/40 text-sm">
+        <p className="text-white/40" style={{ fontSize: "clamp(10px, 1vw, 13px)" }}>
           EverWill Partner Program — Empowering Professionals Worldwide
         </p>
-        <p className="text-white/30 text-xs mt-2">
+        <p className="text-white/25" style={{ fontSize: "clamp(9px, 0.85vw, 11px)", marginTop: "4px" }}>
           © 2026 SARAM Inc. All rights reserved.
         </p>
       </motion.div>
