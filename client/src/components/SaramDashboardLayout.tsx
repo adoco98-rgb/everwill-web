@@ -35,6 +35,8 @@ import {
   Smartphone,
   BadgeCheck,
   ScrollText,
+  Video,
+  ScanLine,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -53,6 +55,8 @@ const mainMenuItems = [
   { icon: FileText, label: "유언장 작성", path: "/dashboard/wills" },
   { icon: BadgeCheck, label: "서명 인증", path: "/dashboard/certification" },
   { icon: ScrollText, label: "유언인증서 신청·발급", path: "/dashboard/will-certificate" },
+  { icon: Video, label: "영상 유언장", path: "/video-will" },
+  { icon: ScanLine, label: "자필 유언 스캔", path: "/will/scan" },
 ];
 
 /** 멤버십 / 카드 메뉴 */

@@ -64,6 +64,7 @@ import PartnerDashboardPage from "./pages/PartnerDashboardPage";
 import TossPaymentPage from "./pages/TossPaymentPage";
 import TossPaymentSuccess from "./pages/TossPaymentSuccess";
 import TossPaymentFail from "./pages/TossPaymentFail";
+import VideoWillPage from "./pages/VideoWillPage";
 import { ChatbotWidget } from "./components/ChatbotWidget";
 import { LanguageProvider } from "./contexts/LanguageContext";
 
@@ -146,6 +147,8 @@ function Router() {
       <Route path={"/feedback"} component={Feedback} />
       {/* 국가별 전용 랜딩 페이지 (/country/kr, /country/us, /country/jp 등) */}
       <Route path={"/country/:code"} component={CountryPage} />
+      {/* 영상 유언장 */}
+      <Route path={"/video-will"} component={VideoWillPage} />
       {/* 파트너센터 라우트 */}
       <Route path={"/partner"} component={PartnerLandingPage} />
       <Route path={"/partner/home"} component={PartnerPage} />

@@ -1124,3 +1124,24 @@ export const willCertificates = mysqlTable("willCertificates", {
 
 export type WillCertificate = typeof willCertificates.$inferSelect;
 export type InsertWillCertificate = typeof willCertificates.$inferInsert;
+
+// ─────────────────────────────────────────────
+// 영상 유언장
+// ─────────────────────────────────────────────
+export const videoWills = mysqlTable("videoWills", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  fileKey: varchar("fileKey", { length: 500 }).notNull(),
+  fileUrl: varchar("fileUrl", { length: 1000 }).notNull(),
+  mimeType: varchar("mimeType", { length: 50 }).notNull().default("video/webm"),
+  videoType: mysqlEnum("videoType", ["legal", "emotional", "future"]).notNull().default("legal"),
+  blockchainHash: varchar("blockchainHash", { length: 100 }).notNull(),
+  recipient: varchar("recipient", { length: 200 }),
+  deliveryDate: varchar("deliveryDate", { length: 20 }),
+  memo: text("memo"),
+  status: mysqlEnum("status", ["active", "deleted"]).default("active").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+export type VideoWill = typeof videoWills.$inferSelect;
+export type InsertVideoWill = typeof videoWills.$inferInsert;

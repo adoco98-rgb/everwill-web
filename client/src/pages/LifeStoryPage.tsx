@@ -19,6 +19,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+import { VoiceInput } from "@/components/VoiceInput";
+
+// 음성 입력 래퍼 컴포넌트 (안정적 콜백 보장)
+function VoiceInputWrapper({ onAppend, disabled }: { onAppend: (text: string) => void; disabled?: boolean }) {
+  return (
+    <VoiceInput
+      onTranscribed={onAppend}
+      language="ko"
+      size="sm"
+      hint="마이크로 말씀하세요"
+      disabled={disabled}
+    />
+  );
+}
 
 /**
  * Life Story 페이지
@@ -229,6 +243,11 @@ function JournalTab({ userId }: { userId: number }) {
           <p className="text-gray-500 text-sm">{today} · AI가 일기와 그림을 만들어 드립니다</p>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* 음성 입력 영역 */}
+          <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-xl border border-amber-200">
+            <VoiceInputWrapper onAppend={(text) => setConversation(prev => prev ? prev + " " + text : text)} disabled={isGenerating} />
+            <span className="text-sm text-amber-700">마이크로 말씀하거나 아래에 직접 입력하세요</span>
+          </div>
           <Textarea
             value={conversation}
             onChange={(e) => setConversation(e.target.value)}
