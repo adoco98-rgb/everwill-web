@@ -172,10 +172,18 @@ export const payments = mysqlTable("payments", {
   id: int("id").autoincrement().primaryKey(),
   /** 결제한 사용자 ID (users.id 참조) */
   userId: int("userId").notNull(),
-  /** Stripe Checkout Session ID */
-  stripeSessionId: varchar("stripeSessionId", { length: 128 }).notNull().unique(),
+  /** Stripe Checkout Session ID (Stripe 결제 시) */
+  stripeSessionId: varchar("stripeSessionId", { length: 128 }).unique(),
   /** Stripe Payment Intent ID */
   stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 128 }),
+  /** 토스페이먼츠 주문 ID */
+  tossOrderId: varchar("tossOrderId", { length: 128 }).unique(),
+  /** 토스페이먼츠 결제 키 */
+  tossPaymentKey: varchar("tossPaymentKey", { length: 200 }),
+  /** 결제 수단 (카드, 가상계좌 등) */
+  paymentMethod: varchar("paymentMethod", { length: 50 }),
+  /** 결제 타입 (NORMAL, BILLING 등) */
+  paymentType: varchar("paymentType", { length: 50 }),
   /** 결제 상태 */
   status: mysqlEnum("status", ["pending", "completed", "failed", "refunded"]).default("pending").notNull(),
   /** 결제 금액 (원화 기준, 원 단위) */

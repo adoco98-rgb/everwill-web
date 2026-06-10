@@ -61,6 +61,9 @@ import PartnerHelperPage from "./pages/PartnerHelperPage";
 import PartnerPolicyPage from "./pages/PartnerPolicyPage";
 import PartnerVerificationPage from "./pages/PartnerVerificationPage";
 import PartnerDashboardPage from "./pages/PartnerDashboardPage";
+import TossPaymentPage from "./pages/TossPaymentPage";
+import TossPaymentSuccess from "./pages/TossPaymentSuccess";
+import TossPaymentFail from "./pages/TossPaymentFail";
 import { ChatbotWidget } from "./components/ChatbotWidget";
 import { LanguageProvider } from "./contexts/LanguageContext";
 
@@ -73,6 +76,10 @@ function Router() {
       <Route path={"/payment"} component={PaymentPage} />
       <Route path={"/payment/success"} component={PaymentSuccess} />
       <Route path={"/payment/cancel"} component={PaymentCancel} />
+      {/* 토스페이먼츠 한국 결제 */}
+      <Route path={"/payment/toss"} component={TossPaymentPage} />
+      <Route path={"/payment/toss/success"} component={TossPaymentSuccess} />
+      <Route path={"/payment/toss/fail"} component={TossPaymentFail} />
       <Route path={"/login"} component={LoginPage} />
       {/* 약관 페이지 */}
       <Route path={"/terms"} component={TermsPage} />
