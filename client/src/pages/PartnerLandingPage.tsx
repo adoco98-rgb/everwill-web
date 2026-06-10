@@ -38,11 +38,35 @@ export default function PartnerLandingPage() {
       className="w-screen h-screen bg-gradient-to-br from-[#1F3864] via-[#2a4a7a] to-[#1F3864] flex flex-col items-center justify-center overflow-hidden"
       style={{ padding: "clamp(16px, 3vh, 40px) clamp(16px, 4vw, 60px)" }}
     >
+      {/* 웰컴 메시지 */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="text-center"
+        style={{ marginBottom: "clamp(10px, 2vh, 24px)" }}
+      >
+        <p
+          className="text-[#C9A961] font-semibold tracking-widest uppercase"
+          style={{ fontSize: "clamp(10px, 1vw, 13px)", letterSpacing: "0.15em", marginBottom: "8px" }}
+        >
+          Welcome to EverWill
+        </p>
+        <p
+          className="text-white/80 italic"
+          style={{ fontSize: "clamp(11px, 1.2vw, 16px)", lineHeight: 1.7, maxWidth: "600px" }}
+        >
+          We always stand beside our neighbors,<br />
+          practicing a life of warmth and care.<br />
+          <span className="text-white/60">We cheer for your happiness.</span>
+        </p>
+      </motion.div>
+
       {/* 타이틀 */}
       <motion.div
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.5, delay: 0.15 }}
         className="text-center"
         style={{ marginBottom: "clamp(16px, 3vh, 36px)" }}
       >
