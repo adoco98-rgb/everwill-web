@@ -5,14 +5,15 @@
  * - 주민등록번호 자동 하이픈
  * - 전화번호 국가코드 선택
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { StepProps } from "./StepProps";
 import AIGuide from "../AIGuide";
 import GlobalAddressSearch from "../GlobalAddressSearch";
 import PhoneInput from "../PhoneInput";
 import { formatRRN, PHONE_CODE_TO_ISO } from "@/lib/formatUtils";
 import { trpc } from "@/lib/trpc";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Upload, CheckCircle2, X, FileText, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 // 국가 목록 (ISO 코드 + 한국어 이름)
 const COUNTRIES = [
@@ -180,7 +181,7 @@ export default function Step1Testator({ will, update }: StepProps) {
 
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-[#1F3864] mb-1.5">연락처</label>
+          <label className="block text-sm font-semibold text-[#1F3864] mb-1.5">연락싸</label>
           <PhoneInput
             countryCode={phoneCode}
             phone={phoneNumberOnly}
@@ -204,6 +205,148 @@ export default function Step1Testator({ will, update }: StepProps) {
           />
         </div>
       </div>
+
+      {/* 건강증명서 선택 업로드 */}
+      <HealthCertUpload will={will} update={update} />
+    </div>
+  );
+}
+
+/** 건강증명서 업로드 컴포넌트 */
+function HealthCertUpload({ will, update }: Pick<StepProps, "will" | "update">) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const uploadMutation = trpc.will.uploadFile.useMutation();
+
+  // 발급일이 1개월 이내인지 검증
+  const isWithinOneMonth = (dateStr: string) => {
+    if (!dateStr) return true;
+    const issued = new Date(dateStr);
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    return issued >= oneMonthAgo;
+  };
+
+  const dateValid = isWithinOneMonth(will.healthCertDate);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 파일 형식 검증
+    const allowed = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+    if (!allowed.includes(file.type)) {
+      toast.error("이미지(JPG/PNG/WEBP) 또는 PDF만 업로드 가능합니다.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("파일 크기는 10MB 이하여야 합니다.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      // Base64로 변환 후 업로드
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const result = await uploadMutation.mutateAsync({
+        fileName: `health-cert-${Date.now()}-${file.name}`,
+        fileData: base64,
+        mimeType: file.type,
+      });
+      update({ healthCertUrl: result.url });
+      toast.success("건강증명서가 업로드되었습니다.");
+    } catch {
+      toast.error("업로드에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="border border-dashed border-[#C9A961]/50 rounded-2xl p-5 bg-[#C9A961]/5">
+      <div className="flex items-start gap-3 mb-4">
+        <div className="w-9 h-9 bg-[#C9A961]/20 rounded-xl flex items-center justify-center flex-shrink-0">
+          <FileText className="w-5 h-5 text-[#C9A961]" />
+        </div>
+        <div>
+          <div className="flex items-center gap-2">
+            <h4 className="text-sm font-bold text-[#1F3864]">건강증명서 업로드</h4>
+            <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">선택</span>
+          </div>
+          <p className="text-xs text-gray-500 mt-0.5">보건소 발급 건강증명서 업로드 시 유언 분쟁 시 의사능력 입증에 활용됩니다. (발급 1개월 이내)</p>
+        </div>
+      </div>
+
+      {/* 발급일 입력 */}
+      <div className="mb-3">
+        <label className="block text-xs font-semibold text-gray-600 mb-1">발급일</label>
+        <input
+          type="date"
+          value={will.healthCertDate}
+          max={new Date().toISOString().split("T")[0]}
+          onChange={(e) => update({ healthCertDate: e.target.value })}
+          className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none transition-all ${
+            will.healthCertDate && !dateValid
+              ? "border-red-400 bg-red-50 focus:border-red-400"
+              : "border-gray-200 focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10"
+          }`}
+        />
+        {will.healthCertDate && !dateValid && (
+          <div className="flex items-center gap-1.5 mt-1.5 text-red-500">
+            <AlertCircle className="w-3.5 h-3.5" />
+            <span className="text-xs">발급일이 1개월을 초과했습니다. 최신 발급서를 업로드해주세요.</span>
+          </div>
+        )}
+      </div>
+
+      {/* 파일 업로드 */}
+      {will.healthCertUrl ? (
+        <div className="flex items-center justify-between bg-white border border-[#C9A961]/30 rounded-xl px-4 py-3">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-green-500" />
+            <span className="text-sm text-gray-700">건강증명서 업로드 완료</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => update({ healthCertUrl: "", healthCertDate: "" })}
+            className="text-gray-400 hover:text-red-500 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="w-full flex items-center justify-center gap-2 border border-[#C9A961]/40 rounded-xl px-4 py-3 text-sm text-[#C9A961] hover:bg-[#C9A961]/10 transition-colors disabled:opacity-50"
+        >
+          {uploading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-[#C9A961] border-t-transparent rounded-full animate-spin" />
+              업로드 중...
+            </>
+          ) : (
+            <>
+              <Upload className="w-4 h-4" />
+              파일 선택 (JPG / PNG / PDF, 최대 10MB)
+            </>
+          )}
+        </button>
+      )}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,application/pdf"
+        className="hidden"
+        onChange={handleFileChange}
+      />
     </div>
   );
 }

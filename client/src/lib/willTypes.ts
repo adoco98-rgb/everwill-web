@@ -81,6 +81,10 @@ export interface WillData {
   hasVideoWill: boolean;
   hasHandwrittenScan: boolean;
 
+  // 6. 건강증명서 (선택)
+  healthCertUrl: string;    // 업로드된 파일 URL
+  healthCertDate: string;   // 발급일 (YYYY-MM-DD)
+
   // 6. 메타
   mode: WillMode;
   currentStep: number; // AI 모드 현재 단계
@@ -109,6 +113,8 @@ export const initialWillData: WillData = {
   specialInstructions: "",
   hasVideoWill: false,
   hasHandwrittenScan: false,
+  healthCertUrl: "",
+  healthCertDate: "",
   mode: null,
   currentStep: 1,
   isDraft: true,

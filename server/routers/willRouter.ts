@@ -12,6 +12,7 @@ import { wills, willRevisionPayments } from "../../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import crypto from "crypto";
 import { sendWillCertifiedEmail } from "../_core/email";
+import { storagePut } from "../storage";
 
 // 상속인 스키마
 const HeirSchema = z.object({
@@ -566,5 +567,26 @@ ${input.currentData ? JSON.stringify(input.currentData, null, 2) : "없음"}
         wasCharged: needsPayment,
         remainingFree: isUnlimited ? 999 : Math.max(0, w.freeRevisionCount - w.usedFreeRevisions - (needsPayment ? 0 : 1)),
       };
+    }),
+
+  /**
+   * 파일 업로드 (건강증명서 등)
+   * Base64 데이터 URL을 받아 S3에 저장하고 URL 반환
+   */
+  uploadFile: protectedProcedure
+    .input(z.object({
+      fileName: z.string(),
+      fileData: z.string(), // Base64 data URL (data:mime;base64,...)
+      mimeType: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Base64 데이터 URL에서 실제 데이터 추출
+      const base64Data = input.fileData.replace(/^data:[^;]+;base64,/, "");
+      const buffer = Buffer.from(base64Data, "base64");
+
+      const key = `will-docs/${ctx.user.id}/${input.fileName}`;
+      const { url } = await storagePut(key, buffer, input.mimeType);
+
+      return { url, key };
     }),
 });
