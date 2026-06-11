@@ -1,11 +1,12 @@
 /**
  * Step 3: 상속인 등록
- * - 전화번호: PhoneInput 컴포넌트 (국가코드 선택)
- * - 주소: GlobalAddressSearch (한국: 카카오, 해외: Google Places)
+ * - 항상 펼쳐진 카드 형태 (즉시 입력 → 자동 반영)
+ * - 상속인 추가 버튼으로 계속 추가 가능
+ * - 이름 / 전화번호 / 주소 각각 별도 입력칸
  * - 상속 지분 합계 실시간 검증
  */
 import { useState } from "react";
-import { Plus, Trash2, User } from "lucide-react";
+import { Plus, Trash2, User, ChevronDown, ChevronUp } from "lucide-react";
 import { nanoid } from "nanoid";
 import type { StepProps } from "./StepProps";
 import type { Heir } from "@/lib/willTypes";
@@ -36,49 +37,59 @@ const COUNTRIES = [
   { code: "BR", label: "🇧🇷 브라질" },
 ];
 
+/** 상속인 카드 상태 (국가코드, 전화국가코드, 접힘여부) */
+interface HeirCardState {
+  countryCode: string;
+  phoneCode: string;
+  collapsed: boolean;
+}
+
 export default function Step3Heirs({ will, update }: StepProps) {
   const { language } = useLanguage();
-  const [editing, setEditing] = useState<string | null>(null);
-  const [form, setForm] = useState<Partial<Heir>>({});
-  const [heirCountry, setHeirCountry] = useState<string>("KR");
-  const [phoneCode, setPhoneCode] = useState<string>("+82");
-
   const totalShare = will.heirs.reduce((sum, h) => sum + (h.share || 0), 0);
 
+  // 각 카드의 UI 상태 (countryCode, phoneCode, collapsed)
+  const [cardStates, setCardStates] = useState<Record<string, HeirCardState>>({});
+
+  const getCardState = (id: string): HeirCardState =>
+    cardStates[id] ?? { countryCode: "KR", phoneCode: "+82", collapsed: false };
+
+  const setCardState = (id: string, partial: Partial<HeirCardState>) => {
+    setCardStates((prev) => ({
+      ...prev,
+      [id]: { ...getCardState(id), ...partial },
+    }));
+  };
+
+  /** 상속인 필드 즉시 업데이트 */
+  const updateHeir = (id: string, partial: Partial<Heir>) => {
+    update({
+      heirs: will.heirs.map((h) => h.id === id ? { ...h, ...partial } : h),
+    });
+  };
+
+  /** 상속인 추가 */
   const addHeir = () => {
     const id = nanoid(8);
-    setForm({ id, share: 0 });
-    setHeirCountry("KR");
-    setPhoneCode("+82");
-    setEditing(id);
-  };
-
-  const saveHeir = () => {
-    if (!form.id || !form.name || !form.relation) return;
-    const heir: Heir = {
-      id: form.id,
-      name: form.name || "",
-      relation: form.relation || "",
-      birthDate: form.birthDate || "",
-      phone: form.phone || "",
-      email: form.email || "",
-      country: form.country || "대한민국",
-      address: form.address || "",
-      share: form.share || 0,
+    const newHeir: Heir = {
+      id,
+      name: "",
+      relation: "",
+      birthDate: "",
+      phone: "",
+      email: "",
+      country: "대한민국",
+      address: "",
+      share: 0,
     };
-    const exists = will.heirs.find((h) => h.id === heir.id);
-    update({ heirs: exists ? will.heirs.map((h) => h.id === heir.id ? heir : h) : [...will.heirs, heir] });
-    setEditing(null);
-    setForm({});
-    setHeirCountry("KR");
-    setPhoneCode("+82");
+    update({ heirs: [...will.heirs, newHeir] });
+    setCardState(id, { countryCode: "KR", phoneCode: "+82", collapsed: false });
   };
 
+  /** 상속인 삭제 */
   const removeHeir = (id: string) => {
     update({ heirs: will.heirs.filter((h) => h.id !== id) });
   };
-
-  const phoneNumberOnly = form.phone ? form.phone.replace(/^\+\d+\s?/, "") : "";
 
   return (
     <div className="space-y-5">
@@ -98,171 +109,251 @@ export default function Step3Heirs({ will, update }: StepProps) {
         warning="상속인 연락정보가 잘못되면 사망 후 알림이 전달되지 않을 수 있습니다."
       />
 
-      {/* 언어별 법률 경고 (TC-LA01~LA04) */}
+      {/* 언어별 유류분 경고 */}
       {language === "ko" && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
           <div className="flex items-start justify-between gap-2">
             <div>
               <strong>🇰🇷 한국 민법 제1112조 — 유류분 경고</strong><br />
               배우자·자녀는 법정 상속분의 <strong>1/2</strong>, 직계존속·형제자매는 <strong>1/3</strong>이 최소 보장됩니다.
-              이를 침해하면 유언이 일부 무효가 될 수 있습니다.
             </div>
             <span className="shrink-0 bg-amber-200 text-amber-900 text-xs font-bold px-2 py-0.5 rounded-full whitespace-nowrap">참고용</span>
           </div>
-          <p className="mt-2 text-xs text-amber-600">⚠️ 이 계산은 참고용입니다. 특별수익·기여분 등 개별 사정에 따라 실제 유류분이 달라질 수 있습니다. 반드시 변호사와 확인하세요.</p>
+          <p className="mt-2 text-xs text-amber-600">⚠️ 이 계산은 참고용입니다. 반드시 변호사와 확인하세요.</p>
         </div>
       )}
-      {language === "ja" && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
-          <strong>🇯🇵 日本民法 第1042条 — 遺留分の警告</strong><br />
-          配偶者・子は法定相続分の<strong>1/2</strong>、直系尊属のみの場合は<strong>1/3</strong>が最低限保障されます。
-          これを侵害すると遺言が一部無効になる場合があります。
-        </div>
-      )}
-      {language === "de" && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
-          <strong>🇩🇪 BGB §2303 — Pflichtteil-Warnung</strong><br />
-          Kinder, Ehegatte und Eltern haben Anspruch auf den <strong>Pflichtteil</strong> (1/2 des gesetzlichen Erbteils).
-          Eine vollständige Enterbung ist nicht möglich — der Pflichtteil bleibt immer bestehen.
-        </div>
-      )}
-      {language === "ar" && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800" dir="rtl">
-          <strong>🕌 الشريعة الإسلامية — تحذير الوصية</strong><br />
-          لا يجوز الوصية بأكثر من <strong>ثلث (1/3)</strong> من التركة للأجانب عن الورثة.
-          الباقي يُوزَّع وفق الفرائض الشرعية. تجاوز الثلث قد يُبطل الوصية جزئياً.
-        </div>
-      )}
+
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-700">
         <strong>민법 제1000조</strong> — 상속인 순위: 1순위 직계비속, 2순위 직계존속, 3순위 형제자매.
         배우자는 1·2순위와 공동상속합니다.
       </div>
 
-      {/* 등록된 상속인 목록 */}
+      {/* 지분 합계 표시 */}
       {will.heirs.length > 0 && (
-        <div className="space-y-2">
-          {will.heirs.map((heir) => (
-            <div key={heir.id} className="flex items-center justify-between bg-[#FAFAF8] rounded-xl p-4 border border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-[#1F3864]/10 flex items-center justify-center">
-                  <User className="w-4 h-4 text-[#1F3864]" />
-                </div>
-                <div>
-                  <div className="font-semibold text-[#1F3864] text-sm">{heir.name} · {heir.relation}</div>
-                  <div className="text-gray-400 text-xs">{heir.country || "대한민국"} · {heir.phone || "연락처 미입력"} · {heir.share}%</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => { setForm({ ...heir }); setEditing(heir.id); }} className="text-gray-400 hover:text-[#1F3864] text-xs">수정</button>
-                <button onClick={() => removeHeir(heir.id)} className="text-red-400 hover:text-red-600">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          ))}
-          <div className={`text-right text-sm font-semibold ${totalShare > 100 ? "text-red-500" : totalShare === 100 ? "text-green-600" : "text-gray-400"}`}>
-            총 지분: {totalShare}%
+        <div className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold border ${
+          totalShare > 100
+            ? "bg-red-50 border-red-200 text-red-600"
+            : totalShare === 100
+            ? "bg-green-50 border-green-200 text-green-700"
+            : "bg-gray-50 border-gray-200 text-gray-500"
+        }`}>
+          <span>총 상속 지분</span>
+          <span>
+            {totalShare}%
             {totalShare > 100 && " ⚠️ 100% 초과"}
             {totalShare === 100 && " ✅ 완료"}
             {totalShare < 100 && ` (${100 - totalShare}% 미배분)`}
-          </div>
+          </span>
         </div>
       )}
 
-      {/* 입력 폼 */}
-      {editing && (
-        <div className="bg-white border-2 border-[#1F3864]/20 rounded-2xl p-5 space-y-4">
-          <h4 className="font-bold text-[#1F3864] text-sm">상속인 정보 입력</h4>
+      {/* 상속인 카드 목록 */}
+      <div className="space-y-4">
+        {will.heirs.map((heir, index) => {
+          const cs = getCardState(heir.id);
+          const phoneNumberOnly = heir.phone ? heir.phone.replace(/^\+\d+\s?/, "") : "";
+          const isComplete = heir.name && heir.relation;
 
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1">성명 *</label>
-              <input value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="홍길동" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1">관계 *</label>
-              <select value={form.relation || ""} onChange={(e) => setForm({ ...form, relation: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]">
-                <option value="">선택</option>
-                {RELATIONS.map((r) => <option key={r} value={r}>{r}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1">생년월일</label>
-              <input type="date" value={form.birthDate || ""} onChange={(e) => setForm({ ...form, birthDate: e.target.value })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1">거주 국가</label>
-              <select
-                value={heirCountry}
-                onChange={(e) => {
-                  setHeirCountry(e.target.value);
-                  const countryLabel = COUNTRIES.find(c => c.code === e.target.value)?.label.replace(/^.{3}/, "").trim() || "대한민국";
-                  setForm({ ...form, country: countryLabel, address: "" });
-                  const matchedPhone = Object.entries(PHONE_CODE_TO_ISO).find(([, iso]) => iso === e.target.value);
-                  if (matchedPhone) setPhoneCode(matchedPhone[0]);
-                }}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
-              >
-                {COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
-              </select>
-            </div>
-          </div>
-
-          {/* 연락처 */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1">연락처</label>
-            <PhoneInput
-              countryCode={phoneCode}
-              phone={phoneNumberOnly}
-              onCountryCodeChange={(code) => { setPhoneCode(code); setForm({ ...form, phone: `${code} ${phoneNumberOnly}` }); }}
-              onPhoneChange={(phone) => setForm({ ...form, phone: `${phoneCode} ${phone}` })}
-              placeholder={heirCountry === "KR" ? "010-0000-0000" : "Phone number"}
-            />
-          </div>
-
-          {/* 이메일 */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1">이메일</label>
-            <input type="email" value={form.email || ""} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="heir@example.com" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]" />
-          </div>
-
-          {/* 주소 - 모든 국가 자동검색 */}
-          <GlobalAddressSearch
-            label="주소"
-            value={form.address || ""}
-            onChange={(address) => setForm({ ...form, address })}
-            countryCode={heirCountry}
-            placeholder={heirCountry === "KR" ? "주소 검색 버튼을 눌러주세요" : "Start typing address..."}
-            showLabel
-          />
-
-          {/* 상속 지분 */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1">
-              상속 지분 (%) *
-              <span className="ml-2 text-gray-400 font-normal">현재 총 배분: {totalShare}%</span>
-            </label>
-            <div className="flex items-center gap-3">
-              <input type="range" min={0} max={100} step={1} value={form.share ?? 0} onChange={(e) => setForm({ ...form, share: Number(e.target.value) })} className="flex-1 accent-[#1F3864]" />
-              <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                <input type="number" min={0} max={100} value={form.share ?? 0} onChange={(e) => setForm({ ...form, share: Math.min(100, Math.max(0, Number(e.target.value))) })} className="w-16 px-2 py-2 text-sm text-center focus:outline-none" />
-                <span className="px-2 text-gray-400 text-sm bg-gray-50 border-l border-gray-200 py-2">%</span>
+          return (
+            <div
+              key={heir.id}
+              className="border-2 border-[#1F3864]/15 rounded-2xl overflow-hidden bg-white"
+            >
+              {/* 카드 헤더 */}
+              <div className="flex items-center justify-between px-5 py-3.5 bg-[#1F3864]/5 border-b border-[#1F3864]/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-[#1F3864] flex items-center justify-center text-white text-xs font-bold">
+                    {index + 1}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-[#1F3864] text-sm">
+                      {heir.name || `상속인 ${index + 1}`}
+                      {heir.relation && <span className="ml-2 text-[#C9A961] font-normal">({heir.relation})</span>}
+                    </div>
+                    {heir.share > 0 && (
+                      <div className="text-xs text-gray-400">지분 {heir.share}%</div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCardState(heir.id, { collapsed: !cs.collapsed })}
+                    className="text-gray-400 hover:text-[#1F3864] transition-colors p-1"
+                    title={cs.collapsed ? "펼치기" : "접기"}
+                  >
+                    {cs.collapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeHeir(heir.id)}
+                    className="text-red-300 hover:text-red-500 transition-colors p-1"
+                    title="삭제"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
+
+              {/* 카드 본문 (접힘 가능) */}
+              {!cs.collapsed && (
+                <div className="p-5 space-y-4">
+                  {/* 이름 + 관계 */}
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+                        성명 <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        value={heir.name}
+                        onChange={(e) => updateHeir(heir.id, { name: e.target.value })}
+                        placeholder="홍길동"
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+                        관계 <span className="text-red-400">*</span>
+                      </label>
+                      <select
+                        value={heir.relation}
+                        onChange={(e) => updateHeir(heir.id, { relation: e.target.value })}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 transition-all"
+                      >
+                        <option value="">선택</option>
+                        {RELATIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* 생년월일 + 거주 국가 */}
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 mb-1.5">생년월일</label>
+                      <input
+                        type="date"
+                        value={heir.birthDate}
+                        onChange={(e) => updateHeir(heir.id, { birthDate: e.target.value })}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-500 mb-1.5">거주 국가</label>
+                      <select
+                        value={cs.countryCode}
+                        onChange={(e) => {
+                          const code = e.target.value;
+                          const countryLabel = COUNTRIES.find((c) => c.code === code)?.label.replace(/^.{3}/, "").trim() || "대한민국";
+                          const matchedPhone = Object.entries(PHONE_CODE_TO_ISO).find(([, iso]) => iso === code);
+                          setCardState(heir.id, {
+                            countryCode: code,
+                            phoneCode: matchedPhone ? matchedPhone[0] : "+82",
+                          });
+                          updateHeir(heir.id, { country: countryLabel, address: "" });
+                        }}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 transition-all"
+                      >
+                        {COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* 전화번호 */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">전화번호</label>
+                    <PhoneInput
+                      countryCode={cs.phoneCode}
+                      phone={phoneNumberOnly}
+                      onCountryCodeChange={(code) => {
+                        setCardState(heir.id, { phoneCode: code });
+                        updateHeir(heir.id, { phone: `${code} ${phoneNumberOnly}` });
+                      }}
+                      onPhoneChange={(phone) => updateHeir(heir.id, { phone: `${cs.phoneCode} ${phone}` })}
+                      placeholder={cs.countryCode === "KR" ? "010-0000-0000" : "Phone number"}
+                    />
+                  </div>
+
+                  {/* 이메일 */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">이메일</label>
+                    <input
+                      type="email"
+                      value={heir.email}
+                      onChange={(e) => updateHeir(heir.id, { email: e.target.value })}
+                      placeholder="heir@example.com"
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 transition-all"
+                    />
+                  </div>
+
+                  {/* 주소 */}
+                  <GlobalAddressSearch
+                    label="주소"
+                    value={heir.address}
+                    onChange={(address) => updateHeir(heir.id, { address })}
+                    countryCode={cs.countryCode}
+                    placeholder={cs.countryCode === "KR" ? "주소 검색 버튼을 눌러주세요" : "Start typing address..."}
+                    showLabel
+                  />
+
+                  {/* 상속 지분 */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">
+                      상속 지분 (%)
+                      <span className="ml-2 text-gray-400 font-normal">현재 총 배분: {totalShare}%</span>
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={heir.share ?? 0}
+                        onChange={(e) => updateHeir(heir.id, { share: Number(e.target.value) })}
+                        className="flex-1 accent-[#1F3864]"
+                      />
+                      <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={heir.share ?? 0}
+                          onChange={(e) => updateHeir(heir.id, { share: Math.min(100, Math.max(0, Number(e.target.value))) })}
+                          className="w-16 px-2 py-2 text-sm text-center focus:outline-none"
+                        />
+                        <span className="px-2 text-gray-400 text-sm bg-gray-50 border-l border-gray-200 py-2">%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 완성도 표시 */}
+                  {!isComplete && (
+                    <div className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                      성명과 관계는 필수 입력 항목입니다.
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          </div>
+          );
+        })}
+      </div>
 
-          <div className="flex gap-3 pt-2">
-            <button onClick={saveHeir} className="bg-[#1F3864] text-white px-6 py-2 rounded-lg text-sm font-semibold hover:bg-[#162d52] transition-colors">저장</button>
-            <button onClick={() => { setEditing(null); setForm({}); setHeirCountry("KR"); setPhoneCode("+82"); }} className="text-gray-400 text-sm px-4 py-2">취소</button>
-          </div>
+      {/* 상속인 추가 버튼 */}
+      <button
+        type="button"
+        onClick={addHeir}
+        className="w-full border-2 border-dashed border-[#C9A961]/40 hover:border-[#C9A961] rounded-2xl py-4 flex items-center justify-center gap-2 text-[#C9A961] hover:bg-[#C9A961]/5 text-sm font-semibold transition-all"
+      >
+        <Plus className="w-4 h-4" />
+        상속인 추가
+      </button>
+
+      {will.heirs.length === 0 && (
+        <div className="text-center py-6 text-gray-400 text-sm">
+          <User className="w-10 h-10 mx-auto mb-2 opacity-30" />
+          아직 등록된 상속인이 없습니다.<br />
+          위 버튼을 눌러 상속인을 추가해 주세요.
         </div>
-      )}
-
-      {!editing && (
-        <button onClick={addHeir} className="w-full border-2 border-dashed border-gray-200 hover:border-[#1F3864]/30 rounded-xl py-4 flex items-center justify-center gap-2 text-gray-400 hover:text-[#1F3864] text-sm font-medium transition-all">
-          <Plus className="w-4 h-4" />
-          상속인 추가
-        </button>
       )}
     </div>
   );
