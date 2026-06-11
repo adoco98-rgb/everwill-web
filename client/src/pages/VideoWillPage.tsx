@@ -15,6 +15,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { GradeGate } from "@/components/GradeGate";
 
 type VideoType = "legal" | "emotional" | "future";
 type Step = "select" | "record" | "preview" | "upload" | "done";
@@ -250,6 +251,7 @@ export default function VideoWillPage() {
   }
 
   return (
+    <GradeGate requiredGrade="platinum" featureName="영상 유언장" description="영상 유언장은 플래티넷 이상 회원만 이용할 수 있습니다." mode="block">
     <div className="min-h-screen bg-[#FAFAFA]">
       {/* 헤더 */}
       <div className="bg-[#1F3864] text-white py-6 px-4">
@@ -578,5 +580,6 @@ export default function VideoWillPage() {
         </AnimatePresence>
       </div>
     </div>
+    </GradeGate>
   );
 }

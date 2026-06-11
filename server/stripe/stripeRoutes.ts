@@ -9,7 +9,7 @@ import type { Express, Request, Response } from "express";
 import Stripe from "stripe";
 import { eq } from "drizzle-orm";
 import { Resend } from "resend";
-import { SARAM_PRODUCTS, type ProductKey } from "./products";
+import { SARAM_PRODUCTS, type ProductKey, GRADE_RANK, type MemberGrade } from "./products";
 import { getDb } from "../db";
 import { payments, users, wills } from "../../drizzle/schema";
 import { sdk } from "../_core/sdk";
@@ -159,11 +159,42 @@ export function registerStripeRoutes(app: Express) {
 
               console.log(`[Webhook] 결제 DB 저장 완료: ${session.id}`);
 
-              // ─── 인증 상품 결제 시 유언장 상태 자동 업데이트 ───
-              // 주의: metadata.items에는 소문자 키가 저장됨 (예: "certification", "certification_premium")
+              // ─── 멤버십 등급 자동 업그레이드 ───
               const purchasedItems = (session.metadata?.items || "").split(",").map((k: string) => k.trim().toLowerCase());
+
+              // 구매한 상품 중 가장 높은 등급 찾기
+              const gradeMap: Record<string, MemberGrade> = {
+                membership_silver: "silver",
+                membership_gold: "gold",
+                membership_platinum: "platinum",
+                membership_vip: "vip",
+              };
+              let targetGrade: MemberGrade | null = null;
+              for (const item of purchasedItems) {
+                const g = gradeMap[item];
+                if (g) {
+                  if (!targetGrade || GRADE_RANK[g] > GRADE_RANK[targetGrade]) {
+                    targetGrade = g;
+                  }
+                }
+              }
+
+              // 현재 사용자 등급보다 높으면 업그레이드
+              if (targetGrade && dbUserId) {
+                const userRows2 = await db.select({ memberGrade: users.memberGrade }).from(users).where(eq(users.id, dbUserId)).limit(1);
+                const currentGrade = (userRows2[0]?.memberGrade as MemberGrade) || "general";
+                if (GRADE_RANK[targetGrade] > GRADE_RANK[currentGrade]) {
+                  await db.update(users).set({
+                    memberGrade: targetGrade,
+                    gradeUpdatedAt: new Date(),
+                  }).where(eq(users.id, dbUserId));
+                  console.log(`[Webhook] 등급 업그레이드: userId=${dbUserId} ${currentGrade} → ${targetGrade}`);
+                }
+              }
+
+              // ─── 인증 상품 결제 시 유언장 상태 자동 업데이트 ───
               const isCertPurchase = purchasedItems.some((k: string) =>
-                ["certification", "certification_premium", "storage_lifetime"].includes(k)
+                ["membership_silver", "membership_gold", "membership_platinum", "membership_vip"].includes(k)
               );
               const metaWillId = session.metadata?.will_id;
 
@@ -177,18 +208,22 @@ export function registerStripeRoutes(app: Express) {
                   const certNumber = `EW-${dateStr}-${randomSuffix}`;
 
                   // 플랜별 무료 수정 횟수 설정
-                  let freeRevisionCount = 1; // 기본 전자인증
-                  if (purchasedItems.includes("certification_premium")) freeRevisionCount = 2;
-                  if (purchasedItems.includes("storage_lifetime")) freeRevisionCount = -1; // 무제한
+                  // 등급별 무료 수정 횟수
+                  let freeRevisionCount = 2; // silver 기본
+                  if (purchasedItems.includes("membership_gold")) freeRevisionCount = 3;
+                  if (purchasedItems.includes("membership_platinum")) freeRevisionCount = 5;
+                  if (purchasedItems.includes("membership_vip")) freeRevisionCount = -1; // 무제한
 
-                  // 보관 만료일 설정
+                  // 등급별 보관 만료일 설정
                   let storageExpiresAt: Date | null = null;
-                  if (purchasedItems.includes("certification") && !purchasedItems.includes("certification_premium")) {
+                  if (purchasedItems.includes("membership_silver")) {
                     storageExpiresAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 1년
-                  } else if (purchasedItems.includes("certification_premium")) {
+                  } else if (purchasedItems.includes("membership_gold")) {
                     storageExpiresAt = new Date(now.getTime() + 3 * 365 * 24 * 60 * 60 * 1000); // 3년
+                  } else if (purchasedItems.includes("membership_platinum")) {
+                    storageExpiresAt = new Date(now.getTime() + 5 * 365 * 24 * 60 * 60 * 1000); // 5년
                   }
-                  // storage_lifetime: null = 영구
+                  // vip: null = 영구
 
                   await db.update(wills)
                     .set({

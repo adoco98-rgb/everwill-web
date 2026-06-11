@@ -18,6 +18,7 @@ import {
 import { useRef } from "react";
 import { Link } from "wouter";
 import { HelpTooltip } from "@/components/HelpTooltip";
+import { GradeGate } from "@/components/GradeGate";
 
 // ─── 국가별 화폐 단위 매핑 ───
 const COUNTRY_CURRENCY: Record<string, { code: string; symbol: string; locale: string; name: string }> = {
@@ -275,6 +276,7 @@ export default function AssetsPage() {
   }
 
   return (
+    <GradeGate requiredGrade="silver" featureName="재산 등록" description="재산 등록 및 상속인 관리는 실버 이상 회원만 이용할 수 있습니다." mode="block">
     <div className="min-h-screen bg-[#FAFAFA]">
       {/* ── 상단 헤더 ── */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
@@ -993,5 +995,6 @@ export default function AssetsPage() {
 
       </div>
     </div>
+    </GradeGate>
   );
 }

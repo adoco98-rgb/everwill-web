@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
+import { GradeGate } from "@/components/GradeGate";
 import {
   BookOpen, Mail, Camera, Lock, Sparkles, Plus, Mic,
   ArrowLeft, Send, Image as ImageIcon, Trash2, ChevronRight,
@@ -699,12 +700,8 @@ function AlbumTab({ userId }: { userId: number }) {
 // ─── 메인 컴포넌트 ────────────────────────────────────────────
 export default function LifeStoryPage() {
   const { user, loading } = useAuth();
-  const { data: access, isLoading: accessLoading } = trpc.lifeStory.checkAccess.useQuery(undefined, {
-    enabled: !!user,
-    retry: false,
-  });
 
-  if (loading || accessLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #0d1b3e 0%, #1F3864 60%, #0d1b3e 100%)" }}>
         <div className="text-center">
@@ -715,16 +712,13 @@ export default function LifeStoryPage() {
     );
   }
 
-  // 비로그인
   if (!user) {
     return <LockedScreen isLoggedIn={false} />;
   }
 
-  // 로그인했지만 접근 권한 없음
-  if (!access?.hasAccess) {
-    return <LockedScreen isLoggedIn={true} />;
-  }
-
-  // 접근 가능
-  return <LifeStoryMain userId={access.userId} />;
+  return (
+    <GradeGate requiredGrade="gold" featureName="AI 일기 / Life Story" description="AI 일기 쓰기와 편지 서비스는 골드 이상 회원만 이용할 수 있습니다." mode="block">
+      <LifeStoryMain userId={user.id} />
+    </GradeGate>
+  );
 }

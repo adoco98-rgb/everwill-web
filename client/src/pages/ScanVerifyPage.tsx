@@ -11,6 +11,7 @@ import {
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
+import { GradeGate } from "@/components/GradeGate";
 
 interface VerificationResult {
   isHandwritten: boolean;
@@ -100,6 +101,7 @@ export default function ScanVerifyPage() {
   );
 
   return (
+    <GradeGate requiredGrade="platinum" featureName="자필 유언 스캔" description="자필 유언장 스캔 인증은 플래티넷 이상 회원만 이용할 수 있습니다." mode="block">
     <div className="min-h-screen bg-[#FAFAFA]">
       {/* 헤더 */}
       <div className="bg-[#1F3864] text-white px-4 py-4">
@@ -299,5 +301,6 @@ export default function ScanVerifyPage() {
         </p>
       </div>
     </div>
+    </GradeGate>
   );
 }
