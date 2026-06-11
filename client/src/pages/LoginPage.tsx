@@ -217,6 +217,9 @@ export default function LoginPage() {
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [agreeMarketing, setAgreeMarketing] = useState(false);
   const [assetList, setAssetList] = useState<AssetEntry[]>([]);
+  const [signupReferralCode, setSignupReferralCode] = useState("");
+  const [referralCodeValid, setReferralCodeValid] = useState<null | boolean>(null);
+  const [referralCodeChecking, setReferralCodeChecking] = useState(false);
 
   // ── OTP 타이머 ──
   useEffect(() => {
@@ -400,6 +403,7 @@ export default function LoginPage() {
         phone: signupPhone || "",
         country: signupCountry,
         address: signupAddress || undefined,
+        referralCode: signupReferralCode.trim() || undefined,
       });
     } else {
       phoneRegister.mutate({
@@ -408,6 +412,7 @@ export default function LoginPage() {
         password: signupPassword,
         name: signupName,
         address: signupAddress || undefined,
+        referralCode: signupReferralCode.trim() || undefined,
       });
     }
   }
@@ -824,6 +829,57 @@ export default function LoginPage() {
                         label="주소 (선택)"
                         placeholder={signupCountry === "KR" ? "주소 검색 버튼을 눌러주세요" : "Start typing your address..."}
                       />
+                    </div>
+
+                    {/* 추천인 코드 입력 */}
+                    <div className="border-t border-gray-200 pt-4">
+                      <p className="text-sm font-bold text-[#1F3864] mb-2 flex items-center gap-2">
+                        <span className="text-[#C9A961]">🎁</span> 추천인 코드 <span className="text-gray-400 font-normal text-xs">(선택 · 셀러에게 받은 코드)</span>
+                      </p>
+                      <div className="relative flex gap-2">
+                        <input
+                          type="text"
+                          value={signupReferralCode}
+                          onChange={e => {
+                            const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
+                            setSignupReferralCode(val);
+                            setReferralCodeValid(null);
+                          }}
+                          placeholder="예: ABC123"
+                          maxLength={10}
+                          className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-mono tracking-widest focus:outline-none focus:border-[#C9A961] bg-white uppercase"
+                        />
+                        <button
+                          type="button"
+                          disabled={!signupReferralCode || referralCodeChecking}
+                          onClick={async () => {
+                            if (!signupReferralCode) return;
+                            setReferralCodeChecking(true);
+                            try {
+                              // 서버에서 코드 검증
+                              const res = await fetch(`/api/trpc/referral.validateCode?input=${encodeURIComponent(JSON.stringify({ code: signupReferralCode }))}`);
+                              const json = await res.json();
+                              const valid = json?.result?.data?.valid ?? false;
+                              setReferralCodeValid(valid);
+                              if (valid) toast.success("유효한 추천인 코드입니다!");
+                              else toast.error("존재하지 않는 추천인 코드입니다");
+                            } catch {
+                              setReferralCodeValid(false);
+                            } finally {
+                              setReferralCodeChecking(false);
+                            }
+                          }}
+                          className="px-4 py-2.5 bg-[#1F3864] text-white text-sm font-semibold rounded-xl hover:bg-[#162a4e] disabled:opacity-50 transition whitespace-nowrap"
+                        >
+                          {referralCodeChecking ? <Loader2 className="w-4 h-4 animate-spin" /> : "확인"}
+                        </button>
+                      </div>
+                      {referralCodeValid === true && (
+                        <p className="text-xs text-green-600 mt-1.5 flex items-center gap-1"><Check className="w-3 h-3" /> 유효한 추천인 코드입니다</p>
+                      )}
+                      {referralCodeValid === false && (
+                        <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1"><X className="w-3 h-3" /> 존재하지 않는 코드입니다</p>
+                      )}
                     </div>
 
                     {/* 비밀번호 설정 */}

@@ -6,9 +6,11 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Users, DollarSign, TrendingUp, Copy, CheckCircle, ArrowLeft, Award, Calendar, ExternalLink, QrCode } from "lucide-react";
+import { Users, DollarSign, TrendingUp, Copy, CheckCircle, ArrowLeft, Award, Calendar, ExternalLink, QrCode, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 const TEXTS: Record<string, any> = {
   ko: {
@@ -182,13 +184,34 @@ const SAMPLE_DATA = {
 export default function PartnerDashboardPage() {
   const [, navigate] = useLocation();
   const { language } = useLanguage();
+  const { user, isAuthenticated } = useAuth();
   const texts = TEXTS[language] || TEXTS.ko;
   const [activeTab, setActiveTab] = useState(0);
   const [codeCopied, setCodeCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
 
-  const data = SAMPLE_DATA;
-  const referralLink = `https://everwill.com/ref/${data.partner.code}`;
+  // 실제 데이터 조회
+  const { data: commissionData, isLoading: commissionLoading } = trpc.referral.getCommissionSummary.useQuery(
+    undefined,
+    { enabled: isAuthenticated }
+  );
+  const { data: referralsData, isLoading: referralsLoading } = trpc.referral.getMyReferrals.useQuery(
+    undefined,
+    { enabled: isAuthenticated }
+  );
+
+  const isLoading = commissionLoading || referralsLoading;
+
+  // 실제 데이터가 있으면 사용, 없으면 샘플 데이터 폴백
+  const myCode = commissionData?.referralCode ?? SAMPLE_DATA.partner.code;
+  const partnerName = user?.name ?? SAMPLE_DATA.partner.name;
+  const totalReferrals = commissionData?.totalReferrals ?? SAMPLE_DATA.summary.totalMembers;
+  const totalRevenue = commissionData?.totalRevenue ?? SAMPLE_DATA.summary.totalRevenue;
+  const commissionAmount = commissionData?.commissionAmount ?? SAMPLE_DATA.summary.totalCommission;
+  const commissionRate = commissionData?.commissionRate ?? 0.1;
+  const pointBalance = commissionData?.pointBalance ?? 0;
+
+  const referralLink = `${window.location.origin}/login?ref=${myCode}`;
 
   const copyToClipboard = (text: string, type: "code" | "link") => {
     navigator.clipboard.writeText(text);
@@ -219,11 +242,11 @@ export default function PartnerDashboardPage() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
               <p className="text-white/60 text-sm">{texts.welcome}</p>
-              <h1 className="text-2xl md:text-3xl font-bold mt-1">{data.partner.name}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold mt-1">{partnerName}</h1>
               <div className="flex items-center gap-2 mt-3">
                 <Award className="w-5 h-5 text-[#C9A961]" />
-                <span className="text-[#C9A961] font-semibold">{texts.grade}: {data.partner.grade}</span>
-                <span className="text-white/50 text-sm">({data.partner.commission}% commission)</span>
+                <span className="text-[#C9A961] font-semibold">{texts.grade}: Partner</span>
+                <span className="text-white/50 text-sm">({(commissionRate * 100).toFixed(0)}% commission)</span>
               </div>
             </div>
 
@@ -231,9 +254,9 @@ export default function PartnerDashboardPage() {
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 min-w-[300px]">
               <p className="text-white/60 text-xs mb-2">{texts.referralCode}</p>
               <div className="flex items-center gap-2 mb-3">
-                <code className="text-xl font-bold text-[#C9A961] tracking-wider">{data.partner.code}</code>
+                <code className="text-xl font-bold text-[#C9A961] tracking-wider">{myCode}</code>
                 <button
-                  onClick={() => copyToClipboard(data.partner.code, "code")}
+                  onClick={() => copyToClipboard(myCode ?? "", "code")}
                   className="p-1.5 bg-white/10 rounded-lg hover:bg-white/20 transition-all"
                   title={texts.copyCode}
                 >
@@ -289,30 +312,30 @@ export default function PartnerDashboardPage() {
                 <Users className="w-5 h-5 text-[#1F3864]" />
                 <span className="text-sm text-[#6B7280]">{texts.summary.totalMembers}</span>
               </div>
-              <p className="text-3xl font-bold text-[#1A1A1A]">{data.summary.totalMembers}</p>
-              <p className="text-xs text-green-500 mt-1">+{data.summary.monthMembers} {texts.summary.monthMembers}</p>
+              <p className="text-3xl font-bold text-[#1A1A1A]">{isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : totalReferrals}</p>
+              <p className="text-xs text-green-500 mt-1">{texts.summary.monthMembers}</p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm border">
               <div className="flex items-center gap-3 mb-3">
                 <DollarSign className="w-5 h-5 text-[#C9A961]" />
                 <span className="text-sm text-[#6B7280]">{texts.summary.totalRevenue}</span>
               </div>
-              <p className="text-3xl font-bold text-[#1A1A1A]">{formatCurrency(data.summary.totalRevenue)}</p>
-              <p className="text-xs text-green-500 mt-1">+{formatCurrency(data.summary.monthRevenue)} {texts.summary.monthRevenue}</p>
+              <p className="text-3xl font-bold text-[#1A1A1A]">{isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : formatCurrency(totalRevenue)}</p>
+              <p className="text-xs text-green-500 mt-1">{texts.summary.monthRevenue}</p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm border">
               <div className="flex items-center gap-3 mb-3">
                 <TrendingUp className="w-5 h-5 text-green-500" />
                 <span className="text-sm text-[#6B7280]">{texts.summary.totalCommission}</span>
               </div>
-              <p className="text-3xl font-bold text-[#1A1A1A]">{formatCurrency(data.summary.totalCommission)}</p>
+              <p className="text-3xl font-bold text-[#1A1A1A]">{isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : formatCurrency(commissionAmount)}</p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm border">
               <div className="flex items-center gap-3 mb-3">
                 <Calendar className="w-5 h-5 text-orange-500" />
                 <span className="text-sm text-[#6B7280]">{texts.summary.pendingCommission}</span>
               </div>
-              <p className="text-3xl font-bold text-orange-500">{formatCurrency(data.summary.pendingCommission)}</p>
+              <p className="text-3xl font-bold text-orange-500">{isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : formatCurrency(pointBalance)}</p>
               <p className="text-xs text-[#6B7280] mt-1">{texts.summary.nextPayout}: 2026-07-10</p>
             </div>
           </motion.div>
@@ -330,21 +353,17 @@ export default function PartnerDashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.members.map((m, i) => (
+                  {(referralsData?.referrals ?? SAMPLE_DATA.members).map((m: any, i: number) => (
                     <tr key={i} className="border-b hover:bg-[#FAFAFA]">
                       <td className="px-6 py-4 font-medium">{m.name}</td>
-                      <td className="px-6 py-4 text-sm text-[#6B7280]">{m.date}</td>
+                      <td className="px-6 py-4 text-sm text-[#6B7280]">{m.createdAt ? new Date(m.createdAt).toLocaleDateString("ko-KR") : m.date}</td>
                       <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          m.status === "active" ? "bg-green-100 text-green-700" :
-                          m.status === "pending" ? "bg-yellow-100 text-yellow-700" :
-                          "bg-gray-100 text-gray-700"
-                        }`}>
-                          {texts.membersTable.status[m.status as keyof typeof texts.membersTable.status]}
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                          {texts.membersTable.status["active"]}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm">{formatCurrency(m.payment)}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-[#C9A961]">{formatCurrency(m.commission)}</td>
+                      <td className="px-6 py-4 text-sm">{formatCurrency(m.totalPayment ?? m.payment ?? 0)}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-[#C9A961]">{formatCurrency(m.commission ?? 0)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -365,12 +384,12 @@ export default function PartnerDashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.revenue.map((r, i) => (
+                  {(referralsData?.referrals ?? SAMPLE_DATA.revenue).map((r: any, i: number) => (
                     <tr key={i} className="border-b hover:bg-[#FAFAFA]">
-                      <td className="px-6 py-4 text-sm text-[#6B7280]">{r.date}</td>
-                      <td className="px-6 py-4 font-medium">{r.member}</td>
-                      <td className="px-6 py-4 text-sm">{r.product}</td>
-                      <td className="px-6 py-4 font-medium text-[#1F3864]">{formatCurrency(r.amount)}</td>
+                      <td className="px-6 py-4 text-sm text-[#6B7280]">{r.createdAt ? new Date(r.createdAt).toLocaleDateString("ko-KR") : r.date}</td>
+                      <td className="px-6 py-4 font-medium">{r.name ?? r.member}</td>
+                      <td className="px-6 py-4 text-sm">{r.country ?? r.product}</td>
+                      <td className="px-6 py-4 font-medium text-[#1F3864]">{formatCurrency(r.totalPayment ?? r.amount ?? 0)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -391,7 +410,7 @@ export default function PartnerDashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.commissions.map((c, i) => (
+                  {SAMPLE_DATA.commissions.map((c: any, i: number) => (
                     <tr key={i} className="border-b hover:bg-[#FAFAFA]">
                       <td className="px-6 py-4 text-sm text-[#6B7280]">{c.date}</td>
                       <td className="px-6 py-4 font-bold text-[#1A1A1A]">{formatCurrency(c.amount)}</td>

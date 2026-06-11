@@ -7,7 +7,7 @@ import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
-import { users } from "../../drizzle/schema";
+import { users, pointHistory } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { getSessionCookieOptions } from "../_core/cookies";
 import { sdk } from "../_core/sdk";
@@ -111,6 +111,8 @@ export const phoneAuthRouter = router({
       password: z.string().min(8, "비밀번호는 8자 이상이어야 합니다").max(100),
       name: z.string().min(1, "이름을 입력해주세요").max(50),
       address: z.string().optional(),
+      /** 추천인 코드 (선택) */
+      referralCode: z.string().min(4).max(16).optional().or(z.literal("")),
     }))
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -128,6 +130,15 @@ export const phoneAuthRouter = router({
         });
       }
 
+      // 추천인 코드 검증
+      let validReferralCode: string | null = null;
+      if (input.referralCode && input.referralCode.trim()) {
+        const code = input.referralCode.toUpperCase().trim();
+        const referrerRows = await db.select({ id: users.id })
+          .from(users).where(eq(users.referralCode, code)).limit(1);
+        if (referrerRows.length > 0) validReferralCode = code;
+      }
+
       const passwordHash = await bcrypt.hash(input.password, 12);
       const newQrCode = randomUUID();
 
@@ -140,7 +151,33 @@ export const phoneAuthRouter = router({
         passwordHash,
         lastSignedIn: new Date(),
         qrCode: newQrCode,
+        referredBy: validReferralCode || null,
       });
+
+      // 추천인 포인트 적립
+      if (validReferralCode) {
+        try {
+          const REFERRAL_REWARD_POINTS = 5000;
+          const referrerRows = await db.select().from(users)
+            .where(eq(users.referralCode, validReferralCode)).limit(1);
+          if (referrerRows.length > 0) {
+            const referrer = referrerRows[0];
+            const newBalance = (referrer.pointBalance || 0) + REFERRAL_REWARD_POINTS;
+            await db.update(users).set({ pointBalance: newBalance }).where(eq(users.id, referrer.id));
+            await db.insert(pointHistory).values({
+              userId: referrer.id,
+              type: "referral_reward",
+              amount: REFERRAL_REWARD_POINTS,
+              balanceAfter: newBalance,
+              description: `${input.name} 님 추천 보상`,
+              relatedUserId: null,
+              createdAt: new Date(),
+            });
+          }
+        } catch (e) {
+          console.error("[Referral] 포인트 적립 실패:", e);
+        }
+      }
 
       return { success: true };
     }),

@@ -873,3 +873,13 @@
 - [x] 11개 언어 파일에 partnerJoin 번역 키 추가 완료
 - [x] LawyersSection에 "전문가 파트너 등록하기" CTA 버튼 추가 완료 (골드 버튼, /partner/professional 이동)
 - [x] TypeScript 에러 0개 확인
+
+## 셀러 추천인 시스템 (2026-06-11)
+- [x] referralRouter에 getMyReferrals (내가 추천한 회원 목록 + 결제 내역) 프로시저 추가
+- [x] referralRouter에 getCommissionSummary (셀러별 수수료 합계) 프로시저 추가
+- [ ] adminRouter에 getAllReferralStats (관리자용 전체 셀러 정산 내역) 프로시저 추가
+- [x] emailAuthRouter.register에 referralCode 입력 필드 추가 (가입 시 자동 applyReferral)
+- [x] phoneAuthRouter.register에 referralCode 입력 필드 추가
+- [x] LoginPage 회원가입 폼 info 단계에 추천인 코드 입력 필드 추가 (실시간 검증)
+- [x] PartnerDashboardPage에 실제 tRPC 데이터 연결 (내 추천 코드, 추천 회원 목록, 수수료 내역)
+- [ ] AdminPage에 셀러 정산 탭 추가 (셀러별 추천 회원 수, 결제 금액, 수수료 합계)

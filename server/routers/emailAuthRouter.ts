@@ -180,6 +180,8 @@ export const emailAuthRouter = router({
       phone: z.string().min(7, "전화번호를 입력해주세요").max(20).optional().or(z.literal("")),
       country: z.string().min(2).max(3).default("KR"),
       address: z.string().optional(),
+      /** 추천인 코드 (선택, 6자리 대문자+숫자) */
+      referralCode: z.string().min(4).max(16).optional().or(z.literal("")),
     }))
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -191,6 +193,17 @@ export const emailAuthRouter = router({
       const existing = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
       if (existing.length > 0) {
         throw new TRPCError({ code: "CONFLICT", message: "이미 가입된 이메일입니다." });
+      }
+
+      // 추천인 코드 검증 (입력된 경우)
+      let validReferralCode: string | null = null;
+      if (input.referralCode && input.referralCode.trim()) {
+        const code = input.referralCode.toUpperCase().trim();
+        const referrerRows = await db.select({ id: users.id, name: users.name })
+          .from(users).where(eq(users.referralCode, code)).limit(1);
+        if (referrerRows.length > 0) {
+          validReferralCode = code;
+        }
       }
 
       // 비밀번호 해시
@@ -209,7 +222,35 @@ export const emailAuthRouter = router({
         lastSignedIn: new Date(),
         qrCode: newQrCode,
         profileCompleted: 1,
+        referredBy: validReferralCode || null,
       });
+
+      // 추천인 포인트 적립 (유효한 추천인 코드가 있는 경우)
+      if (validReferralCode) {
+        try {
+          const { pointHistory } = await import("../../drizzle/schema");
+          const REFERRAL_REWARD_POINTS = 5000;
+          const referrerRows = await db.select().from(users)
+            .where(eq(users.referralCode, validReferralCode)).limit(1);
+          if (referrerRows.length > 0) {
+            const referrer = referrerRows[0];
+            const newBalance = (referrer.pointBalance || 0) + REFERRAL_REWARD_POINTS;
+            await db.update(users).set({ pointBalance: newBalance }).where(eq(users.id, referrer.id));
+            await db.insert(pointHistory).values({
+              userId: referrer.id,
+              type: "referral_reward",
+              amount: REFERRAL_REWARD_POINTS,
+              balanceAfter: newBalance,
+              description: `${input.name || input.email} 님 추천 보상`,
+              relatedUserId: null, // 신규 가입자 ID는 insert 후 조회 필요
+              createdAt: new Date(),
+            });
+          }
+        } catch (e) {
+          console.error("[Referral] 포인트 적립 실패:", e);
+          // 포인트 적립 실패해도 가입은 성공으로 처리
+        }
+      }
 
       // 회원가입 환영 이메일 발송
       const resendWelcome = new Resend(ENV.resendApiKey);

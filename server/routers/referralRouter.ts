@@ -6,9 +6,9 @@
  * - 포인트 잔액 조회
  */
 import { TRPCError } from "@trpc/server";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 import { z } from "zod";
-import { users, pointHistory } from "../../drizzle/schema";
+import { users, pointHistory, payments } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 
@@ -185,5 +185,122 @@ export const referralRouter = router({
         .limit(50);
 
       return rows;
+    }),
+
+  /**
+   * 내가 추천한 회원 목록 조회
+   * 셀러가 자신의 추천 코드로 가입한 회원 목록 + 각 회원의 결제 합계 확인
+   */
+  getMyReferrals: protectedProcedure
+    .query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+
+      // 내 추천 코드 조회
+      const meRows = await db.select({ referralCode: users.referralCode })
+        .from(users).where(eq(users.id, ctx.user.id)).limit(1);
+      const myCode = meRows[0]?.referralCode;
+
+      if (!myCode) {
+        return { referrals: [], totalCount: 0, totalPaymentAmount: 0, commissionAmount: 0 };
+      }
+
+      // 내 코드로 가입한 회원 목록
+      const referredUsers = await db.select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        phone: users.phone,
+        country: users.country,
+        memberGrade: users.memberGrade,
+        createdAt: users.createdAt,
+      }).from(users)
+        .where(eq(users.referredBy, myCode))
+        .orderBy(desc(users.createdAt));
+
+      // 각 추천 회원의 결제 합계 조회
+      const referralIds = referredUsers.map(u => u.id);
+      let paymentMap: Record<number, number> = {};
+
+      if (referralIds.length > 0) {
+        // 결제 완료된 금액 합산
+        for (const uid of referralIds) {
+          const payRows = await db.select({
+            total: sql<number>`COALESCE(SUM(${payments.amountTotal}), 0)`,
+          }).from(payments)
+            .where(and(
+              eq(payments.userId, uid),
+              eq(payments.status, "completed")
+            ));
+          paymentMap[uid] = Number(payRows[0]?.total ?? 0);
+        }
+      }
+
+      const referrals = referredUsers.map(u => ({
+        ...u,
+        totalPayment: paymentMap[u.id] ?? 0,
+        // 수수료: 결제금액의 10% (추후 정책 변경 가능)
+        commission: Math.floor((paymentMap[u.id] ?? 0) * 0.1),
+      }));
+
+      const totalPaymentAmount = referrals.reduce((s, r) => s + r.totalPayment, 0);
+      const commissionAmount = referrals.reduce((s, r) => s + r.commission, 0);
+
+      return {
+        referrals,
+        totalCount: referrals.length,
+        totalPaymentAmount,
+        commissionAmount,
+      };
+    }),
+
+  /**
+   * 수수료 요약 조회 (셀러 대시보드용)
+   */
+  getCommissionSummary: protectedProcedure
+    .query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+
+      const meRows = await db.select({
+        referralCode: users.referralCode,
+        pointBalance: users.pointBalance,
+        name: users.name,
+      }).from(users).where(eq(users.id, ctx.user.id)).limit(1);
+
+      const me = meRows[0];
+      if (!me?.referralCode) {
+        return { referralCode: null, totalReferrals: 0, totalRevenue: 0, commissionRate: 0.1, commissionAmount: 0, pointBalance: me?.pointBalance ?? 0 };
+      }
+
+      // 추천 회원 수
+      const countRows = await db.select({ cnt: sql<number>`COUNT(*)` })
+        .from(users).where(eq(users.referredBy, me.referralCode));
+      const totalReferrals = Number(countRows[0]?.cnt ?? 0);
+
+      // 추천 회원들의 총 결제 금액
+      const referredUserIds = await db.select({ id: users.id })
+        .from(users).where(eq(users.referredBy, me.referralCode));
+
+      let totalRevenue = 0;
+      for (const u of referredUserIds) {
+        const payRows = await db.select({
+          total: sql<number>`COALESCE(SUM(${payments.amountTotal}), 0)`,
+        }).from(payments)
+          .where(and(eq(payments.userId, u.id), eq(payments.status, "completed")));
+        totalRevenue += Number(payRows[0]?.total ?? 0);
+      }
+
+      const commissionRate = 0.1; // 10%
+      const commissionAmount = Math.floor(totalRevenue * commissionRate);
+
+      return {
+        referralCode: me.referralCode,
+        totalReferrals,
+        totalRevenue,
+        commissionRate,
+        commissionAmount,
+        pointBalance: me.pointBalance ?? 0,
+      };
     }),
 });

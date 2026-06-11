@@ -428,6 +428,89 @@ export const adminRouter = router({
         .where(eq(inquiries.id, input.inquiryId));
       return { success: true };
     }),
+
+  /**
+   * 셀러 정산 내역 조회
+   * 추천인 코드가 있는 셀러의 추천 현황 + 수수료 합계
+   */
+  getSellerStats: adminProcedure
+    .input(z.object({
+      page: z.number().default(1),
+      limit: z.number().default(20),
+      search: z.string().optional(),
+    }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+
+      const offset = (input.page - 1) * input.limit;
+
+      // 추천인 코드가 있는 셀러 목록
+      const baseWhere = sql`${users.referralCode} IS NOT NULL AND ${users.referralCode} != ''`;
+      const searchWhere = input.search
+        ? and(
+            baseWhere,
+            or(
+              like(users.name, `%${input.search}%`),
+              like(users.referralCode, `%${input.search}%`),
+              like(users.email, `%${input.search}%`),
+            )
+          )
+        : baseWhere;
+
+      const sellerRows = await db.select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        phone: users.phone,
+        referralCode: users.referralCode,
+        country: users.country,
+        pointBalance: users.pointBalance,
+        createdAt: users.createdAt,
+      }).from(users)
+        .where(searchWhere)
+        .orderBy(desc(users.createdAt))
+        .limit(input.limit)
+        .offset(offset);
+
+      const [countResult] = await db.select({ count: sql<number>`COUNT(*)` })
+        .from(users)
+        .where(searchWhere);
+
+      // 각 셀러의 추천 회원 수 + 결제 합계 조회
+      const sellersWithStats = await Promise.all(sellerRows.map(async (seller) => {
+        const [referralCount] = await db.select({ cnt: sql<number>`COUNT(*)` })
+          .from(users).where(eq(users.referredBy, seller.referralCode!));
+
+        const referredUserIds = await db.select({ id: users.id })
+          .from(users).where(eq(users.referredBy, seller.referralCode!));
+
+        let totalRevenue = 0;
+        for (const u of referredUserIds) {
+          const [paySum] = await db.select({
+            total: sql<number>`COALESCE(SUM(${payments.amountTotal}), 0)`,
+          }).from(payments)
+            .where(and(eq(payments.userId, u.id), eq(payments.status, "completed")));
+          totalRevenue += Number(paySum?.total ?? 0);
+        }
+
+        const commissionAmount = Math.floor(totalRevenue * 0.1);
+
+        return {
+          ...seller,
+          totalReferrals: Number(referralCount?.cnt ?? 0),
+          totalRevenue,
+          commissionAmount,
+        };
+      }));
+
+      return {
+        sellers: sellersWithStats,
+        total: Number(countResult?.count ?? 0),
+        page: input.page,
+        limit: input.limit,
+      };
+    }),
 });
 
 // =====================================================
