@@ -33,6 +33,7 @@ import { medicalDirectiveRouter } from "./routers/medicalDirectiveRouter";
 import { willCertificateRouter } from "./routers/willCertificateRouter";
 import { tossPaymentRouter } from "./routers/tossPaymentRouter";
 import { videoWillRouter } from "./routers/videoWillRouter";
+import { aiMemoryRouter } from "./routers/aiMemoryRouter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -111,6 +112,8 @@ export const appRouter = router({
   tossPayment: tossPaymentRouter,
   // 영상 유언장
   videoWill: videoWillRouter,
+  // 개인 AI 메모리 (나만의 AI - 완전 격리)
+  aiMemory: aiMemoryRouter,
 });
 
 export type AppRouter = typeof appRouter;

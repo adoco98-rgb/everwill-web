@@ -883,3 +883,12 @@
 - [x] LoginPage 회원가입 폼 info 단계에 추천인 코드 입력 필드 추가 (실시간 검증)
 - [x] PartnerDashboardPage에 실제 tRPC 데이터 연결 (내 추천 코드, 추천 회원 목록, 수수료 내역)
 - [ ] AdminPage에 셀러 정산 탭 추가 (셀러별 추천 회원 수, 결제 금액, 수수료 합계)
+
+## 개인 AI 메모리 시스템 (2026-06-12)
+- [x] DB: aiMemories, aiConversations 테이블 스키마 추가 (schema.ts)
+- [x] DB: pnpm db:push 실행 완료 (테이블 생성)
+- [x] aiMemoryRouter.ts 구현 (chat/getMemories/addMemory/deleteMemory/getConversations/getConversation/deleteConversation/getMemoryStats)
+- [x] routers.ts에 aiMemoryRouter 등록
+- [x] MyAIPage.tsx 구현 (개인 AI 채팅 UI - 채팅/대화기록/AI메모리 탭)
+- [x] SaramDashboardLayout 사이드바에 나만의 AI (/my-ai) 메뉴 추가
+- [x] App.tsx에 /my-ai 라우트 등록

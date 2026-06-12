@@ -1145,3 +1145,40 @@ export const videoWills = mysqlTable("videoWills", {
 });
 export type VideoWill = typeof videoWills.$inferSelect;
 export type InsertVideoWill = typeof videoWills.$inferInsert;
+
+// ===== 개인 AI 메모리 시스템 =====
+// 사용자별 완전 격리된 AI 메모리 - 자서전/일기/편지 작성 시 참조
+
+export const aiMemories = mysqlTable("aiMemories", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  category: mysqlEnum("category", [
+    "basic_info", "family", "career", "values",
+    "life_events", "emotions", "hobbies", "health",
+    "wishes", "diary_summary", "letter_summary", "conversation"
+  ]).notNull(),
+  content: text("content").notNull(),
+  importance: int("importance").default(3).notNull(),
+  source: mysqlEnum("source", ["manual", "conversation", "diary", "letter", "autobiography"]).default("manual").notNull(),
+  lastUsedAt: timestamp("lastUsedAt"),
+  usageCount: int("usageCount").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+export type AiMemory = typeof aiMemories.$inferSelect;
+export type InsertAiMemory = typeof aiMemories.$inferInsert;
+
+// AI 대화 세션 (사용자별 독립 대화 기록)
+export const aiConversations = mysqlTable("aiConversations", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  purpose: mysqlEnum("purpose", ["autobiography", "diary", "letter", "free_chat"]).default("free_chat").notNull(),
+  title: varchar("title", { length: 200 }),
+  messages: text("messages").notNull(),
+  extractedMemoryIds: text("extractedMemoryIds"),
+  isActive: tinyint("isActive").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+export type AiConversation = typeof aiConversations.$inferSelect;
+export type InsertAiConversation = typeof aiConversations.$inferInsert;

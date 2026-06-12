@@ -37,6 +37,7 @@ import {
   ScrollText,
   Video,
   ScanLine,
+  Brain,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -73,6 +74,7 @@ const lifeStoryMenuItems = [
   { icon: BookMarked, label: "나의 자서전", path: "/life-story/autobiography" },
   { icon: PenLine, label: "AI 일기 쓰기", path: "/life-story" },
   { icon: Mail, label: "소중한 편지 쓰기", path: "/letter" },
+  { icon: Brain, label: "나만의 AI", path: "/my-ai" },
 ];
 
 /** 내 정보 관리 메뉴 */
