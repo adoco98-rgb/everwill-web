@@ -47,7 +47,7 @@ describe("email confirmation logic", () => {
       general: "일반 문의",
       service: "서비스 이용",
       payment: "결제/환불",
-      badge: "Badge 주문",
+      badge: "NFC 카드 주문",
       lawyer: "변호사 연결",
       other: "기타",
     };

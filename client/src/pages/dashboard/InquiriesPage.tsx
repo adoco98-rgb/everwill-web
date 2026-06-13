@@ -16,7 +16,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   general: "일반 문의",
   service: "서비스 이용",
   payment: "결제/환불",
-  badge: "Badge 관련",
+  badge: "NFC 카드 관련",
   lawyer: "변호사 매칭",
   other: "기타",
 };

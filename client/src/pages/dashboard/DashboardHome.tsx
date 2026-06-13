@@ -360,7 +360,7 @@ export default function DashboardHome() {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}>
             <Link href="/payment" className="block bg-white border-2 border-gray-100 rounded-2xl p-5 hover:shadow-md transition-all group">
                 <Award className="w-6 h-6 text-[#1F3864] mb-3 opacity-80" />
-                <h3 className="font-bold text-[#1F3864] text-sm">Badge 주문</h3>
+                <h3 className="font-bold text-[#1F3864] text-sm">NFC 카드 주문</h3>
                 <p className="text-xs mt-0.5 text-gray-400">물리적 유언 인증 배지</p>
                 <ArrowRight className="w-4 h-4 text-[#1F3864]/30 mt-3 group-hover:opacity-80 group-hover:translate-x-1 transition-all" />
               </Link>

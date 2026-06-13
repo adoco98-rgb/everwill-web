@@ -63,7 +63,7 @@ const mainMenuItems = [
 /** 멤버십 / 카드 메뉴 */
 const membershipMenuItems = [
   { icon: QrCode, label: "멤버십 카드", path: "/dashboard/membership" },
-  { icon: Award, label: "인증 카드", path: "/dashboard/badge" },
+  { icon: Award, label: "NFC 인증 카드", path: "/dashboard/badge" },
   { icon: Calculator, label: "상속세 계산", path: "/dashboard/inheritance-tax" },
   { icon: ShieldCheck, label: "자산 인증", path: "/dashboard/asset-verify" },
   { icon: Heart, label: "연명치료·기증", path: "/dashboard/medical-directive" },

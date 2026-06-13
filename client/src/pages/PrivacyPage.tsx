@@ -245,11 +245,14 @@ export default function PrivacyPage() {
         {/* 부칙 */}
         <section className="bg-[#1F3864]/5 rounded-xl p-5">
           <h2 className="text-base font-bold text-[#1F3864] mb-2">부칙</h2>
-          <p className="text-sm text-gray-600">이 개인정보처리방침은 2025년 8월 1일부터 시행합니다.</p>
+          <p className="text-sm text-gray-600">이 개인정보처리방침은 2026년 6월 13일부터 시행합니다.</p>
           <div className="mt-4 text-sm text-gray-500 space-y-1">
             <p><strong>회사명:</strong> 주식회사 사람</p>
+            <p><strong>대표이사:</strong> 라수환</p>
             <p><strong>사업자등록번호:</strong> 621-81-61690</p>
+            <p><strong>법인등록번호:</strong> 180111-0511386</p>
             <p><strong>주소:</strong> 경기도 안성시</p>
+            <p><strong>개인정보 보호책임자:</strong> 라수환</p>
             <p><strong>문의:</strong> adoco98@gmail.com</p>
           </div>
         </section>

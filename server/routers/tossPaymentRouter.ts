@@ -31,10 +31,10 @@ const PRODUCT_PRICES: Record<string, { amount: number; name: string }> = {
   cert_renewal: { amount: 15000, name: "EverWill 유언장 재인증" },
   video_will: { amount: 29000, name: "EverWill 영상 유언장" },
   handwriting_scan: { amount: 19000, name: "EverWill 자필 유언 스캔 인증" },
-  badge_essential: { amount: 49000, name: "EverWill Badge Essential" },
-  badge_wearable: { amount: 79000, name: "EverWill Badge Wearable" },
-  badge_necklace: { amount: 99000, name: "EverWill Badge Necklace" },
-  badge_premium: { amount: 299000, name: "EverWill Badge Premium" },
+  badge_essential: { amount: 49000, name: "EverWill NFC 카드 Essential" },
+  badge_wearable: { amount: 79000, name: "EverWill NFC 카드 Wearable" },
+  badge_necklace: { amount: 99000, name: "EverWill NFC 카드 Necklace" },
+  badge_premium: { amount: 299000, name: "EverWill NFC 카드 Premium" },
 };
 
 export const tossPaymentRouter = router({

@@ -143,11 +143,11 @@ const INVESTMENT_DETAIL = [
         timeline: "M4 ~ M8",
       },
       {
-        name: "Badge NFC/QR 연동",
+        name: "NFC 카드 연동",
         amount: "₩5천만",
         partners: ["국내 금속 제조업체 (시제품)", "NXP Semiconductors (NFC 칩)"],
         breakdown: [
-          { item: "Badge 시제품 제조 500개 (Essential·Wearable)", cost: "₩2,000만", note: "스테인레스·실리콘·티타늄" },
+          { item: "NFC 카드 시제품 제조 500개 (Essential·Wearable)", cost: "₩2,000만", note: "스테인레스·실리콘·티타늄" },
           { item: "NFC 칩 내장 + QR 레이저 각인", cost: "₩1,000만", note: "NTAG213 또는 동급 NXP 칩" },
           { item: "NFC/QR 스캔 앱 연동 개발", cost: "₩1,500만", note: "iOS/Android 모바일 개발자 1명 × 1.5개월" },
           { item: "배송·포장 시스템 구축", cost: "₩500만", note: "물류 파트너 초기 셋업" },
@@ -226,7 +226,7 @@ const INVESTMENT_DETAIL = [
         amount: "₩4천만",
         partners: ["장례식장 (전국 상위 50개)", "병원 (종합병원 20개)", "은행·증권사"],
         breakdown: [
-          { item: "장례식장 제휴 계약 (50개소)", cost: "₩1,500만", note: "Badge 비치 + QR 홍보물 설치" },
+          { item: "장례식장 제휴 계약 (50개소)", cost: "₩1,500만", note: "NFC 카드 비치 + QR 홍보물 설치" },
           { item: "병원 제휴 계약 (20개소)", cost: "₩1,000만", note: "원무과·호스피스 병동 홍보" },
           { item: "은행·증권사 제휴 협의", cost: "₩1,500만", note: "고객 대상 유언 서비스 공동 홍보" },
         ],
@@ -338,7 +338,7 @@ const RISK_DATA = [
     color: "#F59E0B",
     level: "중간",
     risks: [
-      { risk: "경쟁사 유사 서비스 출시", impact: "시장 점유율 감소", mitigation: "Badge 시스템 특허 출원 + 선점 효과 극대화" },
+      { risk: "경쟁사 유사 서비스 출시", impact: "시장 점유율 감소", mitigation: "NFC 카드 시스템 특허 출원 + 선점 효과 극대화" },
       { risk: "고령층 디지털 전환 저항", impact: "가입자 목표 미달", mitigation: "오프라인 파트너십 (장례식장·병원) + 가족 대리 가입 기능" },
       { risk: "글로벌 진출 지연", impact: "ARR 목표 미달", mitigation: "한국 시장 안정화 후 단계적 진출, 현지 파트너 활용" },
     ],
@@ -351,7 +351,7 @@ const RISK_DATA = [
     risks: [
       { risk: "핵심 인력 이탈", impact: "개발 지연", mitigation: "스톡옵션 부여 + 문서화 강화" },
       { risk: "클라우드 서비스 장애", impact: "서비스 중단", mitigation: "멀티 리전 배포 + 자동 페일오버" },
-      { risk: "Badge 제조 파트너 이슈", impact: "배송 지연", mitigation: "복수 제조사 계약 + 재고 버퍼 유지" },
+      { risk: "NFC 카드 제조 파트너 이슈", impact: "배송 지연", mitigation: "복수 제조사 계약 + 재고 버퍼 유지" },
     ],
   },
   {
@@ -361,7 +361,7 @@ const RISK_DATA = [
     level: "중간",
     risks: [
       { risk: "초기 CAC 예상 초과", impact: "마케팅 예산 소진", mitigation: "채널별 ROAS 모니터링 + 비효율 채널 즉시 중단" },
-      { risk: "BEP 달성 지연 (M10 이후)", impact: "추가 투자 필요", mitigation: "Series A 준비 병행 + 수익화 가속 (Badge 판매 집중)" },
+      { risk: "BEP 달성 지연 (M10 이후)", impact: "추가 투자 필요", mitigation: "Series A 준비 병행 + 수익화 가속 (NFC 카드 판매 집중)" },
       { risk: "환율 리스크 (글로벌 결제)", impact: "수익 변동성", mitigation: "Stripe/Paddle 헤징 기능 활용 + 현지 통화 가격 고정" },
     ],
   },
@@ -372,7 +372,7 @@ const KPI_DATA = [
   { metric: "MAU", m3: "500", m6: "2,000", m9: "8,000", m12: "20,000", unit: "명" },
   { metric: "유료 전환율", m3: "12%", m6: "18%", m9: "22%", m12: "25%", unit: "" },
   { metric: "월 신규 인증", m3: "60", m6: "360", m9: "1,760", m12: "5,000", unit: "건" },
-  { metric: "Badge 판매", m3: "20", m6: "150", m9: "600", m12: "2,000", unit: "개" },
+  { metric: "NFC 카드 판매", m3: "20", m6: "150", m9: "600", m12: "2,000", unit: "개" },
   { metric: "변호사 파트너", m3: "3", m6: "7", m9: "10", m12: "15", unit: "명" },
   { metric: "월 ARR", m3: "₩900만", m6: "₩5,400만", m9: "₩2.6억", m12: "₩7.5억", unit: "" },
 ];
@@ -952,7 +952,7 @@ export default function InternalPage() {
                   color: "#10B981",
                   icon: Building2,
                   partners: [
-                    { name: "전국 장례식장 50개소", role: "Badge 비치 + 홍보", priority: "높음", status: "M4부터 영업" },
+                    { name: "전국 장례식장 50개소", role: "NFC 카드 비치 + 홍보", priority: "높음", status: "M4부터 영업" },
                     { name: "종합병원 20개소", role: "원무과 홍보", priority: "중간", status: "M6부터 영업" },
                     { name: "은행·증권사", role: "고객 공동 마케팅", priority: "중간", status: "M8부터 협의" },
                   ],
@@ -1038,7 +1038,7 @@ function AdminInquiriesSection() {
 
   const CATEGORY_LABELS: Record<string, string> = {
     general: "일반 문의", service: "서비스 이용",
-    payment: "결제/환불", badge: "Badge 관련",
+    payment: "결제/환불", badge: "NFC 카드 관련",
     lawyer: "변호사 매칭", other: "기타",
   };
 

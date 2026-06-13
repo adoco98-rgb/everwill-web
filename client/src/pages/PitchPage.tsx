@@ -383,7 +383,7 @@ const problems = [
 ];
 
 const innovations = [
-  { num: "01", title_ko: "물리적 Badge 시스템", title_en: "Physical Badge System", wf: true, desc_ko: "MedicAlert + AirTag + 유언 인증 결합. 5종 라인업. 착용 자체가 마케팅." },
+  { num: "01", title_ko: "NFC 인증 카드 시스템", title_en: "Physical NFC Card System", wf: true, desc_ko: "MedicAlert + AirTag + 유언 인증 결합. 5종 라인업. 착용 자체가 마케팅." },
   { num: "02", title_ko: "다층 안심 확인 서비스", title_en: "Multi-Layer Safety Confirmation", wf: true, desc_ko: "가족 신고 + 정부 DB + 정기 안심 확인 서비스 + 응급 발견자. 2채널 교차 검증." },
   { num: "03", title_ko: "변호사 마켓플레이스", title_en: "Lawyer Marketplace", wf: true, desc_ko: "평소엔 0%, 사망 후 100%. 플랫폼 수수료 15-25%." },
   { num: "04", title_ko: "상속자 직접 등록", title_en: "Beneficiary Direct Registration", wf: true, desc_ko: "사망 시 전 세계 상속자 자동 알림. 현지 언어·시간대 맞춤." },

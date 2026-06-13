@@ -31,7 +31,7 @@ const PUBLIC_BOT_SYSTEM_PROMPT = `당신은 EverWill 서비스 안내 봇 '에�
 - 세계 최초 디지털 유언 OS
 - 유언 작성 무료, 전자 인증 ₩49,000
 - 11개 언어 지원 (한국어·영어·일본어·중국어·독일어·스페인어·아랍어·프랑스어·러시아어·힌디어·포르투갈어)
-- EverWill Badge: 응급 신원 확인 + 유언 인증 카드
+- EverWill NFC 인증 카드: 응급 신원 확인 + 유언 인증 카드
 - 회원 가입: 무료 (이메일 또는 휴대폰 OTP)
 - 회원 전담 AI: 유언·상속 법률 상담, 자서전 작성, 편지·일기 작성 지원
 
@@ -617,7 +617,7 @@ export const chatRouter = router({
         ko: [
           "유언장 작성은 어떻게 시작하나요?",
           "전자 인증이 뭔가요?",
-          "EverWill Badge는 무엇인가요?",
+          "EverWill NFC 인증 카드는 무엇인가요?",
           "가격이 얼마인가요?",
           "개인정보는 안전한가요?",
           "회원 전담 AI는 무엇을 도와주나요?",
@@ -625,7 +625,7 @@ export const chatRouter = router({
         en: [
           "How do I start writing a will?",
           "What is electronic certification?",
-          "What is the EverWill Badge?",
+          "What is the EverWill NFC Card?",
           "How much does it cost?",
           "Is my personal information safe?",
           "What can the member AI help with?",
@@ -633,7 +633,7 @@ export const chatRouter = router({
         ja: [
           "遺言書の作成はどうすればいいですか？",
           "電子認証とは何ですか？",
-          "EverWill Badgeとは何ですか？",
+          "EverWill NFCカードとは何ですか？",
           "料金はいくらですか？",
           "会員専用AIは何を手伝ってくれますか？",
         ],
@@ -647,14 +647,14 @@ export const chatRouter = router({
         de: [
           "Wie beginne ich ein Testament zu schreiben?",
           "Was ist elektronische Zertifizierung?",
-          "Was ist das EverWill Badge?",
+          "Was ist die EverWill NFC-Karte?",
           "Was kostet es?",
           "Was kann die Mitglieder-KI helfen?",
         ],
         es: [
           "¿Cómo empiezo a escribir un testamento?",
           "¿Qué es la certificación electrónica?",
-          "¿Qué es el EverWill Badge?",
+          "¿Qué es la tarjeta NFC EverWill?",
           "¿Cuánto cuesta?",
           "¿Con qué puede ayudar la IA para miembros?",
         ],
@@ -668,7 +668,7 @@ export const chatRouter = router({
         fr: [
           "Comment commencer à rédiger un testament?",
           "Qu'est-ce que la certification électronique?",
-          "Qu'est-ce que le Badge EverWill?",
+          "Qu'est-ce que la carte NFC EverWill?",
           "Combien ça coûte?",
           "En quoi l'IA membre peut-elle aider?",
         ],
@@ -682,14 +682,14 @@ export const chatRouter = router({
         hi: [
           "वसीयत लिखना कैसे शुरू करें?",
           "इलेक्ट्रॉनिक प्रमाणीकरण क्या है?",
-          "EverWill Badge क्या है?",
+          "EverWill NFC कार्ड क्या है?",
           "इसकी कीमत कितनी है?",
           "सदस्य AI क्या मदद कर सकता है?",
         ],
         pt: [
           "Como começar a escrever um testamento?",
           "O que é certificação eletrônica?",
-          "O que é o EverWill Badge?",
+          "O que é o cartão NFC EverWill?",
           "Quanto custa?",
           "Com o que a IA de membro pode ajudar?",
         ],

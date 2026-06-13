@@ -67,7 +67,7 @@ const COMPARE = [
   { feature: "재인증", everwill: "₩15,000", trustwill: "연 $299 멤버십", farewill: "연 £90" },
   { feature: "영상 유언", everwill: "+₩29,000", trustwill: "없음", farewill: "없음" },
   { feature: "자필 스캔 인증", everwill: "+₩19,000", trustwill: "없음", farewill: "없음" },
-  { feature: "물리적 Badge", everwill: "₩49,000~", trustwill: "없음", farewill: "없음" },
+  { feature: "NFC 인증 카드", everwill: "₩49,000~", trustwill: "없음", farewill: "없음" },
   { feature: "4중 사망 감지", everwill: "포함", trustwill: "없음", farewill: "없음" },
   { feature: "다국어 지원", everwill: "11개 언어 (예정)", trustwill: "영어만", farewill: "영어만" },
 ];
@@ -159,7 +159,7 @@ export default function PricingPage() {
 
         {/* Badge 라인업 */}
         <section>
-          <h2 className="text-2xl font-bold text-[#1F3864] text-center mb-2">EverWill Badge</h2>
+          <h2 className="text-2xl font-bold text-[#1F3864] text-center mb-2">EverWill NFC 인증 카드</h2>
           <p className="text-center text-gray-500 text-sm mb-8">물리적 인증 카드 — 응급 시 의료진이 QR 스캔으로 가족 연락처 확인</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {BADGES.map((badge, idx) => (

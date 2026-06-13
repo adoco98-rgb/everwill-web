@@ -284,7 +284,7 @@ export const emailAuthRouter = router({
                     <li>AI 기반 유언장 작성 (무료, 17분 완성)</li>
                     <li>영상 유언장 녹화 및 보관</li>
                     <li>상속자 직접 등록 및 관리</li>
-                    <li>EverWill Badge로 긴급 신원 확인</li>
+                    <li>EverWill NFC 인증 카드로 긴급 신원 확인</li>
                     <li>11개 언어 지원, 글로벌 자산 관리</li>
                   </ul>
                 </div>

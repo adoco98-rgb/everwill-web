@@ -5,6 +5,8 @@ Allow: /investor
 Allow: /privacy
 Allow: /terms
 Allow: /login
+Allow: /badge
+Allow: /charity
 
 # 로그인 후 개인 페이지 색인 차단
 Disallow: /dashboard
@@ -12,6 +14,8 @@ Disallow: /dashboard/
 Disallow: /write
 Disallow: /letter
 Disallow: /profile
+Disallow: /my-ai
+Disallow: /heir/
 Disallow: /api/
 Disallow: /799805
 

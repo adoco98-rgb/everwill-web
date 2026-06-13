@@ -87,7 +87,7 @@ export const DEFAULT_PROMPTS: Record<string, {
 - 유언 작성 무료, 전자 인증 ₩49,000
 - 7개 언어 지원, 글로벌 서비스
 - 4중 사망 감지 시스템
-- EverWill Badge (물리적 인증 카드)
+- EverWill NFC 인증 카드
 
 [가격 안내]
 - 회원가입: 무료

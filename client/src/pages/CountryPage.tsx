@@ -345,7 +345,7 @@ function PricingSection({ data }: { data: CountryPageData }) {
   );
 }
 
-// ─── EverWill Badge 섹션 ─────────────────────────────────────────────────────
+// ─── EverWill NFC 카드 섹션 ─────────────────────────────────────────────────────
 function BadgeSection({ data }: { data: CountryPageData }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true });

@@ -103,7 +103,7 @@ function Router() {
       <Route path={"/dashboard/asset-verify"} component={() => <SaramDashboardLayout><AssetVerifyPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/inquiries"} component={() => <SaramDashboardLayout><InquiriesPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/heirs"} component={() => <SaramDashboardLayout><HeirsPage /></SaramDashboardLayout>} />
-      {/* Badge 카드 관리 */}
+      {/* NFC 인증 카드 관리 */}
       <Route path={"/dashboard/badge"} component={() => <SaramDashboardLayout><BadgePage /></SaramDashboardLayout>} />
       {/* 인증 현황 */}
       <Route path={"/dashboard/certification"} component={() => <SaramDashboardLayout><CertificationPage /></SaramDashboardLayout>} />
