@@ -4,19 +4,55 @@
  * 이미지: 다문화 글로벌 노인 그룹 (미국/영국/유럽 포함)
  * 오버레이: 딥 네이비 그라디언트로 텍스트 가독성 확보
  */
-import { motion } from "framer-motion";
-import { ArrowRight, UserPlus } from "lucide-react";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { ArrowRight, UserPlus, Users } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
+import { useEffect, useRef } from "react";
 
 const HERO_IMAGE =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/hero-global-elders-v2-DB4mTEuKjbV7DYjdv5fYBA.webp";
+
+// 숫자 카운트업 컴포넌트
+function AnimatedCounter({ target, duration = 2.5 }: { target: number; duration?: number }) {
+  const countRef = useRef<HTMLSpanElement>(null);
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    if (hasAnimated.current || target === 0) return;
+    hasAnimated.current = true;
+    const startVal = Math.max(0, target - 200);
+    let start = startVal;
+    const end = target;
+    const stepTime = Math.max(20, Math.floor((duration * 1000) / (end - start)));
+    const timer = setInterval(() => {
+      start += Math.ceil((end - start) / 15);
+      if (countRef.current) {
+        countRef.current.textContent = start.toLocaleString();
+      }
+      if (start >= end) {
+        clearInterval(timer);
+        if (countRef.current) countRef.current.textContent = end.toLocaleString();
+      }
+    }, stepTime);
+    return () => clearInterval(timer);
+  }, [target, duration]);
+
+  return <span ref={countRef}>{target.toLocaleString()}</span>;
+}
 
 export default function HeroSection() {
   const [, navigate] = useLocation();
   const { t } = useLanguage();
   const { isAuthenticated } = useAuth();
+
+  // 전체 회원 수 조회 (DB 실제 + 기준 3500)
+  const { data: memberData } = trpc.stats.getTotalMemberCount.useQuery(undefined, {
+    staleTime: 60_000, // 1분 캐시
+  });
+  const totalMembers = memberData?.total ?? 3500;
 
   // 로그인 상태면 대시보드, 비로그인이면 회원가입 페이지로
   const handleStart = () => {
@@ -95,7 +131,7 @@ export default function HeroSection() {
           {t.hero.subtitle2}
         </motion.p>
 
-        {/* CTA 버튼 2개 */}
+        {/* CTA 버튼 + 회원 수 카운터 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -111,6 +147,24 @@ export default function HeroSection() {
             {t.hero.ctaJoin}
             <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </button>
+
+          {/* 회원 수 카운터 배지 */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="flex flex-col items-center sm:items-start gap-0.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-5 py-3 min-w-[180px]"
+          >
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-[#C9A961]" />
+              <span className="text-white/70 text-xs font-medium">EverWill과 함께하는 회원</span>
+            </div>
+            <div className="text-white font-bold text-2xl sm:text-3xl tracking-tight">
+              <AnimatedCounter target={totalMembers} />
+              <span className="text-[#C9A961] ml-1 text-lg">+</span>
+            </div>
+            <span className="text-white/50 text-xs">무료회원 포함 전체 회원수</span>
+          </motion.div>
         </motion.div>
 
         {/* 가격 투명성 부연 문구 */}

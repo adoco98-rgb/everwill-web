@@ -1,16 +1,19 @@
 /**
  * 사이트 통계 라우터
  * - 인증회원 수 조회 (public)
+ * - 전체 회원 수 조회 (DB 실제 가입자 + 기준 3500)
  * - 관리자 수정 (admin only)
  */
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
 import { getDb } from "../db";
-import { siteStats } from "../../drizzle/schema";
-import { publicProcedure, protectedProcedure, adminProcedure, router } from "../_core/trpc";
+import { siteStats, users } from "../../drizzle/schema";
+import { publicProcedure, adminProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 
 const CERTIFIED_KEY = "certified_members";
+// 기준 시작 회원 수 (3,500명)
+const BASE_MEMBER_COUNT = 3500;
 
 export const statsRouter = router({
   /** 인증회원 수 조회 (누구나 가능) */
@@ -33,6 +36,15 @@ export const statsRouter = router({
       return { count: 0 };
     }
     return { count: rows[0].value };
+  }),
+
+  /** 전체 회원 수 조회 (DB 실제 가입자 + 기준 3500명) */
+  getTotalMemberCount: publicProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) return { total: BASE_MEMBER_COUNT };
+    const result = await db.select({ cnt: count() }).from(users);
+    const dbCount = result[0]?.cnt ?? 0;
+    return { total: BASE_MEMBER_COUNT + dbCount };
   }),
 
   /** 관리자 전용 - 인증회원 수 직접 설정 */
