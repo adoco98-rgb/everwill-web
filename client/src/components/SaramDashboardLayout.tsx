@@ -38,6 +38,8 @@ import {
   Video,
   ScanLine,
   Brain,
+  Fingerprint,
+  Gift,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -79,9 +81,11 @@ const lifeStoryMenuItems = [
 
 /** 내 정보 관리 메뉴 */
 const myInfoMenuItems = [
+  { icon: Fingerprint, label: "본인인증 (KYC)", path: "/dashboard/kyc" },
   { icon: Smartphone, label: "휴대폰 인증", path: "/dashboard/phone-verify" },
   { icon: Shield, label: "내 정보 관리", path: "/dashboard/profile" },
   { icon: MessageSquare, label: "1:1 문의", path: "/dashboard/inquiries" },
+  { icon: Gift, label: "추천인 포인트", path: "/dashboard/referral" },
   { icon: CreditCard, label: "결제 내역", path: "/dashboard/payments" },
 ];
 

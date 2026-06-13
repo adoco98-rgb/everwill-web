@@ -49,6 +49,8 @@ import WillDetailPage from "./pages/dashboard/WillDetailPage";
 import WillRevisionPage from "./pages/dashboard/WillRevisionPage";
 import HeirAcceptPage from "./pages/HeirAcceptPage";
 import BadgePage from "./pages/dashboard/BadgePage";
+import KYCVerifyPage from "./pages/dashboard/KYCVerifyPage";
+import ReferralPage from "./pages/dashboard/ReferralPage";
 import CertificationPage from "./pages/dashboard/CertificationPage";
 import WillWizardPage from "./pages/dashboard/WillWizardPage";
 import WillCertificatePage from "./pages/dashboard/WillCertificatePage";
@@ -106,6 +108,10 @@ function Router() {
       <Route path={"/dashboard/asset-verify"} component={() => <SaramDashboardLayout><AssetVerifyPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/inquiries"} component={() => <SaramDashboardLayout><InquiriesPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/heirs"} component={() => <SaramDashboardLayout><HeirsPage /></SaramDashboardLayout>} />
+      {/* 추천인 포인트 */}
+      <Route path={"/dashboard/referral"} component={() => <SaramDashboardLayout><ReferralPage /></SaramDashboardLayout>} />
+      {/* KYC 본인인증 */}
+      <Route path={"/dashboard/kyc"} component={() => <SaramDashboardLayout><KYCVerifyPage /></SaramDashboardLayout>} />
       {/* NFC 인증 카드 관리 */}
       <Route path={"/dashboard/badge"} component={() => <SaramDashboardLayout><BadgePage /></SaramDashboardLayout>} />
       {/* 인증 현황 */}
