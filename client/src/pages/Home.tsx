@@ -19,6 +19,7 @@ import CTASection from "@/components/CTASection";
 import PricingSection from "@/components/PricingSection";
 import CertifiedCounterBanner from "@/components/CertifiedCounterBanner";
 import { LifeStorySection } from "@/components/LifeStorySection";
+import LegalAISection from "@/components/LegalAISection";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -41,6 +42,8 @@ export default function Home() {
       <LegalTimelineSection />
       {/* 7. 글로벌 지원 */}
       <GlobalSection />
+      {/* 7-1. 법률 전문 AI 소개 */}
+      <LegalAISection />
       {/* 8. Life Story 프리미엄 기능 소개 */}
       <LifeStorySection />
       {/* 9. 사회기부 */}
