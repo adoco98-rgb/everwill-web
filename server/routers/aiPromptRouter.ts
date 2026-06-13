@@ -1,7 +1,7 @@
 /**
  * 관리자 AI 프롬프트 관리 라우터
- * 각 AI 모드별 시스템 프롬프트를 DB에서 관리
- * 관리자가 코드 수정 없이 직접 AI 지침 입력·수정 가능
+ * 각 AI 모드별 시스템 프롬프트 + AI 모델 선택을 DB에서 관리
+ * 관리자가 코드 수정 없이 직접 AI 지침·모델 입력·수정 가능
  */
 import { z } from "zod";
 import { router, protectedProcedure } from "../_core/trpc";
@@ -10,11 +10,71 @@ import { getDb } from "../db";
 import { aiPrompts } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 
+// ─── AI 공급사 및 모델 목록 ───
+export const AI_PROVIDERS = [
+  {
+    id: "manus",
+    name: "Manus 내장 AI",
+    description: "현재 플랫폼 기본 LLM (개발·테스트용)",
+    models: [
+      { id: "default", name: "기본 모델 (자동)", description: "플랫폼 기본 모델 자동 선택" },
+    ],
+  },
+  {
+    id: "openai",
+    name: "OpenAI",
+    description: "ChatGPT 제조사. 감성 글쓰기·다국어에 강함",
+    models: [
+      { id: "gpt-4o", name: "GPT-4o", description: "최신 멀티모달 모델. 균형 잡힌 성능" },
+      { id: "gpt-4o-mini", name: "GPT-4o mini", description: "빠르고 저렴. 일반 대화에 적합" },
+      { id: "gpt-4-turbo", name: "GPT-4 Turbo", description: "고성능 추론. 복잡한 법률 문서에 적합" },
+      { id: "o1-mini", name: "o1 mini", description: "고급 추론 특화. 법률 분석에 최적" },
+    ],
+  },
+  {
+    id: "anthropic",
+    name: "Anthropic (Claude)",
+    description: "긴 문서·법률 분석에 탁월. 안전성 중시",
+    models: [
+      { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet", description: "법률 문서 분석 최강. 긴 컨텍스트 처리" },
+      { id: "claude-3-5-haiku-20241022", name: "Claude 3.5 Haiku", description: "빠르고 저렴. 일기·편지에 적합" },
+      { id: "claude-3-opus-20240229", name: "Claude 3 Opus", description: "최고 성능. 복잡한 법률 분석" },
+    ],
+  },
+  {
+    id: "google",
+    name: "Google (Gemini)",
+    description: "다국어 강점. 7개 언어 지원에 최적",
+    models: [
+      { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro", description: "다국어·긴 문서 처리. 글로벌 서비스에 적합" },
+      { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash", description: "빠르고 저렴. 실시간 대화에 적합" },
+      { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash", description: "최신 모델. 멀티모달 지원" },
+    ],
+  },
+  {
+    id: "upstage",
+    name: "Upstage (Solar)",
+    description: "한국어 특화. 국내 서버 운영",
+    models: [
+      { id: "solar-pro", name: "Solar Pro", description: "한국어 최강. 법률·금융 문서 특화" },
+      { id: "solar-mini", name: "Solar Mini", description: "경량 한국어 모델. 빠른 응답" },
+    ],
+  },
+] as const;
+
 // 기본 시스템 프롬프트 (DB에 없을 때 사용하는 초기값)
-export const DEFAULT_PROMPTS: Record<string, { title: string; description: string; systemPrompt: string }> = {
+export const DEFAULT_PROMPTS: Record<string, {
+  title: string;
+  description: string;
+  systemPrompt: string;
+  aiModel: string;
+  aiProvider: string;
+}> = {
   public: {
     title: "공개 안내 봇",
     description: "비회원 대상 서비스 안내 AI",
+    aiProvider: "manus",
+    aiModel: "default",
     systemPrompt: `당신은 EverWill(에버윌)의 공개 안내 AI입니다.
 
 [역할]
@@ -51,6 +111,8 @@ export const DEFAULT_PROMPTS: Record<string, { title: string; description: strin
   general: {
     title: "통합 AI (에버)",
     description: "회원 전담 통합 상담 AI",
+    aiProvider: "manus",
+    aiModel: "default",
     systemPrompt: `당신은 EverWill 회원 전담 통합 AI '에버(Ever)'입니다.
 
 [페르소나]
@@ -74,6 +136,8 @@ export const DEFAULT_PROMPTS: Record<string, { title: string; description: strin
   legal: {
     title: "법률 전문 AI (에버 법률)",
     description: "유언·상속 법률 전문 AI",
+    aiProvider: "anthropic",
+    aiModel: "claude-3-5-sonnet-20241022",
     systemPrompt: `당신은 EverWill 회원 전담 법률 전문 AI '에버 법률(Ever Legal)'입니다.
 
 [페르소나]
@@ -83,26 +147,10 @@ export const DEFAULT_PROMPTS: Record<string, { title: string; description: strin
 - 언어: 사용자가 쓰는 언어로 자동 답변
 
 [전문 지식 영역]
-한국:
-- 민법 제1060조~1112조 (유언 관련)
-- 유류분 제도 (민법 제1112조~1118조)
-- 상속세 및 증여세법
-- 안심상속 원스톱서비스
-
-일본:
-- 민법 제960조~1044조
-- 2025년 10월 공정증서 디지털화 법안
-- 유류분 제도
-
-미국:
-- 각 주별 유언법 (California, New York 등)
-- Living Trust vs Will 차이
-- Probate 절차
-
-아랍권:
-- 샤리아 상속법 (파라이드)
-- 남녀 상속분 차이 (2:1 원칙)
-- 이슬람 유언 제한 (1/3 원칙)
+한국: 민법 제1060조~1112조, 유류분 제도, 상속세법, 안심상속 원스톱서비스
+일본: 민법 제960조~1044조, 2025년 공정증서 디지털화 법안
+미국: 각 주별 유언법, Living Trust vs Will, Probate 절차
+아랍권: 샤리아 상속법(파라이드), 남녀 상속분 차이(2:1), 이슬람 유언 제한(1/3 원칙)
 
 [답변 형식]
 1. 핵심 답변 먼저
@@ -112,12 +160,13 @@ export const DEFAULT_PROMPTS: Record<string, { title: string; description: strin
 
 [중요 면책]
 - 이 정보는 법률 자문이 아닌 정보 제공입니다
-- 구체적 사안은 반드시 변호사 상담을 권장합니다
-- EverWill 변호사 매칭 서비스 안내 가능`,
+- 구체적 사안은 반드시 변호사 상담을 권장합니다`,
   },
   autobiography: {
     title: "자서전 AI (에버 스토리)",
     description: "인생 이야기 자서전 작성 도우미 AI",
+    aiProvider: "openai",
+    aiModel: "gpt-4o",
     systemPrompt: `당신은 EverWill 회원 전담 자서전 AI '에버 스토리(Ever Story)'입니다.
 
 [페르소나]
@@ -134,7 +183,6 @@ export const DEFAULT_PROMPTS: Record<string, { title: string; description: strin
 
 [대화 방식]
 - 열린 질문으로 이야기 유도
-- "그때 어떤 기분이셨나요?", "가장 기억에 남는 순간은?"
 - 감정과 느낌을 풍부하게 표현하도록 도움
 - 작성된 내용을 아름다운 문체로 정리
 
@@ -145,15 +193,13 @@ export const DEFAULT_PROMPTS: Record<string, { title: string; description: strin
 4장: 자녀와 함께한 세월
 5장: 일과 성취
 6장: 인생의 지혜와 유산
-7장: 가족에게 전하는 말
-
-[그림 생성 연동]
-- 이야기 속 장면을 AI 그림으로 표현 가능
-- "이 장면을 그림으로 그려드릴까요?" 제안 가능`,
+7장: 가족에게 전하는 말`,
   },
   diary: {
     title: "일기 AI (에버 다이어리)",
     description: "오늘 하루 일기 작성 동반자 AI",
+    aiProvider: "openai",
+    aiModel: "gpt-4o-mini",
     systemPrompt: `당신은 EverWill 회원 전담 일기 AI '에버 다이어리(Ever Diary)'입니다.
 
 [페르소나]
@@ -171,20 +217,13 @@ export const DEFAULT_PROMPTS: Record<string, { title: string; description: strin
 [대화 방식]
 - "오늘 하루 어떠셨나요?"로 시작
 - 구체적인 사건, 감정, 생각을 이끌어내기
-- 작성된 내용을 일기 형식으로 정리 제안
-- 날씨, 계절감 포함 제안
-
-[일기 형식 예시]
-2024년 ○월 ○일 ○요일, 날씨: ○○
-오늘은...
-
-[그림 생성 연동]
-- 오늘의 특별한 순간을 AI 그림으로 표현 가능
-- "오늘 하루를 그림으로 기록해 드릴까요?" 제안 가능`,
+- 작성된 내용을 일기 형식으로 정리 제안`,
   },
   letter: {
     title: "편지 AI (에버 레터)",
     description: "가족·지인에게 보내는 편지 작성 전문 AI",
+    aiProvider: "openai",
+    aiModel: "gpt-4o",
     systemPrompt: `당신은 EverWill 회원 전담 편지 AI '에버 레터(Ever Letter)'입니다.
 
 [페르소나]
@@ -199,22 +238,11 @@ export const DEFAULT_PROMPTS: Record<string, { title: string; description: strin
 - 특별한 날을 위한 편지 (생일, 결혼, 졸업 등)
 - 미래에 전달될 편지 (손녀 성인식, 아들 결혼식 등)
 
-[편지 종류]
-- 배우자에게: 평생 함께해 줘서 고마운 마음
-- 자녀에게: 부모로서 전하고 싶은 말
-- 손자녀에게: 할아버지·할머니의 지혜와 사랑
-- 친구에게: 우정에 대한 감사
-- 미래의 나에게: 현재의 다짐과 소망
-
 [편지 구성 도움]
 1. 받는 사람과의 추억 이야기
 2. 전하고 싶은 감사·사랑의 마음
 3. 당부의 말
-4. 마무리 인사
-
-[EverWill 미래 전달 기능 안내]
-- 특정 날짜에 자동 전달 설정 가능
-- "손녀가 성인이 되는 날", "아들 결혼식 날" 등 설정 가능`,
+4. 마무리 인사`,
   },
 };
 
@@ -239,6 +267,8 @@ export const aiPromptRouter = router({
         title: dbPrompt?.title ?? defaultPrompt.title,
         description: dbPrompt?.description ?? defaultPrompt.description,
         systemPrompt: dbPrompt?.systemPrompt ?? defaultPrompt.systemPrompt,
+        aiModel: (dbPrompt as any)?.aiModel ?? defaultPrompt.aiModel,
+        aiProvider: (dbPrompt as any)?.aiProvider ?? defaultPrompt.aiProvider,
         isActive: dbPrompt?.isActive ?? 1,
         isFromDb: !!dbPrompt,
         updatedAt: dbPrompt?.updatedAt ?? null,
@@ -246,18 +276,36 @@ export const aiPromptRouter = router({
     });
   }),
 
+  // AI 공급사·모델 목록 조회 (관리자 전용)
+  getProviders: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.user.role !== "admin") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "관리자만 접근 가능합니다." });
+    }
+    return AI_PROVIDERS;
+  }),
+
   // 특정 모드 프롬프트 조회 (chatRouter에서 사용)
   getByMode: protectedProcedure
     .input(z.object({ mode: z.enum(["public", "general", "legal", "autobiography", "diary", "letter"]) }))
     .query(async ({ input }) => {
       const db = await getDb();
-      if (!db) return DEFAULT_PROMPTS[input.mode]?.systemPrompt ?? "";
+      if (!db) {
+        const def = DEFAULT_PROMPTS[input.mode];
+        return { systemPrompt: def?.systemPrompt ?? "", aiModel: def?.aiModel ?? "default", aiProvider: def?.aiProvider ?? "manus" };
+      }
       const [prompt] = await db.select().from(aiPrompts).where(eq(aiPrompts.mode, input.mode));
-      if (prompt) return prompt.systemPrompt;
-      return DEFAULT_PROMPTS[input.mode]?.systemPrompt ?? "";
+      if (prompt) {
+        return {
+          systemPrompt: prompt.systemPrompt,
+          aiModel: (prompt as any).aiModel ?? "default",
+          aiProvider: (prompt as any).aiProvider ?? "manus",
+        };
+      }
+      const def = DEFAULT_PROMPTS[input.mode];
+      return { systemPrompt: def?.systemPrompt ?? "", aiModel: def?.aiModel ?? "default", aiProvider: def?.aiProvider ?? "manus" };
     }),
 
-  // 프롬프트 저장/업데이트 (관리자 전용)
+  // 프롬프트 + 모델 저장/업데이트 (관리자 전용)
   save: protectedProcedure
     .input(
       z.object({
@@ -265,6 +313,8 @@ export const aiPromptRouter = router({
         title: z.string().min(1).max(100),
         description: z.string().max(300).optional(),
         systemPrompt: z.string().min(10),
+        aiModel: z.string().default("default"),
+        aiProvider: z.string().default("manus"),
         isActive: z.number().int().min(0).max(1).optional().default(1),
       })
     )
@@ -273,36 +323,27 @@ export const aiPromptRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "관리자만 접근 가능합니다." });
       }
 
-      // 기존 레코드 확인
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
       const [existing] = await db.select().from(aiPrompts).where(eq(aiPrompts.mode, input.mode));
 
+      const saveData = {
+        title: input.title,
+        description: input.description ?? null,
+        systemPrompt: input.systemPrompt,
+        aiModel: input.aiModel,
+        aiProvider: input.aiProvider,
+        isActive: input.isActive,
+        updatedBy: ctx.user.id,
+      };
+
       if (existing) {
-        // 업데이트
-        await db
-          .update(aiPrompts)
-          .set({
-            title: input.title,
-            description: input.description ?? null,
-            systemPrompt: input.systemPrompt,
-            isActive: input.isActive,
-            updatedBy: ctx.user.id,
-          })
-          .where(eq(aiPrompts.mode, input.mode));
+        await db.update(aiPrompts).set(saveData).where(eq(aiPrompts.mode, input.mode));
       } else {
-        // 신규 삽입
-        await db.insert(aiPrompts).values({
-          mode: input.mode,
-          title: input.title,
-          description: input.description ?? null,
-          systemPrompt: input.systemPrompt,
-          isActive: input.isActive,
-          updatedBy: ctx.user.id,
-        });
+        await db.insert(aiPrompts).values({ mode: input.mode, ...saveData });
       }
 
-      return { success: true, message: `${input.title} AI 지침이 저장되었습니다.` };
+      return { success: true, message: `${input.title} AI 지침 및 모델 설정이 저장되었습니다.` };
     }),
 
   // 기본값으로 초기화 (관리자 전용)
@@ -320,26 +361,20 @@ export const aiPromptRouter = router({
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
       const [existing] = await db.select().from(aiPrompts).where(eq(aiPrompts.mode, input.mode));
 
+      const defaultData = {
+        title: defaultPrompt.title,
+        description: defaultPrompt.description,
+        systemPrompt: defaultPrompt.systemPrompt,
+        aiModel: defaultPrompt.aiModel,
+        aiProvider: defaultPrompt.aiProvider,
+        isActive: 1 as const,
+        updatedBy: ctx.user.id,
+      };
+
       if (existing) {
-        await db
-          .update(aiPrompts)
-          .set({
-            title: defaultPrompt.title,
-            description: defaultPrompt.description,
-            systemPrompt: defaultPrompt.systemPrompt,
-            isActive: 1,
-            updatedBy: ctx.user.id,
-          })
-          .where(eq(aiPrompts.mode, input.mode));
+        await db.update(aiPrompts).set(defaultData).where(eq(aiPrompts.mode, input.mode));
       } else {
-        await db.insert(aiPrompts).values({
-          mode: input.mode,
-          title: defaultPrompt.title,
-          description: defaultPrompt.description,
-          systemPrompt: defaultPrompt.systemPrompt,
-          isActive: 1,
-          updatedBy: ctx.user.id,
-        });
+        await db.insert(aiPrompts).values({ mode: input.mode, ...defaultData });
       }
 
       return { success: true, message: "기본값으로 초기화되었습니다." };
@@ -358,26 +393,20 @@ export const aiPromptRouter = router({
       const defaultPrompt = DEFAULT_PROMPTS[mode];
       const [existing] = await db.select().from(aiPrompts).where(eq(aiPrompts.mode, mode));
 
+      const defaultData = {
+        title: defaultPrompt.title,
+        description: defaultPrompt.description,
+        systemPrompt: defaultPrompt.systemPrompt,
+        aiModel: defaultPrompt.aiModel,
+        aiProvider: defaultPrompt.aiProvider,
+        isActive: 1 as const,
+        updatedBy: ctx.user.id,
+      };
+
       if (existing) {
-        await db
-          .update(aiPrompts)
-          .set({
-            title: defaultPrompt.title,
-            description: defaultPrompt.description,
-            systemPrompt: defaultPrompt.systemPrompt,
-            isActive: 1,
-            updatedBy: ctx.user.id,
-          })
-          .where(eq(aiPrompts.mode, mode));
+        await db.update(aiPrompts).set(defaultData).where(eq(aiPrompts.mode, mode));
       } else {
-        await db.insert(aiPrompts).values({
-          mode,
-          title: defaultPrompt.title,
-          description: defaultPrompt.description,
-          systemPrompt: defaultPrompt.systemPrompt,
-          isActive: 1,
-          updatedBy: ctx.user.id,
-        });
+        await db.insert(aiPrompts).values({ mode, ...defaultData });
       }
     }
 

@@ -343,19 +343,31 @@ const AI_MODE_PROMPTS: Record<string, string> = {
   public: PUBLIC_BOT_SYSTEM_PROMPT,
 };
 
-// DB에서 관리자가 설정한 프롬프트 우선 조회 (없으면 코드 기본값 사용)
-async function getSystemPrompt(mode: string): Promise<string> {
+// DB에서 관리자가 설정한 프롬프트 + 모델 정보 우선 조회 (없으면 코드 기본값 사용)
+async function getSystemConfig(mode: string): Promise<{ systemPrompt: string; aiModel: string; aiProvider: string }> {
   try {
     const db = await getDb();
-    if (!db) return AI_MODE_PROMPTS[mode] ?? MEMBER_AI_SYSTEM_PROMPT;
+    if (!db) return { systemPrompt: AI_MODE_PROMPTS[mode] ?? MEMBER_AI_SYSTEM_PROMPT, aiModel: "default", aiProvider: "manus" };
     const { aiPrompts } = await import("../../drizzle/schema");
     const { eq } = await import("drizzle-orm");
     const [row] = await db.select().from(aiPrompts).where(eq(aiPrompts.mode, mode as any));
-    if (row && row.isActive && row.systemPrompt) return row.systemPrompt;
+    if (row && row.isActive && row.systemPrompt) {
+      return {
+        systemPrompt: row.systemPrompt,
+        aiModel: (row as any).aiModel ?? "default",
+        aiProvider: (row as any).aiProvider ?? "manus",
+      };
+    }
   } catch (e) {
     console.warn("[chatRouter] DB 프롬프트 조회 실패, 기본값 사용:", e);
   }
-  return AI_MODE_PROMPTS[mode] ?? MEMBER_AI_SYSTEM_PROMPT;
+  return { systemPrompt: AI_MODE_PROMPTS[mode] ?? MEMBER_AI_SYSTEM_PROMPT, aiModel: "default", aiProvider: "manus" };
+}
+
+// 하위 호환성 유지
+async function getSystemPrompt(mode: string): Promise<string> {
+  const config = await getSystemConfig(mode);
+  return config.systemPrompt;
 }
 
 export const chatRouter = router({

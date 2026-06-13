@@ -1,7 +1,7 @@
 /**
- * 관리자 AI 지침 관리 페이지
- * 각 AI 모드별 시스템 프롬프트를 DB에서 직접 입력·수정
- * 코드 수정 없이 관리자가 AI 성격·지식·지침을 즉시 변경 가능
+ * 관리자 AI 지침 + 모델 관리 페이지
+ * 각 AI 모드별 시스템 프롬프트 + AI 모델(공급사·버전) 선택을 DB에서 직접 관리
+ * 코드 수정 없이 관리자가 AI 성격·지식·지침·모델을 즉시 변경 가능
  */
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
@@ -27,6 +27,8 @@ import {
   ChevronDown,
   ChevronUp,
   Info,
+  Cpu,
+  ChevronRight,
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -88,6 +90,68 @@ const AI_MODES = [
   },
 ] as const;
 
+// AI 공급사 및 모델 목록 (프론트엔드 표시용)
+const AI_PROVIDERS = [
+  {
+    id: "manus",
+    name: "Manus 내장 AI",
+    badge: "개발용",
+    badgeColor: "bg-gray-100 text-gray-600",
+    description: "현재 플랫폼 기본 LLM. 개발·테스트 단계에서 사용",
+    models: [
+      { id: "default", name: "기본 모델 (자동)", description: "플랫폼 기본 모델 자동 선택" },
+    ],
+  },
+  {
+    id: "openai",
+    name: "OpenAI (ChatGPT)",
+    badge: "추천",
+    badgeColor: "bg-green-100 text-green-700",
+    description: "감성 글쓰기·다국어에 강함. 자서전·일기·편지에 최적",
+    models: [
+      { id: "gpt-4o", name: "GPT-4o", description: "최신 멀티모달. 균형 잡힌 최고 성능" },
+      { id: "gpt-4o-mini", name: "GPT-4o mini", description: "빠르고 저렴. 일반 대화·일기에 적합" },
+      { id: "gpt-4-turbo", name: "GPT-4 Turbo", description: "고성능 추론. 복잡한 법률 문서" },
+      { id: "o1-mini", name: "o1 mini", description: "고급 추론 특화. 법률 분석 최적" },
+    ],
+  },
+  {
+    id: "anthropic",
+    name: "Anthropic (Claude)",
+    badge: "법률 최강",
+    badgeColor: "bg-blue-100 text-blue-700",
+    description: "긴 법률 문서 분석에 탁월. 안전성·정확성 중시",
+    models: [
+      { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet", description: "법률 문서 분석 최강. 긴 컨텍스트" },
+      { id: "claude-3-5-haiku-20241022", name: "Claude 3.5 Haiku", description: "빠르고 저렴. 일기·편지에 적합" },
+      { id: "claude-3-opus-20240229", name: "Claude 3 Opus", description: "최고 성능. 복잡한 법률 분석" },
+    ],
+  },
+  {
+    id: "google",
+    name: "Google (Gemini)",
+    badge: "다국어",
+    badgeColor: "bg-yellow-100 text-yellow-700",
+    description: "7개 언어 지원에 최적. 글로벌 서비스 특화",
+    models: [
+      { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro", description: "다국어·긴 문서 처리. 글로벌 서비스" },
+      { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash", description: "빠르고 저렴. 실시간 대화" },
+      { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash", description: "최신 모델. 멀티모달 지원" },
+    ],
+  },
+  {
+    id: "upstage",
+    name: "Upstage (Solar)",
+    badge: "한국어",
+    badgeColor: "bg-purple-100 text-purple-700",
+    description: "한국어 특화. 국내 서버 운영. 법률·금융 문서 특화",
+    models: [
+      { id: "solar-pro", name: "Solar Pro", description: "한국어 최강. 법률·금융 문서 특화" },
+      { id: "solar-mini", name: "Solar Mini", description: "경량 한국어 모델. 빠른 응답" },
+    ],
+  },
+];
+
 type AiModeId = (typeof AI_MODES)[number]["id"];
 
 interface PromptData {
@@ -96,6 +160,8 @@ interface PromptData {
   title: string;
   description: string | null | undefined;
   systemPrompt: string;
+  aiModel: string;
+  aiProvider: string;
   isActive: number;
   isFromDb: boolean;
   updatedAt: Date | null;
@@ -106,6 +172,7 @@ export default function AdminAIPromptsPage() {
   const [selectedMode, setSelectedMode] = useState<AiModeId>("public");
   const [editedPrompts, setEditedPrompts] = useState<Record<string, Partial<PromptData>>>({});
   const [expandedInfo, setExpandedInfo] = useState<string | null>(null);
+  const [showModelSelector, setShowModelSelector] = useState(false);
 
   // 관리자 확인
   if (user && user.role !== "admin") {
@@ -133,12 +200,12 @@ export default function AdminAIPromptsPage() {
     onSuccess: (data) => {
       toast.success(data.message);
       refetch();
-      // 편집 상태 초기화
       setEditedPrompts((prev) => {
         const next = { ...prev };
         delete next[selectedMode];
         return next;
       });
+      setShowModelSelector(false);
     },
     onError: (err) => {
       toast.error(err.message);
@@ -178,9 +245,15 @@ export default function AdminAIPromptsPage() {
   const editState = editedPrompts[selectedMode];
   const currentTitle = editState?.title ?? currentPromptData?.title ?? "";
   const currentSystemPrompt = editState?.systemPrompt ?? currentPromptData?.systemPrompt ?? "";
+  const currentAiModel = editState?.aiModel ?? (currentPromptData as any)?.aiModel ?? "default";
+  const currentAiProvider = editState?.aiProvider ?? (currentPromptData as any)?.aiProvider ?? "manus";
   const hasUnsavedChanges = !!editState;
 
   const selectedModeInfo = AI_MODES.find((m) => m.id === selectedMode)!;
+
+  // 현재 선택된 공급사·모델 표시 이름
+  const selectedProvider = AI_PROVIDERS.find((p) => p.id === currentAiProvider);
+  const selectedModel = selectedProvider?.models.find((m) => m.id === currentAiModel);
 
   const handleSave = () => {
     if (!currentTitle.trim() || !currentSystemPrompt.trim()) {
@@ -191,6 +264,8 @@ export default function AdminAIPromptsPage() {
       mode: selectedMode,
       title: currentTitle,
       systemPrompt: currentSystemPrompt,
+      aiModel: currentAiModel,
+      aiProvider: currentAiProvider,
       isActive: 1,
     });
   };
@@ -207,6 +282,21 @@ export default function AdminAIPromptsPage() {
     }
   };
 
+  const handleSelectModel = (providerId: string, modelId: string) => {
+    setEditedPrompts((prev) => ({
+      ...prev,
+      [selectedMode]: {
+        ...prev[selectedMode],
+        aiProvider: providerId,
+        aiModel: modelId,
+        // title과 systemPrompt가 없으면 현재 값 유지
+        title: prev[selectedMode]?.title ?? currentPromptData?.title ?? currentTitle,
+        systemPrompt: prev[selectedMode]?.systemPrompt ?? currentPromptData?.systemPrompt ?? currentSystemPrompt,
+      },
+    }));
+    setShowModelSelector(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
@@ -219,7 +309,7 @@ export default function AdminAIPromptsPage() {
             <span className="text-gray-300">/</span>
             <div className="flex items-center gap-2">
               <Bot className="w-5 h-5 text-[#1F3864]" />
-              <h1 className="text-lg font-bold text-gray-900">AI 지침 관리</h1>
+              <h1 className="text-lg font-bold text-gray-900">AI 지침 & 모델 관리</h1>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -246,9 +336,9 @@ export default function AdminAIPromptsPage() {
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex gap-3">
           <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-blue-700">
-            <p className="font-medium mb-1">AI 지침 관리 안내</p>
-            <p>각 AI 모드의 시스템 프롬프트(지침)를 직접 입력·수정할 수 있습니다. 저장 즉시 반영되며, 코드 수정이나 재배포가 필요 없습니다.</p>
-            <p className="mt-1 text-blue-600">DB에 저장된 지침이 우선 적용됩니다. DB에 없으면 코드 기본값이 사용됩니다.</p>
+            <p className="font-medium mb-1">AI 지침 & 모델 관리 안내</p>
+            <p>각 AI 모드의 <strong>시스템 프롬프트(지침)</strong>와 <strong>AI 모델(공급사·버전)</strong>을 직접 설정할 수 있습니다. 저장 즉시 반영되며, 코드 수정이나 재배포가 필요 없습니다.</p>
+            <p className="mt-1 text-blue-600">⚠️ 실제 서비스 출시 시 각 공급사 API Key를 환경변수에 등록해야 해당 모델이 동작합니다.</p>
           </div>
         </div>
 
@@ -265,7 +355,10 @@ export default function AdminAIPromptsPage() {
               return (
                 <button
                   key={mode.id}
-                  onClick={() => setSelectedMode(mode.id)}
+                  onClick={() => {
+                    setSelectedMode(mode.id);
+                    setShowModelSelector(false);
+                  }}
                   className={`w-full text-left p-3 rounded-xl border transition-all ${
                     isSelected
                       ? "border-[#1F3864] bg-[#1F3864] text-white shadow-md"
@@ -374,6 +467,91 @@ export default function AdminAIPromptsPage() {
 
                 {/* 편집 폼 */}
                 <div className="p-6 space-y-5">
+                  {/* AI 모델 선택 섹션 */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                        <Cpu className="w-4 h-4 text-gray-500" />
+                        AI 모델 선택
+                      </label>
+                      <span className="text-xs text-gray-400">출시 시 API Key 등록 필요</span>
+                    </div>
+
+                    {/* 현재 선택된 모델 표시 */}
+                    <button
+                      onClick={() => setShowModelSelector(!showModelSelector)}
+                      className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-xl hover:border-[#1F3864] hover:bg-blue-50/30 transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center">
+                          <Cpu className="w-4 h-4 text-gray-600" />
+                        </div>
+                        <div className="text-left">
+                          <div className="text-sm font-medium text-gray-900">
+                            {selectedProvider?.name ?? "공급사 선택 안됨"}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {selectedModel?.name ?? currentAiModel} — {selectedModel?.description ?? ""}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {selectedProvider && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${selectedProvider.badgeColor}`}>
+                            {selectedProvider.badge}
+                          </span>
+                        )}
+                        <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${showModelSelector ? "rotate-90" : ""}`} />
+                      </div>
+                    </button>
+
+                    {/* 모델 선택 드롭다운 */}
+                    {showModelSelector && (
+                      <div className="mt-2 border border-gray-200 rounded-xl overflow-hidden shadow-lg">
+                        {AI_PROVIDERS.map((provider) => (
+                          <div key={provider.id} className="border-b border-gray-100 last:border-0">
+                            {/* 공급사 헤더 */}
+                            <div className="px-4 py-2.5 bg-gray-50 flex items-center justify-between">
+                              <div>
+                                <span className="text-sm font-semibold text-gray-800">{provider.name}</span>
+                                <span className="text-xs text-gray-500 ml-2">{provider.description}</span>
+                              </div>
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${provider.badgeColor}`}>
+                                {provider.badge}
+                              </span>
+                            </div>
+                            {/* 모델 목록 */}
+                            {provider.models.map((model) => {
+                              const isCurrentModel = currentAiProvider === provider.id && currentAiModel === model.id;
+                              return (
+                                <button
+                                  key={model.id}
+                                  onClick={() => handleSelectModel(provider.id, model.id)}
+                                  className={`w-full flex items-center justify-between px-4 py-2.5 hover:bg-blue-50 transition-colors text-left ${
+                                    isCurrentModel ? "bg-blue-50 border-l-2 border-[#1F3864]" : ""
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className={`w-2 h-2 rounded-full ${isCurrentModel ? "bg-[#1F3864]" : "bg-gray-300"}`} />
+                                    <div>
+                                      <div className={`text-sm font-medium ${isCurrentModel ? "text-[#1F3864]" : "text-gray-700"}`}>
+                                        {model.name}
+                                      </div>
+                                      <div className="text-xs text-gray-400">{model.description}</div>
+                                    </div>
+                                  </div>
+                                  {isCurrentModel && (
+                                    <CheckCircle className="w-4 h-4 text-[#1F3864]" />
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   {/* 표시 이름 */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -411,7 +589,7 @@ export default function AdminAIPromptsPage() {
                         }))
                       }
                       placeholder="AI에게 줄 지침을 입력하세요. 역할, 전문 지식, 답변 방식, 금지 사항 등을 포함하세요."
-                      className="min-h-[400px] text-sm font-mono leading-relaxed resize-y"
+                      className="min-h-[360px] text-sm font-mono leading-relaxed resize-y"
                     />
                     <p className="text-xs text-gray-400 mt-1.5">
                       * 이 내용이 AI에게 전달되는 핵심 지침입니다. 역할·지식·톤·제한사항을 구체적으로 작성하세요.
@@ -422,7 +600,7 @@ export default function AdminAIPromptsPage() {
                   {hasUnsavedChanges && (
                     <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
                       <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                      저장되지 않은 변경사항이 있습니다.
+                      저장되지 않은 변경사항이 있습니다. (모델: {selectedProvider?.name} / {selectedModel?.name ?? currentAiModel})
                     </div>
                   )}
 

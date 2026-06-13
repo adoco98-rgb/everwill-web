@@ -1199,6 +1199,10 @@ export const aiPrompts = mysqlTable("aiPrompts", {
   title: varchar("title", { length: 100 }).notNull(),
   description: varchar("description", { length: 300 }),
   systemPrompt: text("systemPrompt").notNull(),
+  /** AI 모델 식별자 (예: gpt-4o, claude-3-5-sonnet-20241022, gemini-1.5-pro, default) */
+  aiModel: varchar("aiModel", { length: 100 }).default("default").notNull(),
+  /** AI 공급사 (manus/openai/anthropic/google/upstage) */
+  aiProvider: varchar("aiProvider", { length: 50 }).default("manus").notNull(),
   isActive: tinyint("isActive").default(1).notNull(),
   updatedBy: int("updatedBy"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
