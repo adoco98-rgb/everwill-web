@@ -67,10 +67,10 @@ const LANG_TO_COUNTRY: Record<string, string> = {
 
 // 국가별 헤드라인
 const COUNTRY_HEADLINE: Record<string, { title: string; subtitle: string }> = {
-  KR: { title: "최고의 상속 전문가가 여러분을 기다리고 있습니다", subtitle: "대한민국 EverWill 인증 파트너 변호사·세무사·공증인" },
+  KR: { title: "최고의 상속 전문가가 여러분을 기다리고 있습니다", subtitle: "대한민국 EverWill 인증 파트너 변호사·세무사" },
   US: { title: "Top Inheritance Experts Are Waiting for You", subtitle: "EverWill Certified Partner Attorneys & Tax Advisors in the USA" },
-  JP: { title: "最高の相続専門家があなたをお待ちしています", subtitle: "日本のEverWill認定パートナー弁護士・税理士・公証人" },
-  CN: { title: "顶级遗产专家正在等待您", subtitle: "中国EverWill认证合作律师·税务师·公证员" },
+  JP: { title: "最高の相続専門家があなたをお待ちしています", subtitle: "日本のEverWill認定パートナー弁護士・税理士" },
+  CN: { title: "顶级遗产专家正在等待您", subtitle: "中国EverWill认证合作律师·税务师" },
   DE: { title: "Top-Erbschaftsexperten warten auf Sie", subtitle: "EverWill zertifizierte Partner-Anwälte & Steuerberater in Deutschland" },
   ES: { title: "Los mejores expertos en herencias le esperan", subtitle: "Abogados y asesores fiscales certificados por EverWill en España" },
   SA: { title: "أفضل خبراء الإرث في انتظاركم", subtitle: "شركاء EverWill المعتمدون من المحامين والمستشارين الضريبيين" },
@@ -106,7 +106,7 @@ const COUNTRY_MAP: Record<string, { flag: string; name: string }> = {
 const SPECIALTY_CONFIG = {
   lawyer: { icon: <Scale className="w-4 h-4" />, label: "변호사", color: "bg-blue-100 text-blue-700" },
   tax: { icon: <Calculator className="w-4 h-4" />, label: "세무사", color: "bg-green-100 text-green-700" },
-  notary: { icon: <FileText className="w-4 h-4" />, label: "공증인", color: "bg-purple-100 text-purple-700" },
+
 };
 
 const LANG_MAP: Record<string, string> = {
@@ -121,7 +121,7 @@ type Expert = {
   id: number;
   name: string;
   nameEn: string | null;
-  specialty: "lawyer" | "tax" | "notary";
+  specialty: "lawyer" | "tax";
   subSpecialty: string | null;
   country: string;
   city: string | null;
@@ -381,7 +381,7 @@ export default function ExpertsSection() {
   // 언어에 따라 자동으로 해당 국가 선택
   const defaultCountry = useMemo(() => LANG_TO_COUNTRY[language] ?? "KR", [language]);
   const [selectedCountry, setSelectedCountry] = useState<string>(() => LANG_TO_COUNTRY[language] ?? "KR");
-  const [selectedSpecialty, setSelectedSpecialty] = useState<"all" | "lawyer" | "tax" | "notary">("all");
+  const [selectedSpecialty, setSelectedSpecialty] = useState<"all" | "lawyer" | "tax">("all");
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null);
@@ -462,7 +462,7 @@ export default function ExpertsSection() {
             />
           </div>
           <div className="flex gap-2">
-            {(["all", "lawyer", "tax", "notary"] as const).map((sp) => (
+            {(["all", "lawyer", "tax"] as const).map((sp) => (
               <button
                 key={sp}
                 onClick={() => setSelectedSpecialty(sp)}

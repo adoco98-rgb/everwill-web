@@ -22,7 +22,7 @@ const listExperts = publicProcedure
   .input(
     z.object({
       country: z.string().optional(),
-      specialty: z.enum(["lawyer", "tax", "notary", "all"]).optional().default("all"),
+      specialty: z.enum(["lawyer", "tax", "all"]).optional().default("all"),
       search: z.string().optional(),
       limit: z.number().min(1).max(100).optional().default(12),
       offset: z.number().min(0).optional().default(0),
@@ -41,7 +41,7 @@ const listExperts = publicProcedure
       conditions.push(eq(expertPartners.country, country));
     }
     if (specialty && specialty !== "all") {
-      conditions.push(eq(expertPartners.specialty, specialty as "lawyer" | "tax" | "notary"));
+      conditions.push(eq(expertPartners.specialty, specialty as "lawyer" | "tax"));
     }
 
     let baseQuery = db
@@ -146,7 +146,7 @@ const applyPartner = protectedProcedure
     z.object({
       name: z.string().min(2).max(100),
       nameEn: z.string().max(100).optional(),
-      specialty: z.enum(["lawyer", "tax", "notary"]),
+      specialty: z.enum(["lawyer", "tax"]),
       subSpecialty: z.string().max(200).optional(),
       country: z.string().max(8),
       city: z.string().max(100).optional(),
@@ -280,7 +280,7 @@ const adminUpdateExpert = protectedProcedure
       id: z.number(),
       name: z.string().min(2).max(100).optional(),
       nameEn: z.string().max(100).optional(),
-      specialty: z.enum(["lawyer", "tax", "notary"]).optional(),
+      specialty: z.enum(["lawyer", "tax"]).optional(),
       subSpecialty: z.string().max(200).optional(),
       country: z.string().max(8).optional(),
       city: z.string().max(100).optional(),

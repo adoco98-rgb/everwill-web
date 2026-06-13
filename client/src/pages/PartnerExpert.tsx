@@ -43,19 +43,19 @@ const COUNTRY_LIST = [
 const SPECIALTY_ICONS: Record<string, React.ReactNode> = {
   lawyer: <Scale className="w-6 h-6" />,
   tax: <Calculator className="w-6 h-6" />,
-  notary: <FileText className="w-6 h-6" />,
+
 };
 
 const SPECIALTY_LABELS: Record<string, string> = {
   lawyer: "상속 전문 변호사",
   tax: "상속 전문 세무사",
-  notary: "공증인",
+
 };
 
 export default function PartnerExpert() {
   const { user, isAuthenticated } = useAuth();
   const [step, setStep] = useState<"intro" | "form" | "done">("intro");
-  const [specialty, setSpecialty] = useState<"lawyer" | "tax" | "notary">("lawyer");
+  const [specialty, setSpecialty] = useState<"lawyer" | "tax">("lawyer");
   const [form, setForm] = useState({
     name: "",
     nameEn: "",
@@ -178,7 +178,7 @@ export default function PartnerExpert() {
               전문가 파트너로 함께하세요
             </h1>
             <p className="text-lg text-white/80 max-w-2xl mx-auto">
-              상속 전문 변호사·세무사·공증인을 위한 글로벌 파트너십.
+              상속 전문 변호사·세무사를 위한 글로벌 파트너십.
               <br />
               EverWill 플랫폼을 통해 전 세계 고객과 연결되세요.
             </p>
@@ -218,8 +218,8 @@ export default function PartnerExpert() {
 
           {/* 전문분야 선택 */}
           <h2 className="text-2xl font-bold text-[#1F3864] text-center mb-6">전문분야 선택</h2>
-          <div className="grid md:grid-cols-3 gap-4 mb-10">
-            {(["lawyer", "tax", "notary"] as const).map((sp) => (
+          <div className="grid md:grid-cols-2 gap-4 mb-10 max-w-xl mx-auto">
+            {(["lawyer", "tax"] as const).map((sp) => (
               <button
                 key={sp}
                 onClick={() => {
@@ -239,7 +239,8 @@ export default function PartnerExpert() {
                     ? "상속 소송·집행 전문 변호사"
                     : sp === "tax"
                     ? "상속세·증여세 전문 세무사"
-                    : "유언 공정증서 작성 공증인"}
+                    : ""
+                    }
                 </p>
                 <div className="flex items-center gap-1 mt-3 text-[#C9A961] text-sm font-medium">
                   신청하기 <ArrowRight className="w-4 h-4" />

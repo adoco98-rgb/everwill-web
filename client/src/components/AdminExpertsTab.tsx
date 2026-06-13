@@ -60,7 +60,7 @@ const COUNTRY_MAP: Record<string, { flag: string; name: string }> = {
 const SPECIALTY_CONFIG = {
   lawyer: { icon: <Scale className="w-3.5 h-3.5" />, label: "변호사", color: "bg-blue-100 text-blue-700" },
   tax: { icon: <Calculator className="w-3.5 h-3.5" />, label: "세무사", color: "bg-green-100 text-green-700" },
-  notary: { icon: <FileText className="w-3.5 h-3.5" />, label: "공증인", color: "bg-purple-100 text-purple-700" },
+
 };
 
 const STATUS_CONFIG = {
@@ -76,7 +76,7 @@ type Expert = {
   id: number;
   name: string;
   nameEn: string | null;
-  specialty: "lawyer" | "tax" | "notary";
+  specialty: "lawyer" | "tax";
   subSpecialty: string | null;
   country: string;
   city: string | null;
@@ -215,7 +215,7 @@ export function AdminExpertsTab() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-bold text-[#1F3864]">전문가 파트너 관리</h2>
-          <p className="text-sm text-gray-500 mt-0.5">변호사·세무사·공증인 파트너 신청 승인 및 관리</p>
+          <p className="text-sm text-gray-500 mt-0.5">변호사·세무사 파트너 신청 승인 및 관리</p>
         </div>
         <Button
           variant="outline"
@@ -317,7 +317,7 @@ export function AdminExpertsTab() {
             <tbody className="divide-y divide-gray-50">
               {experts.map((expert) => {
                 const country = COUNTRY_MAP[expert.country] ?? { flag: "🌐", name: expert.country };
-                const spec = SPECIALTY_CONFIG[expert.specialty];
+                const spec = SPECIALTY_CONFIG[expert.specialty as "lawyer" | "tax"] ?? SPECIALTY_CONFIG.lawyer;
                 const statusCfg = STATUS_CONFIG[expert.status as ExpertStatus] ?? STATUS_CONFIG.pending;
                 return (
                   <tr key={expert.id} className="hover:bg-gray-50/50 transition-colors">

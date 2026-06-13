@@ -1219,8 +1219,8 @@ export const expertPartners = mysqlTable("expertPartners", {
   name: varchar("name", { length: 100 }).notNull(),
   /** 이름 (영문) */
   nameEn: varchar("nameEn", { length: 100 }),
-  /** 전문 분야: lawyer=변호사, tax=세무사, notary=공증인 */
-  specialty: mysqlEnum("specialty", ["lawyer", "tax", "notary"]).notNull().default("lawyer"),
+  /** 전문 분야: lawyer=변호사, tax=세무사 */
+  specialty: mysqlEnum("specialty", ["lawyer", "tax"]).notNull().default("lawyer"),
   /** 세부 전문 분야 (상속, 부동산, 가족법 등) */
   subSpecialty: varchar("subSpecialty", { length: 200 }),
   /** 거주/활동 국가 코드 (ISO 3166-1 alpha-2) */

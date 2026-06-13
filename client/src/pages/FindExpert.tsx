@@ -64,7 +64,7 @@ const COUNTRY_MAP: Record<string, { flag: string; name: string }> = {
 const SPECIALTY_CONFIG = {
   lawyer: { icon: <Scale className="w-4 h-4" />, label: "변호사", color: "bg-blue-100 text-blue-700" },
   tax: { icon: <Calculator className="w-4 h-4" />, label: "세무사", color: "bg-green-100 text-green-700" },
-  notary: { icon: <FileText className="w-4 h-4" />, label: "공증인", color: "bg-purple-100 text-purple-700" },
+
 };
 
 const LANG_MAP: Record<string, string> = {
@@ -79,7 +79,7 @@ type Expert = {
   id: number;
   name: string;
   nameEn: string | null;
-  specialty: "lawyer" | "tax" | "notary";
+  specialty: "lawyer" | "tax";
   subSpecialty: string | null;
   country: string;
   city: string | null;
@@ -321,7 +321,7 @@ function ExpertDetailModal({
 export default function FindExpert() {
   const { isAuthenticated, loading } = useAuth();
   const [selectedCountry, setSelectedCountry] = useState("all");
-  const [selectedSpecialty, setSelectedSpecialty] = useState<"all" | "lawyer" | "tax" | "notary">("all");
+  const [selectedSpecialty, setSelectedSpecialty] = useState<"all" | "lawyer" | "tax">("all");
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
@@ -452,7 +452,7 @@ export default function FindExpert() {
             <Select
               value={selectedSpecialty}
               onValueChange={(v) => {
-                setSelectedSpecialty(v as "all" | "lawyer" | "tax" | "notary");
+                setSelectedSpecialty(v as "all" | "lawyer" | "tax");
                 setPage(0);
               }}
             >
@@ -463,7 +463,7 @@ export default function FindExpert() {
                 <SelectItem value="all">전체</SelectItem>
                 <SelectItem value="lawyer">⚖️ 변호사</SelectItem>
                 <SelectItem value="tax">🧮 세무사</SelectItem>
-                <SelectItem value="notary">📜 공증인</SelectItem>
+
               </SelectContent>
             </Select>
 
