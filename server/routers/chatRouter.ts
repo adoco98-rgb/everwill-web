@@ -333,14 +333,30 @@ const MEMBER_AI_SYSTEM_PROMPT = `당신은 EverWill 회원 전담 AI '에버'입
 6. 유언장 작성은 /will/create 페이지로 안내
 7. 답변 길이: 질문 복잡도에 따라 조절`;
 
-// ─── AI 모드별 시스템 프롬프트 맵 ───
+// ─── AI 모드별 시스템 프롬프트 맵 (코드 기본값) ───
 const AI_MODE_PROMPTS: Record<string, string> = {
   general: MEMBER_AI_SYSTEM_PROMPT,
   legal: LEGAL_AI_PROMPT,
   autobiography: AUTOBIOGRAPHY_AI_PROMPT,
   diary: DIARY_AI_PROMPT,
   letter: LETTER_AI_PROMPT,
+  public: PUBLIC_BOT_SYSTEM_PROMPT,
 };
+
+// DB에서 관리자가 설정한 프롬프트 우선 조회 (없으면 코드 기본값 사용)
+async function getSystemPrompt(mode: string): Promise<string> {
+  try {
+    const db = await getDb();
+    if (!db) return AI_MODE_PROMPTS[mode] ?? MEMBER_AI_SYSTEM_PROMPT;
+    const { aiPrompts } = await import("../../drizzle/schema");
+    const { eq } = await import("drizzle-orm");
+    const [row] = await db.select().from(aiPrompts).where(eq(aiPrompts.mode, mode as any));
+    if (row && row.isActive && row.systemPrompt) return row.systemPrompt;
+  } catch (e) {
+    console.warn("[chatRouter] DB 프롬프트 조회 실패, 기본값 사용:", e);
+  }
+  return AI_MODE_PROMPTS[mode] ?? MEMBER_AI_SYSTEM_PROMPT;
+}
 
 export const chatRouter = router({
   // ─── 비회원 안내 봇 (3턴 제한) ───
@@ -482,8 +498,8 @@ export const chatRouter = router({
           ? `\n\n[언어 설정] 사용자 언어: ${language}. 반드시 해당 언어로만 답변하세요.`
           : "";
 
-      // 모드별 시스템 프롬프트 선택
-      const systemPrompt = (AI_MODE_PROMPTS[aiMode] || MEMBER_AI_SYSTEM_PROMPT) + langNote;
+      // 모드별 시스템 프롬프트 선택 (DB 우선, 없으면 코드 기본값)
+      const systemPrompt = (await getSystemPrompt(aiMode)) + langNote;
 
       try {
         const response = await invokeLLM({

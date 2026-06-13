@@ -1182,3 +1182,27 @@ export const aiConversations = mysqlTable("aiConversations", {
 });
 export type AiConversation = typeof aiConversations.$inferSelect;
 export type InsertAiConversation = typeof aiConversations.$inferInsert;
+
+// ===== 관리자 AI 프롬프트 관리 =====
+// 각 AI 모드별 시스템 프롬프트를 DB에서 관리
+// 관리자가 코드 수정 없이 직접 AI 지침 입력·수정 가능
+export const aiPrompts = mysqlTable("aiPrompts", {
+  id: int("id").autoincrement().primaryKey(),
+  mode: mysqlEnum("mode", [
+    "public",
+    "general",
+    "legal",
+    "autobiography",
+    "diary",
+    "letter",
+  ]).notNull().unique(),
+  title: varchar("title", { length: 100 }).notNull(),
+  description: varchar("description", { length: 300 }),
+  systemPrompt: text("systemPrompt").notNull(),
+  isActive: tinyint("isActive").default(1).notNull(),
+  updatedBy: int("updatedBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+export type AiPrompt = typeof aiPrompts.$inferSelect;
+export type InsertAiPrompt = typeof aiPrompts.$inferInsert;

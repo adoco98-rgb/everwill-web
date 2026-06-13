@@ -26,6 +26,7 @@ import AssetsPage from "./pages/AssetsPage";
 import InvestorPage from "./pages/InvestorPage";
 import InternalPage from "./pages/InternalPage";
 import AdminPage from "./pages/AdminPage";
+import AdminAIPromptsPage from "./pages/AdminAIPromptsPage";
 import LetterDashboard from "./pages/LetterDashboard";
 import LifeStoryPage from "./pages/LifeStoryPage";
 import LetterWrite from "./pages/LetterWrite";
@@ -163,6 +164,8 @@ function Router() {
       <Route path={"/partner/dashboard"} component={PartnerDashboardPage} />
       {/* 관리자 대시보드 */}
       <Route path={"/799805"} component={AdminPage} />
+      {/* 관리자 AI 지침 관리 */}
+      <Route path={"/799805/ai-prompts"} component={AdminAIPromptsPage} />
       {/* 내부 기밀 사업기획서 - 비공개 URL */}
       <Route path={"/799805/internal"} component={InternalPage} />
       <Route path={"/404"} component={NotFound} />
