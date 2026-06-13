@@ -153,17 +153,17 @@ export default function HeroSection() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="flex flex-col items-center sm:items-start gap-0.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-5 py-3 min-w-[180px]"
+            className="flex flex-col items-center sm:items-start gap-1 bg-[#1F3864]/80 backdrop-blur-md border border-[#C9A961]/40 rounded-2xl px-6 py-4 min-w-[200px] shadow-xl shadow-black/30"
           >
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-[#C9A961]" />
-              <span className="text-white/70 text-xs font-medium">EverWill과 함께하는 회원</span>
+              <span className="text-white/90 text-xs font-semibold tracking-wide">EverWill과 함께하는 회원</span>
             </div>
-            <div className="text-white font-bold text-2xl sm:text-3xl tracking-tight">
+            <div className="text-white font-black text-3xl sm:text-4xl tracking-tight leading-none">
               <AnimatedCounter target={totalMembers} />
-              <span className="text-[#C9A961] ml-1 text-lg">+</span>
+              <span className="text-[#C9A961] ml-1 text-2xl font-bold">+</span>
             </div>
-            <span className="text-white/50 text-xs">무료회원 포함 전체 회원수</span>
+            <span className="text-[#C9A961]/80 text-xs font-medium">전 세계 EverWill 회원</span>
           </motion.div>
         </motion.div>
 
