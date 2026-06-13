@@ -39,6 +39,7 @@ import PricingPage from "./pages/PricingPage";
 import WillFormatsPage from "./pages/WillFormatsPage";
 import PublicProfilePage from "./pages/PublicProfilePage";
 import MembershipCardPage from "./pages/dashboard/MembershipCardPage";
+import NFCCardPage from "./pages/NFCCardPage";
 import MembershipPage from "./pages/dashboard/MembershipPage";
 import AssetVerifyPage from "./pages/dashboard/AssetVerifyPage";
 import HeirsPage from "./pages/dashboard/HeirsPage";
@@ -89,6 +90,8 @@ function Router() {
       <Route path={"/privacy"} component={PrivacyPage} />
       {/* 정보 페이지 */}
       <Route path={"/faq"} component={FaqPage} />
+      {/* NFC 인증 카드 공개 소개 페이지 */}
+      <Route path={"/card"} component={NFCCardPage} />
       <Route path={"/pricing"} component={PricingPage} />
       <Route path={"/will-formats"} component={WillFormatsPage} />
       {/* QR 코드 공개 프로필 페이지 */}
