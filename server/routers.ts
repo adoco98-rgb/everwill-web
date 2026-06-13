@@ -36,6 +36,7 @@ import { videoWillRouter } from "./routers/videoWillRouter";
 import { aiMemoryRouter } from "./routers/aiMemoryRouter";
 import { aiPromptRouter } from "./routers/aiPromptRouter";
 import { expertRouter } from "./routers/expertRouter";
+import { consultationRouter } from "./routers/consultationRouter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -120,6 +121,8 @@ export const appRouter = router({
   aiPrompt: aiPromptRouter,
   // 전문가 파트너 시스템 (변호사·세무사·공증인)
   expert: expertRouter,
+  // 전문가 상담 신청 시스템
+  consultation: consultationRouter,
 });
 
 export type AppRouter = typeof appRouter;

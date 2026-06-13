@@ -61,6 +61,7 @@ import AutobiographyPage from "./pages/AutobiographyPage";
 import PartnerPage from "./pages/PartnerPage";
 import PartnerExpert from "./pages/PartnerExpert";
 import FindExpert from "./pages/FindExpert";
+import MyConsultationsPage from "./pages/dashboard/MyConsultationsPage";
 import PartnerLandingPage from "./pages/PartnerLandingPage";
 import PartnerProfessionalPage from "./pages/PartnerProfessionalPage";
 import PartnerHelperPage from "./pages/PartnerHelperPage";
@@ -128,6 +129,8 @@ function Router() {
       <Route path={"/dashboard/inheritance-tax"} component={() => <SaramDashboardLayout><InheritanceTaxPage /></SaramDashboardLayout>} />
       {/* 전문가 찾기 */}
       <Route path={"/dashboard/find-expert"} component={() => <SaramDashboardLayout><FindExpert /></SaramDashboardLayout>} />
+      {/* 나의 상담 신청 내역 */}
+      <Route path={"/dashboard/my-consultations"} component={() => <SaramDashboardLayout><MyConsultationsPage /></SaramDashboardLayout>} />
       {/* 연명치료 거부·장기기증 */}
       <Route path={"/dashboard/medical-directive"} component={MedicalDirectivePage} />
       {/* 내 유언장 목록 */}

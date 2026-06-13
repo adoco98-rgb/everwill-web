@@ -1271,3 +1271,40 @@ export const expertPartners = mysqlTable("expertPartners", {
 
 export type ExpertPartner = typeof expertPartners.$inferSelect;
 export type InsertExpertPartner = typeof expertPartners.$inferInsert;
+
+/**
+ * 전문가 상담 신청 테이블
+ * 사용자가 파트너 변호사·세무사에게 상담 신청 시 저장
+ */
+export const expertConsultations = mysqlTable("expertConsultations", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 신청한 사용자 ID */
+  userId: int("userId").notNull(),
+  /** 대상 전문가 ID (expertPartners.id) */
+  expertId: int("expertId").notNull(),
+  /** 신청자 이름 */
+  applicantName: varchar("applicantName", { length: 100 }).notNull(),
+  /** 신청자 이메일 */
+  applicantEmail: varchar("applicantEmail", { length: 320 }),
+  /** 신청자 전화번호 */
+  applicantPhone: varchar("applicantPhone", { length: 50 }),
+  /** 거주 국가 */
+  applicantCountry: varchar("applicantCountry", { length: 8 }).default("KR"),
+  /** 상담 유형 (inheritance=상속, will=유언, tax=세금, dispute=분쟁, other=기타) */
+  consultType: mysqlEnum("consultType", ["inheritance", "will", "tax", "dispute", "other"]).default("inheritance").notNull(),
+  /** 자기소개 및 상담 내용 */
+  selfIntro: text("selfIntro").notNull(),
+  /** 자산 규모 (선택) */
+  assetScale: mysqlEnum("assetScale", ["under_100m", "100m_500m", "500m_1b", "over_1b", "unknown"]).default("unknown"),
+  /** 긴급도 (normal=일반, urgent=긴급) */
+  urgency: mysqlEnum("urgency", ["normal", "urgent"]).default("normal"),
+  /** 처리 상태 (pending=대기, read=확인, replied=답변, closed=종료) */
+  status: mysqlEnum("status", ["pending", "read", "replied", "closed"]).default("pending").notNull(),
+  /** 전문가 답변 메모 (내부용) */
+  expertNote: text("expertNote"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ExpertConsultation = typeof expertConsultations.$inferSelect;
+export type InsertExpertConsultation = typeof expertConsultations.$inferInsert;

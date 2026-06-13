@@ -83,6 +83,7 @@ const lifeStoryMenuItems = [
 /** 전문가 찾기 메뉴 */
 const expertMenuItems = [
   { icon: Scale, label: "전문가 찾기", path: "/dashboard/find-expert" },
+  { icon: MessageSquare, label: "상담 신청 내역", path: "/dashboard/my-consultations" },
 ];
 
 /** 내 정보 관리 메뉴 */

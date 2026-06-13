@@ -109,7 +109,7 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-// 상담 신청 모달
+// 상담 신청 모달 (자기소개서 포함)
 function ConsultModal({
   expert,
   open,
@@ -119,26 +119,64 @@ function ConsultModal({
   open: boolean;
   onClose: () => void;
 }) {
-  const [message, setMessage] = useState("");
-  const createInquiry = trpc.inquiry.create.useMutation({
+  const { user } = useAuth();
+  const [form, setForm] = useState({
+    applicantName: "",
+    applicantEmail: "",
+    applicantPhone: "",
+    consultType: "inheritance" as "inheritance" | "will" | "tax" | "dispute" | "other",
+    selfIntro: "",
+    assetScale: "unknown" as "under_100m" | "100m_500m" | "500m_1b" | "over_1b" | "unknown",
+    urgency: "normal" as "normal" | "urgent",
+  });
+
+  // 사용자 정보 자동 채움
+  useState(() => {
+    if (user) {
+      setForm((f) => ({
+        ...f,
+        applicantName: user.name ?? "",
+        applicantEmail: user.email ?? "",
+      }));
+    }
+  });
+
+  const submitMutation = trpc.consultation.submit.useMutation({
     onSuccess: () => {
-      toast.success("상담 신청이 접수되었습니다. 담당자가 연락드립니다.");
-      setMessage("");
+      toast.success("상담 신청이 접수되었습니다! EverWill 운영팀이 전문가에게 전달합니다.");
+      setForm({ applicantName: "", applicantEmail: "", applicantPhone: "", consultType: "inheritance", selfIntro: "", assetScale: "unknown", urgency: "normal" });
       onClose();
     },
     onError: (err) => toast.error("신청 실패: " + err.message),
   });
-  const { user } = useAuth();
 
   if (!expert) return null;
 
+  const CONSULT_TYPES = [
+    { value: "inheritance", label: "상속 전반" },
+    { value: "will", label: "유언장 작성" },
+    { value: "tax", label: "상속세·증여세" },
+    { value: "dispute", label: "상속 분쟁" },
+    { value: "other", label: "기타" },
+  ];
+
+  const ASSET_SCALES = [
+    { value: "unknown", label: "모름 / 비공개" },
+    { value: "under_100m", label: "1억 미만" },
+    { value: "100m_500m", label: "1억 ~ 5억" },
+    { value: "500m_1b", label: "5억 ~ 10억" },
+    { value: "over_1b", label: "10억 이상" },
+  ];
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-[#1F3864]">상담 신청</DialogTitle>
+          <DialogTitle className="text-[#1F3864]">상담 신청서</DialogTitle>
         </DialogHeader>
-        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl mb-4">
+
+        {/* 전문가 정보 */}
+        <div className="flex items-center gap-3 p-3 bg-[#1F3864]/5 rounded-xl mb-2">
           <div className="w-10 h-10 rounded-full bg-[#1F3864] flex items-center justify-center text-white font-bold flex-shrink-0">
             {expert.name.charAt(0)}
           </div>
@@ -149,41 +187,127 @@ function ConsultModal({
             </p>
           </div>
         </div>
-        <div>
-          <label className="text-sm font-medium text-gray-700 mb-2 block">
-            상담 내용 <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder={`${expert.name} 전문가에게 상담 내용을 입력해 주세요.\n예: 한국 부동산 + 미국 금융자산 상속 관련 문의`}
-            rows={5}
-            className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20"
-          />
+
+        <div className="space-y-4">
+          {/* 신청자 이름 */}
+          <div>
+            <label className="text-sm font-medium text-gray-700 mb-1 block">성함 <span className="text-red-500">*</span></label>
+            <Input
+              value={form.applicantName}
+              onChange={(e) => setForm((f) => ({ ...f, applicantName: e.target.value }))}
+              placeholder="홍길동"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {/* 이메일 */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">이메일</label>
+              <Input
+                value={form.applicantEmail}
+                onChange={(e) => setForm((f) => ({ ...f, applicantEmail: e.target.value }))}
+                placeholder="example@email.com"
+                type="email"
+              />
+            </div>
+            {/* 전화번호 */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">연락처</label>
+              <Input
+                value={form.applicantPhone}
+                onChange={(e) => setForm((f) => ({ ...f, applicantPhone: e.target.value }))}
+                placeholder="010-0000-0000"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {/* 상담 유형 */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">상담 유형 <span className="text-red-500">*</span></label>
+              <Select value={form.consultType} onValueChange={(v) => setForm((f) => ({ ...f, consultType: v as typeof f.consultType }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {CONSULT_TYPES.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {/* 자산 규모 */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">자산 규모 (선택)</label>
+              <Select value={form.assetScale} onValueChange={(v) => setForm((f) => ({ ...f, assetScale: v as typeof f.assetScale }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {ASSET_SCALES.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* 자기소개 및 상담 내용 */}
+          <div>
+            <label className="text-sm font-medium text-gray-700 mb-1 block">
+              자기소개 및 상담 내용 <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              value={form.selfIntro}
+              onChange={(e) => setForm((f) => ({ ...f, selfIntro: e.target.value }))}
+              placeholder={`간단한 자기소개와 상담하고 싶은 내용을 작성해 주세요.\n\n예)\n- 거주 국가: 한국\n- 자산 현황: 서울 아파트 1채, 미국 주식 계좌\n- 상담 내용: 자녀 2명에게 균등 상속 방법 및 절세 방안 문의`}
+              rows={6}
+              className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20"
+            />
+            <p className="text-xs text-gray-400 mt-1">{form.selfIntro.length} / 2000자</p>
+          </div>
+
+          {/* 긴급 여부 */}
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium text-gray-700">긴급 상담</label>
+            <button
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, urgency: f.urgency === "urgent" ? "normal" : "urgent" }))}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                form.urgency === "urgent" ? "bg-red-500" : "bg-gray-200"
+              }`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                form.urgency === "urgent" ? "translate-x-6" : "translate-x-1"
+              }`} />
+            </button>
+            {form.urgency === "urgent" && (
+              <span className="text-xs text-red-500 font-medium">긴급 처리 요청</span>
+            )}
+          </div>
         </div>
-        <div className="bg-amber-50 rounded-xl p-3 text-xs text-amber-700">
+
+        <div className="bg-amber-50 rounded-xl p-3 text-xs text-amber-700 mt-2">
           📌 상담 신청 후 EverWill 운영팀이 전문가에게 전달합니다. 영업일 기준 1-2일 내 연락드립니다.
+          <br />연락처는 EverWill을 통해서만 안전하게 전달됩니다.
         </div>
+
         <Button
           onClick={() => {
-            if (!message.trim()) {
-              toast.error("상담 내용을 입력해 주세요.");
-              return;
-            }
-            createInquiry.mutate({
-              name: user?.name ?? "회원",
-              email: user?.email ?? "",
-              category: "lawyer",
-              subject: `[전문가 상담 신청] ${expert.name} (${SPECIALTY_CONFIG[expert.specialty].label})`,
-              content: message,
-              userId: user?.id,
+            if (!form.applicantName.trim()) return toast.error("성함을 입력해 주세요.");
+            if (!form.selfIntro.trim() || form.selfIntro.length < 10) return toast.error("상담 내용을 10자 이상 입력해 주세요.");
+            submitMutation.mutate({
+              expertId: expert.id,
+              applicantName: form.applicantName,
+              applicantEmail: form.applicantEmail || undefined,
+              applicantPhone: form.applicantPhone || undefined,
+              consultType: form.consultType,
+              selfIntro: form.selfIntro,
+              assetScale: form.assetScale,
+              urgency: form.urgency,
             });
           }}
-          disabled={createInquiry.isPending}
-          className="w-full bg-[#1F3864] hover:bg-[#1F3864]/90 text-white"
+          disabled={submitMutation.isPending}
+          className="w-full bg-[#1F3864] hover:bg-[#1F3864]/90 text-white mt-2"
         >
           <Send className="w-4 h-4 mr-2" />
-          {createInquiry.isPending ? "신청 중..." : "상담 신청하기"}
+          {submitMutation.isPending ? "신청 중..." : "상담 신청서 제출"}
         </Button>
       </DialogContent>
     </Dialog>
