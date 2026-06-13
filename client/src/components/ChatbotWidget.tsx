@@ -1,7 +1,7 @@
 /**
  * EverWill AI 챗봇 위젯
  * - 비회원: 서비스 안내 봇 (3턴 제한 → 가입 유도)
- * - 회원: 나의 전담 AI (유언·상속·자서전·편지 통합, 히스토리 저장)
+ * - 회원: 모드별 전문 AI (법률/자서전/일기/편지/통합, 히스토리 저장)
  */
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,17 +16,155 @@ import {
   Sparkles,
   LogIn,
   History,
+  Scale,
+  BookOpen,
+  NotebookPen,
+  Mail,
+  LayoutGrid,
+  ImageIcon,
+  Palette,
+  Download,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "wouter";
 
+// AI 모드 타입
+type AiMode = "general" | "legal" | "autobiography" | "diary" | "letter";
+
 interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  mode?: AiMode;
 }
+
+// AI 모드 설정
+const AI_MODES: {
+  id: AiMode;
+  icon: React.ReactNode;
+  label: Record<string, string>;
+  color: string;
+  bgColor: string;
+  description: Record<string, string>;
+  placeholder: Record<string, string>;
+}[] = [
+  {
+    id: "general",
+    icon: <LayoutGrid className="w-3.5 h-3.5" />,
+    label: { ko: "통합", en: "All", ja: "総合", zh: "综合", de: "Alle", es: "Todo", ar: "الكل", fr: "Tout", ru: "Все", hi: "सभी", pt: "Tudo" },
+    color: "#1F3864",
+    bgColor: "#e0e7ff",
+    description: { ko: "모든 분야 통합 상담", en: "All-in-one consultation", ja: "総合相談", zh: "综合咨询", de: "Allgemein", es: "General", ar: "عام", fr: "Général", ru: "Общий", hi: "सामान्य", pt: "Geral" },
+    placeholder: { ko: "무엇이든 물어보세요...", en: "Ask me anything...", ja: "何でも聞いてください...", zh: "请随时提问...", de: "Fragen Sie alles...", es: "Pregunta lo que quieras...", ar: "اسألني أي شيء...", fr: "Posez n'importe quelle question...", ru: "Спросите что угодно...", hi: "कुछ भी पूछें...", pt: "Pergunte qualquer coisa..." },
+  },
+  {
+    id: "legal",
+    icon: <Scale className="w-3.5 h-3.5" />,
+    label: { ko: "법률", en: "Legal", ja: "法律", zh: "法律", de: "Recht", es: "Legal", ar: "قانوني", fr: "Juridique", ru: "Право", hi: "कानूनी", pt: "Jurídico" },
+    color: "#1d4ed8",
+    bgColor: "#dbeafe",
+    description: { ko: "유언·상속 법률 전문", en: "Will & Inheritance Law", ja: "遺言・相続法律", zh: "遗嘱·继承法律", de: "Testament & Erbrecht", es: "Testamento & Herencia", ar: "الوصايا والميراث", fr: "Testament & Succession", ru: "Завещание & Наследство", hi: "वसीयत & विरासत", pt: "Testamento & Herança" },
+    placeholder: { ko: "유언·상속 법률 질문을 입력하세요...", en: "Ask about will & inheritance law...", ja: "遺言・相続の法律について...", zh: "询问遗嘱和继承法律...", de: "Fragen zu Testament & Erbrecht...", es: "Preguntas sobre testamento...", ar: "اسأل عن قانون الوصايا...", fr: "Questions sur le testament...", ru: "Вопросы о завещании...", hi: "वसीयत के बारे में पूछें...", pt: "Perguntas sobre testamento..." },
+  },
+  {
+    id: "autobiography",
+    icon: <BookOpen className="w-3.5 h-3.5" />,
+    label: { ko: "자서전", en: "Story", ja: "自伝", zh: "自传", de: "Biografie", es: "Autobio", ar: "سيرة", fr: "Autobio", ru: "Биография", hi: "आत्मकथा", pt: "Autobio" },
+    color: "#7c3aed",
+    bgColor: "#ede9fe",
+    description: { ko: "인생 이야기 자서전 작성", en: "Life Story & Autobiography", ja: "自伝作成", zh: "自传写作", de: "Autobiografie", es: "Autobiografía", ar: "السيرة الذاتية", fr: "Autobiographie", ru: "Автобиография", hi: "आत्मकथा लेखन", pt: "Autobiografia" },
+    placeholder: { ko: "인생 이야기를 들려주세요...", en: "Tell me your life story...", ja: "人生の話を聞かせてください...", zh: "告诉我您的人生故事...", de: "Erzählen Sie Ihre Lebensgeschichte...", es: "Cuéntame tu historia de vida...", ar: "أخبرني قصة حياتك...", fr: "Racontez votre histoire de vie...", ru: "Расскажите свою историю жизни...", hi: "अपनी जीवन कहानी बताएं...", pt: "Conte sua história de vida..." },
+  },
+  {
+    id: "diary",
+    icon: <NotebookPen className="w-3.5 h-3.5" />,
+    label: { ko: "일기", en: "Diary", ja: "日記", zh: "日记", de: "Tagebuch", es: "Diario", ar: "يوميات", fr: "Journal", ru: "Дневник", hi: "डायरी", pt: "Diário" },
+    color: "#059669",
+    bgColor: "#d1fae5",
+    description: { ko: "오늘 하루 일기 작성", en: "Daily Diary Writing", ja: "日記作成", zh: "日记写作", de: "Tagebuch schreiben", es: "Escribir diario", ar: "كتابة اليوميات", fr: "Écrire un journal", ru: "Написать дневник", hi: "डायरी लिखें", pt: "Escrever diário" },
+    placeholder: { ko: "오늘 하루 어떠셨나요?", en: "How was your day today?", ja: "今日はどんな一日でしたか？", zh: "今天过得怎么样？", de: "Wie war Ihr Tag heute?", es: "¿Cómo fue tu día hoy?", ar: "كيف كان يومك اليوم؟", fr: "Comment s'est passée votre journée?", ru: "Как прошёл ваш день?", hi: "आज का दिन कैसा था?", pt: "Como foi seu dia hoje?" },
+  },
+  {
+    id: "letter",
+    icon: <Mail className="w-3.5 h-3.5" />,
+    label: { ko: "편지", en: "Letter", ja: "手紙", zh: "书信", de: "Brief", es: "Carta", ar: "رسالة", fr: "Lettre", ru: "Письмо", hi: "पत्र", pt: "Carta" },
+    color: "#be185d",
+    bgColor: "#fce7f3",
+    description: { ko: "가족·지인에게 편지 작성", en: "Letters to Family & Friends", ja: "家族への手紙", zh: "家书写作", de: "Familienbriefe", es: "Cartas familiares", ar: "رسائل العائلة", fr: "Lettres familiales", ru: "Семейные письма", hi: "पारिवारिक पत्र", pt: "Cartas familiares" },
+    placeholder: { ko: "누구에게 편지를 쓰고 싶으신가요?", en: "Who would you like to write to?", ja: "誰に手紙を書きたいですか？", zh: "您想给谁写信？", de: "Wem möchten Sie schreiben?", es: "¿A quién quieres escribir?", ar: "لمن تريد أن تكتب؟", fr: "À qui voulez-vous écrire?", ru: "Кому вы хотите написать?", hi: "आप किसे पत्र लिखना चाहते हैं?", pt: "Para quem você quer escrever?" },
+  },
+];
+
+// 모드별 환영 메시지
+const MODE_WELCOME: Record<AiMode, Record<string, string>> = {
+  general: {
+    ko: "안녕하세요! 저는 회원님의 **전담 AI 에버**입니다. 🌟\n\n유언·상속 법률 정보, 자서전 작성, 가족 편지·일기 작성까지 모두 도와드릴 수 있어요.\n\n무엇이든 편하게 물어보세요!",
+    en: "Hello! I'm your **dedicated AI Ever**. 🌟\n\nI can help with will & inheritance legal information, autobiography writing, and family letters & diary entries.\n\nFeel free to ask anything!",
+    ja: "こんにちは！あなたの**専任AI エバー**です。🌟\n\n遺言・相続の法律情報、自伝作成、家族への手紙・日記作成まですべてお手伝いします。\n\nお気軽に何でもどうぞ！",
+    zh: "您好！我是您的**专属AI Ever**。🌟\n\n我可以帮助您了解遗嘱和继承法律信息、撰写自传以及家书和日记。\n\n请随时提问！",
+    de: "Hallo! Ich bin Ihr **persönlicher KI-Assistent Ever**. 🌟\n\nIch helfe bei Testament & Erbrecht, Autobiografie-Schreiben und Familienbriefen.\n\nFragen Sie mich alles!",
+    es: "¡Hola! Soy tu **IA dedicada Ever**. 🌟\n\nPuedo ayudarte con información legal sobre testamentos y herencias, escritura de autobiografías y cartas familiares.\n\n¡Pregúntame lo que quieras!",
+    ar: "مرحباً! أنا **ذكاءك الاصطناعي المخصص إيفر**. 🌟\n\nيمكنني مساعدتك في معلومات قانونية عن الوصايا والميراث، وكتابة السيرة الذاتية والرسائل العائلية.\n\nاسألني أي شيء!",
+    fr: "Bonjour! Je suis votre **IA dédiée Ever**. 🌟\n\nJe peux vous aider avec les informations juridiques sur les testaments et successions, la rédaction d'autobiographie et les lettres familiales.\n\nPosez-moi n'importe quelle question!",
+    ru: "Привет! Я ваш **персональный ИИ Эвер**. 🌟\n\nЯ помогу с юридической информацией о завещаниях и наследстве, написанием автобиографии и семейными письмами.\n\nСпрашивайте всё что угодно!",
+    hi: "नमस्ते! मैं आपका **समर्पित AI Ever** हूं। 🌟\n\nमैं वसीयत और विरासत कानूनी जानकारी, आत्मकथा लेखन और पारिवारिक पत्र लेखन में मदद कर सकता हूं।\n\nकुछ भी पूछें!",
+    pt: "Olá! Sou seu **IA dedicado Ever**. 🌟\n\nPosso ajudar com informações jurídicas sobre testamentos e heranças, escrita de autobiografia e cartas familiares.\n\nPergunte qualquer coisa!",
+  },
+  legal: {
+    ko: "안녕하세요! **법률 전문 AI 에버 법률**입니다. ⚖️\n\n11개국 유언·상속법 전문가입니다. 한국 민법부터 미국 UPC, 일본 민법, 샤리아 상속법까지 알고 있어요.\n\n어떤 법률 궁금증이 있으신가요?",
+    en: "Hello! I'm **Ever Legal**, your will & inheritance law specialist. ⚖️\n\nI'm an expert in will and inheritance laws across 11 countries. Ask me anything about legal matters!\n\nWhat legal question do you have?",
+    ja: "こんにちは！**法律専門AI エバーリーガル**です。⚖️\n\n11カ国の遺言・相続法の専門家です。日本民法から米国UPC、シャリーア相続法まで対応します。\n\nどんな法律のご質問でもどうぞ！",
+    zh: "您好！我是**法律专业AI Ever Legal**。⚖️\n\n我精通11个国家的遗嘱和继承法。请问您有什么法律问题？",
+    de: "Hallo! Ich bin **Ever Legal**, Ihr Erbrechts-Experte. ⚖️\n\nIch kenne das Erbrecht in 11 Ländern. Welche Rechtsfrage haben Sie?",
+    es: "¡Hola! Soy **Ever Legal**, tu especialista en derecho testamentario. ⚖️\n\nSoy experto en leyes de testamentos y herencias en 11 países. ¿Qué pregunta legal tienes?",
+    ar: "مرحباً! أنا **إيفر ليغال**، متخصص في قانون الوصايا والميراث. ⚖️\n\nأنا خبير في قوانين الوصايا والميراث في 11 دولة. ما سؤالك القانوني؟",
+    fr: "Bonjour! Je suis **Ever Legal**, votre spécialiste en droit successoral. ⚖️\n\nJe connais les lois sur les testaments et successions dans 11 pays. Quelle est votre question juridique?",
+    ru: "Привет! Я **Эвер Лигал**, ваш специалист по наследственному праву. ⚖️\n\nЯ эксперт в законах о завещаниях и наследстве в 11 странах. Какой у вас юридический вопрос?",
+    hi: "नमस्ते! मैं **Ever Legal** हूं, आपका वसीयत और विरासत कानून विशेषज्ञ। ⚖️\n\nमैं 11 देशों के वसीयत और विरासत कानूनों में विशेषज्ञ हूं। आपका कानूनी प्रश्न क्या है?",
+    pt: "Olá! Sou **Ever Legal**, seu especialista em direito sucessório. ⚖️\n\nSou especialista em leis de testamentos e heranças em 11 países. Qual é sua dúvida jurídica?",
+  },
+  autobiography: {
+    ko: "안녕하세요! **자서전 전문 AI 에버 스토리**입니다. 📖\n\n회원님의 소중한 인생 이야기를 아름다운 자서전으로 기록해 드릴게요.\n\n유년기부터 현재까지, 어떤 이야기부터 시작할까요?",
+    en: "Hello! I'm **Ever Story**, your autobiography specialist. 📖\n\nI'll help you record your precious life story into a beautiful autobiography.\n\nWhere shall we begin — childhood, career, or family?",
+    ja: "こんにちは！**自伝専門AI エバーストーリー**です。📖\n\n大切な人生の物語を美しい自伝として記録します。\n\n幼少期から現在まで、どこから始めましょうか？",
+    zh: "您好！我是**自传专业AI Ever Story**。📖\n\n我将帮助您将珍贵的人生故事记录成美丽的自传。\n\n我们从哪里开始——童年、职业还是家庭？",
+    de: "Hallo! Ich bin **Ever Story**, Ihr Autobiografie-Spezialist. 📖\n\nIch helfe Ihnen, Ihre Lebensgeschichte in eine schöne Autobiografie zu verwandeln.\n\nWo sollen wir beginnen?",
+    es: "¡Hola! Soy **Ever Story**, tu especialista en autobiografías. 📖\n\nTe ayudaré a registrar tu preciosa historia de vida en una hermosa autobiografía.\n\n¿Por dónde empezamos?",
+    ar: "مرحباً! أنا **إيفر ستوري**، متخصص في السيرة الذاتية. 📖\n\nسأساعدك في تسجيل قصة حياتك القيمة في سيرة ذاتية جميلة.\n\nمن أين نبدأ؟",
+    fr: "Bonjour! Je suis **Ever Story**, votre spécialiste en autobiographie. 📖\n\nJe vous aiderai à transformer votre précieuse histoire de vie en une belle autobiographie.\n\nPar où commençons-nous?",
+    ru: "Привет! Я **Эвер Стори**, ваш специалист по автобиографии. 📖\n\nЯ помогу вам записать вашу драгоценную историю жизни в красивую автобиографию.\n\nС чего начнём?",
+    hi: "नमस्ते! मैं **Ever Story** हूं, आपका आत्मकथा विशेषज्ञ। 📖\n\nमैं आपकी अनमोल जीवन कहानी को एक सुंदर आत्मकथा में दर्ज करने में मदद करूंगा।\n\nहम कहाँ से शुरू करें?",
+    pt: "Olá! Sou **Ever Story**, seu especialista em autobiografia. 📖\n\nVou ajudá-lo a registrar sua preciosa história de vida em uma bela autobiografia.\n\nPor onde começamos?",
+  },
+  diary: {
+    ko: "안녕하세요! **일기 전문 AI 에버 다이어리**입니다. 📝\n\n오늘 하루의 소중한 순간들을 함께 기록해요.\n\n오늘 하루 어떠셨나요?",
+    en: "Hello! I'm **Ever Diary**, your daily journal companion. 📝\n\nLet's record the precious moments of your day together.\n\nHow was your day today?",
+    ja: "こんにちは！**日記専門AI エバーダイアリー**です。📝\n\n今日の大切な瞬間を一緒に記録しましょう。\n\n今日はどんな一日でしたか？",
+    zh: "您好！我是**日记专业AI Ever Diary**。📝\n\n让我们一起记录今天珍贵的时刻。\n\n今天过得怎么样？",
+    de: "Hallo! Ich bin **Ever Diary**, Ihr täglicher Tagebuch-Begleiter. 📝\n\nLassen Sie uns gemeinsam die kostbaren Momente Ihres Tages festhalten.\n\nWie war Ihr Tag heute?",
+    es: "¡Hola! Soy **Ever Diary**, tu compañero de diario diario. 📝\n\nRegistremos juntos los momentos preciosos de tu día.\n\n¿Cómo fue tu día hoy?",
+    ar: "مرحباً! أنا **إيفر دايري**، رفيق يومياتك. 📝\n\nلنسجّل معاً اللحظات الثمينة في يومك.\n\nكيف كان يومك اليوم؟",
+    fr: "Bonjour! Je suis **Ever Diary**, votre compagnon de journal quotidien. 📝\n\nEnregistrons ensemble les précieux moments de votre journée.\n\nComment s'est passée votre journée?",
+    ru: "Привет! Я **Эвер Дайри**, ваш ежедневный спутник по дневнику. 📝\n\nДавайте вместе запишем драгоценные моменты вашего дня.\n\nКак прошёл ваш день?",
+    hi: "नमस्ते! मैं **Ever Diary** हूं, आपका दैनिक डायरी साथी। 📝\n\nआइए मिलकर आपके दिन के अनमोल पलों को दर्ज करें।\n\nआज का दिन कैसा था?",
+    pt: "Olá! Sou **Ever Diary**, seu companheiro de diário diário. 📝\n\nVamos registrar juntos os momentos preciosos do seu dia.\n\nComo foi seu dia hoje?",
+  },
+  letter: {
+    ko: "안녕하세요! **편지 전문 AI 에버 레터**입니다. 💌\n\n소중한 사람들에게 마음을 전하는 편지를 함께 써드릴게요.\n\n누구에게 편지를 쓰고 싶으신가요?",
+    en: "Hello! I'm **Ever Letter**, your letter writing specialist. 💌\n\nLet me help you write heartfelt letters to your loved ones.\n\nWho would you like to write to?",
+    ja: "こんにちは！**手紙専門AI エバーレター**です。💌\n\n大切な方への心のこもった手紙を一緒に書きましょう。\n\n誰に手紙を書きたいですか？",
+    zh: "您好！我是**书信专业AI Ever Letter**。💌\n\n让我帮您为亲人写一封真挚的信。\n\n您想给谁写信？",
+    de: "Hallo! Ich bin **Ever Letter**, Ihr Brief-Schreibspezialist. 💌\n\nLassen Sie mich Ihnen helfen, herzliche Briefe an Ihre Lieben zu schreiben.\n\nAn wen möchten Sie schreiben?",
+    es: "¡Hola! Soy **Ever Letter**, tu especialista en escritura de cartas. 💌\n\nDéjame ayudarte a escribir cartas sinceras para tus seres queridos.\n\n¿A quién quieres escribir?",
+    ar: "مرحباً! أنا **إيفر ليتر**، متخصص في كتابة الرسائل. 💌\n\nدعني أساعدك في كتابة رسائل صادقة لأحبائك.\n\nلمن تريد أن تكتب؟",
+    fr: "Bonjour! Je suis **Ever Letter**, votre spécialiste en rédaction de lettres. 💌\n\nLaissez-moi vous aider à écrire des lettres sincères à vos proches.\n\nÀ qui voulez-vous écrire?",
+    ru: "Привет! Я **Эвер Леттер**, ваш специалист по написанию писем. 💌\n\nПозвольте мне помочь вам написать искренние письма вашим близким.\n\nКому вы хотите написать?",
+    hi: "नमस्ते! मैं **Ever Letter** हूं, आपका पत्र लेखन विशेषज्ञ। 💌\n\nमुझे आपके प्रियजनों के लिए हार्दिक पत्र लिखने में मदद करने दें।\n\nआप किसे पत्र लिखना चाहते हैं?",
+    pt: "Olá! Sou **Ever Letter**, seu especialista em redação de cartas. 💌\n\nDeixe-me ajudá-lo a escrever cartas sinceras para seus entes queridos.\n\nPara quem você quer escrever?",
+  },
+};
 
 // 비회원 환영 메시지 (언어별)
 const GUEST_WELCOME: Record<string, string> = {
@@ -43,36 +181,6 @@ const GUEST_WELCOME: Record<string, string> = {
   pt: "Olá! Sou **Ever**, o bot guia do EverWill. 😊\n\nPergunte-me sobre testamentos, preços ou recursos!\n\n*Para consultas mais profundas (jurídico, autobiografia, cartas), cadastre-se para acessar sua IA dedicada.*",
 };
 
-// 회원 환영 메시지 (언어별)
-const MEMBER_WELCOME: Record<string, string> = {
-  ko: "안녕하세요! 저는 회원님의 **전담 AI 에버**입니다. 🌟\n\n유언·상속 법률 정보, 자서전 작성, 가족 편지·일기 작성까지 모두 도와드릴 수 있어요.\n\n무엇이든 편하게 물어보세요!",
-  en: "Hello! I'm your **dedicated AI Ever**. 🌟\n\nI can help with will & inheritance legal information, autobiography writing, and family letters & diary entries.\n\nFeel free to ask anything!",
-  ja: "こんにちは！あなたの**専任AI エバー**です。🌟\n\n遺言・相続の法律情報、自伝作成、家族への手紙・日記作成まですべてお手伝いします。\n\nお気軽に何でもどうぞ！",
-  zh: "您好！我是您的**专属AI Ever**。🌟\n\n我可以帮助您了解遗嘱和继承法律信息、撰写自传以及家书和日记。\n\n请随时提问！",
-  de: "Hallo! Ich bin Ihr **persönlicher KI-Assistent Ever**. 🌟\n\nIch helfe bei Testament & Erbrecht, Autobiografie-Schreiben und Familienbriefen.\n\nFragen Sie mich alles!",
-  es: "¡Hola! Soy tu **IA dedicada Ever**. 🌟\n\nPuedo ayudarte con información legal sobre testamentos y herencias, escritura de autobiografías y cartas familiares.\n\n¡Pregúntame lo que quieras!",
-  ar: "مرحباً! أنا **ذكاءك الاصطناعي المخصص إيفر**. 🌟\n\nيمكنني مساعدتك في معلومات قانونية عن الوصايا والميراث، وكتابة السيرة الذاتية والرسائل العائلية.\n\nاسألني أي شيء!",
-  fr: "Bonjour! Je suis votre **IA dédiée Ever**. 🌟\n\nJe peux vous aider avec les informations juridiques sur les testaments et successions, la rédaction d'autobiographie et les lettres familiales.\n\nPosez-moi n'importe quelle question!",
-  ru: "Привет! Я ваш **персональный ИИ Эвер**. 🌟\n\nЯ помогу с юридической информацией о завещаниях и наследстве, написанием автобиографии и семейными письмами.\n\nСпрашивайте всё что угодно!",
-  hi: "नमस्ते! मैं आपका **समर्पित AI Ever** हूं। 🌟\n\nमैं वसीयत और विरासत कानूनी जानकारी, आत्मकथा लेखन और पारिवारिक पत्र लेखन में मदद कर सकता हूं।\n\nकुछ भी पूछें!",
-  pt: "Olá! Sou seu **IA dedicado Ever**. 🌟\n\nPosso ajudar com informações jurídicas sobre testamentos e heranças, escrita de autobiografia e cartas familiares.\n\nPergunte qualquer coisa!",
-};
-
-// 회원 전담 AI 전문 영역 뱃지
-const MEMBER_BADGES: Record<string, string[]> = {
-  ko: ["유언·상속 법률", "자서전 작성", "편지·일기"],
-  en: ["Will & Inheritance Law", "Autobiography", "Letters & Diary"],
-  ja: ["遺言・相続法律", "自伝作成", "手紙・日記"],
-  zh: ["遗嘱·继承法律", "自传写作", "书信·日记"],
-  de: ["Testament & Erbrecht", "Autobiografie", "Briefe & Tagebuch"],
-  es: ["Testamento & Herencia", "Autobiografía", "Cartas & Diario"],
-  ar: ["الوصايا والميراث", "السيرة الذاتية", "الرسائل واليوميات"],
-  fr: ["Testament & Succession", "Autobiographie", "Lettres & Journal"],
-  ru: ["Завещание & Наследство", "Автобиография", "Письма & Дневник"],
-  hi: ["वसीयत & विरासत", "आत्मकथा", "पत्र & डायरी"],
-  pt: ["Testamento & Herança", "Autobiografia", "Cartas & Diário"],
-};
-
 export function ChatbotWidget() {
   const { isAuthenticated } = useAuth();
   const { language } = useLanguage();
@@ -85,6 +193,11 @@ export function ChatbotWidget() {
   const [guestTurnCount, setGuestTurnCount] = useState(0);
   const [sessionKey, setSessionKey] = useState<string | undefined>(undefined);
   const [historyLoaded, setHistoryLoaded] = useState(false);
+  const [aiMode, setAiMode] = useState<AiMode>("general");
+  const [showImagePanel, setShowImagePanel] = useState(false);
+  const [imagePrompt, setImagePrompt] = useState("");
+  const [imageStyle, setImageStyle] = useState<"watercolor" | "oil_painting" | "pencil_sketch" | "digital_art" | "vintage_photo">("watercolor");
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -111,6 +224,9 @@ export function ChatbotWidget() {
 
   // 회원 전담 AI mutation
   const memberChatMutation = trpc.chat.memberChat.useMutation();
+
+  // 자서전/일기 그림 생성 mutation
+  const generateImageMutation = trpc.chat.generateStoryImage.useMutation();
 
   // 스크롤 자동 이동
   const scrollToBottom = () => {
@@ -149,17 +265,12 @@ export function ChatbotWidget() {
   // 챗봇 열릴 때 환영 메시지
   useEffect(() => {
     if (isOpen && messages.length === 0 && historyLoaded) {
-      const welcomeMap = isAuthenticated ? MEMBER_WELCOME : GUEST_WELCOME;
-      const welcome = welcomeMap[language] || welcomeMap["ko"];
-      setMessages([
-        {
-          role: "assistant",
-          content: welcome,
-          timestamp: new Date(),
-        },
-      ]);
+      const welcome = isAuthenticated
+        ? (MODE_WELCOME[aiMode][language] || MODE_WELCOME[aiMode]["ko"])
+        : (GUEST_WELCOME[language] || GUEST_WELCOME["ko"]);
+      setMessages([{ role: "assistant", content: welcome, timestamp: new Date() }]);
     }
-  }, [isOpen, messages.length, historyLoaded, isAuthenticated, language]);
+  }, [isOpen, messages.length, historyLoaded, isAuthenticated, language, aiMode]);
 
   // 비회원: 히스토리 없으므로 바로 로드 완료 처리
   useEffect(() => {
@@ -175,6 +286,33 @@ export function ChatbotWidget() {
     }
   }, [isOpen]);
 
+  // 모드 변경 시 대화 초기화
+  const handleModeChange = (newMode: AiMode) => {
+    if (newMode === aiMode) return;
+    setAiMode(newMode);
+    setMessages([]);
+    setShowQuickQuestions(true);
+    setHistoryLoaded(true);
+    setShowImagePanel(false);
+    setGeneratedImageUrl(null);
+  };
+
+  // 그림 생성 핸들러
+  const handleGenerateImage = async () => {
+    if (!imagePrompt.trim() || generateImageMutation.isPending) return;
+    setGeneratedImageUrl(null);
+    try {
+      const result = await generateImageMutation.mutateAsync({
+        prompt: imagePrompt,
+        style: imageStyle,
+        language,
+      });
+      setGeneratedImageUrl(result.url ?? null);
+    } catch {
+      alert("그림 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+    }
+  };
+
   // 메시지 전송
   const handleSend = async (text?: string) => {
     const messageText = text || inputValue.trim();
@@ -184,6 +322,7 @@ export function ChatbotWidget() {
       role: "user",
       content: messageText,
       timestamp: new Date(),
+      mode: aiMode,
     };
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
@@ -192,11 +331,12 @@ export function ChatbotWidget() {
 
     try {
       if (isAuthenticated) {
-        // 회원 전담 AI
+        // 회원 전담 AI (모드별)
         const result = await memberChatMutation.mutateAsync({
           message: messageText,
           sessionKey,
           language,
+          aiMode,
         });
         if (result.sessionKey && !sessionKey) {
           setSessionKey(result.sessionKey);
@@ -207,6 +347,7 @@ export function ChatbotWidget() {
             role: "assistant",
             content: result.content as string,
             timestamp: new Date(),
+            mode: aiMode,
           },
         ]);
       } else {
@@ -283,9 +424,12 @@ export function ChatbotWidget() {
     setShowQuickQuestions(true);
     setGuestTurnCount(0);
     setHistoryLoaded(!isAuthenticated);
+    setAiMode("general");
   };
 
-  const badges = MEMBER_BADGES[language] || MEMBER_BADGES["ko"];
+  // 현재 모드 설정
+  const currentMode = AI_MODES.find((m) => m.id === aiMode) || AI_MODES[0];
+  const currentPlaceholder = currentMode.placeholder[language] || currentMode.placeholder["ko"];
 
   return (
     <>
@@ -322,15 +466,15 @@ export function ChatbotWidget() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="absolute bottom-0 right-0 w-[380px] max-w-[calc(100vw-24px)] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-              style={{ height: "560px", maxHeight: "calc(100vh - 100px)" }}
+              className="absolute bottom-0 right-0 w-[390px] max-w-[calc(100vw-24px)] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+              style={{ height: isAuthenticated ? "620px" : "560px", maxHeight: "calc(100vh - 100px)" }}
             >
               {/* 헤더 */}
               <div
                 className="flex items-center justify-between px-4 py-3 text-white flex-shrink-0"
                 style={{
                   background: isAuthenticated
-                    ? "linear-gradient(135deg, #1F3864, #7c3aed)"
+                    ? `linear-gradient(135deg, #1F3864, ${currentMode.color})`
                     : "linear-gradient(135deg, #1F3864, #2d5a9e)",
                 }}
               >
@@ -340,24 +484,25 @@ export function ChatbotWidget() {
                     style={{ background: isAuthenticated ? "#C9A961" : "rgba(255,255,255,0.2)" }}
                   >
                     {isAuthenticated ? (
-                      <Sparkles className="w-5 h-5 text-white" />
+                      <span className="text-white">{currentMode.icon}</span>
                     ) : (
                       <Bot className="w-4 h-4 text-white" />
                     )}
                   </div>
                   <div>
                     <p className="font-semibold text-sm">
-                      {isAuthenticated ? "나의 전담 AI 에버" : "에버 (Ever)"}
+                      {isAuthenticated
+                        ? (currentMode.description[language] || currentMode.description["ko"])
+                        : "에버 (Ever)"}
                     </p>
                     <p className="text-xs text-white/70">
                       {isAuthenticated
-                        ? "유언·상속·자서전·편지 전문"
+                        ? "나의 전담 AI · 기억 저장"
                         : "EverWill 서비스 안내"}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  {/* 이전 대화 이어서 (회원) */}
                   {isAuthenticated && sessionKey && (
                     <button
                       onClick={() => {
@@ -388,20 +533,26 @@ export function ChatbotWidget() {
                 </div>
               </div>
 
-              {/* 회원 전담 AI 전문 영역 뱃지 */}
+              {/* 회원 AI 모드 선택 탭 */}
               {isAuthenticated && (
-                <div className="flex gap-1.5 px-3 py-2 bg-purple-50 flex-shrink-0 flex-wrap">
-                  {badges.map((badge, i) => (
-                    <span
-                      key={i}
-                      className="text-[10px] px-2 py-0.5 rounded-full font-medium"
+                <div className="flex border-b border-gray-100 flex-shrink-0 bg-gray-50">
+                  {AI_MODES.map((mode) => (
+                    <button
+                      key={mode.id}
+                      onClick={() => handleModeChange(mode.id)}
+                      className="flex-1 flex flex-col items-center py-2 px-1 text-[10px] font-medium transition-all"
                       style={{
-                        background: ["#e0e7ff", "#fce7f3", "#d1fae5"][i % 3],
-                        color: ["#4338ca", "#be185d", "#065f46"][i % 3],
+                        color: aiMode === mode.id ? mode.color : "#9ca3af",
+                        borderBottom: aiMode === mode.id ? `2px solid ${mode.color}` : "2px solid transparent",
+                        background: aiMode === mode.id ? mode.bgColor : "transparent",
                       }}
+                      title={mode.description[language] || mode.description["ko"]}
                     >
-                      {badge}
-                    </span>
+                      <span style={{ color: aiMode === mode.id ? mode.color : "#9ca3af" }}>
+                        {mode.icon}
+                      </span>
+                      <span className="mt-0.5">{mode.label[language] || mode.label["ko"]}</span>
+                    </button>
                   ))}
                 </div>
               )}
@@ -418,12 +569,12 @@ export function ChatbotWidget() {
                         className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
                         style={{
                           background: isAuthenticated
-                            ? "linear-gradient(135deg, #1F3864, #7c3aed)"
+                            ? `linear-gradient(135deg, #1F3864, ${currentMode.color})`
                             : "linear-gradient(135deg, #1F3864, #2d5a9e)",
                         }}
                       >
                         {isAuthenticated ? (
-                          <Sparkles className="w-3.5 h-3.5 text-white" />
+                          <span className="text-white text-xs">{currentMode.icon}</span>
                         ) : (
                           <Bot className="w-3.5 h-3.5 text-white" />
                         )}
@@ -439,7 +590,7 @@ export function ChatbotWidget() {
                         msg.role === "user"
                           ? {
                               background: isAuthenticated
-                                ? "linear-gradient(135deg, #1F3864, #7c3aed)"
+                                ? `linear-gradient(135deg, #1F3864, ${currentMode.color})`
                                 : "linear-gradient(135deg, #1F3864, #2d5a9e)",
                             }
                           : {}
@@ -462,7 +613,7 @@ export function ChatbotWidget() {
                       className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{
                         background: isAuthenticated
-                          ? "linear-gradient(135deg, #1F3864, #7c3aed)"
+                          ? `linear-gradient(135deg, #1F3864, ${currentMode.color})`
                           : "linear-gradient(135deg, #1F3864, #2d5a9e)",
                       }}
                     >
@@ -504,11 +655,11 @@ export function ChatbotWidget() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* 빠른 질문 버튼 */}
-              {showQuickQuestions && quickData?.questions && (
+              {/* 빠른 질문 버튼 (비회원 또는 통합 모드) */}
+              {showQuickQuestions && quickData?.questions && (!isAuthenticated || aiMode === "general") && (
                 <div className="px-3 pb-2 flex-shrink-0">
                   <div className="flex flex-wrap gap-1.5">
-                    {quickData.questions.map((q, i) => (
+                    {quickData.questions.slice(0, 4).map((q, i) => (
                       <button
                         key={i}
                         onClick={() => handleSend(q)}
@@ -519,6 +670,110 @@ export function ChatbotWidget() {
                       </button>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* 회원 자서전/일기 모드: 그림 생성 패널 */}
+              {isAuthenticated && (aiMode === "autobiography" || aiMode === "diary") && (
+                <div className="border-t border-gray-100 flex-shrink-0">
+                  {/* 그림 생성 토글 버튼 */}
+                  <button
+                    onClick={() => setShowImagePanel(!showImagePanel)}
+                    className="w-full flex items-center justify-between px-4 py-2 text-xs font-medium transition-colors hover:bg-gray-50"
+                    style={{ color: currentMode.color }}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      AI 그림 생성 (자서전/일기 일러스트)
+                    </span>
+                    <span className="text-gray-400">{showImagePanel ? "▲" : "▼"}</span>
+                  </button>
+
+                  {/* 그림 생성 패널 내용 */}
+                  <AnimatePresence>
+                    {showImagePanel && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-3 pb-3 space-y-2">
+                          {/* 스타일 선택 */}
+                          <div className="flex gap-1 flex-wrap">
+                            {[
+                              { id: "watercolor", label: "수스화" },
+                              { id: "oil_painting", label: "유화" },
+                              { id: "pencil_sketch", label: "연필스케치" },
+                              { id: "digital_art", label: "디지털아트" },
+                              { id: "vintage_photo", label: "빈티지" },
+                            ].map((s) => (
+                              <button
+                                key={s.id}
+                                onClick={() => setImageStyle(s.id as typeof imageStyle)}
+                                className="text-[10px] px-2 py-1 rounded-full border transition-colors"
+                                style={{
+                                  background: imageStyle === s.id ? currentMode.color : "transparent",
+                                  color: imageStyle === s.id ? "white" : currentMode.color,
+                                  borderColor: currentMode.color,
+                                }}
+                              >
+                                {s.label}
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* 장면 설명 입력 */}
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={imagePrompt}
+                              onChange={(e) => setImagePrompt(e.target.value)}
+                              onKeyDown={(e) => e.key === "Enter" && handleGenerateImage()}
+                              placeholder="그리고 싶은 장면을 설명해주세요..."
+                              className="flex-1 px-3 py-2 text-xs rounded-lg border border-gray-200 focus:outline-none bg-gray-50"
+                              style={{ borderColor: showImagePanel ? currentMode.color : undefined }}
+                            />
+                            <button
+                              onClick={handleGenerateImage}
+                              disabled={!imagePrompt.trim() || generateImageMutation.isPending}
+                              className="px-3 py-2 rounded-lg text-white text-xs font-medium disabled:opacity-40 flex items-center gap-1"
+                              style={{ background: currentMode.color }}
+                            >
+                              {generateImageMutation.isPending ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Palette className="w-3.5 h-3.5" />
+                              )}
+                              그리기
+                            </button>
+                          </div>
+
+                          {/* 생성된 그림 */}
+                          {generatedImageUrl && (
+                            <div className="relative rounded-lg overflow-hidden border border-gray-200">
+                              <img
+                                src={generatedImageUrl}
+                                alt="AI 생성 그림"
+                                className="w-full h-40 object-cover"
+                              />
+                              <a
+                                href={generatedImageUrl}
+                                download="everwill-story-image.png"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center shadow"
+                                title="다운로드"
+                              >
+                                <Download className="w-3.5 h-3.5 text-gray-700" />
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               )}
 
@@ -541,11 +796,7 @@ export function ChatbotWidget() {
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder={
-                      isAuthenticated
-                        ? "무엇이든 물어보세요..."
-                        : "서비스에 대해 물어보세요..."
-                    }
+                    placeholder={isAuthenticated ? currentPlaceholder : "서비스에 대해 물어보세요..."}
                     className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#1F3864] bg-gray-50"
                     disabled={isLoading || (!isAuthenticated && guestTurnCount >= 3)}
                   />
@@ -555,7 +806,7 @@ export function ChatbotWidget() {
                     className="w-10 h-10 rounded-xl flex items-center justify-center disabled:opacity-40 transition-opacity"
                     style={{
                       background: isAuthenticated
-                        ? "linear-gradient(135deg, #1F3864, #7c3aed)"
+                        ? `linear-gradient(135deg, #1F3864, ${currentMode.color})`
                         : "linear-gradient(135deg, #1F3864, #2d5a9e)",
                     }}
                   >
@@ -567,7 +818,7 @@ export function ChatbotWidget() {
                   </button>
                 </div>
                 <p className="text-[10px] text-gray-400 text-center mt-1.5">
-                  AI 정보 제공 서비스 · 법률 자문이 아닙니다
+                  AI 정보 제공 서비스 · 법률 자문이 아닙니다 · 모든 대화 기억 저장
                 </p>
               </div>
             </motion.div>
