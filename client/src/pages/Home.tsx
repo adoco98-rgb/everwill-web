@@ -20,6 +20,7 @@ import PricingSection from "@/components/PricingSection";
 import CertifiedCounterBanner from "@/components/CertifiedCounterBanner";
 import { LifeStorySection } from "@/components/LifeStorySection";
 import LegalAISection from "@/components/LegalAISection";
+import ExpertsSection from "@/components/ExpertsSection";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -56,9 +57,11 @@ export default function Home() {
       <ReferralSection />
       {/* 13. 고객 후기 */}
       <ReviewsSection />
-      {/* 14. 상속인 서비스 (제일 아래) */}
+      {/* 14. 상속인 서비스 */}
       <HeirServiceSection />
-      {/* 14. 인증회원 카운터 */}
+      {/* 15. 전문가 파트너 그룹 소개 */}
+      <ExpertsSection />
+      {/* 16. 인증회원 카운터 */}
       <section className="py-10 bg-[#FAFAF8]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <CertifiedCounterBanner />

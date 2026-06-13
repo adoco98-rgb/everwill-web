@@ -59,6 +59,8 @@ import InheritanceTaxPage from "./pages/dashboard/InheritanceTaxPage";
 import CountryPage from "./pages/CountryPage";
 import AutobiographyPage from "./pages/AutobiographyPage";
 import PartnerPage from "./pages/PartnerPage";
+import PartnerExpert from "./pages/PartnerExpert";
+import FindExpert from "./pages/FindExpert";
 import PartnerLandingPage from "./pages/PartnerLandingPage";
 import PartnerProfessionalPage from "./pages/PartnerProfessionalPage";
 import PartnerHelperPage from "./pages/PartnerHelperPage";
@@ -124,6 +126,8 @@ function Router() {
       <Route path={"/dashboard/phone-verify"} component={() => <SaramDashboardLayout><PhoneVerifyPage /></SaramDashboardLayout>} />
       {/* 상속세 계산기 (대시보드 전용) */}
       <Route path={"/dashboard/inheritance-tax"} component={() => <SaramDashboardLayout><InheritanceTaxPage /></SaramDashboardLayout>} />
+      {/* 전문가 찾기 */}
+      <Route path={"/dashboard/find-expert"} component={() => <SaramDashboardLayout><FindExpert /></SaramDashboardLayout>} />
       {/* 연명치료 거부·장기기증 */}
       <Route path={"/dashboard/medical-directive"} component={MedicalDirectivePage} />
       {/* 내 유언장 목록 */}
@@ -167,6 +171,8 @@ function Router() {
       <Route path={"/partner/home"} component={PartnerPage} />
       <Route path={"/partner/join"} component={PartnerPage} />
       <Route path={"/partner/professional"} component={PartnerProfessionalPage} />
+      {/* 전문가 파트너 가입 */}
+      <Route path={"/partner/expert"} component={PartnerExpert} />
       <Route path={"/partner/helper"} component={PartnerHelperPage} />
       <Route path={"/partner/policy"} component={PartnerPolicyPage} />
       <Route path={"/partner/verify"} component={PartnerVerificationPage} />

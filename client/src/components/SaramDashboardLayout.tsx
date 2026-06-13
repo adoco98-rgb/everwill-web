@@ -40,6 +40,7 @@ import {
   Brain,
   Fingerprint,
   Gift,
+  Scale,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -77,6 +78,11 @@ const lifeStoryMenuItems = [
   { icon: PenLine, label: "AI 일기 쓰기", path: "/life-story" },
   { icon: Mail, label: "소중한 편지 쓰기", path: "/letter" },
   { icon: Brain, label: "나만의 AI", path: "/my-ai" },
+];
+
+/** 전문가 찾기 메뉴 */
+const expertMenuItems = [
+  { icon: Scale, label: "전문가 찾기", path: "/dashboard/find-expert" },
 ];
 
 /** 내 정보 관리 메뉴 */
@@ -268,6 +274,12 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
                 </Link>
               );
             })}
+          </div>
+
+          {/* 전문가 찾기 */}
+          <div className="pt-3 mt-2 border-t border-white/10">
+            <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3">전문가 서비스</span>
+            <div className="mt-1">{renderMenuItems(expertMenuItems)}</div>
           </div>
 
           {/* 내 정보 관리 */}

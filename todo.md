@@ -892,3 +892,13 @@
 - [x] MyAIPage.tsx 구현 (개인 AI 채팅 UI - 채팅/대화기록/AI메모리 탭)
 - [x] SaramDashboardLayout 사이드바에 나만의 AI (/my-ai) 메뉴 추가
 - [x] App.tsx에 /my-ai 라우트 등록
+
+## 전문가 파트너 시스템 (변호사·세무사)
+- [ ] DB: expertPartners 테이블 생성 (이름, 전문분야, 국가, 지역, 소개, 사진, 연락처, 상태, 연회비 결제 여부)
+- [ ] DB: 국가별 가상 전문가 시드 데이터 (한국/미국/일본/중국/독일/스페인/아랍/프랑스/인도/브라질 각 10명)
+- [ ] 백엔드: expertRouter tRPC 라우터 구현 (목록조회/등록/수정/관리자승인)
+- [ ] 파트너 가입 페이지 (/partner/expert) - 변호사·세무사 전용 등록 폼
+- [ ] 홈페이지 ExpertsSection 컴포넌트 (상속 카드 섹션 아래 배치)
+- [ ] 대시보드 전문가 찾기 페이지 (/dashboard/find-expert) - 국가/지역/전문분야 필터
+- [ ] 관리자 전문가 파트너 승인·관리 페이지 (/799805/experts)
+- [ ] 라우트 등록 (App.tsx, SaramDashboardLayout 사이드바)

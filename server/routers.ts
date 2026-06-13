@@ -35,6 +35,7 @@ import { tossPaymentRouter } from "./routers/tossPaymentRouter";
 import { videoWillRouter } from "./routers/videoWillRouter";
 import { aiMemoryRouter } from "./routers/aiMemoryRouter";
 import { aiPromptRouter } from "./routers/aiPromptRouter";
+import { expertRouter } from "./routers/expertRouter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -117,6 +118,8 @@ export const appRouter = router({
   aiMemory: aiMemoryRouter,
   // 관리자 AI 프롬프트 관리 (관리자가 AI 지침 직접 입력/수정)
   aiPrompt: aiPromptRouter,
+  // 전문가 파트너 시스템 (변호사·세무사·공증인)
+  expert: expertRouter,
 });
 
 export type AppRouter = typeof appRouter;

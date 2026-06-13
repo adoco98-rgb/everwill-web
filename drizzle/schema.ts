@@ -1210,3 +1210,64 @@ export const aiPrompts = mysqlTable("aiPrompts", {
 });
 export type AiPrompt = typeof aiPrompts.$inferSelect;
 export type InsertAiPrompt = typeof aiPrompts.$inferInsert;
+
+// ===== 전문가 파트너 시스템 (변호사·세무사) =====
+// 파트너센터에 가입한 법률·세무 전문가 프로필
+export const expertPartners = mysqlTable("expertPartners", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 전문가 이름 */
+  name: varchar("name", { length: 100 }).notNull(),
+  /** 이름 (영문) */
+  nameEn: varchar("nameEn", { length: 100 }),
+  /** 전문 분야: lawyer=변호사, tax=세무사, notary=공증인 */
+  specialty: mysqlEnum("specialty", ["lawyer", "tax", "notary"]).notNull().default("lawyer"),
+  /** 세부 전문 분야 (상속, 부동산, 가족법 등) */
+  subSpecialty: varchar("subSpecialty", { length: 200 }),
+  /** 거주/활동 국가 코드 (ISO 3166-1 alpha-2) */
+  country: varchar("country", { length: 8 }).notNull().default("KR"),
+  /** 도시/지역 */
+  city: varchar("city", { length: 100 }),
+  /** 소속 법인·사무소 이름 */
+  firmName: varchar("firmName", { length: 200 }),
+  /** 프로필 소개 (한국어) */
+  bio: text("bio"),
+  /** 프로필 소개 (영문) */
+  bioEn: text("bioEn"),
+  /** 경력 연수 */
+  yearsOfExperience: int("yearsOfExperience").default(0),
+  /** 언어 능력 (콤마 구분, 예: ko,en,ja) */
+  languages: varchar("languages", { length: 200 }),
+  /** 이메일 */
+  email: varchar("email", { length: 320 }),
+  /** 전화번호 */
+  phone: varchar("phone", { length: 50 }),
+  /** 홈페이지 URL */
+  website: varchar("website", { length: 500 }),
+  /** 프로필 사진 URL */
+  photoUrl: varchar("photoUrl", { length: 1000 }),
+  /** 자격증 번호 */
+  licenseNumber: varchar("licenseNumber", { length: 100 }),
+  /** 승인 상태: pending=심사중, active=활성, suspended=정지, rejected=거절 */
+  status: mysqlEnum("status", ["pending", "active", "suspended", "rejected"]).default("pending").notNull(),
+  /** 연회비 결제 여부 (0=미납, 1=납부) */
+  annualFeePaid: int("annualFeePaid").default(0).notNull(),
+  /** 연회비 만료일 */
+  annualFeeExpiresAt: timestamp("annualFeeExpiresAt"),
+  /** 연결된 사용자 ID (파트너가 회원 가입 후 연결) */
+  userId: int("userId"),
+  /** 가상 데이터 여부 (0=실제, 1=샘플) */
+  isSample: int("isSample").default(0).notNull(),
+  /** 별점 평균 (1~5) */
+  ratingAvg: int("ratingAvg").default(0),
+  /** 리뷰 수 */
+  reviewCount: int("reviewCount").default(0),
+  /** 상담 완료 건수 */
+  consultCount: int("consultCount").default(0),
+  /** 관리자 메모 */
+  adminNote: text("adminNote"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ExpertPartner = typeof expertPartners.$inferSelect;
+export type InsertExpertPartner = typeof expertPartners.$inferInsert;
