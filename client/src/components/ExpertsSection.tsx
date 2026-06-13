@@ -1,13 +1,14 @@
 /**
  * ExpertsSection - 홈페이지 전문가 파트너 소개 섹션
- * - 상속 카드 섹션(HeirServiceSection) 바로 아래 배치
- * - 국가별 필터 + 전문분야 필터
+ * - 14개국 국기 탭 (홈페이지 상단과 동일한 스타일)
+ * - 사이트 언어에 따라 해당 국가 자동 선택 (한국어 → KR, 영어 → US 등)
  * - 카드 클릭 시 상세 모달 (경력·이력·소개 표시, 연락처 비공개)
  * - "상담 신청하기" 버튼으로 EverWill 통해서만 연결
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +32,58 @@ import {
   Users,
 } from "lucide-react";
 
-// 국가 코드 → 국기 + 이름
+// ===== 14개국 국기 탭 데이터 =====
+const COUNTRY_FLAGS = [
+  { code: "KR", flagImg: "https://flagcdn.com/w80/kr.png", name: "한국" },
+  { code: "US", flagImg: "https://flagcdn.com/w80/us.png", name: "USA" },
+  { code: "JP", flagImg: "https://flagcdn.com/w80/jp.png", name: "日本" },
+  { code: "CN", flagImg: "https://flagcdn.com/w80/cn.png", name: "中国" },
+  { code: "DE", flagImg: "https://flagcdn.com/w80/de.png", name: "DE" },
+  { code: "ES", flagImg: "https://flagcdn.com/w80/es.png", name: "ES" },
+  { code: "SA", flagImg: "https://flagcdn.com/w80/sa.png", name: "SA" },
+  { code: "FR", flagImg: "https://flagcdn.com/w80/fr.png", name: "FR" },
+  { code: "RU", flagImg: "https://flagcdn.com/w80/ru.png", name: "RU" },
+  { code: "IN", flagImg: "https://flagcdn.com/w80/in.png", name: "IN" },
+  { code: "BR", flagImg: "https://flagcdn.com/w80/br.png", name: "BR" },
+  { code: "CA", flagImg: "https://flagcdn.com/w80/ca.png", name: "CA" },
+  { code: "AU", flagImg: "https://flagcdn.com/w80/au.png", name: "AU" },
+  { code: "NZ", flagImg: "https://flagcdn.com/w80/nz.png", name: "NZ" },
+];
+
+// 언어 코드 → 국가 코드 자동 매핑
+const LANG_TO_COUNTRY: Record<string, string> = {
+  ko: "KR",
+  en: "US",
+  ja: "JP",
+  zh: "CN",
+  de: "DE",
+  es: "ES",
+  ar: "SA",
+  fr: "FR",
+  ru: "RU",
+  hi: "IN",
+  pt: "BR",
+};
+
+// 국가별 헤드라인
+const COUNTRY_HEADLINE: Record<string, { title: string; subtitle: string }> = {
+  KR: { title: "최고의 상속 전문가가 여러분을 기다리고 있습니다", subtitle: "대한민국 EverWill 인증 파트너 변호사·세무사·공증인" },
+  US: { title: "Top Inheritance Experts Are Waiting for You", subtitle: "EverWill Certified Partner Attorneys & Tax Advisors in the USA" },
+  JP: { title: "最高の相続専門家があなたをお待ちしています", subtitle: "日本のEverWill認定パートナー弁護士・税理士・公証人" },
+  CN: { title: "顶级遗产专家正在等待您", subtitle: "中国EverWill认证合作律师·税务师·公证员" },
+  DE: { title: "Top-Erbschaftsexperten warten auf Sie", subtitle: "EverWill zertifizierte Partner-Anwälte & Steuerberater in Deutschland" },
+  ES: { title: "Los mejores expertos en herencias le esperan", subtitle: "Abogados y asesores fiscales certificados por EverWill en España" },
+  SA: { title: "أفضل خبراء الإرث في انتظاركم", subtitle: "شركاء EverWill المعتمدون من المحامين والمستشارين الضريبيين" },
+  FR: { title: "Les meilleurs experts en succession vous attendent", subtitle: "Avocats et conseillers fiscaux partenaires EverWill en France" },
+  RU: { title: "Лучшие эксперты по наследству ждут вас", subtitle: "Сертифицированные партнёры EverWill — адвокаты и налоговые консультанты" },
+  IN: { title: "Top Inheritance Experts Are Waiting for You", subtitle: "EverWill Certified Partner Lawyers & Tax Advisors in India" },
+  BR: { title: "Os melhores especialistas em herança esperam por você", subtitle: "Advogados e consultores fiscais parceiros EverWill no Brasil" },
+  CA: { title: "Top Inheritance Experts Are Waiting for You", subtitle: "EverWill Certified Partner Attorneys & Tax Advisors in Canada" },
+  AU: { title: "Top Inheritance Experts Are Waiting for You", subtitle: "EverWill Certified Partner Attorneys & Tax Advisors in Australia" },
+  NZ: { title: "Top Inheritance Experts Are Waiting for You", subtitle: "EverWill Certified Partner Attorneys & Tax Advisors in New Zealand" },
+};
+
+// 국가 코드 → 국기 이모지 + 이름
 const COUNTRY_MAP: Record<string, { flag: string; name: string }> = {
   KR: { flag: "🇰🇷", name: "한국" },
   US: { flag: "🇺🇸", name: "미국" },
@@ -47,6 +99,8 @@ const COUNTRY_MAP: Record<string, { flag: string; name: string }> = {
   AU: { flag: "🇦🇺", name: "호주" },
   CA: { flag: "🇨🇦", name: "캐나다" },
   SG: { flag: "🇸🇬", name: "싱가포르" },
+  RU: { flag: "🇷🇺", name: "러시아" },
+  NZ: { flag: "🇳🇿", name: "뉴질랜드" },
 };
 
 const SPECIALTY_CONFIG = {
@@ -55,7 +109,6 @@ const SPECIALTY_CONFIG = {
   notary: { icon: <FileText className="w-4 h-4" />, label: "공증인", color: "bg-purple-100 text-purple-700" },
 };
 
-// 언어 코드 → 이름
 const LANG_MAP: Record<string, string> = {
   ko: "한국어", en: "English", ja: "日本語", zh: "中文",
   de: "Deutsch", fr: "Français", es: "Español", ar: "العربية",
@@ -256,7 +309,6 @@ function ExpertDetailModal({
 
         {/* 상세 정보 */}
         <div className="space-y-4">
-          {/* 경력 */}
           <div className="grid grid-cols-2 gap-3">
             {expert.yearsOfExperience != null && (
               <div className="bg-gray-50 rounded-xl p-3">
@@ -277,7 +329,6 @@ function ExpertDetailModal({
             )}
           </div>
 
-          {/* 전문분야 */}
           {expert.subSpecialty && (
             <div>
               <p className="text-sm font-semibold text-[#1F3864] mb-1">전문 분야</p>
@@ -285,7 +336,6 @@ function ExpertDetailModal({
             </div>
           )}
 
-          {/* 자기소개 */}
           {expert.bio && (
             <div>
               <p className="text-sm font-semibold text-[#1F3864] mb-1">소개 및 이력</p>
@@ -300,7 +350,7 @@ function ExpertDetailModal({
           )}
         </div>
 
-        {/* 상담 신청 버튼 (연락처 비공개 - EverWill 통해서만) */}
+        {/* 상담 신청 버튼 */}
         <div className="pt-4 border-t border-gray-100">
           <div className="bg-[#1F3864]/5 rounded-xl p-3 mb-3">
             <p className="text-xs text-gray-500 text-center">
@@ -324,17 +374,21 @@ function ExpertDetailModal({
   );
 }
 
+// ===== 메인 섹션 =====
 export default function ExpertsSection() {
-  const [selectedCountry, setSelectedCountry] = useState("all");
+  const { language } = useLanguage();
+
+  // 언어에 따라 자동으로 해당 국가 선택
+  const defaultCountry = useMemo(() => LANG_TO_COUNTRY[language] ?? "KR", [language]);
+  const [selectedCountry, setSelectedCountry] = useState<string>(() => LANG_TO_COUNTRY[language] ?? "KR");
   const [selectedSpecialty, setSelectedSpecialty] = useState<"all" | "lawyer" | "tax" | "notary">("all");
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const { data: countries } = trpc.expert.getCountries.useQuery();
   const { data, isLoading } = trpc.expert.list.useQuery({
-    country: selectedCountry === "all" ? undefined : selectedCountry,
+    country: selectedCountry,
     specialty: selectedSpecialty,
     search: search || undefined,
     limit: 12,
@@ -344,21 +398,25 @@ export default function ExpertsSection() {
   const experts = data?.experts ?? [];
   const total = data?.total ?? 0;
 
+  // 현재 국가 헤드라인
+  const headline = COUNTRY_HEADLINE[selectedCountry] ?? COUNTRY_HEADLINE["KR"];
+
+  // defaultCountry 사용 (lint 경고 방지)
+  void defaultCountry;
+
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-[#FAFAF8]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* 헤더 */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-10">
           <Badge className="bg-[#C9A961]/10 text-[#C9A961] border border-[#C9A961]/20 mb-4 px-4 py-1">
             EverWill 파트너 전문가 그룹
           </Badge>
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1F3864] mb-4">
-            상속 전문가와 함께하세요
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1F3864] mb-3">
+            {headline.title}
           </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            전 세계 EverWill 인증 파트너 변호사·세무사·공증인이 여러분의 상속을 도와드립니다.
-            <br />
-            국가와 지역에 맞는 전문가를 찾아보세요.
+          <p className="text-gray-500 max-w-2xl mx-auto text-sm">
+            {headline.subtitle}
           </p>
           <div className="flex items-center justify-center gap-2 mt-3">
             <Users className="w-4 h-4 text-[#C9A961]" />
@@ -366,9 +424,33 @@ export default function ExpertsSection() {
           </div>
         </div>
 
-        {/* 필터 */}
+        {/* ===== 14개국 국기 탭 ===== */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 flex gap-1 overflow-x-auto max-w-full">
+            {COUNTRY_FLAGS.map(({ code, flagImg, name }) => (
+              <button
+                key={code}
+                onClick={() => setSelectedCountry(code)}
+                title={name}
+                className={`flex flex-col items-center gap-0.5 px-2.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
+                  selectedCountry === code
+                    ? "bg-[#1F3864] text-white shadow-sm"
+                    : "text-gray-500 hover:text-[#1F3864] hover:bg-gray-50"
+                }`}
+              >
+                <img
+                  src={flagImg}
+                  alt={code}
+                  className="w-8 h-5 object-cover rounded shadow-sm"
+                />
+                <span className="text-[10px] leading-none mt-0.5">{code}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 검색 + 전문분야 필터 */}
         <div className="flex flex-wrap gap-3 mb-8 items-center">
-          {/* 검색 */}
           <div className="relative flex-1 min-w-[200px] max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
@@ -379,39 +461,6 @@ export default function ExpertsSection() {
               className="pl-9"
             />
           </div>
-
-          {/* 국가 필터 */}
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setSelectedCountry("all")}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                selectedCountry === "all"
-                  ? "bg-[#1F3864] text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              전체
-            </button>
-            {(countries ?? []).map((c) => {
-              const info = COUNTRY_MAP[c];
-              if (!info) return null;
-              return (
-                <button
-                  key={c}
-                  onClick={() => setSelectedCountry(c)}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                    selectedCountry === c
-                      ? "bg-[#1F3864] text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
-                >
-                  {info.flag} {info.name}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* 전문분야 필터 */}
           <div className="flex gap-2">
             {(["all", "lawyer", "tax", "notary"] as const).map((sp) => (
               <button
@@ -420,7 +469,7 @@ export default function ExpertsSection() {
                 className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                   selectedSpecialty === sp
                     ? "bg-[#C9A961] text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    : "bg-white border border-gray-200 text-gray-600 hover:border-[#C9A961]/50"
                 }`}
               >
                 {sp === "all" ? "전체" : SPECIALTY_CONFIG[sp].label}
@@ -439,7 +488,8 @@ export default function ExpertsSection() {
         ) : experts.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
             <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p>해당 조건의 전문가가 없습니다.</p>
+            <p>해당 국가의 전문가가 아직 없습니다.</p>
+            <p className="text-sm mt-1 text-gray-300">다른 국가를 선택해보세요.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
