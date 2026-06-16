@@ -17,10 +17,28 @@ import {
   FileText,
   Printer,
   Globe,
+  Upload,
+  Trash2,
+  Paperclip,
+  Home,
+  Building2,
+  Coins,
+  Shield,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+
+/** 첨부파일 카테고리 설정 */
+const CATEGORY_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
+  real_estate: { label: "부동산 등기부등본",   icon: Home,      color: "text-blue-600 bg-blue-50" },
+  bank:        { label: "통장 사본/잔고증명",  icon: Building2, color: "text-green-600 bg-green-50" },
+  stock:       { label: "주식 잔고증명서",     icon: FileText,  color: "text-purple-600 bg-purple-50" },
+  crypto:      { label: "가상자산 보유증명",   icon: Coins,     color: "text-orange-600 bg-orange-50" },
+  insurance:   { label: "보험증권",           icon: Shield,    color: "text-pink-600 bg-pink-50" },
+  pension:     { label: "연금 증명서",        icon: Calendar,  color: "text-teal-600 bg-teal-50" },
+  other:       { label: "기타 증빙서류",      icon: Paperclip, color: "text-gray-600 bg-gray-50" },
+};
 
 /** 지원 국가 목록 */
 const SUPPORTED_COUNTRIES = [
@@ -78,12 +96,78 @@ export default function WillCertificatePage() {
   const [selectedCertId, setSelectedCertId] = useState<number | null>(null);
   const [downloadCountry, setDownloadCountry] = useState("KR");
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isSampleGenerating, setIsSampleGenerating] = useState(false);
+  const [sampleCountry, setSampleCountry] = useState("KR");
+  const [showSampleModal, setShowSampleModal] = useState(false);
+
+  // 첨부파일 업로드 상태
+  const [uploadCategory, setUploadCategory] = useState("real_estate");
+  const [uploadDescription, setUploadDescription] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 인증 완료된 유언장 목록
   const { data: certifiedWills } = trpc.willCertificate.getMyCertifiedWills.useQuery();
 
   // 발급 내역 조회
   const { data: certificates, isLoading, refetch } = trpc.willCertificate.getMyList.useQuery();
+
+  // 첨부파일 목록 조회
+  const { data: attachments, refetch: refetchAttachments } = trpc.attachment.list.useQuery();
+
+  // 첨부파일 업로드 뮤테이션
+  const uploadMutation = trpc.attachment.upload.useMutation({
+    onSuccess: () => {
+      toast.success("파일이 업로드되었습니다.");
+      setUploadDescription("");
+      setIsUploading(false);
+      refetchAttachments();
+    },
+    onError: (err) => {
+      toast.error(err.message || "업로드에 실패했습니다.");
+      setIsUploading(false);
+    },
+  });
+
+  // 첨부파일 삭제 뮤테이션
+  const deleteAttachmentMutation = trpc.attachment.delete.useMutation({
+    onSuccess: () => {
+      toast.success("파일이 삭제되었습니다.");
+      refetchAttachments();
+    },
+    onError: (err) => toast.error(err.message || "삭제에 실패했습니다."),
+  });
+
+  // 파일 선택 핸들러
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 파일 크기 제한 (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("파일 크기는 10MB 이하여야 합니다.");
+      return;
+    }
+
+    setIsUploading(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      // data:mime/type;base64,... 에서 base64 부분만 추출
+      const base64 = dataUrl.split(",")[1];
+      uploadMutation.mutate({
+        fileName:    file.name,
+        fileType:    file.type,
+        fileSize:    file.size,
+        fileBase64:  base64,
+        category:    uploadCategory as any,
+        description: uploadDescription || undefined,
+      });
+    };
+    reader.readAsDataURL(file);
+    // input 초기화
+    e.target.value = "";
+  };
 
   // 인증서 신청
   const applyMutation = trpc.willCertificate.requestCertificate.useMutation({
@@ -100,14 +184,41 @@ export default function WillCertificatePage() {
   // PDF 다운로드
   const downloadPdfMutation = trpc.willCertificate.downloadPdf.useMutation({
     onSuccess: (data) => {
-      downloadBase64Pdf(data.base64, data.filename);
-      toast.success(`${data.filename} 다운로드 완료`);
+      // pdfUrl로 직접 다운로드 (S3 저장 방식)
+      const a = document.createElement("a");
+      a.href = data.pdfUrl;
+      a.download = data.filename;
+      a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      toast.success(`${data.filename} 다운로드 완료${data.cached ? " (캐시)" : ""}`);
       setShowDownloadModal(false);
       setIsDownloading(false);
     },
     onError: (err) => {
       toast.error(err.message || "PDF 생성에 실패했습니다.");
       setIsDownloading(false);
+    },
+  });
+
+  // 샘플 PDF 생성
+  const samplePdfMutation = trpc.willCertificate.generateSamplePdf.useMutation({
+    onSuccess: (data) => {
+      const a = document.createElement("a");
+      a.href = data.pdfUrl;
+      a.download = data.filename;
+      a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      toast.success(`샘플 인증서 PDF 다운로드 완료`);
+      setShowSampleModal(false);
+      setIsSampleGenerating(false);
+    },
+    onError: (err) => {
+      toast.error(err.message || "샘플 PDF 생성에 실패했습니다.");
+      setIsSampleGenerating(false);
     },
   });
 
@@ -159,13 +270,22 @@ export default function WillCertificatePage() {
             유언 인증 날짜를 기준으로 공식 인증서를 발급받으세요. 발급 수수료 ₩1,500/건
           </p>
         </div>
-        <button
-          onClick={() => setShowApplyModal(true)}
-          className="flex items-center gap-2 bg-[#1F3864] text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#162d52] transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          인증서 신청
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowSampleModal(true)}
+            className="flex items-center gap-2 border border-[#C9A961] text-[#C9A961] px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#C9A961]/10 transition-colors"
+          >
+            <FileText className="w-4 h-4" />
+            샘플 미리보기
+          </button>
+          <button
+            onClick={() => setShowApplyModal(true)}
+            className="flex items-center gap-2 bg-[#1F3864] text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#162d52] transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            인증서 신청
+          </button>
+        </div>
       </motion.div>
 
       {/* 국가별 법적 양식 안내 배너 */}
@@ -206,6 +326,121 @@ export default function WillCertificatePage() {
               </li>
             </ul>
           </div>
+        </div>
+      </motion.div>
+
+      {/* 첨부파일 업로드 섹션 */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.03 }}
+        className="bg-white rounded-2xl border border-gray-100 overflow-hidden"
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
+          <div className="flex items-center gap-2">
+            <Paperclip className="w-4 h-4 text-[#C9A961]" />
+            <h2 className="font-bold text-[#1F3864] text-sm">증빙서류 첨부</h2>
+          </div>
+          <span className="text-xs text-gray-400">총 {attachments?.length ?? 0}건 · PDF 출력 시 자동 포함</span>
+        </div>
+
+        <div className="p-5 space-y-4">
+          {/* 카테고리 선택 */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-2">서류 종류</label>
+            <div className="grid grid-cols-2 gap-1.5">
+              {Object.entries(CATEGORY_CONFIG).map(([key, cfg]) => {
+                const Icon = cfg.icon;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setUploadCategory(key)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition-all ${
+                      uploadCategory === key
+                        ? "border-[#1F3864] bg-[#1F3864]/5 text-[#1F3864]"
+                        : "border-gray-200 text-gray-600 hover:border-gray-300"
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    {cfg.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 설명 입력 */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5">서류 설명 (선택)</label>
+            <input
+              type="text"
+              value={uploadDescription}
+              onChange={(e) => setUploadDescription(e.target.value)}
+              placeholder="예: 서울 강남구 아파트 등기부등본"
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864]"
+            />
+          </div>
+
+          {/* 파일 업로드 버튼 */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png,.heic"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-[#1F3864]/30 rounded-xl py-4 text-sm font-semibold text-[#1F3864] hover:border-[#1F3864]/60 hover:bg-[#1F3864]/5 transition-all disabled:opacity-50"
+          >
+            {isUploading ? (
+              <><div className="w-4 h-4 border-2 border-[#1F3864] border-t-transparent rounded-full animate-spin" />업로드 중...</>
+            ) : (
+              <><Upload className="w-4 h-4" />파일 선택 (PDF, JPG, PNG · 최대 10MB)</>
+            )}
+          </button>
+
+          {/* 업로드된 파일 목록 */}
+          {attachments && attachments.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-gray-500">업로드된 서류</p>
+              {attachments.map((att: any) => {
+                const cfg = CATEGORY_CONFIG[att.category] ?? CATEGORY_CONFIG.other;
+                const Icon = cfg.icon;
+                return (
+                  <div key={att.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${cfg.color}`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-800 truncate">{att.fileName}</p>
+                        <p className="text-xs text-gray-400">{cfg.label}{att.description ? ` · ${att.description}` : ""}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {att.verified === 1 && (
+                        <span className="text-xs text-green-600 font-semibold flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" />검토완료
+                        </span>
+                      )}
+                      <button
+                        onClick={() => deleteAttachmentMutation.mutate({ id: att.id })}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <p className="text-xs text-gray-400 text-center">
+            업로드된 서류는 PDF 인증서 출력 시 모든 페이지에 EverWill 확인 스탬프와 함께 자동으로 포함됩니다.
+          </p>
         </div>
       </motion.div>
 
@@ -472,6 +707,78 @@ export default function WillCertificatePage() {
                     <Download className="w-4 h-4" />
                     PDF 다운로드
                   </>
+                )}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+      {/* 샘플 PDF 미리보기 모달 */}
+      {showSampleModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-5 h-5 text-[#C9A961]" />
+              <h3 className="font-bold text-[#1F3864] text-base">샘플 인증서 PDF 미리보기</h3>
+            </div>
+            <p className="text-xs text-gray-500 mb-5">
+              실제 등록된 자산정보와 상속자 데이터를 바탕으로 샘플 인증서를 생성합니다.
+              데이터가 없으면 예시 데이터로 대체됩니다.
+            </p>
+
+            {/* 국가 선택 */}
+            <div className="mb-5">
+              <label className="block text-sm font-semibold text-[#1F3864] mb-2">
+                <Globe className="w-3.5 h-3.5 inline mr-1" />
+                인증서 양식 국가
+              </label>
+              <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                {SUPPORTED_COUNTRIES.map((c) => (
+                  <button
+                    key={c.code}
+                    onClick={() => setSampleCountry(c.code)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition-all ${
+                      sampleCountry === c.code
+                        ? "border-[#C9A961] bg-[#C9A961]/10 text-[#1F3864]"
+                        : "border-gray-200 text-gray-600 hover:border-gray-300"
+                    }`}
+                  >
+                    <span className="text-base">{c.flag}</span>
+                    <span>{c.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-5">
+              <p className="text-xs text-amber-700">
+                ⚠️ 샘플 문서입니다. 정식 인증서는 유언장 인증 완료 후 신청하세요.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowSampleModal(false)}
+                className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={() => {
+                  setIsSampleGenerating(true);
+                  samplePdfMutation.mutate({ country: sampleCountry });
+                }}
+                disabled={isSampleGenerating}
+                className="flex-1 py-3 bg-[#C9A961] text-white rounded-xl text-sm font-semibold hover:bg-[#b8944f] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isSampleGenerating ? (
+                  <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />생성 중...</>
+                ) : (
+                  <><Download className="w-4 h-4" />샘플 PDF 다운로드</>
                 )}
               </button>
             </div>

@@ -1120,6 +1120,10 @@ export const willCertificates = mysqlTable("willCertificates", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   /** 처리 일시 */
   processedAt: timestamp("processedAt"),
+  /** 생성된 PDF 파일 S3 키 */
+  fileKey: varchar("fileKey", { length: 500 }),
+  /** 생성된 PDF 파일 URL */
+  fileUrl: varchar("fileUrl", { length: 1000 }),
 });
 
 export type WillCertificate = typeof willCertificates.$inferSelect;
@@ -1308,3 +1312,49 @@ export const expertConsultations = mysqlTable("expertConsultations", {
 
 export type ExpertConsultation = typeof expertConsultations.$inferSelect;
 export type InsertExpertConsultation = typeof expertConsultations.$inferInsert;
+
+
+// ─── 유언 첨부파일 테이블 ─────────────────────────────────────────────────────
+/**
+ * 유언인증서에 첨부되는 증빙 서류 파일 목록
+ * 부동산등본, 통장사본, 주식잔고증명, 코인보유증명 등
+ */
+export const willAttachments = mysqlTable("will_attachments", {
+  id:          int("id").autoincrement().primaryKey(),
+  /** 업로드한 사용자 ID */
+  userId:      int("userId").notNull(),
+  /** 연결된 유언장 ID (null = 미연결) */
+  willId:      int("willId"),
+  /** S3 스토리지 키 */
+  fileKey:     varchar("fileKey", { length: 500 }).notNull(),
+  /** 파일 접근 URL */
+  fileUrl:     varchar("fileUrl", { length: 1000 }).notNull(),
+  /** 원본 파일명 */
+  fileName:    varchar("fileName", { length: 255 }).notNull(),
+  /** MIME 타입 (application/pdf, image/jpeg 등) */
+  fileType:    varchar("fileType", { length: 100 }).notNull(),
+  /** 파일 크기 (bytes) */
+  fileSize:    int("fileSize").notNull(),
+  /**
+   * 서류 카테고리
+   * real_estate: 부동산 등기부등본
+   * bank: 통장 사본 / 잔고증명서
+   * stock: 주식 잔고증명서
+   * crypto: 가상자산 보유증명
+   * insurance: 보험증권
+   * pension: 연금 증명서
+   * other: 기타 증빙서류
+   */
+  category:    varchar("category", { length: 50 }).notNull().default("other"),
+  /** 서류 설명 (예: 서울 강남구 아파트 등기부등본) */
+  description: varchar("description", { length: 500 }),
+  /** EverWill 검토 완료 여부 (0=미검토, 1=검토완료) */
+  verified:    int("verified").default(0),
+  /** 검토 완료 시각 */
+  verifiedAt:  timestamp("verifiedAt"),
+  createdAt:   bigint("createdAt", { mode: "number" }).notNull(),
+  updatedAt:   bigint("updatedAt", { mode: "number" }).notNull(),
+});
+
+export type WillAttachment = typeof willAttachments.$inferSelect;
+export type InsertWillAttachment = typeof willAttachments.$inferInsert;

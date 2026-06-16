@@ -281,6 +281,20 @@
       "when": 1781339489135,
       "tag": "0039_overrated_greymalkin",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "5",
+      "when": 1781577331937,
+      "tag": "0040_funny_silver_fox",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "5",
+      "when": 1781607064499,
+      "tag": "0041_chubby_living_mummy",
+      "breakpoints": true
     }
   ]
 }
