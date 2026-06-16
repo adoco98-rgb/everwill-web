@@ -30,6 +30,8 @@ export const hi = {
     trust2: "11 भाषाएं",
     trust3: "निःशुल्क लिखें · ₹3,200 प्रमाणीकरण",
     trust4: "बैंक-स्तरीय सुरक्षा",
+    memberBadgeTitle: "EverWill के साथ सदस्य",
+    memberBadgeSub: "दुनिया भर में EverWill सदस्य",
     pricingNote: "निःशुल्क लिखें · कानूनी प्रमाणीकरण ₹3,200",
   },
   trust: {

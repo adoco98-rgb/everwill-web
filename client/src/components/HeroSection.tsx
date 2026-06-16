@@ -157,13 +157,13 @@ export default function HeroSection() {
           >
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-[#C9A961]" />
-              <span className="text-white/90 text-xs font-semibold tracking-wide">EverWill과 함께하는 회원</span>
+              <span className="text-white/90 text-xs font-semibold tracking-wide">{t.hero.memberBadgeTitle}</span>
             </div>
             <div className="text-white font-black text-3xl sm:text-4xl tracking-tight leading-none">
               <AnimatedCounter target={totalMembers} />
               <span className="text-[#C9A961] ml-1 text-2xl font-bold">+</span>
             </div>
-            <span className="text-[#C9A961]/80 text-xs font-medium">전 세계 EverWill 회원</span>
+            <span className="text-[#C9A961]/80 text-xs font-medium">{t.hero.memberBadgeSub}</span>
           </motion.div>
         </motion.div>
 

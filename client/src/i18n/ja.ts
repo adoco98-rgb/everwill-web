@@ -30,6 +30,8 @@ export const ja = {
     trust2: "11言語対応",
     trust3: "作成無料 · 認証¥5,900",
     trust4: "銀行級セキュリティ",
+    memberBadgeTitle: "EverWillとともに",
+    memberBadgeSub: "世界中のEverWillメンバー",
     pricingNote: "作成無料 · 電子認証 ¥5,900 · 民法第968条・第969条準拠",
   },
   trust: {

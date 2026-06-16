@@ -34,6 +34,8 @@ export const ko = {
     trust3: "작성 무료 · 인증 ₩49,000",
     trust4: "은행급 보안",
     pricingNote: "유언장 작성은 무료 · 전자 인증 ₩49,000",
+    memberBadgeTitle: "EverWill과 함께하는 회원",
+    memberBadgeSub: "전 세계 EverWill 회원",
   },
 
   // Trust Section

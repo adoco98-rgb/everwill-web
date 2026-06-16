@@ -30,6 +30,8 @@ export const ar = {
     trust2: "11 لغة",
     trust3: "كتابة مجانية · 150 ريال للتوثيق",
     trust4: "أمان مصرفي",
+    memberBadgeTitle: "أعضاء مع EverWill",
+    memberBadgeSub: "أعضاء EverWill حول العالم",
     pricingNote: "كتابة مجانية · توثيق 150 ريال · الشريعة الإسلامية · نظام الوصية والتركات",
   },
   trust: {

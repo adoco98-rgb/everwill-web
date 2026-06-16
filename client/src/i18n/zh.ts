@@ -30,6 +30,8 @@ export const zh = {
     trust2: "7国支持",
     trust3: "免费撰写 · 认证¥278",
     trust4: "银行级安全",
+    memberBadgeTitle: "与EverWill同行的会员",
+    memberBadgeSub: "全球EverWill会员",
     pricingNote: "免费撰写 · 法律认证 ¥278",
   },
   trust: {

@@ -30,6 +30,8 @@ export const ru = {
     trust2: "11 языков",
     trust3: "Бесплатно · $39 сертификация",
     trust4: "Банковская безопасность",
+    memberBadgeTitle: "Участники EverWill",
+    memberBadgeSub: "Участники EverWill по всему миру",
     pricingNote: "Бесплатно писать · Юридическая сертификация $39",
   },
   trust: {

@@ -33,6 +33,8 @@ export const en = {
     trust2: "11 Languages Supported",
     trust3: "Free to Write · $39 to Certify",
     trust4: "Bank-Level Security",
+    memberBadgeTitle: "Members with EverWill",
+    memberBadgeSub: "EverWill Members Worldwide",
     pricingNote: "Free to write · Electronic certification $39 · Legally valid in 20+ US states",
   },
   trust: {

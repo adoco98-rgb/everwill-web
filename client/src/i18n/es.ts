@@ -30,6 +30,8 @@ export const es = {
     trust2: "11 Idiomas",
     trust3: "Gratis escribir · $39 certificar",
     trust4: "Seguridad Bancaria",
+    memberBadgeTitle: "Miembros con EverWill",
+    memberBadgeSub: "Miembros de EverWill en todo el mundo",
     pricingNote: "Gratis escribir · Certificación $39 · Código Civil Art.688 · Art.694",
   },
   trust: {
