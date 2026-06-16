@@ -2,7 +2,7 @@
  * 유언인증서 신청 및 발급 페이지 (/dashboard/will-certificate)
  * - 유언인증서 신청 (날짜 기준)
  * - 발급 내역 조회
- * - 발급 수수료 ₩1,500/건
+ * - 국가별 PDF 인증서 다운로드 (14개국 법적 양식)
  */
 import { motion } from "framer-motion";
 import {
@@ -16,10 +16,29 @@ import {
   CreditCard,
   FileText,
   Printer,
+  Globe,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+
+/** 지원 국가 목록 */
+const SUPPORTED_COUNTRIES = [
+  { code: "KR", flag: "🇰🇷", name: "한국 (Korea)" },
+  { code: "US", flag: "🇺🇸", name: "미국 (USA)" },
+  { code: "JP", flag: "🇯🇵", name: "일본 (Japan)" },
+  { code: "CN", flag: "🇨🇳", name: "중국 (China)" },
+  { code: "DE", flag: "🇩🇪", name: "독일 (Germany)" },
+  { code: "ES", flag: "🇪🇸", name: "스페인 (Spain)" },
+  { code: "SA", flag: "🇸🇦", name: "사우디아라비아 (Saudi Arabia)" },
+  { code: "FR", flag: "🇫🇷", name: "프랑스 (France)" },
+  { code: "IN", flag: "🇮🇳", name: "인도 (India)" },
+  { code: "BR", flag: "🇧🇷", name: "브라질 (Brazil)" },
+  { code: "AU", flag: "🇦🇺", name: "호주 (Australia)" },
+  { code: "GB", flag: "🇬🇧", name: "영국 (UK)" },
+  { code: "CA", flag: "🇨🇦", name: "캐나다 (Canada)" },
+  { code: "NZ", flag: "🇳🇿", name: "뉴질랜드 (New Zealand)" },
+];
 
 /** 인증서 상태 라벨 */
 const STATUS_LABEL: Record<string, { label: string; color: string; icon: React.ElementType }> = {
@@ -28,15 +47,37 @@ const STATUS_LABEL: Record<string, { label: string; color: string; icon: React.E
   rejected: { label: "발급 거부", color: "text-red-600 bg-red-50 border-red-200", icon: AlertCircle },
 };
 
+/** base64 PDF 다운로드 헬퍼 */
+function downloadBase64Pdf(base64: string, filename: string) {
+  const byteChars = atob(base64);
+  const byteNums = new Array(byteChars.length);
+  for (let i = 0; i < byteChars.length; i++) {
+    byteNums[i] = byteChars.charCodeAt(i);
+  }
+  const byteArray = new Uint8Array(byteNums);
+  const blob = new Blob([byteArray], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 export default function WillCertificatePage() {
   const [showApplyModal, setShowApplyModal] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split("T")[0];
   });
   const [purpose, setPurpose] = useState("");
-
   const [selectedWillId, setSelectedWillId] = useState<number | null>(null);
+  const [selectedCertId, setSelectedCertId] = useState<number | null>(null);
+  const [downloadCountry, setDownloadCountry] = useState("KR");
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // 인증 완료된 유언장 목록
   const { data: certifiedWills } = trpc.willCertificate.getMyCertifiedWills.useQuery();
@@ -56,6 +97,20 @@ export default function WillCertificatePage() {
     onError: (err) => toast.error(err.message || "신청에 실패했습니다."),
   });
 
+  // PDF 다운로드
+  const downloadPdfMutation = trpc.willCertificate.downloadPdf.useMutation({
+    onSuccess: (data) => {
+      downloadBase64Pdf(data.base64, data.filename);
+      toast.success(`${data.filename} 다운로드 완료`);
+      setShowDownloadModal(false);
+      setIsDownloading(false);
+    },
+    onError: (err) => {
+      toast.error(err.message || "PDF 생성에 실패했습니다.");
+      setIsDownloading(false);
+    },
+  });
+
   const handleApply = () => {
     if (!purpose.trim()) {
       toast.error("발급 목적을 선택해주세요.");
@@ -71,6 +126,20 @@ export default function WillCertificatePage() {
       return;
     }
     applyMutation.mutate({ willId, certDate: selectedDate, purpose });
+  };
+
+  const handleDownload = (certId: number) => {
+    setSelectedCertId(certId);
+    setShowDownloadModal(true);
+  };
+
+  const handleConfirmDownload = () => {
+    if (!selectedCertId) return;
+    setIsDownloading(true);
+    downloadPdfMutation.mutate({
+      certificateId: selectedCertId,
+      country: downloadCountry,
+    });
   };
 
   return (
@@ -99,32 +168,41 @@ export default function WillCertificatePage() {
         </button>
       </motion.div>
 
-      {/* 안내 배너 */}
+      {/* 국가별 법적 양식 안내 배너 */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-[#1F3864]/5 border border-[#1F3864]/10 rounded-2xl p-5"
+        className="bg-gradient-to-r from-[#1F3864]/5 to-[#C9A961]/5 border border-[#1F3864]/10 rounded-2xl p-5"
       >
         <div className="flex items-start gap-3">
-          <FileText className="w-5 h-5 text-[#1F3864] shrink-0 mt-0.5" />
+          <Globe className="w-5 h-5 text-[#C9A961] shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold text-[#1F3864] text-sm mb-2">유언인증서란?</p>
-            <ul className="text-gray-600 text-xs space-y-1.5">
+            <p className="font-semibold text-[#1F3864] text-sm mb-2">
+              14개국 법적 양식 지원 — 국가별 법률 기준 인증서
+            </p>
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {SUPPORTED_COUNTRIES.map((c) => (
+                <span key={c.code} className="text-xs bg-white border border-gray-200 rounded-lg px-2 py-0.5 text-gray-600">
+                  {c.flag} {c.code}
+                </span>
+              ))}
+            </div>
+            <ul className="text-gray-600 text-xs space-y-1">
               <li className="flex items-start gap-1.5">
                 <span className="text-[#C9A961] font-bold shrink-0">•</span>
-                EverWill에서 발급하는 공식 디지털 유언 인증 문서입니다.
+                한국: 민법 제1060조~제1072조 + 전자서명법 기준 양식
               </li>
               <li className="flex items-start gap-1.5">
                 <span className="text-[#C9A961] font-bold shrink-0">•</span>
-                법원·은행·금융기관에서 유언 효력 확인 시 제출 가능합니다.
+                미국: Uniform Electronic Wills Act (UEWA) 2019 기준 영문 양식
               </li>
               <li className="flex items-start gap-1.5">
                 <span className="text-[#C9A961] font-bold shrink-0">•</span>
-                한국어·영문 버전 모두 발급 가능하며, 발급일 기준 유효합니다.
+                일본: 民法第968条 + 2025년 공정증서 디지털화 기준 일문 양식
               </li>
               <li className="flex items-start gap-1.5">
                 <span className="text-[#C9A961] font-bold shrink-0">•</span>
-                발급 수수료: <strong>₩1,500/건</strong> (재발급 동일 금액)
+                사우디: 샤리아 상속법 + 이슬람 유언 규정 아랍어 양식
               </li>
             </ul>
           </div>
@@ -197,11 +275,11 @@ export default function WillCertificatePage() {
                     </span>
                     {cert.status === "issued" && (
                       <button
-                        onClick={() => toast.info("PDF 다운로드 기능은 준비 중입니다.")}
-                        className="flex items-center gap-1.5 text-xs text-[#1F3864] font-medium hover:text-[#C9A961] transition-colors"
+                        onClick={() => handleDownload(cert.id)}
+                        className="flex items-center gap-1.5 text-xs bg-[#1F3864] text-white px-3 py-1.5 rounded-lg font-medium hover:bg-[#162d52] transition-colors"
                       >
                         <Download className="w-3.5 h-3.5" />
-                        PDF
+                        PDF 다운로드
                       </button>
                     )}
                   </div>
@@ -312,6 +390,87 @@ export default function WillCertificatePage() {
                   <>
                     <Printer className="w-4 h-4" />
                     결제 후 신청
+                  </>
+                )}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* PDF 다운로드 국가 선택 모달 */}
+      {showDownloadModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Globe className="w-5 h-5 text-[#C9A961]" />
+              <h3 className="font-bold text-[#1F3864] text-base">국가별 인증서 PDF 다운로드</h3>
+            </div>
+            <p className="text-xs text-gray-500 mb-5">
+              제출할 국가를 선택하면 해당 국가의 법적 기준에 맞는 양식으로 인증서가 생성됩니다.
+            </p>
+
+            {/* 국가 선택 그리드 */}
+            <div className="grid grid-cols-2 gap-2 mb-5 max-h-64 overflow-y-auto pr-1">
+              {SUPPORTED_COUNTRIES.map((c) => (
+                <button
+                  key={c.code}
+                  onClick={() => setDownloadCountry(c.code)}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${
+                    downloadCountry === c.code
+                      ? "border-[#1F3864] bg-[#1F3864]/5 text-[#1F3864]"
+                      : "border-gray-200 text-gray-600 hover:border-gray-300"
+                  }`}
+                >
+                  <span className="text-lg">{c.flag}</span>
+                  <span className="text-xs">{c.name}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* 선택된 국가 법적 근거 안내 */}
+            <div className="bg-[#1F3864]/5 rounded-xl p-3 mb-5 text-xs text-gray-600">
+              {downloadCountry === "KR" && "📋 민법 제1060조~제1072조 + 전자서명법 기준 한국어 양식"}
+              {downloadCountry === "US" && "📋 Uniform Electronic Wills Act (UEWA) 2019 기준 영문 양식"}
+              {downloadCountry === "JP" && "📋 民法第968条 + 2025년 공정증서 디지털화 기준 일문 양식"}
+              {downloadCountry === "CN" && "📋 中华人民共和国民法典 第1133条 기준 중문 양식"}
+              {downloadCountry === "DE" && "📋 BGB §2247 + eIDAS 규정 기준 독일어 양식"}
+              {downloadCountry === "ES" && "📋 Código Civil Art.688 + 전자서명법 기준 스페인어 양식"}
+              {downloadCountry === "SA" && "📋 샤리아 상속법 + 이슬람 유언 규정 아랍어 양식 (RTL)"}
+              {downloadCountry === "FR" && "📋 Code Civil Art.970 + eIDAS 기준 프랑스어 양식"}
+              {downloadCountry === "IN" && "📋 Indian Succession Act 1925 §63 기준 영문 양식"}
+              {downloadCountry === "BR" && "📋 Código Civil Art.1876 + ICP-Brasil 기준 포르투갈어 양식"}
+              {downloadCountry === "AU" && "📋 Succession Act 2006 + Electronic Transactions Act 기준 영문 양식"}
+              {downloadCountry === "GB" && "📋 Wills Act 1837 + Electronic Communications Act 기준 영문 양식"}
+              {downloadCountry === "CA" && "📋 WESA (BC) / SLRA (ON) + Uniform Electronic Wills Act 기준 영문 양식"}
+              {downloadCountry === "NZ" && "📋 Wills Act 2007 + Electronic Transactions Act 2002 기준 영문 양식"}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDownloadModal(false)}
+                className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleConfirmDownload}
+                disabled={isDownloading}
+                className="flex-1 py-3 bg-[#1F3864] text-white rounded-xl text-sm font-semibold hover:bg-[#162d52] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isDownloading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    생성 중...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    PDF 다운로드
                   </>
                 )}
               </button>
