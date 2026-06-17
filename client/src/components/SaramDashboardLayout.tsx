@@ -196,13 +196,17 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
         {/* 로고 */}
         <div className="px-4 py-5 border-b border-white/10">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center flex-1">
+            <Link href="/" className="flex items-center gap-3 flex-1">
                 <img
-                  src="/manus-storage/everwill-logo-transparent_2d7970e8.png"
+                  src="/manus-storage/everwill-seal-transparent_74953131.png"
                   alt="EverWill"
-                  className="object-contain"
-                  style={{ height: '48px', width: '180px' }}
+                  className="object-contain drop-shadow-lg"
+                  style={{ height: '56px', width: '56px' }}
                 />
+                <div>
+                  <div className="text-white font-bold text-base leading-tight">EverWill</div>
+                  <div className="text-[#C9A961] text-[10px] font-medium tracking-wider">DIGITAL WILL OS</div>
+                </div>
               </Link>
             <button
               onClick={() => setMobileOpen(false)}
@@ -343,12 +347,18 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
           >
             <Menu className="w-5 h-5 text-[#1F3864]" />
           </button>
-          <img
-            src="/manus-storage/everwill-logo-transparent_2d7970e8.png"
-            alt="EverWill"
-            className="h-9 object-contain"
-            style={{ maxWidth: '130px' }}
-          />
+          <div className="flex items-center gap-2">
+            <img
+              src="/manus-storage/everwill-seal-transparent_74953131.png"
+              alt="EverWill"
+              className="object-contain"
+              style={{ height: '40px', width: '40px' }}
+            />
+            <div>
+              <div className="text-[#1F3864] font-bold text-sm leading-tight">EverWill</div>
+              <div className="text-[#C9A961] text-[9px] font-medium tracking-wider">DIGITAL WILL OS</div>
+            </div>
+          </div>
         </header>
 
         {/* 페이지 콘텐츠 */}
