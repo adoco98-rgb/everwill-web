@@ -45,15 +45,26 @@ function AnimatedCounter({ target, duration = 2.5 }: { target: number; duration?
 
 export default function HeroSection() {
   const [, navigate] = useLocation();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { isAuthenticated } = useAuth();
+
+  // 언어 코드 → 국가 코드 매핑
+  const LANG_TO_COUNTRY: Record<string, string> = {
+    ko: "KR", en: "US", ja: "JP", zh: "CN",
+    de: "DE", es: "ES", ar: "SA", fr: "FR",
+    ru: "RU", hi: "IN", pt: "BR",
+  };
+  const currentCountryCode = LANG_TO_COUNTRY[language] ?? "KR";
 
   // 국가별 가입자 수 조회 (DB 실제 + 임의 설정값)
   const { data: countryData } = trpc.stats.getCountryMemberCounts.useQuery(undefined, {
     staleTime: 60_000, // 1분 캐시
   });
-  // 표시 활성화된 국가만 필터링 (최대 3개)
-  const displayCountries = (countryData ?? []).filter(c => c.displayEnabled && c.total > 0).slice(0, 3);
+
+  // 현재 선택된 국가에 해당하는 데이터만 표시
+  const currentCountry = (countryData ?? []).find(c => c.code === currentCountryCode && c.displayEnabled && c.total > 0);
+  // 하위 호환: 현재 국가가 없으면 표시 활성화된 국가 최대 3개 표시
+  const displayCountries = currentCountry ? [currentCountry] : (countryData ?? []).filter(c => c.displayEnabled && c.total > 0).slice(0, 3);
   const totalMembers = (countryData ?? []).filter(c => c.displayEnabled).reduce((s, c) => s + c.total, 0) || 4709;
 
   // 로그인 상태면 대시보드, 비로그인이면 회원가입 페이지로

@@ -197,14 +197,12 @@ export default function Navbar() {
         <div className="flex items-center h-20 gap-8">
           {/* 로고 - 좌측 고정 */}
           <a href="/" className="flex items-center group shrink-0 mr-4">
-            <div className="bg-white/90 rounded-lg px-2 py-1" style={{ minWidth: '160px' }}>
-              <img
-                src="/manus-storage/everwill-logo_843a61ef.png"
-                alt="EverWill Logo"
-                className="object-contain"
-                style={{ height: '40px', width: '150px' }}
-              />
-            </div>
+            <img
+              src="/manus-storage/everwill-logo-transparent_2d7970e8.png"
+              alt="EverWill Logo"
+              className="object-contain"
+              style={{ height: '44px', width: '160px' }}
+            />
           </a>
           {/* 메뉴+우측 버튼 전체를 flex-1로 나머지 공간 차지 */}
           <div className="flex items-center justify-between flex-1">

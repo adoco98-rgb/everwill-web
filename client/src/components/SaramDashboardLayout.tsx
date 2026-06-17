@@ -197,14 +197,12 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
         <div className="px-4 py-5 border-b border-white/10">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center flex-1">
-                <div className="bg-white/95 rounded-xl px-3 py-2 flex items-center" style={{ maxWidth: '210px' }}>
-                  <img
-                    src="/manus-storage/everwill-logo_843a61ef.png"
-                    alt="EverWill"
-                    className="object-contain"
-                    style={{ height: '52px', width: '180px' }}
-                  />
-                </div>
+                <img
+                  src="/manus-storage/everwill-logo-transparent_2d7970e8.png"
+                  alt="EverWill"
+                  className="object-contain"
+                  style={{ height: '48px', width: '180px' }}
+                />
               </Link>
             <button
               onClick={() => setMobileOpen(false)}
@@ -346,7 +344,7 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
             <Menu className="w-5 h-5 text-[#1F3864]" />
           </button>
           <img
-            src="/manus-storage/everwill-logo_843a61ef.png"
+            src="/manus-storage/everwill-logo-transparent_2d7970e8.png"
             alt="EverWill"
             className="h-9 object-contain"
             style={{ maxWidth: '130px' }}
