@@ -327,6 +327,122 @@ export const willCertificateRouter = router({
       };
     }),
 
+  /**
+   * PDF 미리보기용 base64 반환
+   * - 브라우저 내 iframe/embed에서 직접 렌더링
+   * - certificateId 기반(정식) 또는 샘플 모드 지원
+   */
+  previewPdf: protectedProcedure
+    .input(
+      z.object({
+        certificateId: z.number().optional(),
+        country: z.string().length(2).default("KR"),
+        isSample: z.boolean().default(false),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.user.id;
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+
+      const userRows = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      const user = userRows[0];
+      const country = input.country.toUpperCase();
+
+      let certRecord: any = null;
+      let willRecord: any = null;
+      let certNumber: string;
+      let certifiedAt: Date;
+      let willText: string;
+      let willTitle: string;
+      let purpose: string;
+
+      if (!input.isSample && input.certificateId) {
+        // 정식 인증서 기반
+        const certRows = await db
+          .select()
+          .from(willCertificates)
+          .where(and(eq(willCertificates.id, input.certificateId), eq(willCertificates.userId, userId)))
+          .limit(1);
+        certRecord = certRows[0];
+        if (!certRecord) throw new TRPCError({ code: "NOT_FOUND", message: "인증서를 찾을 수 없습니다" });
+
+        const willRows = await db.select().from(wills).where(eq(wills.id, certRecord.willId)).limit(1);
+        willRecord = willRows[0];
+
+        certNumber = certRecord.issueNumber ?? willRecord?.certNumber ?? `EW-${new Date().getFullYear()}-${String(certRecord.id).padStart(6, "0")}`;
+        certifiedAt = certRecord.processedAt ?? willRecord?.certifiedAt ?? new Date();
+        const willData = willRecord?.data ? JSON.parse(willRecord.data) : {};
+        willText = willData.draftText ?? willData.aiDraft ?? willData.willText ?? willRecord?.title ?? "유언 내용이 등록되어 있지 않습니다.";
+        willTitle = willRecord?.title ?? "유언장";
+        purpose = certRecord.purpose ?? "유언장 인증 확인용";
+      } else {
+        // 샘플 모드
+        certNumber = `EW-PREVIEW-${userId}-${country}-${Date.now().toString(36).toUpperCase()}`;
+        certifiedAt = new Date();
+        willText = `본 문서는 EverWill 플랫폼의 미리보기 샘플입니다.\n실제 유언장 작성 및 인증 완료 후 정식 인증서가 발급됩니다.\n\n유언자: ${user?.name ?? "유언자"}\n발급일: ${new Date().toLocaleDateString("ko-KR")}`;
+        willTitle = "EverWill 샘플 유언인증서";
+        purpose = "미리보기 샘플";
+      }
+
+      // 자산/상속자/첨부파일 조회
+      const assetRows = await db.select().from(assets).where(eq(assets.userId, userId));
+      const heirRows = await db.select().from(heirs).where(eq(heirs.userId, userId));
+      const attachmentRows = await db.select().from(willAttachments).where(eq(willAttachments.userId, userId));
+
+      const assetData =
+        assetRows.length > 0
+          ? assetRows.map((a) => ({ type: a.type ?? "other", name: a.name ?? "자산", estimatedValue: a.estimatedValue ?? 0, currency: a.currency ?? "KRW", country: a.country ?? country }))
+          : [
+              { type: "real_estate", name: "서울 강남구 아파트 (예시)", estimatedValue: 850000000, currency: "KRW", country: "KR" },
+              { type: "bank", name: "국민은행 예금 (예시)", estimatedValue: 45000000, currency: "KRW", country: "KR" },
+              { type: "stock", name: "삼성전자 주식 500주 (예시)", estimatedValue: 35000000, currency: "KRW", country: "KR" },
+            ];
+
+      const heirData =
+        heirRows.length > 0
+          ? heirRows.map((h) => ({ nameKo: h.nameKo ?? "상속자", relationship: h.relationship ?? "other", sharePercent: h.sharePercent ?? undefined, shareType: h.shareType ?? "percentage", isExecutor: h.isExecutor ?? 0 }))
+          : [
+              { nameKo: "홍철수 (예시)", relationship: "child", sharePercent: 50, shareType: "percentage", isExecutor: 0 },
+              { nameKo: "홍영희 (예시)", relationship: "child", sharePercent: 30, shareType: "percentage", isExecutor: 0 },
+              { nameKo: "김순자 (예시)", relationship: "spouse", sharePercent: 20, shareType: "percentage", isExecutor: 0 },
+            ];
+
+      const attachmentData = attachmentRows.map((att) => ({
+        fileName: att.fileName ?? "첨부파일",
+        fileType: att.fileType ?? "application/pdf",
+        category: att.category ?? "other",
+        description: att.description ?? undefined,
+        fileSize: att.fileSize ?? 0,
+        verified: att.verified ?? 0,
+        createdAt: att.createdAt ? new Date(att.createdAt) : undefined,
+      }));
+
+      // PDF 생성 (S3 저장 없이 buffer만 반환)
+      const pdfBuffer = await generateWillCertificatePDF({
+        certNumber,
+        certifiedAt: new Date(certifiedAt),
+        testatorName: user?.name ?? "유언자",
+        testatorBirthDate: user?.birthDate ?? undefined,
+        testatorAddress: user?.address ?? undefined,
+        willTitle,
+        willText,
+        purpose,
+        country,
+        assets: assetData,
+        heirs: heirData,
+        attachments: attachmentData,
+      });
+
+      // base64로 변환하여 반환 (브라우저 내 렌더링용)
+      const base64 = pdfBuffer.toString("base64");
+      return {
+        base64,
+        filename: `EverWill_인증서_${certNumber}_${country}.pdf`,
+        isSample: input.isSample,
+      };
+    }),
+
   /** 유언인증서 신청 */
   requestCertificate: protectedProcedure
     .input(

@@ -24,10 +24,20 @@ import {
   Building2,
   Coins,
   Shield,
+  Eye,
+  X,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 /** 첨부파일 카테고리 설정 */
 const CATEGORY_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
@@ -99,6 +109,16 @@ export default function WillCertificatePage() {
   const [isSampleGenerating, setIsSampleGenerating] = useState(false);
   const [sampleCountry, setSampleCountry] = useState("KR");
   const [showSampleModal, setShowSampleModal] = useState(false);
+
+  // PDF 미리보기 모달 상태
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewBase64, setPreviewBase64] = useState<string | null>(null);
+  const [previewFilename, setPreviewFilename] = useState("");
+  const [previewCountry, setPreviewCountry] = useState("KR");
+  const [previewCertId, setPreviewCertId] = useState<number | null>(null);
+  const [previewIsSample, setPreviewIsSample] = useState(false);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [previewZoom, setPreviewZoom] = useState(100);
 
   // 첨부파일 업로드 상태
   const [uploadCategory, setUploadCategory] = useState("real_estate");
@@ -221,6 +241,52 @@ export default function WillCertificatePage() {
       setIsSampleGenerating(false);
     },
   });
+
+  // PDF 미리보기 뮤테이션
+  const previewPdfMutation = trpc.willCertificate.previewPdf.useMutation({
+    onSuccess: (data) => {
+      setPreviewBase64(data.base64);
+      setPreviewFilename(data.filename);
+      setIsPreviewLoading(false);
+      setShowPreviewModal(true);
+    },
+    onError: (err) => {
+      toast.error(err.message || "PDF 미리보기에 실패했습니다.");
+      setIsPreviewLoading(false);
+    },
+  });
+
+  // 미리보기 시작 핸들러
+  const handlePreview = useCallback((certId: number | null, isSample: boolean, country: string) => {
+    setPreviewCertId(certId);
+    setPreviewIsSample(isSample);
+    setPreviewCountry(country);
+    setPreviewBase64(null);
+    setIsPreviewLoading(true);
+    previewPdfMutation.mutate({
+      certificateId: certId ?? undefined,
+      country,
+      isSample,
+    });
+  }, [previewPdfMutation]);
+
+  // 미리보기 중 다운로드
+  const handleDownloadFromPreview = useCallback(() => {
+    if (!previewBase64 || !previewFilename) return;
+    const byteChars = atob(previewBase64);
+    const byteNums = new Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+    const blob = new Blob([new Uint8Array(byteNums)], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = previewFilename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("미리보기에서 PDF 다운로드 완료");
+  }, [previewBase64, previewFilename]);
 
   const handleApply = () => {
     if (!purpose.trim()) {
@@ -509,13 +575,27 @@ export default function WillCertificatePage() {
                       {status.label}
                     </span>
                     {cert.status === "issued" && (
-                      <button
-                        onClick={() => handleDownload(cert.id)}
-                        className="flex items-center gap-1.5 text-xs bg-[#1F3864] text-white px-3 py-1.5 rounded-lg font-medium hover:bg-[#162d52] transition-colors"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        PDF 다운로드
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => handlePreview(cert.id, false, downloadCountry)}
+                          disabled={isPreviewLoading}
+                          className="flex items-center gap-1.5 text-xs border border-[#C9A961] text-[#C9A961] px-3 py-1.5 rounded-lg font-medium hover:bg-[#C9A961]/10 transition-colors disabled:opacity-50"
+                        >
+                          {isPreviewLoading && previewCertId === cert.id ? (
+                            <div className="w-3.5 h-3.5 border-2 border-[#C9A961] border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Eye className="w-3.5 h-3.5" />
+                          )}
+                          미리보기
+                        </button>
+                        <button
+                          onClick={() => handleDownload(cert.id)}
+                          className="flex items-center gap-1.5 text-xs bg-[#1F3864] text-white px-3 py-1.5 rounded-lg font-medium hover:bg-[#162d52] transition-colors"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          PDF
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -760,12 +840,26 @@ export default function WillCertificatePage() {
               </p>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button
                 onClick={() => setShowSampleModal(false)}
                 className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 취소
+              </button>
+              <button
+                onClick={() => {
+                  setShowSampleModal(false);
+                  handlePreview(null, true, sampleCountry);
+                }}
+                disabled={isPreviewLoading}
+                className="flex-1 py-3 border border-[#1F3864] text-[#1F3864] rounded-xl text-sm font-semibold hover:bg-[#1F3864]/5 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isPreviewLoading ? (
+                  <><div className="w-4 h-4 border-2 border-[#1F3864] border-t-transparent rounded-full animate-spin" />로딩 중...</>
+                ) : (
+                  <><Eye className="w-4 h-4" />미리보기</>
+                )}
               </button>
               <button
                 onClick={() => {
@@ -778,13 +872,146 @@ export default function WillCertificatePage() {
                 {isSampleGenerating ? (
                   <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />생성 중...</>
                 ) : (
-                  <><Download className="w-4 h-4" />샘플 PDF 다운로드</>
+                  <><Download className="w-4 h-4" />다운로드</>
                 )}
               </button>
             </div>
           </motion.div>
         </div>
       )}
+      {/* PDF 미리보기 모달 - 풀스크린 다이얼로그 */}
+      <Dialog open={showPreviewModal} onOpenChange={(v) => { if (!v) { setShowPreviewModal(false); setPreviewBase64(null); setPreviewZoom(100); } }}>
+        <DialogContent
+          className="max-w-[95vw] w-[95vw] h-[95vh] p-0 overflow-hidden flex flex-col rounded-2xl"
+          showCloseButton={false}
+        >
+          {/* 모달 헤더 */}
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 bg-[#1F3864] rounded-t-2xl shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
+                <FileText className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-sm">
+                  {previewIsSample ? "샘플 인증서 미리보기" : "PDF 미리보기"}
+                </h3>
+                <p className="text-white/60 text-xs">{previewFilename || "로딩 중..."}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* 줄 배율 조절 */}
+              <button
+                onClick={() => setPreviewZoom((z) => Math.max(50, z - 25))}
+                className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center transition-colors"
+                title="축소"
+              >
+                <ZoomOut className="w-4 h-4 text-white" />
+              </button>
+              <span className="text-white/80 text-xs font-mono w-10 text-center">{previewZoom}%</span>
+              <button
+                onClick={() => setPreviewZoom((z) => Math.min(200, z + 25))}
+                className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center transition-colors"
+                title="확대"
+              >
+                <ZoomIn className="w-4 h-4 text-white" />
+              </button>
+              {/* 다운로드 버튼 */}
+              {previewBase64 && (
+                <button
+                  onClick={handleDownloadFromPreview}
+                  className="flex items-center gap-1.5 bg-[#C9A961] hover:bg-[#b8944f] text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  PDF 다운로드
+                </button>
+              )}
+              {/* 닫기 버튼 */}
+              <button
+                onClick={() => { setShowPreviewModal(false); setPreviewBase64(null); setPreviewZoom(100); }}
+                className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center transition-colors"
+              >
+                <X className="w-4 h-4 text-white" />
+              </button>
+            </div>
+          </div>
+
+          {/* PDF 뷰어 영역 */}
+          <div className="flex-1 bg-gray-100 overflow-hidden relative">
+            {isPreviewLoading || !previewBase64 ? (
+              /* 로딩 상태 */
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+                <div className="w-12 h-12 border-4 border-[#1F3864] border-t-transparent rounded-full animate-spin" />
+                <div className="text-center">
+                  <p className="text-[#1F3864] font-semibold text-sm">PDF 생성 중...</p>
+                  <p className="text-gray-400 text-xs mt-1">실제 데이터를 바탕으로 인증서를 생성하고 있습니다</p>
+                </div>
+              </div>
+            ) : (
+              /* PDF 렌더링 */
+              <div
+                className="w-full h-full overflow-auto flex items-start justify-center p-4"
+                style={{ background: "#e5e7eb" }}
+              >
+                <div
+                  style={{
+                    transform: `scale(${previewZoom / 100})`,
+                    transformOrigin: "top center",
+                    width: "100%",
+                    transition: "transform 0.2s ease",
+                  }}
+                >
+                  <object
+                    data={`data:application/pdf;base64,${previewBase64}`}
+                    type="application/pdf"
+                    className="w-full rounded-lg shadow-xl"
+                    style={{ minHeight: "calc(90vh - 120px)", height: "calc(90vh - 120px)" }}
+                  >
+                    {/* 브라우저가 PDF 렌더링을 지원하지 않을 때 fallback */}
+                    <iframe
+                      src={`data:application/pdf;base64,${previewBase64}`}
+                      className="w-full rounded-lg shadow-xl"
+                      style={{ minHeight: "calc(90vh - 120px)", height: "calc(90vh - 120px)", border: "none" }}
+                      title="PDF 미리보기"
+                    />
+                  </object>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 모달 푸터 */}
+          {previewBase64 && (
+            <div className="shrink-0 flex items-center justify-between px-5 py-3 border-t border-gray-100 bg-white rounded-b-2xl">
+              <div className="flex items-center gap-2">
+                {previewIsSample && (
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700">
+                    SAMPLE
+                  </span>
+                )}
+                <span className="text-xs text-gray-500">
+                  {SUPPORTED_COUNTRIES.find((c) => c.code === previewCountry)?.flag}{" "}
+                  {SUPPORTED_COUNTRIES.find((c) => c.code === previewCountry)?.name} 양식
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => { setShowPreviewModal(false); setPreviewBase64(null); setPreviewZoom(100); }}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  닫기
+                </button>
+                <button
+                  onClick={handleDownloadFromPreview}
+                  className="flex items-center gap-1.5 bg-[#1F3864] text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-[#162d52] transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  PDF 다운로드
+                </button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
