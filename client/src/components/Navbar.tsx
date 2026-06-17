@@ -199,7 +199,7 @@ export default function Navbar() {
           <a href="/" className="flex items-center group shrink-0 mr-4">
             <div className="bg-white/90 rounded-lg px-2 py-1" style={{ minWidth: '160px' }}>
               <img
-                src="/manus-storage/everwill-logo-transparent_03b85edf.png"
+                src="/manus-storage/everwill-logo_843a61ef.png"
                 alt="EverWill Logo"
                 className="object-contain"
                 style={{ height: '40px', width: '150px' }}
