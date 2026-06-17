@@ -52,6 +52,139 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
 }
 
 /** 통계 탭 */
+/** 국가별 가입자 수 관리 컴포넌트 */
+function CountryMemberManager() {
+  const utils = trpc.useUtils();
+  const { data: countryData, isLoading } = trpc.stats.getCountryMemberCounts.useQuery(undefined, { staleTime: 30_000 });
+  const setCountsMutation = trpc.stats.setCountryMemberCounts.useMutation({
+    onSuccess: () => {
+      toast.success("국가별 가입자 수가 저장되었습니다.");
+      utils.stats.getCountryMemberCounts.invalidate();
+      utils.stats.getTotalMemberCount.invalidate();
+    },
+    onError: () => toast.error("저장에 실패했습니다."),
+  });
+
+  const [localData, setLocalData] = useState<Record<string, { manualCount: number; displayEnabled: boolean }>>({});
+  const [initialized, setInitialized] = useState(false);
+
+  // 서버 데이터로 로컬 상태 초기화 (최초 1회)
+  if (countryData && !initialized) {
+    const init: Record<string, { manualCount: number; displayEnabled: boolean }> = {};
+    for (const c of countryData) {
+      init[c.code] = { manualCount: c.manualCount, displayEnabled: c.displayEnabled };
+    }
+    setLocalData(init);
+    setInitialized(true);
+  }
+
+  const handleSave = () => {
+    const entries = Object.entries(localData).map(([code, v]) => ({
+      code,
+      manualCount: v.manualCount,
+      displayEnabled: v.displayEnabled,
+    }));
+    setCountsMutation.mutate({ entries });
+  };
+
+  if (isLoading) return <div className="text-center py-8 text-gray-400">로딩 중...</div>;
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-base font-bold text-[#1F3864] flex items-center gap-2">
+            <Globe className="w-5 h-5 text-[#C9A961]" />
+            국가별 가입자 수 관리
+          </h3>
+          <p className="text-xs text-gray-400 mt-0.5">Hero 섹션에 표시될 국가별 임의 가입자 수를 설정합니다. DB 실제 가입자 수와 합산되어 표시됩니다.</p>
+        </div>
+        <button
+          onClick={handleSave}
+          disabled={setCountsMutation.isPending}
+          className="flex items-center gap-2 bg-[#1F3864] text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#162a4e] disabled:opacity-50 transition-colors"
+        >
+          <Save className="w-4 h-4" />
+          {setCountsMutation.isPending ? "저장 중..." : "저장"}
+        </button>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-100">
+              <th className="text-left py-2 px-3 text-gray-500 font-medium w-8">표시</th>
+              <th className="text-left py-2 px-3 text-gray-500 font-medium">국가</th>
+              <th className="text-right py-2 px-3 text-gray-500 font-medium">임의 가입자 수</th>
+              <th className="text-right py-2 px-3 text-gray-500 font-medium">DB 실제 가입자</th>
+              <th className="text-right py-2 px-3 text-gray-500 font-medium">합산 표시</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(countryData ?? []).map((c) => {
+              const local = localData[c.code] ?? { manualCount: c.manualCount, displayEnabled: c.displayEnabled };
+              const total = local.manualCount + c.dbCount;
+              return (
+                <tr key={c.code} className="border-b border-gray-50 hover:bg-gray-50/50">
+                  <td className="py-2 px-3">
+                    <input
+                      type="checkbox"
+                      checked={local.displayEnabled}
+                      onChange={(e) => setLocalData(prev => ({ ...prev, [c.code]: { ...local, displayEnabled: e.target.checked } }))}
+                      className="w-4 h-4 accent-[#1F3864] cursor-pointer"
+                    />
+                  </td>
+                  <td className="py-2 px-3">
+                    <span className="flex items-center gap-2 font-medium">
+                      <span className="text-lg">{c.flag}</span>
+                      <span>{c.name}</span>
+                      <span className="text-xs text-gray-400">{c.code}</span>
+                    </span>
+                  </td>
+                  <td className="py-2 px-3">
+                    <input
+                      type="number"
+                      min={0}
+                      value={local.manualCount}
+                      onChange={(e) => setLocalData(prev => ({ ...prev, [c.code]: { ...local, manualCount: Math.max(0, parseInt(e.target.value) || 0) } }))}
+                      className="w-28 text-right border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-semibold text-[#1F3864] focus:outline-none focus:ring-2 focus:ring-[#C9A961]/40"
+                    />
+                  </td>
+                  <td className="py-2 px-3 text-right text-gray-500">{c.dbCount.toLocaleString()}</td>
+                  <td className="py-2 px-3 text-right font-bold text-[#1F3864]">
+                    {local.displayEnabled ? (
+                      <span className="text-[#1F3864]">{total.toLocaleString()}</span>
+                    ) : (
+                      <span className="text-gray-300 line-through">{total.toLocaleString()}</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr className="border-t-2 border-gray-200">
+              <td colSpan={2} className="py-2 px-3 font-bold text-gray-600">합계</td>
+              <td className="py-2 px-3 text-right font-bold text-[#1F3864]">
+                {Object.values(localData).reduce((s, v) => s + v.manualCount, 0).toLocaleString()}
+              </td>
+              <td className="py-2 px-3 text-right font-bold text-gray-500">
+                {(countryData ?? []).reduce((s, c) => s + c.dbCount, 0).toLocaleString()}
+              </td>
+              <td className="py-2 px-3 text-right font-bold text-[#C9A961]">
+                {(countryData ?? []).reduce((s, c) => {
+                  const local = localData[c.code] ?? { manualCount: c.manualCount, displayEnabled: c.displayEnabled };
+                  return local.displayEnabled ? s + local.manualCount + c.dbCount : s;
+                }, 0).toLocaleString()}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function StatsTab({ country, locale }: { country: string; locale: typeof ADMIN_LOCALES[string] }) {
   const countryFilter = country !== "ALL" ? country : undefined;
   const { data, isLoading } = trpc.admin.stats.useQuery({ country: countryFilter });
@@ -74,6 +207,8 @@ function StatsTab({ country, locale }: { country: string; locale: typeof ADMIN_L
         <StatCard icon={FileText} label={locale.ui.totalWills} value={`${data.totalWills.toLocaleString()}`} color="bg-green-500" />
         <StatCard icon={MessageSquare} label={locale.ui.pendingInquiries} value={`${data.pendingInquiries}`} color="bg-orange-500" />
       </div>
+      {/* 국가별 가입자 수 관리 (전체 통계 탭에서만 표시) */}
+      {country === "KR" || country === "ALL" ? <CountryMemberManager /> : null}
     </div>
   );
 }

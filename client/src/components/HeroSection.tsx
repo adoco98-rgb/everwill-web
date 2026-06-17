@@ -48,11 +48,13 @@ export default function HeroSection() {
   const { t } = useLanguage();
   const { isAuthenticated } = useAuth();
 
-  // 전체 회원 수 조회 (DB 실제 + 기준 3500)
-  const { data: memberData } = trpc.stats.getTotalMemberCount.useQuery(undefined, {
+  // 국가별 가입자 수 조회 (DB 실제 + 임의 설정값)
+  const { data: countryData } = trpc.stats.getCountryMemberCounts.useQuery(undefined, {
     staleTime: 60_000, // 1분 캐시
   });
-  const totalMembers = memberData?.total ?? 3500;
+  // 표시 활성화된 국가만 필터링 (최대 3개)
+  const displayCountries = (countryData ?? []).filter(c => c.displayEnabled && c.total > 0).slice(0, 3);
+  const totalMembers = (countryData ?? []).filter(c => c.displayEnabled).reduce((s, c) => s + c.total, 0) || 4709;
 
   // 로그인 상태면 대시보드, 비로그인이면 회원가입 페이지로
   const handleStart = () => {
@@ -148,22 +150,45 @@ export default function HeroSection() {
             <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </button>
 
-          {/* 회원 수 카운터 배지 */}
+          {/* 회원 수 카운터 배지 - 관리자 설정 기반 동적 표시 */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="flex flex-col items-center sm:items-start gap-1 bg-[#1F3864]/80 backdrop-blur-md border border-[#C9A961]/40 rounded-2xl px-6 py-4 min-w-[200px] shadow-xl shadow-black/30"
+            className="flex flex-col items-center sm:items-start gap-2 bg-[#1F3864]/80 backdrop-blur-md border border-[#C9A961]/40 rounded-2xl px-5 py-4 min-w-[220px] shadow-xl shadow-black/30"
           >
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-[#C9A961]" />
               <span className="text-white/90 text-xs font-semibold tracking-wide">{t.hero.memberBadgeTitle}</span>
             </div>
-            <div className="text-white font-black text-3xl sm:text-4xl tracking-tight leading-none">
-              <AnimatedCounter target={totalMembers} />
-              <span className="text-[#C9A961] ml-1 text-2xl font-bold">+</span>
+            {/* 국가별 회원 수 - 관리자가 표시 활성화한 국가만 노요 */}
+            {displayCountries.length > 0 ? (
+              <div className="w-full space-y-1.5">
+                {displayCountries.map((c) => (
+                  <div key={c.code} className="flex items-center justify-between gap-4">
+                    <span className="text-white/70 text-xs flex items-center gap-1">
+                      <span>{c.flag}</span> <span>{c.name}</span>
+                    </span>
+                    <span className="text-white font-black text-lg tracking-tight leading-none">
+                      <AnimatedCounter target={c.total} /><span className="text-[#C9A961] text-sm font-bold">+</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-white font-black text-3xl sm:text-4xl tracking-tight leading-none">
+                <AnimatedCounter target={totalMembers} />
+                <span className="text-[#C9A961] ml-1 text-2xl font-bold">+</span>
+              </div>
+            )}
+            <div className="w-full border-t border-white/10 pt-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[#C9A961]/80 text-xs font-medium">{t.hero.memberBadgeSub}</span>
+                <span className="text-white font-bold text-sm">
+                  <AnimatedCounter target={totalMembers} /><span className="text-[#C9A961] text-xs font-bold">+</span>
+                </span>
+              </div>
             </div>
-            <span className="text-[#C9A961]/80 text-xs font-medium">{t.hero.memberBadgeSub}</span>
           </motion.div>
         </motion.div>
 
