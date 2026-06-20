@@ -356,6 +356,34 @@ export default function Navbar() {
             </button>
           </div>
 
+          {/* 모바일 전용: 로그인/무료시작 버튼 */}
+          <div className="lg:hidden flex items-center gap-2">
+            {isAuthenticated ? (
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="text-white/80 hover:text-white text-xs font-medium px-2 py-1.5 rounded-lg hover:bg-white/10 flex items-center gap-1"
+              >
+                <User className="w-3.5 h-3.5" />
+                <span className="max-w-[60px] truncate">{displayName}</span>
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => navigate("/login")}
+                  className="text-white/80 hover:text-white text-xs font-medium px-2 py-1.5 rounded-lg hover:bg-white/10"
+                >
+                  {t.nav.login}
+                </button>
+                <button
+                  onClick={() => navigate("/login?mode=signup")}
+                  className="btn-gold px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap"
+                >
+                  {t.nav.startFree}
+                </button>
+              </>
+            )}
+          </div>
+
           {/* 모바일 메뉴 버튼 */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -363,15 +391,15 @@ export default function Navbar() {
             aria-label="메뉴 열기"
           >
             {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                    </button>
+          </button>
           </div>{/* flex-1 end */}
         </div>
       </div>
       {/* 국기 언어 선택 바 - 네비게이션 바 하단에 항상 표시 */}
       <div className="border-t border-[#C9A961]/20 bg-[#162d52]">
-        {/* 모바일: flex-wrap 2줄 / 데스크탑: overflow-x-auto 한 줄 */}
-        <div className="sm:overflow-x-auto sm:scrollbar-none">
-          <div className="flex flex-wrap sm:flex-nowrap items-center justify-center gap-0.5 sm:gap-1 py-1.5 sm:py-2.5 px-2 sm:px-4 sm:min-w-max sm:mx-auto">
+        {/* 모바일/데스크탑 모두 가로 스크롤 1줄 */}
+        <div className="overflow-x-auto scrollbar-none">
+          <div className="flex flex-nowrap items-center justify-start gap-0.5 sm:gap-1 py-1.5 sm:py-2.5 px-2 sm:px-4 min-w-max sm:mx-auto">
             {/* 현재 선택 언어를 맨 앞에 표시하고 나머지 언어 순서대로 정렬 */}
             {/* NZ·AU·CA 전용 페이지에서는 언어 기반 국기 활성화 비활성화 */}
             {[
