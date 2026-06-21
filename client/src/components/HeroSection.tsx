@@ -149,12 +149,12 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.45 }}
-          className="flex flex-col sm:flex-row gap-4 items-center"
+          className="flex flex-col sm:flex-row gap-4 items-center w-full max-w-sm sm:max-w-none"
         >
           {/* 무료 가입 버튼 (단독, 크게) */}
           <button
             onClick={handleStart}
-            className="group flex items-center gap-3 btn-gold px-8 sm:px-14 py-5 rounded-full text-lg sm:text-xl font-bold shadow-2xl shadow-[#C9A961]/40 min-w-[240px] sm:min-w-[280px] justify-center transition-all duration-300 hover:scale-105 whitespace-nowrap"
+            className="group flex items-center gap-3 btn-gold px-8 sm:px-14 py-4 sm:py-5 rounded-full text-base sm:text-xl font-bold shadow-2xl shadow-[#C9A961]/40 w-full sm:min-w-[280px] justify-center transition-all duration-300 hover:scale-105 whitespace-nowrap"
           >
             <UserPlus className="w-6 h-6" />
             {t.hero.ctaJoin}
@@ -166,7 +166,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.6 }}
-            className="flex flex-col items-center sm:items-start gap-2 bg-[#1F3864]/80 backdrop-blur-md border border-[#C9A961]/40 rounded-2xl px-5 py-4 min-w-[220px] shadow-xl shadow-black/30"
+            className="flex flex-col items-center sm:items-start gap-2 bg-[#1F3864]/80 backdrop-blur-md border border-[#C9A961]/40 rounded-2xl px-4 py-4 w-full sm:min-w-[220px] shadow-xl shadow-black/30"
           >
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-[#C9A961]" />

@@ -748,7 +748,7 @@ export default function ComparisonSection() {
 
   return (
     <section id="comparison" className="py-20 lg:py-28 bg-[#F5F4F0]" ref={ref}>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
 
         {/* ── 헤더 ── */}
         <motion.div
@@ -774,7 +774,7 @@ export default function ComparisonSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="grid grid-cols-3 gap-2 mb-3 px-1"
+          className="grid grid-cols-3 gap-1 sm:gap-2 mb-3 px-1"
         >
           <div className="text-xs sm:text-base font-extrabold text-gray-500 uppercase tracking-wider flex items-center">
             {d.categoryLabel}
@@ -805,7 +805,7 @@ export default function ComparisonSection() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={isInView ? { opacity: 1, x: 0 } : {}}
                 transition={{ duration: 0.5, delay: 0.15 + i * 0.08 }}
-                className="grid grid-cols-3 gap-0 bg-white rounded-xl sm:rounded-2xl border-2 border-gray-100 shadow-sm overflow-hidden"
+                className="grid grid-cols-3 gap-0 bg-white rounded-xl sm:rounded-2xl border-2 border-gray-100 shadow-sm overflow-hidden min-w-0"
               >
                 {/* 항목명 */}
                 <div className="flex items-center gap-1.5 sm:gap-3 px-2 sm:px-5 py-3 sm:py-5 bg-gray-50 border-r-2 border-gray-100">

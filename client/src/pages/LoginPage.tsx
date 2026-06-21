@@ -492,7 +492,7 @@ export default function LoginPage() {
       </div>
 
       {/* ── 오른쪽 폼 패널 ── */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-20 sm:pt-12 pb-12 overflow-y-auto">
         {/* 모바일 로고 */}
         <Link href="/">
           <div className="flex items-center gap-2 mb-8 lg:hidden cursor-pointer">
@@ -607,7 +607,7 @@ export default function LoginPage() {
                     {loginMethod === "email" ? (
                       <div>
                         <label className={labelCls}><Mail className="w-4 h-4 inline mr-1.5 text-gray-400" />이메일</label>
-                        <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)}
+                        <input type="text" inputMode="email" autoCapitalize="none" autoCorrect="off" value={loginEmail} onChange={e => setLoginEmail(e.target.value)}
                           placeholder="example@email.com" required autoFocus className={inputCls} />
                       </div>
                     ) : (
@@ -746,7 +746,7 @@ export default function LoginPage() {
                     {loginMethod === "email" ? (
                       <div>
                         <label className={labelCls}><Mail className="w-4 h-4 inline mr-1.5 text-gray-400" />이메일 <span className="text-red-400 font-normal text-xs">(필수)</span></label>
-                        <input type="email" value={signupEmail} onChange={e => setSignupEmail(e.target.value)}
+                        <input type="text" inputMode="email" autoCapitalize="none" autoCorrect="off" value={signupEmail} onChange={e => setSignupEmail(e.target.value)}
                           placeholder="example@email.com" required autoFocus className={inputCls} />
                       </div>
                     ) : (
