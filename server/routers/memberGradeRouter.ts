@@ -111,7 +111,8 @@ export const memberGradeRouter = router({
     if (!userRows.length) throw new TRPCError({ code: "NOT_FOUND" });
     const user = userRows[0];
 
-    const currentGrade = (user.memberGrade ?? "general") as MemberGrade;
+    // 관리자는 VIP 등급으로 반환 (모든 기능 접근 가능)
+    const currentGrade = (ctx.user.role === "admin" ? "vip" : (user.memberGrade ?? "general")) as MemberGrade;
 
     // 자산 합계
     const assetRows = await db

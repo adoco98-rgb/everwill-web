@@ -80,7 +80,9 @@ export function GradeGate({
   const currentGrade = (gradeData?.grade as MemberGrade) ?? "general";
   const currentRank = GRADE_ORDER[currentGrade];
   const requiredRank = GRADE_ORDER[requiredGrade];
-  const hasAccess = currentRank >= requiredRank;
+  // 관리자는 모든 등급 제한 우회
+  const isAdmin = user?.role === "admin";
+  const hasAccess = isAdmin || currentRank >= requiredRank;
 
   // 등급 충족 시 그냥 렌더링
   if (hasAccess) {
@@ -388,7 +390,7 @@ export function GradeGateButton({
   children: React.ReactNode;
   className?: string;
 }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user: authUser } = useAuth();
   const [showModal, setShowModal] = useState(false);
 
   const { data: gradeData } = trpc.memberGrade.getMyGrade.useQuery(undefined, {
@@ -398,7 +400,9 @@ export function GradeGateButton({
   const currentGrade = (gradeData?.grade as MemberGrade) ?? "general";
   const currentRank = GRADE_ORDER[currentGrade];
   const requiredRank = GRADE_ORDER[requiredGrade];
-  const hasAccess = currentRank >= requiredRank;
+  // 관리자는 모든 등급 제한 우회
+  const isAdminUser = authUser?.role === "admin";
+  const hasAccess = isAdminUser || currentRank >= requiredRank;
 
   const upgradePlans = MEMBERSHIP_PLANS.filter(
     (p) => GRADE_ORDER[p.grade] >= requiredRank
