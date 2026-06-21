@@ -111,6 +111,14 @@ export default function AutobiographyPage() {
     if (autobiographyData) {
       setAutobiographyId(autobiographyData.id);
       setCompletedChapters(autobiographyData.completedChapterNumbers ?? []);
+      // 챕터별 생성된 텍스트 복원
+      const savedTexts: Record<number, string> = {};
+      (autobiographyData.chapters ?? []).forEach((ch: { chapterNumber: number; generatedText?: string | null }) => {
+        if (ch.generatedText) savedTexts[ch.chapterNumber] = ch.generatedText;
+      });
+      if (Object.keys(savedTexts).length > 0) {
+        setGeneratedTexts(savedTexts);
+      }
     }
   }, [autobiographyData]);
 
@@ -150,10 +158,27 @@ export default function AutobiographyPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 챕터 진입 시 첫 질문 표시
+  // 챕터 진입 시 기존 대화 복원 또는 첫 질문 표시
   const enterChapter = (chapterNum: number) => {
     setCurrentChapter(chapterNum);
     const chapter = CHAPTERS[chapterNum - 1];
+    // 기존 저장된 대화 내용 있으면 복원
+    const savedChapter = (autobiographyData?.chapters ?? []).find(
+      (ch: { chapterNumber: number; conversationJson?: string | null }) => ch.chapterNumber === chapterNum
+    );
+    if (savedChapter?.conversationJson) {
+      try {
+        const parsed = JSON.parse(savedChapter.conversationJson) as Message[];
+        if (parsed.length > 0) {
+          setMessages(parsed);
+          setArtworks([]);
+          setShowPhotoUploader(false);
+          return;
+        }
+      } catch {
+        // 파싱 실패 시 첫 질문으로 폴백
+      }
+    }
     setMessages([{ role: "assistant", content: chapter.firstQuestion }]);
     setArtworks([]);
     setShowPhotoUploader(false);
@@ -162,12 +187,17 @@ export default function AutobiographyPage() {
   // 메시지 전송
   const sendMessage = (text: string) => {
     if (!text.trim()) return;
+    // autobiographyId가 준비되지 않았으면 전송 차단
+    if (!autobiographyId || autobiographyId === 0) {
+      toast.error("자서전 데이터를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
     const newMessages: Message[] = [...messages, { role: "user", content: text }];
     setMessages(newMessages);
     setTextInput("");
 
     chatMutation.mutate({
-      autobiographyId: autobiographyId ?? 0,
+      autobiographyId,
       chapterNumber: currentChapter,
       messages: newMessages,
       chapterTitle: CHAPTERS[currentChapter - 1].title,
@@ -181,13 +211,17 @@ export default function AutobiographyPage() {
 
   // 챕터 글 생성
   const handleGenerateChapter = () => {
+    if (!autobiographyId || autobiographyId === 0) {
+      toast.error("자서전 데이터를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
     if (messages.length < 3) {
       toast.warning("조금 더 이야기해 주세요. AI가 더 풍성한 글을 써드릴 수 있어요.");
       return;
     }
     setIsGeneratingText(true);
     generateChapterMutation.mutate({
-      autobiographyId: autobiographyId ?? 0,
+      autobiographyId,
       chapterNumber: currentChapter,
       messages,
       artworkUrls: artworks.map((a) => a.artworkUrl),

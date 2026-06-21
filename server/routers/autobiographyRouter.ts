@@ -69,16 +69,25 @@ export const autobiographyRouter = router({
       .where(eq(autobiographies.userId, userId)).limit(1);
 
     if (existing.length > 0) {
-      // 완성된 챕터 번호 조회
-      const chapters = await db.select({ chapterNumber: autobiographyChapters.chapterNumber })
+      // 모든 챕터 데이터 조회 (대화 내용 포함)
+      const chapters = await db.select({
+        chapterNumber: autobiographyChapters.chapterNumber,
+        conversationJson: autobiographyChapters.conversationJson,
+        generatedText: autobiographyChapters.generatedText,
+        isCompleted: autobiographyChapters.isCompleted,
+      })
         .from(autobiographyChapters)
-        .where(and(
-          eq(autobiographyChapters.autobiographyId, existing[0].id),
-          eq(autobiographyChapters.isCompleted, 1)
-        ));
+        .where(eq(autobiographyChapters.autobiographyId, existing[0].id));
       return {
         ...existing[0],
-        completedChapterNumbers: chapters.map((c) => c.chapterNumber),
+        completedChapterNumbers: chapters
+          .filter((c) => c.isCompleted === 1)
+          .map((c) => c.chapterNumber),
+        chapters: chapters.map((c) => ({
+          chapterNumber: c.chapterNumber,
+          conversationJson: c.conversationJson,
+          generatedText: c.generatedText,
+        })),
       };
     }
 
@@ -98,6 +107,7 @@ export const autobiographyRouter = router({
       status: "draft" as const,
       completedChapters: 0,
       completedChapterNumbers: [] as number[],
+      chapters: [] as { chapterNumber: number; conversationJson: string | null; generatedText: string | null }[],
       pdfKey: null,
       pdfUrl: null,
       shareToken: null,
