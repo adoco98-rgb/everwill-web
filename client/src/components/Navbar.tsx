@@ -201,7 +201,7 @@ export default function Navbar() {
               src="/manus-storage/everwill-logo-transparent_a5ec4b7c.png"
               alt="EverWill Logo"
               className="object-contain drop-shadow-lg"
-              style={{ height: '52px', width: '52px' }}
+              style={{ height: '44px', width: 'auto', maxWidth: '160px' }}
             />
           </a>
           {/* 메뉴+우측 버튼 전체를 flex-1로 나머지 공간 차지 */}
