@@ -194,21 +194,19 @@ export default function Navbar() {
     >
       {/* 메인 네비게이션 바 */}
       <div className="w-full px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center h-16 sm:h-20 gap-2 sm:gap-8">
+        <div className="grid grid-cols-[auto_1fr_auto] items-center h-16 sm:h-20 gap-4">
           {/* 로고 - 좌측 고정 */}
-          <a href="/" className="flex items-center group shrink-0 mr-4">
+          <a href="/" className="flex items-center group shrink-0">
             <img
-              src="/manus-storage/everwill-logo-transparent_a5ec4b7c.png"
+              src="/manus-storage/everwill_seal_b8f04a18.png"
               alt="EverWill Logo"
               className="object-contain drop-shadow-lg"
-              style={{ height: '44px', width: 'auto', maxWidth: '160px' }}
+              style={{ height: '52px', width: '52px' }}
             />
           </a>
-          {/* 메뉴+우측 버튼 전체를 flex-1로 나머지 공간 차지 */}
-          <div className="flex items-center justify-between flex-1 min-w-0">
 
-          {/* 데스크탑 메뉴 - 중앙 고정 */}
-          <div className="hidden lg:flex items-center gap-4 xl:gap-6 absolute left-1/2 -translate-x-1/2">
+          {/* 데스크탑 메뉴 - 중앙 */}
+          <div className="hidden lg:flex items-center justify-center gap-3 xl:gap-5">
             {navLinks.map((link) => (
               <button
                 key={link.href}
@@ -230,7 +228,8 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* 우측 액션 */}
+          {/* 우측 액션 - grid 3번째 컬럼 */}
+          <div className="flex items-center gap-2 justify-end">
           <div className="hidden lg:flex items-center gap-3">
             {/* 소셜 링크 아이콘 */}
             {socialItems.length > 0 && (
@@ -392,7 +391,7 @@ export default function Navbar() {
           >
             {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
-          </div>{/* flex-1 end */}
+          </div>{/* 우측 액션 end */}
         </div>
       </div>
       {/* 국기 언어 선택 바 - 네비게이션 바 하단에 항상 표시 */}
