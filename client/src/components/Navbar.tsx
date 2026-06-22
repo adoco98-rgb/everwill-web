@@ -207,8 +207,8 @@ export default function Navbar() {
           {/* 메뉴+우측 버튼 전체를 flex-1로 나머지 공간 차지 */}
           <div className="flex items-center justify-between flex-1 min-w-0">
 
-          {/* 데스크탑 메뉴 */}
-          <div className="hidden lg:flex items-center gap-4 xl:gap-6">
+          {/* 데스크탑 메뉴 - 중앙 고정 */}
+          <div className="hidden lg:flex items-center gap-4 xl:gap-6 absolute left-1/2 -translate-x-1/2">
             {navLinks.map((link) => (
               <button
                 key={link.href}
