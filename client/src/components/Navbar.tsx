@@ -398,8 +398,8 @@ export default function Navbar() {
       {/* 국기 언어 선택 바 - 네비게이션 바 하단에 항상 표시 */}
       <div className="border-t border-[#C9A961]/20 bg-[#162d52]">
         {/* 모바일/데스크탑 모두 가로 스크롤 1줄 */}
-        <div className="overflow-x-auto scrollbar-none">
-          <div className="flex flex-nowrap items-center justify-center gap-0.5 sm:gap-1 py-1.5 sm:py-2.5 px-2 sm:px-4 min-w-max mx-auto">
+        <div className="overflow-x-auto scrollbar-none w-full">
+          <div className="flex flex-nowrap items-center justify-start sm:justify-center gap-0.5 sm:gap-1 py-1.5 sm:py-2.5 px-2 sm:px-4 w-max sm:w-auto sm:mx-auto">
             {/* 현재 선택 언어를 맨 앞에 표시하고 나머지 언어 순서대로 정렬 */}
             {/* NZ·AU·CA 전용 페이지에서는 언어 기반 국기 활성화 비활성화 */}
             {[

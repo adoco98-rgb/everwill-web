@@ -97,7 +97,7 @@ export default function HeroSection() {
       </div>
 
       {/* 중앙 콘텐츠 */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 text-center pt-32 pb-24">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 text-center pt-36 sm:pt-32 pb-16 sm:pb-24">
 
         {/* 상단 배지 */}
         <motion.div
@@ -117,7 +117,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.15 }}
-          className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-white leading-[1.1] mb-6 max-w-5xl"
+          className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-white leading-[1.15] mb-4 sm:mb-6 max-w-5xl w-full"
           style={{ fontFamily: "'Playfair Display', serif" }}
         >
           {t.hero.title1}
@@ -137,7 +137,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.3 }}
-          className="text-white/70 text-lg sm:text-xl leading-relaxed mb-12 max-w-2xl"
+          className="text-white/70 text-sm sm:text-xl leading-relaxed mb-8 sm:mb-12 max-w-2xl px-2 sm:px-0"
         >
           {t.hero.subtitle}
           <br className="hidden sm:block" />
@@ -149,7 +149,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.45 }}
-          className="flex flex-col sm:flex-row gap-4 items-center w-full max-w-sm sm:max-w-none"
+          className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center w-full max-w-xs sm:max-w-none"
         >
           {/* 무료 가입 버튼 (단독, 크게) */}
           <button
