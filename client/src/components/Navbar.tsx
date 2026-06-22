@@ -398,8 +398,8 @@ export default function Navbar() {
       {/* 국기 언어 선택 바 - 네비게이션 바 하단에 항상 표시 */}
       <div className="border-t border-[#C9A961]/20 bg-[#162d52]">
         {/* 모바일/데스크탑 모두 가로 스크롤 1줄 */}
-        <div className="overflow-x-auto scrollbar-none w-full">
-          <div className="flex flex-nowrap items-center justify-start sm:justify-center gap-0.5 sm:gap-1 py-1.5 sm:py-2.5 px-2 sm:px-4 w-max sm:w-auto sm:mx-auto">
+        <div className="overflow-x-auto scrollbar-none w-full" style={{ WebkitOverflowScrolling: 'touch', overflowX: 'auto' }}>
+          <div className="flex flex-nowrap items-center gap-0.5 sm:gap-1 py-1.5 sm:py-2 px-2 sm:px-4" style={{ width: 'max-content', minWidth: '100%', justifyContent: 'center' }}>
             {/* 현재 선택 언어를 맨 앞에 표시하고 나머지 언어 순서대로 정렬 */}
             {/* NZ·AU·CA 전용 페이지에서는 언어 기반 국기 활성화 비활성화 */}
             {[
@@ -441,8 +441,8 @@ export default function Navbar() {
                         : "opacity-75 hover:opacity-100"
                     }`}
                     style={{
-                      width: isLangActive ? 44 : 30,
-                      height: isLangActive ? 30 : 20,
+                      width: isLangActive ? 36 : 24,
+                      height: isLangActive ? 24 : 16,
                       objectFit: "cover",
                       display: "block",
                     }}
@@ -494,8 +494,8 @@ export default function Navbar() {
                         : "opacity-75 hover:opacity-100"
                     }`}
                     style={{
-                      width: isActive ? 44 : 30,
-                      height: isActive ? 30 : 20,
+                      width: isActive ? 36 : 24,
+                      height: isActive ? 24 : 16,
                       objectFit: "cover",
                       display: "block",
                     }}
