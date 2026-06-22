@@ -181,6 +181,26 @@ const GUEST_WELCOME: Record<string, string> = {
   pt: "Olá! Sou **Ever**, o bot guia do EverWill. 😊\n\nPergunte-me sobre testamentos, preços ou recursos!\n\n*Para consultas mais profundas (jurídico, autobiografia, cartas), cadastre-se para acessar sua IA dedicada.*",
 };
 
+// ─── UI 텍스트 다국어 매핑 ────────────────────────────────────────
+const CHAT_UI: Record<string, Record<string, string>> = {
+  guestName:    { ko: "에버 (Ever)", en: "Ever", ja: "エバー", zh: "Ever", de: "Ever", es: "Ever", ar: "إيفر", fr: "Ever", ru: "Эвер", hi: "एवर", pt: "Ever" },
+  memberSub:    { ko: "나의 전담 AI · 기억 저장", en: "My dedicated AI · Memory", ja: "専任AI · 記憶保存", zh: "专属AI · 记忆保存", de: "Mein KI · Erinnerungen", es: "Mi IA · Memoria", ar: "ذكائي المخصص", fr: "Mon IA · Mémoire", ru: "Мой ИИ · Память", hi: "मेरा AI · स्मृति", pt: "Meu AI · Memória" },
+  guestSub:     { ko: "EverWill 서비스 안내", en: "EverWill Service Guide", ja: "EverWillサービス案内", zh: "EverWill服务指南", de: "EverWill Service", es: "Guía EverWill", ar: "دليل خدمة EverWill", fr: "Guide EverWill", ru: "Руководство EverWill", hi: "EverWill सेवा मार्गदर्शिका", pt: "Guia EverWill" },
+  loginBtn:     { ko: "로그인하기", en: "Log In", ja: "ログイン", zh: "登录", de: "Anmelden", es: "Iniciar sesión", ar: "تسجيل الدخول", fr: "Se connecter", ru: "Войти", hi: "लॉग इन", pt: "Entrar" },
+  signupBtn:    { ko: "무료 회원가입", en: "Sign Up Free", ja: "無料登録", zh: "免费注册", de: "Kostenlos registrieren", es: "Registro gratis", ar: "التسجيل مجاناً", fr: "S'inscrire gratuitement", ru: "Бесплатная регистрация", hi: "मुफ्त साइन अप", pt: "Cadastre-se grátis" },
+  imageGenBtn:  { ko: "AI 그림 생성 (자서전/일기 일러스트)", en: "AI Image (Autobiography/Diary)", ja: "AI絵生成（自伝/日記）", zh: "AI图像（自传/日记）", de: "KI-Bild (Autobiografie)", es: "Imagen IA (Autobiografía)", ar: "صورة AI (السيرة الذاتية)", fr: "Image IA (Autobiographie)", ru: "ИИ-рисунок (Автобиография)", hi: "AI चित्र (आत्मकथा)", pt: "Imagem IA (Autobiografia)" },
+  drawBtn:      { ko: "그리기", en: "Draw", ja: "描く", zh: "绘制", de: "Zeichnen", es: "Dibujar", ar: "رسم", fr: "Dessiner", ru: "Нарисовать", hi: "बनाएं", pt: "Desenhar" },
+  disclaimer:   { ko: "AI 정보 제공 서비스 · 법률 자문이 아닙니다 · 모든 대화 기억 저장", en: "AI information service · Not legal advice · All chats saved", ja: "AI情報サービス · 法律相談ではありません · 全会話保存", zh: "AI信息服务 · 非法律建议 · 所有对话已保存", de: "KI-Informationsdienst · Keine Rechtsberatung · Alle Chats gespeichert", es: "Servicio de información IA · No es asesoría legal · Chats guardados", ar: "خدمة معلومات AI · ليست استشارة قانونية · جميع المحادثات محفوظة", fr: "Service d'information IA · Pas de conseil juridique · Chats sauvegardés", ru: "ИИ-информационный сервис · Не юридическая консультация · Все чаты сохранены", hi: "AI सूचना सेवा · कानूनी सलाह नहीं · सभी चैट सहेजे", pt: "Serviço de informação IA · Não é aconselhamento jurídico · Chats salvos" },
+  imgError:     { ko: "그림 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.", en: "Image generation failed. Please try again.", ja: "画像生成に失敗しました。後でもう一度お試しください。", zh: "图像生成失败，请稍后重试。", de: "Bildgenerierung fehlgeschlagen. Bitte erneut versuchen.", es: "Error al generar imagen. Inténtelo de nuevo.", ar: "فشل إنشاء الصورة. يرجى المحاولة مرة أخرى.", fr: "Échec de la génération d'image. Réessayez.", ru: "Ошибка генерации изображения. Попробуйте снова.", hi: "छवि निर्माण विफल। कृपया पुनः प्रयास करें।", pt: "Falha na geração de imagem. Tente novamente." },
+  chatError:    { ko: "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.", en: "Sorry, a temporary error occurred. Please try again.", ja: "申し訳ありません。一時的なエラーが発生しました。後でもう一度お試しください。", zh: "抱歉，发生了临时错误，请稍后重试。", de: "Entschuldigung, ein vorübergehender Fehler ist aufgetreten. Bitte erneut versuchen.", es: "Lo siento, ocurrió un error temporal. Inténtelo de nuevo.", ar: "عذراً، حدث خطأ مؤقت. يرجى المحاولة مرة أخرى.", fr: "Désolé, une erreur temporaire s'est produite. Réessayez.", ru: "Извините, произошла временная ошибка. Попробуйте снова.", hi: "क्षमा करें, एक अस्थायी त्रुटि हुई। कृपया पुनः प्रयास करें।", pt: "Desculpe, ocorreu um erro temporário. Tente novamente." },
+  guestBanner:  { ko: "💡 회원 가입 후 <유언·상속 법률 상담>과 <자서전·편지 작성>을 이용하세요", en: "💡 Sign up to access <Will & Inheritance Legal Advice> and <Autobiography & Letter Writing>", ja: "💡 会員登録後、<遺言・相続法律相談>と<自伝・手紙作成>をご利用ください", zh: "💡 注册后使用<遗嘱·继承法律咨询>和<自传·书信写作>", de: "💡 Registrieren Sie sich für <Testament & Erbrecht-Beratung> und <Autobiografie & Briefe>", es: "💡 Regístrese para <Asesoría Legal Testamento & Herencia> y <Autobiografía & Cartas>", ar: "💡 سجل للوصول إلى <استشارة قانونية الوصايا> و<كتابة السيرة الذاتية والرسائل>", fr: "💡 Inscrivez-vous pour <Conseil Juridique Testament & Héritage> et <Autobiographie & Lettres>", ru: "💡 Зарегистрируйтесь для <Юридической консультации по завещанию> и <Автобиографии & Письмам>", hi: "💡 <वसीयत और विरासत कानूनी सलाह> और <आत्मकथा और पत्र लेखन> के लिए साइन अप करें", pt: "💡 Cadastre-se para <Consultoria Jurídica Testamento & Herança> e <Autobiografia & Cartas>" },
+  styleLabels:  { ko: "수스화|유화|연필스케치|디지털아트|빈티지", en: "Watercolor|Oil Painting|Pencil Sketch|Digital Art|Vintage", ja: "水彩画|油絵|鉛筆スケッチ|デジタルアート|ヴィンテージ", zh: "水彩画|油画|铅笔素描|数字艺术|复古", de: "Aquarell|Ölgemälde|Bleistiftskizze|Digitale Kunst|Vintage", es: "Acuarela|Pintura al óleo|Boceto a lápiz|Arte digital|Vintage", ar: "ألوان مائية|لوحة زيتية|رسم بالقلم الرصاص|فن رقمي|عتيق", fr: "Aquarelle|Peinture à l'huile|Esquisse au crayon|Art numérique|Vintage", ru: "Акварель|Масляная живопись|Карандашный набросок|Цифровое искусство|Винтаж", hi: "जलरंग|तेल चित्रकारी|पेंसिल स्केच|डिजिटल कला|विंटेज", pt: "Aquarela|Pintura a óleo|Esboço a lápis|Arte digital|Vintage" },
+};
+
+function getChatUI(key: string, lang: string): string {
+  return CHAT_UI[key]?.[lang] ?? CHAT_UI[key]?.['ko'] ?? '';
+}
+
 export function ChatbotWidget() {
   const { isAuthenticated } = useAuth();
   const { language } = useLanguage();
@@ -309,7 +329,7 @@ export function ChatbotWidget() {
       });
       setGeneratedImageUrl(result.url ?? null);
     } catch {
-      alert("그림 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      alert(getChatUI('imgError', language));
     }
   };
 
@@ -378,7 +398,7 @@ export function ChatbotWidget() {
         ...prev,
         {
           role: "assistant",
-          content: "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+          content: getChatUI('chatError', language),
           timestamp: new Date(),
         },
       ]);
@@ -493,12 +513,12 @@ export function ChatbotWidget() {
                     <p className="font-semibold text-sm">
                       {isAuthenticated
                         ? (currentMode.description[language] || currentMode.description["ko"])
-                        : "에버 (Ever)"}
+                        : getChatUI('guestName', language)}
                     </p>
                     <p className="text-xs text-white/70">
                       {isAuthenticated
-                        ? "나의 전담 AI · 기억 저장"
-                        : "EverWill 서비스 안내"}
+                        ? getChatUI('memberSub', language)
+                        : getChatUI('guestSub', language)}
                     </p>
                   </div>
                 </div>
@@ -638,7 +658,7 @@ export function ChatbotWidget() {
                         style={{ background: "linear-gradient(135deg, #1F3864, #2d5a9e)" }}
                       >
                         <LogIn className="w-4 h-4" />
-                        로그인하기
+                        {getChatUI('loginBtn', language)}
                       </button>
                     </Link>
                     <Link href="/login?tab=signup">
@@ -646,7 +666,7 @@ export function ChatbotWidget() {
                         className="w-full py-2.5 rounded-xl text-sm font-semibold border-2 flex items-center justify-center gap-2"
                         style={{ borderColor: "#C9A961", color: "#C9A961" }}
                       >
-                        무료 회원가입
+                        {getChatUI('signupBtn', language)}
                       </button>
                     </Link>
                   </div>
@@ -684,7 +704,7 @@ export function ChatbotWidget() {
                   >
                     <span className="flex items-center gap-1.5">
                       <ImageIcon className="w-3.5 h-3.5" />
-                      AI 그림 생성 (자서전/일기 일러스트)
+                      {getChatUI('imageGenBtn', language)}
                     </span>
                     <span className="text-gray-400">{showImagePanel ? "▲" : "▼"}</span>
                   </button>
@@ -702,13 +722,16 @@ export function ChatbotWidget() {
                         <div className="px-3 pb-3 space-y-2">
                           {/* 스타일 선택 */}
                           <div className="flex gap-1 flex-wrap">
-                            {[
-                              { id: "watercolor", label: "수스화" },
-                              { id: "oil_painting", label: "유화" },
-                              { id: "pencil_sketch", label: "연필스케치" },
-                              { id: "digital_art", label: "디지털아트" },
-                              { id: "vintage_photo", label: "빈티지" },
-                            ].map((s) => (
+                            {(() => {
+                              const labels = getChatUI('styleLabels', language).split('|');
+                              return [
+                                { id: "watercolor", label: labels[0] ?? 'Watercolor' },
+                                { id: "oil_painting", label: labels[1] ?? 'Oil Painting' },
+                                { id: "pencil_sketch", label: labels[2] ?? 'Pencil Sketch' },
+                                { id: "digital_art", label: labels[3] ?? 'Digital Art' },
+                                { id: "vintage_photo", label: labels[4] ?? 'Vintage' },
+                              ];
+                            })().map((s) => (
                               <button
                                 key={s.id}
                                 onClick={() => setImageStyle(s.id as typeof imageStyle)}
@@ -746,7 +769,7 @@ export function ChatbotWidget() {
                               ) : (
                                 <Palette className="w-3.5 h-3.5" />
                               )}
-                              그리기
+                              {getChatUI('drawBtn', language)}
                             </button>
                           </div>
 
@@ -783,7 +806,7 @@ export function ChatbotWidget() {
                   className="px-4 py-2 text-xs text-center flex-shrink-0"
                   style={{ background: "#f8f4ec", color: "#92400e" }}
                 >
-                  💡 회원 가입 후 <strong>유언·상속 법률 상담</strong>과 <strong>자서전·편지 작성</strong>을 이용하세요
+                  {getChatUI('guestBanner', language)}
                 </div>
               )}
 
@@ -818,7 +841,7 @@ export function ChatbotWidget() {
                   </button>
                 </div>
                 <p className="text-[10px] text-gray-400 text-center mt-1.5">
-                  AI 정보 제공 서비스 · 법률 자문이 아닙니다 · 모든 대화 기억 저장
+                  {getChatUI('disclaimer', language)}
                 </p>
               </div>
             </motion.div>

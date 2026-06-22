@@ -38,25 +38,45 @@ const KRW_RATES: Record<string, number> = {
   SAR: 360, RUB: 15, INR: 16, BRL: 270,
 };
 
-// ─── 기부 분야 목록 ───────────────────────────────────────────────
-const CAUSE_LIST = [
-  { id: "designated",  emoji: "🏢", ko: "지정 기부",         en: "Designated Org" },
-  { id: "politics",    emoji: "🏛️", ko: "정치 개혁",       en: "Political Reform" },
-  { id: "sme",         emoji: "🏭", ko: "중소기업 지원",    en: "SME Support" },
-  { id: "education",   emoji: "🎓", ko: "교육",             en: "Education" },
-  { id: "science",     emoji: "🔬", ko: "과학·기술",        en: "Science & Tech" },
-  { id: "climate",     emoji: "🌱", ko: "기후·환경",        en: "Climate & Environment" },
-  { id: "poverty",     emoji: "🤝", ko: "최저생계자 지원",  en: "Poverty Relief" },
-  { id: "singlemom",   emoji: "👩‍👧", ko: "미혼모 가정",      en: "Single Mothers" },
-  { id: "youth",       emoji: "👦", ko: "청소년 가정",      en: "Youth & Families" },
-  { id: "elderly",     emoji: "👴", ko: "노인 복지",        en: "Elderly Care" },
-  { id: "disabled",    emoji: "♿", ko: "장애인 지원",      en: "Disability Support" },
-  { id: "medical",     emoji: "🏥", ko: "의료·보건",        en: "Medical & Health" },
-  { id: "culture",     emoji: "🎨", ko: "문화·예술",        en: "Culture & Arts" },
-  { id: "animal",      emoji: "🐾", ko: "동물 복지",        en: "Animal Welfare" },
-  { id: "disaster",    emoji: "🆘", ko: "재난·구호",        en: "Disaster Relief" },
-  { id: "other",       emoji: "💝", ko: "기타",             en: "Other" },
+// ─── 기부 분야 목록 (다국어 지원) ────────────────────────────────────
+const CAUSE_IDS = [
+  { id: "designated",  emoji: "🏢" },
+  { id: "politics",    emoji: "🏛️" },
+  { id: "sme",         emoji: "🏭" },
+  { id: "education",   emoji: "🎓" },
+  { id: "science",     emoji: "🔬" },
+  { id: "climate",     emoji: "🌱" },
+  { id: "poverty",     emoji: "🤝" },
+  { id: "singlemom",   emoji: "👩‍👧" },
+  { id: "youth",       emoji: "👦" },
+  { id: "elderly",     emoji: "👴" },
+  { id: "disabled",    emoji: "♿" },
+  { id: "medical",     emoji: "🏥" },
+  { id: "culture",     emoji: "🎨" },
+  { id: "animal",      emoji: "🐾" },
+  { id: "disaster",    emoji: "🆘" },
+  { id: "other",       emoji: "💝" },
 ];
+
+// 기부 분야 다국어 이름 매핑
+const CAUSE_NAMES: Record<string, Record<Language, string>> = {
+  designated: { ko: "지정 기부", en: "Designated Org", ja: "指定寄付", zh: "指定捐赠", de: "Bestimmte Org.", es: "Org. designada", ar: "منظمة محددة", fr: "Org. désignée", ru: "Указ. орг.", hi: "नामित संगठन", pt: "Org. designada" },
+  politics:   { ko: "정치 개혁", en: "Political Reform", ja: "政治改革", zh: "政治改革", de: "Polit. Reform", es: "Reforma política", ar: "إصلاح سياسي", fr: "Réforme politique", ru: "Полит. реформа", hi: "राजनीतिक सुधार", pt: "Reforma política" },
+  sme:        { ko: "중소기업 지원", en: "SME Support", ja: "中小企業支援", zh: "中小企业支持", de: "KMU-Förderung", es: "Apoyo PYME", ar: "دعم الشركات الصغيرة", fr: "Soutien PME", ru: "Поддержка МСП", hi: "एसएमई समर्थन", pt: "Apoio PME" },
+  education:  { ko: "교육", en: "Education", ja: "教育", zh: "教育", de: "Bildung", es: "Educación", ar: "التعليم", fr: "Éducation", ru: "Образование", hi: "शिक्षा", pt: "Educação" },
+  science:    { ko: "과학·기술", en: "Science & Tech", ja: "科学・技術", zh: "科学技术", de: "Wissenschaft", es: "Ciencia y Tech", ar: "العلوم والتقنية", fr: "Science & Tech", ru: "Наука и техника", hi: "विज्ञान और तकनीक", pt: "Ciência e Tech" },
+  climate:    { ko: "기후·환경", en: "Climate & Env.", ja: "気候・環境", zh: "气候环境", de: "Klima & Umwelt", es: "Clima y Medio amb.", ar: "المناخ والبيئة", fr: "Climat & Env.", ru: "Климат и экология", hi: "जलवायु और पर्यावरण", pt: "Clima e Ambiente" },
+  poverty:    { ko: "최저생계자 지원", en: "Poverty Relief", ja: "貧困支援", zh: "扶贫救助", de: "Armutsbekämpfung", es: "Alivio pobreza", ar: "مكافحة الفقر", fr: "Lutte pauvreté", ru: "Борьба с бедностью", hi: "गरीबी राहत", pt: "Alívio pobreza" },
+  singlemom:  { ko: "미혼모 가정", en: "Single Mothers", ja: "シングルマザー", zh: "单亲妈妈", de: "Alleinerziehende", es: "Madres solteras", ar: "الأمهات العزباء", fr: "Mères célibataires", ru: "Матери-одиночки", hi: "एकल माताएं", pt: "Mães solteiras" },
+  youth:      { ko: "청소년 가정", en: "Youth & Families", ja: "青少年・家族", zh: "青少年家庭", de: "Jugend & Familien", es: "Jóvenes y familias", ar: "الشباب والأسر", fr: "Jeunes & Familles", ru: "Молодёжь и семьи", hi: "युवा और परिवार", pt: "Jovens e famílias" },
+  elderly:    { ko: "노인 복지", en: "Elderly Care", ja: "高齢者福祉", zh: "老年福利", de: "Altenpflege", es: "Cuidado mayores", ar: "رعاية المسنين", fr: "Soins aux âgés", ru: "Уход за пожилыми", hi: "वृद्ध देखभाल", pt: "Cuidado idosos" },
+  disabled:   { ko: "장애인 지원", en: "Disability Support", ja: "障害者支援", zh: "残障人士支持", de: "Behindertenunterstützung", es: "Apoyo discapacidad", ar: "دعم ذوي الإعاقة", fr: "Soutien handicap", ru: "Поддержка инвалидов", hi: "विकलांग समर्थन", pt: "Apoio deficiência" },
+  medical:    { ko: "의료·보건", en: "Medical & Health", ja: "医療・保健", zh: "医疗卫生", de: "Medizin & Gesundheit", es: "Salud y medicina", ar: "الصحة والطب", fr: "Médecine & Santé", ru: "Медицина и здоровье", hi: "चिकित्सा और स्वास्थ्य", pt: "Saúde e medicina" },
+  culture:    { ko: "문화·예술", en: "Culture & Arts", ja: "文化・芸術", zh: "文化艺术", de: "Kultur & Kunst", es: "Cultura y Arte", ar: "الثقافة والفنون", fr: "Culture & Arts", ru: "Культура и искусство", hi: "संस्कृति और कला", pt: "Cultura e Arte" },
+  animal:     { ko: "동물 복지", en: "Animal Welfare", ja: "動物福祉", zh: "动物福利", de: "Tierschutz", es: "Bienestar animal", ar: "رعاية الحيوان", fr: "Bien-être animal", ru: "Защита животных", hi: "पशु कल्याण", pt: "Bem-estar animal" },
+  disaster:   { ko: "재난·구호", en: "Disaster Relief", ja: "災害救援", zh: "灾难救援", de: "Katastrophenhilfe", es: "Ayuda desastres", ar: "الإغاثة من الكوارث", fr: "Aide catastrophes", ru: "Помощь при катастрофах", hi: "आपदा राहत", pt: "Ajuda desastres" },
+  other:      { ko: "기타", en: "Other", ja: "その他", zh: "其他", de: "Sonstiges", es: "Otro", ar: "أخرى", fr: "Autre", ru: "Другое", hi: "अन्य", pt: "Outro" },
+};
 
 // ─── 카운트업 훅 ──────────────────────────────────────────────────
 function useCountUp(target: number, duration = 2000) {
@@ -98,7 +118,6 @@ function formatCurrency(amount: number, currencyCode: string, symbol: string): s
 export default function CharityStatsSection() {
   const { t, language } = useLanguage();
   const cs = t.charityStats;
-  const isKo = language === "ko";
 
   const localCurrency = LANG_CURRENCY[language] ?? LANG_CURRENCY["ko"];
   const localRate = KRW_RATES[localCurrency.code] ?? 1;
@@ -119,10 +138,9 @@ export default function CharityStatsSection() {
 
   // ── 기부 폼 상태 ──
   const [selectedCauses, setSelectedCauses] = useState<string[]>([]);
-  const [amount, setAmount] = useState("");           // 숫자 원값 (콤마 없음)
-  const [displayAmount, setDisplayAmount] = useState(""); // 화면 표시용 (콤마 포함)
+  const [amount, setAmount] = useState("");
+  const [displayAmount, setDisplayAmount] = useState("");
   const [donationType, setDonationType] = useState<"now" | "posthumous">("posthumous");
-  // 지정기부 단체 정보
   const [designatedOrg, setDesignatedOrg] = useState({ name: "", address: "", phone: "" });
   const [orgSaved, setOrgSaved] = useState(false);
 
@@ -132,41 +150,42 @@ export default function CharityStatsSection() {
     );
   };
 
-  const QUICK_AMOUNTS = isKo
+  // 언어별 빠른 선택 금액 표시
+  const QUICK_AMOUNTS = localCurrency.code === "KRW"
     ? ["₩10,000", "₩30,000", "₩50,000", "₩100,000"]
+    : localCurrency.code === "JPY"
+    ? ["¥1,000", "¥3,000", "¥5,000", "¥10,000"]
     : ["$10", "$30", "$50", "$100"];
   const QUICK_VALUES = ["10000", "30000", "50000", "100000"];
 
-  // 금액 입력 핸들러 - 숫자만 허용, 천단위 콤마 자동
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/[^0-9]/g, ""); // 숫자만 추출
+    const raw = e.target.value.replace(/[^0-9]/g, "");
     setAmount(raw);
-    setDisplayAmount(raw ? Number(raw).toLocaleString("ko-KR") : "");
+    setDisplayAmount(raw ? Number(raw).toLocaleString() : "");
   };
 
   const handleQuickAmount = (val: string) => {
     setAmount(val);
-    setDisplayAmount(Number(val).toLocaleString("ko-KR"));
+    setDisplayAmount(Number(val).toLocaleString());
   };
 
   const handleDonate = () => {
     if (selectedCauses.length === 0) {
-      toast.error(isKo ? "기부 분야를 하나 이상 선택해주세요." : "Please select at least one cause.");
+      toast.error(cs.errorCause);
       return;
     }
-    // 지정기부 선택 시 단체 정보 필수
     if (selectedCauses.includes("designated") && !orgSaved) {
-      toast.error(isKo ? "지정 기부 단체 정보를 먼저 저장해주세요." : "Please save the designated organization info first.");
+      toast.error(cs.errorOrg);
       return;
     }
     if (!amount || Number(amount) <= 0) {
-      toast.error(isKo ? "기부 금액을 입력해주세요." : "Please enter a donation amount.");
+      toast.error(cs.errorAmount);
       return;
     }
     if (donationType === "now") {
-      toast.info(isKo ? "즉시 결제 기능은 곧 오픈됩니다!" : "Immediate payment coming soon!");
+      toast.info(cs.toastPayNow);
     } else {
-      toast.success(isKo ? "사후 기부 의사가 유언에 기록됩니다." : "Your posthumous donation will be recorded in your will.");
+      toast.success(cs.toastPosthumous);
     }
   };
 
@@ -177,12 +196,10 @@ export default function CharityStatsSection() {
       <div className="relative w-full h-[320px] md:h-[420px] overflow-hidden">
         <img
           src={BANNER_URL}
-          alt="전 세계 사람들이 선물을 나누며 웃는 모습"
+          alt={cs.bannerTitle}
           className="w-full h-full object-cover object-center"
         />
-        {/* 오버레이 */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0d1f3c]/40 via-transparent to-[#0d1f3c]/80" />
-        {/* 배너 위 텍스트 */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -198,12 +215,10 @@ export default function CharityStatsSection() {
               className="text-3xl md:text-5xl font-bold text-white mb-3 drop-shadow-lg"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              {isKo ? "나의 마지막 선물" : "My Last Gift to the World"}
+              {cs.bannerTitle}
             </h2>
             <p className="text-white/90 text-base md:text-lg max-w-2xl mx-auto drop-shadow">
-              {isKo
-                ? "내가 행복하게 살 수 있었던 것은, 우리 사회가 나를 보호하고 격려하고 성장시켜 주었기 때문입니다."
-                : "I could live happily because society protected, encouraged, and helped me grow."}
+              {cs.bannerDesc}
             </p>
           </motion.div>
         </div>
@@ -218,14 +233,10 @@ export default function CharityStatsSection() {
           transition={{ duration: 0.7 }}
         >
           <blockquote className="text-lg md:text-2xl font-semibold text-white/90 leading-relaxed mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
-            {isKo
-              ? `"이제 나는 모두에게 나의 작은 성의를 드리는 마음으로 후원합니다.`
-              : `"Now I give back — a small token of gratitude to everyone who made my life possible.`}
+            {cs.quoteText}
           </blockquote>
           <p className="text-[#C9A961] text-base font-medium">
-            {isKo
-              ? "유언 속에 담긴 당신의 사랑이, 세상을 더 따뜻하게 만듭니다."
-              : "The love written in your will makes the world a warmer place."}
+            {cs.quoteSubtext}
           </p>
         </motion.div>
       </div>
@@ -242,14 +253,15 @@ export default function CharityStatsSection() {
           {/* Step 1: 분야 선택 */}
           <div className="mb-8">
             <h3 className="text-white font-bold text-lg mb-1">
-              {isKo ? "① 기부 분야를 선택하세요" : "① Choose a cause"}
+              {cs.step1Title}
             </h3>
             <p className="text-white/50 text-sm mb-5">
-              {isKo ? "여러 분야를 동시에 선택할 수 있습니다." : "You can select multiple causes."}
+              {cs.step1Desc}
             </p>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
-              {CAUSE_LIST.map((cause) => {
+              {CAUSE_IDS.map((cause) => {
                 const selected = selectedCauses.includes(cause.id);
+                const causeName = CAUSE_NAMES[cause.id]?.[language] ?? CAUSE_NAMES[cause.id]?.["en"] ?? cause.id;
                 return (
                   <button
                     key={cause.id}
@@ -266,7 +278,7 @@ export default function CharityStatsSection() {
                       </div>
                     )}
                     <span className="text-xl">{cause.emoji}</span>
-                    <span className="text-center leading-tight">{isKo ? cause.ko : cause.en}</span>
+                    <span className="text-center leading-tight">{causeName}</span>
                   </button>
                 );
               })}
@@ -276,10 +288,10 @@ export default function CharityStatsSection() {
           {/* Step 2: 금액 입력 */}
           <div className="mb-8">
             <h3 className="text-white font-bold text-lg mb-1">
-              {isKo ? "② 기부 금액을 입력하세요" : "② Enter donation amount"}
+              {cs.step2Title}
             </h3>
             <p className="text-white/50 text-sm mb-4">
-              {isKo ? "직접 입력하거나 빠른 선택 버튼을 클릭하세요." : "Type an amount or use quick select."}
+              {cs.step2Desc}
             </p>
             {/* 빠른 선택 */}
             <div className="flex flex-wrap gap-2 mb-4">
@@ -297,27 +309,27 @@ export default function CharityStatsSection() {
                 </button>
               ))}
             </div>
-            {/* 직접 입력 - ₩ 표시 + 천단위 콤마 */}
+            {/* 직접 입력 */}
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#C9A961] font-bold text-xl select-none pointer-events-none">
-                {isKo ? "₩" : "$"}
+                {cs.currencySymbol || localCurrency.symbol}
               </span>
               <input
                 type="text"
                 inputMode="numeric"
                 value={displayAmount}
                 onChange={handleAmountChange}
-                placeholder={isKo ? "금액 직접 입력" : "Enter custom amount"}
+                placeholder={cs.amountPlaceholder}
                 className="w-full bg-white/10 border border-white/20 rounded-xl pl-10 pr-4 py-3.5 text-white placeholder-white/30 text-lg font-semibold focus:outline-none focus:border-[#C9A961] transition-colors"
               />
-              {displayAmount && (
+              {displayAmount && cs.currencyUnit && (
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 text-sm">
-                  {isKo ? "원" : ""}
+                  {cs.currencyUnit}
                 </span>
               )}
             </div>
 
-            {/* 지정기부 단체 정보 입력 (지정기부 선택 시만 표시) */}
+            {/* 지정기부 단체 정보 입력 */}
             {selectedCauses.includes("designated") && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
@@ -327,58 +339,58 @@ export default function CharityStatsSection() {
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-xl">🏢</span>
                   <h4 className="text-white font-bold text-sm">
-                    {isKo ? "지정 기부 단체 정보" : "Designated Organization Info"}
+                    {cs.designatedTitle}
                   </h4>
                   {orgSaved && (
                     <span className="ml-auto bg-green-500/20 text-green-400 text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
-                      <Check className="w-3 h-3" /> {isKo ? "저장됨" : "Saved"}
+                      <Check className="w-3 h-3" /> {cs.designatedSaved}
                     </span>
                   )}
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <label className="text-white/50 text-xs mb-1 block">{isKo ? "단체명 *" : "Organization Name *"}</label>
+                    <label className="text-white/50 text-xs mb-1 block">{cs.orgNameLabel}</label>
                     <input
                       type="text"
                       value={designatedOrg.name}
                       onChange={(e) => { setDesignatedOrg(p => ({ ...p, name: e.target.value })); setOrgSaved(false); }}
-                      placeholder={isKo ? "예: 사랑의 열매 사회복지공동모금회" : "e.g. Red Cross"}
+                      placeholder={cs.orgNamePlaceholder}
                       className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[#C9A961] transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="text-white/50 text-xs mb-1 block">{isKo ? "주소 *" : "Address *"}</label>
+                    <label className="text-white/50 text-xs mb-1 block">{cs.orgAddressLabel}</label>
                     <input
                       type="text"
                       value={designatedOrg.address}
                       onChange={(e) => { setDesignatedOrg(p => ({ ...p, address: e.target.value })); setOrgSaved(false); }}
-                      placeholder={isKo ? "예: 서울시 중구 남대문로 120" : "e.g. 123 Main St, Seoul"}
+                      placeholder={cs.orgAddressPlaceholder}
                       className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[#C9A961] transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="text-white/50 text-xs mb-1 block">{isKo ? "전화번호 *" : "Phone *"}</label>
+                    <label className="text-white/50 text-xs mb-1 block">{cs.orgPhoneLabel}</label>
                     <input
                       type="tel"
                       value={designatedOrg.phone}
                       onChange={(e) => { setDesignatedOrg(p => ({ ...p, phone: e.target.value })); setOrgSaved(false); }}
-                      placeholder={isKo ? "예: 02-1234-5678" : "e.g. 02-1234-5678"}
+                      placeholder={cs.orgPhonePlaceholder}
                       className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[#C9A961] transition-colors"
                     />
                   </div>
                   <button
                     onClick={() => {
                       if (!designatedOrg.name || !designatedOrg.address || !designatedOrg.phone) {
-                        toast.error(isKo ? "단체명, 주소, 전화번호를 모두 입력해주세요." : "Please fill in all fields.");
+                        toast.error(cs.orgSaveError);
                         return;
                       }
                       setOrgSaved(true);
-                      toast.success(isKo ? "단체 정보가 저장되었습니다." : "Organization info saved.");
+                      toast.success(cs.orgSaveSuccess);
                     }}
                     className="w-full bg-[#C9A961]/20 border border-[#C9A961]/50 text-[#C9A961] font-bold py-2.5 rounded-xl text-sm hover:bg-[#C9A961]/30 transition-colors flex items-center justify-center gap-2"
                   >
                     <Check className="w-4 h-4" />
-                    {isKo ? "단체 정보 저장하기" : "Save Organization Info"}
+                    {cs.orgSaveBtn}
                   </button>
                 </div>
               </motion.div>
@@ -388,7 +400,7 @@ export default function CharityStatsSection() {
           {/* Step 3: 즉시 결제 / 사후 기부 선택 */}
           <div className="mb-8">
             <h3 className="text-white font-bold text-lg mb-4">
-              {isKo ? "③ 기부 방식을 선택하세요" : "③ Choose donation timing"}
+              {cs.step3Title}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* 즉시 결제 */}
@@ -405,12 +417,10 @@ export default function CharityStatsSection() {
                 </div>
                 <div>
                   <p className={`font-bold text-base mb-1 ${donationType === "now" ? "text-[#C9A961]" : "text-white"}`}>
-                    {isKo ? "지금 결제하기" : "Donate Now"}
+                    {cs.donateNowTitle}
                   </p>
                   <p className="text-white/50 text-xs leading-relaxed">
-                    {isKo
-                      ? "지금 바로 기부합니다. 즉시 영수증 발급 및 세금 공제 혜택."
-                      : "Donate immediately. Instant receipt and tax deduction benefits."}
+                    {cs.donateNowDesc}
                   </p>
                 </div>
               </button>
@@ -429,12 +439,10 @@ export default function CharityStatsSection() {
                 </div>
                 <div>
                   <p className={`font-bold text-base mb-1 ${donationType === "posthumous" ? "text-[#C9A961]" : "text-white"}`}>
-                    {isKo ? "사후 기부하기" : "Posthumous Donation"}
+                    {cs.posthumousTitle}
                   </p>
                   <p className="text-white/50 text-xs leading-relaxed">
-                    {isKo
-                      ? "유언장에 기부 의사를 기록합니다. 사망 후 자동 집행됩니다."
-                      : "Record in your will. Automatically executed after death."}
+                    {cs.posthumousDesc}
                   </p>
                 </div>
               </button>
@@ -448,25 +456,26 @@ export default function CharityStatsSection() {
               animate={{ opacity: 1, height: "auto" }}
               className="bg-white/5 border border-white/10 rounded-xl p-4 mb-6"
             >
-              <p className="text-white/60 text-xs mb-2">{isKo ? "선택 요약" : "Summary"}</p>
+              <p className="text-white/60 text-xs mb-2">{cs.summaryLabel}</p>
               {selectedCauses.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {selectedCauses.map((id) => {
-                    const cause = CAUSE_LIST.find((c) => c.id === id);
-                    return cause ? (
+                    const causeName = CAUSE_NAMES[id]?.[language] ?? CAUSE_NAMES[id]?.["en"] ?? id;
+                    const causeEmoji = CAUSE_IDS.find((c) => c.id === id)?.emoji ?? "💝";
+                    return (
                       <span key={id} className="bg-[#C9A961]/20 text-[#C9A961] text-xs px-2 py-0.5 rounded-full font-medium">
-                        {cause.emoji} {isKo ? cause.ko : cause.en}
+                        {causeEmoji} {causeName}
                       </span>
-                    ) : null;
+                    );
                   })}
                 </div>
               )}
               {amount && (
                 <p className="text-white font-bold text-sm">
-                  {isKo ? `기부 금액: ₩${Number(amount).toLocaleString("ko-KR")}원` : `Amount: $${Number(amount).toLocaleString()}`}
+                  {localCurrency.symbol}{Number(amount).toLocaleString()}{cs.currencyUnit}
                   {" · "}
                   <span className="text-[#C9A961]">
-                    {donationType === "now" ? (isKo ? "즉시 결제" : "Pay Now") : (isKo ? "사후 기부" : "Posthumous")}
+                    {donationType === "now" ? cs.payNow : cs.posthumous}
                   </span>
                 </p>
               )}
@@ -478,14 +487,12 @@ export default function CharityStatsSection() {
             className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#C9A961] to-[#a88840] text-white font-bold py-4 rounded-2xl text-base hover:opacity-90 transition-opacity shadow-lg"
           >
             <Heart className="w-5 h-5" />
-            {donationType === "now"
-              ? (isKo ? "지금 기부하기" : "Donate Now")
-              : (isKo ? "유언에 기부 의사 기록하기" : "Record in Will")}
+            {donationType === "now" ? cs.donateNowBtn : cs.recordInWillBtn}
             <ChevronRight className="w-4 h-4" />
           </button>
 
           <p className="text-center text-white/30 text-xs mt-4">
-            🔒 {isKo ? "EverWill이 검증한 단체를 선정하여 투명하게 전달합니다." : "EverWill selects verified organizations for transparent delivery."}
+            🔒 {cs.secureNote}
           </p>
         </motion.div>
 
@@ -500,7 +507,7 @@ export default function CharityStatsSection() {
           >
             <div className="flex items-center justify-center gap-2 mb-8">
               <Globe2 className="w-5 h-5 text-[#C9A961]" />
-              <h3 className="text-xl font-bold text-white">{cs.title || "전 세계 기부 현황"}</h3>
+              <h3 className="text-xl font-bold text-white">{cs.title}</h3>
             </div>
 
             {/* 요약 카드 */}
@@ -509,7 +516,7 @@ export default function CharityStatsSection() {
                 <div className="w-12 h-12 bg-[#C9A961]/20 rounded-full flex items-center justify-center mx-auto mb-3">
                   <TrendingUp className="w-6 h-6 text-[#C9A961]" />
                 </div>
-                <p className="text-blue-200 text-sm mb-1">{cs.totalLabel || "전체 기부 예정 금액"}</p>
+                <p className="text-blue-200 text-sm mb-1">{cs.totalLabel}</p>
                 <p className="text-3xl font-bold text-[#C9A961]">
                   {formatCurrency(animatedLocal, localCurrency.code, localCurrency.symbol)}
                 </p>
@@ -518,9 +525,9 @@ export default function CharityStatsSection() {
                 <div className="w-12 h-12 bg-[#C9A961]/20 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Users className="w-6 h-6 text-[#C9A961]" />
                 </div>
-                <p className="text-blue-200 text-sm mb-1">{cs.donorLabel || "기부 유언 등록자"}</p>
+                <p className="text-blue-200 text-sm mb-1">{cs.donorLabel}</p>
                 <p className="text-3xl font-bold text-[#C9A961]">
-                  {animatedDonors.toLocaleString()}{cs.donorUnit || "명"}
+                  {animatedDonors.toLocaleString()}{cs.donorUnit}
                 </p>
               </div>
             </div>
@@ -529,7 +536,7 @@ export default function CharityStatsSection() {
             {byCountry.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-10">
                 {byCountry.map((country, idx) => (
-                  <CountryCard key={country.countryCode} country={country} delay={idx * 0.05} />
+                  <CountryCard key={country.countryCode} country={country} delay={idx * 0.05} donorUnit={cs.donorUnit} />
                 ))}
               </div>
             )}
@@ -539,7 +546,8 @@ export default function CharityStatsSection() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {byCategory.sort((a, b) => b.totalKrw - a.totalKrw).map((cat, idx) => {
                   const pct = Math.round((cat.totalKrw / maxCategoryAmount) * 100);
-                  const causeInfo = CAUSE_LIST.find((c) => c.id === cat.category);
+                  const causeEmoji = CAUSE_IDS.find((c) => c.id === cat.category)?.emoji ?? "💝";
+                  const causeName = CAUSE_NAMES[cat.category]?.[language] ?? CAUSE_NAMES[cat.category]?.["en"] ?? cat.category;
                   return (
                     <motion.div
                       key={cat.category}
@@ -551,9 +559,9 @@ export default function CharityStatsSection() {
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-lg">{causeInfo?.emoji ?? "💝"}</span>
+                          <span className="text-lg">{causeEmoji}</span>
                           <span className="text-white font-semibold text-sm">
-                            {causeInfo ? (language === "ko" ? causeInfo.ko : causeInfo.en) : cat.category}
+                            {causeName}
                           </span>
                         </div>
                         <span className="text-[#C9A961] text-sm font-bold">
@@ -569,7 +577,7 @@ export default function CharityStatsSection() {
                           className="bg-gradient-to-r from-[#C9A961] to-[#e8c97a] h-1.5 rounded-full"
                         />
                       </div>
-                      <p className="text-blue-300 text-xs mt-1">{cat.donorCount}{cs.donorUnit || "명"}</p>
+                      <p className="text-blue-300 text-xs mt-1">{cat.donorCount}{cs.donorUnit}</p>
                     </motion.div>
                   );
                 })}
@@ -581,11 +589,11 @@ export default function CharityStatsSection() {
     </section>
   );
 }
-
 // ─── 국가 카드 ────────────────────────────────────────────────────
 function CountryCard({
   country,
   delay,
+  donorUnit,
 }: {
   country: {
     countryCode: string;
@@ -597,6 +605,7 @@ function CountryCard({
     donorCount: number;
   };
   delay: number;
+  donorUnit: string;
 }) {
   const animated = useCountUp(country.totalAmount, 2000);
   const formatted = formatCurrency(animated, country.currencyCode, country.currencySymbol);
@@ -611,7 +620,7 @@ function CountryCard({
       <p className="text-white/80 text-xs font-semibold tracking-wide uppercase">{country.countryName}</p>
       <div className="text-5xl leading-none my-1">{country.flag}</div>
       <p className="text-[#C9A961] font-bold text-xl leading-tight">{formatted}</p>
-      <p className="text-blue-300 text-xs opacity-70">{country.donorCount.toLocaleString()}명</p>
+      <p className="text-blue-300 text-xs opacity-70">{country.donorCount.toLocaleString()}{donorUnit}</p>
     </motion.div>
   );
 }

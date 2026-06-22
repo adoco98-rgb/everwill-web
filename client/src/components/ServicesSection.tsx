@@ -143,17 +143,17 @@ export default function ServicesSection() {
           <div className="flex-1 text-center sm:text-left">
             <div className="flex items-center gap-2 justify-center sm:justify-start mb-1">
               <Sparkles className="w-4 h-4 text-[#C9A961]" />
-              <span className="text-[#C9A961] text-xs font-bold uppercase tracking-wider">법률 전문 AI</span>
+              <span className="text-[#C9A961] text-xs font-bold uppercase tracking-wider">{t.services.legalBannerTag}</span>
             </div>
-            <h3 className="text-white font-bold text-xl mb-1">법에 관한 무엇이든 물어보세요</h3>
+            <h3 className="text-white font-bold text-xl mb-1">{t.services.legalBannerTitle}</h3>
             <p className="text-white/60 text-sm">
-              생활·상속·유언 — 당신의 모든 법률 문제를 AI 개인비서가 24시간 도와드립니다. 11개국 법률 지원.
+              {t.services.legalBannerDesc}
             </p>
           </div>
           <Link href="/register">
             <button className="flex-shrink-0 flex items-center gap-2 bg-[#C9A961] hover:bg-[#b8944f] text-[#1F3864] font-bold text-sm px-5 py-3 rounded-xl transition-all whitespace-nowrap shadow-md">
               <MessageCircle className="w-4 h-4" />
-              무료로 물어보기
+              {t.services.legalBannerCta}
             </button>
           </Link>
         </motion.div>

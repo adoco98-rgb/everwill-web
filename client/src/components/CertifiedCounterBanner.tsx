@@ -34,8 +34,8 @@ function useCountUp(target: number, duration = 1800) {
 }
 
 export default function CertifiedCounterBanner() {
-  const { language } = useLanguage();
-  const isKo = language === "ko";
+  const { t } = useLanguage();
+  const cb = t.badge;
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
 
@@ -74,12 +74,10 @@ export default function CertifiedCounterBanner() {
         </div>
         <div>
           <div className="text-white/70 text-sm font-semibold mb-1">
-            {isKo ? "현재까지 인증 완료 회원" : "Certified Members So Far"}
+            {cb.certBannerLabel}
           </div>
           <div className="text-white text-base font-medium leading-snug max-w-xs">
-            {isKo
-              ? "EverWill에서 유언장 전자 인증을 완료한 회원 수입니다."
-              : "Members who have completed e-certification of their will on EverWill."}
+            {cb.certBannerDesc}
           </div>
         </div>
       </div>
@@ -118,7 +116,7 @@ export default function CertifiedCounterBanner() {
                 {animated.toLocaleString()}
               </span>
               <span className="text-white/70 text-xl sm:text-2xl font-bold ml-1">
-                {isKo ? "명" : ""}
+                {cb.certBannerUnit}
               </span>
             </div>
             {isAdmin && (
@@ -133,7 +131,7 @@ export default function CertifiedCounterBanner() {
           </div>
         )}
         <div className="text-white/50 text-xs">
-          {isKo ? "실시간 업데이트" : "Live updated"}
+          {cb.certBannerLive}
         </div>
       </div>
     </motion.div>
