@@ -11,6 +11,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { useEffect, useRef } from "react";
+import { getCountryName } from "@/lib/countryNames";
 
 const HERO_IMAGE =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/hero-global-elders-v2-DB4mTEuKjbV7DYjdv5fYBA.webp";
@@ -60,6 +61,12 @@ export default function HeroSection() {
   const { data: countryData } = trpc.stats.getCountryMemberCounts.useQuery(undefined, {
     staleTime: 60_000, // 1분 캐시
   });
+
+  // Hero 배지 노출 여부 조회
+  const { data: badgeVisibility } = trpc.stats.getMemberBadgeVisible.useQuery(undefined, {
+    staleTime: 60_000,
+  });
+  const isBadgeVisible = badgeVisibility?.visible !== false; // 기본값 true
 
   // 현재 선택된 국가에 해당하는 데이터만 표시
   const currentCountry = (countryData ?? []).find(c => c.code === currentCountryCode && c.displayEnabled && c.total > 0);
@@ -161,8 +168,8 @@ export default function HeroSection() {
             <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </button>
 
-          {/* 회원 수 카운터 배지 - 관리자 설정 기반 동적 표시 */}
-          <motion.div
+          {/* 회원 수 카운터 배지 - 관리자 설정 기반 동적 표시 / 숨김 가능 */}
+          {isBadgeVisible && <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.6 }}
@@ -178,7 +185,7 @@ export default function HeroSection() {
                 {displayCountries.map((c) => (
                   <div key={c.code} className="flex items-center justify-between gap-4">
                     <span className="text-white/70 text-xs flex items-center gap-1">
-                      <span>{c.flag}</span> <span>{c.name}</span>
+                      <span>{c.flag}</span> <span>{getCountryName(c.code, language, c.name)}</span>
                     </span>
                     <span className="text-white font-black text-lg tracking-tight leading-none">
                       <AnimatedCounter target={c.total} /><span className="text-[#C9A961] text-sm font-bold">+</span>
@@ -200,7 +207,7 @@ export default function HeroSection() {
                 </span>
               </div>
             </div>
-          </motion.div>
+          </motion.div>}
         </motion.div>
 
         {/* 가격 투명성 부연 문구 */}

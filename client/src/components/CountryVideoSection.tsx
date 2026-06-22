@@ -4,11 +4,13 @@
  * - 현재 선택된 국가 언어에 맞는 영상 자동 표시
  * - 영상 없으면 한국어(video_kr) fallback
  * - 관리자가 /admin 페이지에서 국가별 URL 등록 가능
+ * - 국가명은 현재 선택된 언어로 자동 표시
  */
 import { trpc } from "@/lib/trpc";
 import { motion } from "framer-motion";
 import { Play } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getCountryName, videoKeyToCountryCode, COUNTRY_FLAGS_EMOJI } from "@/lib/countryNames";
 
 // 언어 코드 → 영상 키 매핑 (전체 국가)
 const LANG_TO_VIDEO_KEY: Record<string, string> = {
@@ -35,6 +37,22 @@ const LANG_TO_VIDEO_KEY: Record<string, string> = {
   tl: "video_ph",
 };
 
+// 영상 키 목록 (순서 유지용)
+const VIDEO_KEYS = [
+  "video_kr", "video_us", "video_jp", "video_cn", "video_de", "video_es",
+  "video_ar", "video_fr", "video_ru", "video_in", "video_br", "video_ca",
+  "video_au", "video_nz", "video_mx", "video_it", "video_nl", "video_sg",
+  "video_th", "video_vn", "video_ph",
+];
+
+/** 현재 언어로 국가명 반환 (이모지 포함) */
+function getVideoLabel(videoKey: string, language: string): string {
+  const code = videoKeyToCountryCode(videoKey);
+  const emoji = COUNTRY_FLAGS_EMOJI[code] ?? "";
+  const name = getCountryName(code, language);
+  return `${emoji} ${name}`;
+}
+
 // 언어별 섹션 텍스트 번역
 const VIDEO_SECTION_TEXT: Record<string, { label: string; title: string; subtitle: string; version: string; preparing: string }> = {
   ko: { label: "EVERWILL 영상", title: "EverWill 전자인증은 사랑의 실천입니다", subtitle: "유언 작성의 중요성과 EverWill 서비스를 영상으로 확인하세요.", version: "버전", preparing: "현재 선택된 국가의 영상이 준비 중입니다." },
@@ -46,30 +64,6 @@ const VIDEO_SECTION_TEXT: Record<string, { label: string; title: string; subtitl
   ar: { label: "فيديو EverWill", title: "EverWill: فعل محبة رقمي", subtitle: "شاهد كيف يساعدك EverWill على حماية أحبائك.", version: "نسخة", preparing: "الفيديو الخاص بهذا البلد قيد الإعداد." },
   fr: { label: "VIDÉO EVERWILL", title: "EverWill : Un acte d'amour numérique", subtitle: "Découvrez l'importance du testament et le service EverWill.", version: "version", preparing: "La vidéo pour ce pays est en préparation." },
   ru: { label: "ВИДЕО EVERWILL", title: "EverWill: Цифровой акт любви", subtitle: "Узнайте о важности завещания и сервисе EverWill.", version: "версия", preparing: "Видео для этой страны готовится." },
-};
-
-const COUNTRY_LABELS: Record<string, string> = {
-  video_kr: "🇰🇷 한국",
-  video_us: "🇺🇸 미국",
-  video_jp: "🇯🇵 일본",
-  video_cn: "🇨🇳 중국",
-  video_de: "🇩🇪 독일",
-  video_es: "🇪🇸 스페인",
-  video_ar: "🇸🇦 아랍",
-  video_fr: "🇫🇷 프랑스",
-  video_ru: "🇷🇺 러시아",
-  video_in: "🇮🇳 인도",
-  video_br: "🇧🇷 브라질",
-  video_ca: "🇨🇦 캐나다",
-  video_au: "🇦🇺 호주",
-  video_nz: "🇳🇿 뉴질랜드",
-  video_mx: "🇲🇽 멕시코",
-  video_it: "🇮🇹 이탈리아",
-  video_nl: "🇳🇱 네덜란드",
-  video_sg: "🇸🇬 싱가포르",
-  video_th: "🇹🇭 태국",
-  video_vn: "🇻🇳 베트남",
-  video_ph: "🇵🇭 필리핀",
 };
 
 // YouTube URL을 embed URL로 변환
@@ -93,7 +87,8 @@ export default function CountryVideoSection() {
   const videoKey = LANG_TO_VIDEO_KEY[language] ?? "video_kr";
   const rawUrl = videos?.[videoKey] ?? videos?.["video_kr"] ?? null;
   const embedUrl = rawUrl ? toEmbedUrl(rawUrl) : null;
-  const countryLabel = COUNTRY_LABELS[videoKey] ?? COUNTRY_LABELS["video_kr"];
+  // 현재 언어로 국가명 표시
+  const countryLabel = getVideoLabel(videoKey, language);
   const txt = VIDEO_SECTION_TEXT[language] ?? VIDEO_SECTION_TEXT["en"];
 
   // 영상이 하나도 없으면 섹션 자체를 숨김
@@ -150,7 +145,7 @@ export default function CountryVideoSection() {
             </div>
           )}
 
-          {/* 국가 라벨 */}
+          {/* 국가 라벨 - 현재 언어로 표시 */}
           <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full">
             {countryLabel} {txt.version}
           </div>
@@ -165,8 +160,9 @@ export default function CountryVideoSection() {
             transition={{ delay: 0.3 }}
             className="flex flex-wrap justify-center gap-2 mt-6"
           >
-            {Object.entries(COUNTRY_LABELS).map(([key, label]) => {
+            {VIDEO_KEYS.map((key) => {
               if (!videos[key]) return null;
+              const label = getVideoLabel(key, language);
               return (
                 <a
                   key={key}

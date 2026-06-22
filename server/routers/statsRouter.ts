@@ -14,6 +14,8 @@ import { TRPCError } from "@trpc/server";
 const CERTIFIED_KEY = "certified_members";
 // 국가별 가입자 수 키 prefix
 const COUNTRY_MEMBER_PREFIX = "country_members_";
+// Hero 배지(가입자 수 카운터) 노출 여부 키
+const MEMBER_BADGE_VISIBLE_KEY = "hero_member_badge_visible";
 
 // 지원 국가 목록 (Hero 섹션 표시용)
 export const SUPPORTED_DISPLAY_COUNTRIES = [
@@ -209,6 +211,42 @@ export const statsRouter = router({
         .values({ key: CERTIFIED_KEY, value: input.count, label: "인증 완료 회원 수" })
         .onDuplicateKeyUpdate({ set: { value: input.count } });
       return { success: true, count: input.count };
+    }),
+
+  /**
+   * Hero 배지(가입자 수 카운터) 노출 여부 조회 (public)
+   * - 기본값: true (노출)
+   */
+  getMemberBadgeVisible: publicProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) return { visible: true };
+    const rows = await db
+      .select()
+      .from(siteStats)
+      .where(eq(siteStats.key, MEMBER_BADGE_VISIBLE_KEY))
+      .limit(1);
+    // 설정 없으면 기본 노출
+    if (rows.length === 0) return { visible: true };
+    return { visible: rows[0].value === 1 };
+  }),
+
+  /**
+   * 관리자 전용 - Hero 배지 노출/숨김 설정
+   */
+  setMemberBadgeVisible: adminProcedure
+    .input(z.object({ visible: z.boolean() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      await db
+        .insert(siteStats)
+        .values({
+          key: MEMBER_BADGE_VISIBLE_KEY,
+          value: input.visible ? 1 : 0,
+          label: "Hero 가입자 수 배지 노출 여부",
+        })
+        .onDuplicateKeyUpdate({ set: { value: input.visible ? 1 : 0 } });
+      return { success: true, visible: input.visible };
     }),
 
   /** 관리자 전용 - 인증회원 수 증가 */

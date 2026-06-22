@@ -56,6 +56,15 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
 function CountryMemberManager() {
   const utils = trpc.useUtils();
   const { data: countryData, isLoading } = trpc.stats.getCountryMemberCounts.useQuery(undefined, { staleTime: 30_000 });
+  // Hero 배지 노출/숨김 설정
+  const { data: badgeVisibility } = trpc.stats.getMemberBadgeVisible.useQuery(undefined, { staleTime: 30_000 });
+  const setBadgeVisibleMutation = trpc.stats.setMemberBadgeVisible.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.visible ? "Hero 배지가 노출됩니다." : "Hero 배지가 숨겨집니다.");
+      utils.stats.getMemberBadgeVisible.invalidate();
+    },
+    onError: () => toast.error("배지 설정 저장에 실패했습니다."),
+  });
   const setCountsMutation = trpc.stats.setCountryMemberCounts.useMutation({
     onSuccess: () => {
       toast.success("국가별 가입자 수가 저장되었습니다.");
@@ -64,6 +73,7 @@ function CountryMemberManager() {
     },
     onError: () => toast.error("저장에 실패했습니다."),
   });
+  const isBadgeVisible = badgeVisibility?.visible !== false; // 기본값 true
 
   const [localData, setLocalData] = useState<Record<string, { manualCount: number; displayEnabled: boolean }>>({});
   const [initialized, setInitialized] = useState(false);
@@ -87,11 +97,34 @@ function CountryMemberManager() {
     setCountsMutation.mutate({ entries });
   };
 
-  if (isLoading) return <div className="text-center py-8 text-gray-400">로딩 중...</div>;
-
+    if (isLoading) return <div className="text-center py-8 text-gray-400">로딩 중...</div>;
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-6">
+      {/* Hero 배지 노출/숨김 토글 */}
+      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+        <div>
+          <h4 className="text-sm font-bold text-[#1F3864] flex items-center gap-2">
+            <Users className="w-4 h-4 text-[#C9A961]" />
+            Hero 가입자 수 배지 노출
+          </h4>
+          <p className="text-xs text-gray-400 mt-0.5">숨김으로 설정하면 Hero 섹션의 가입자 수 카운터 배지가 완전히 안 보입니다.</p>
+        </div>
+        <button
+          onClick={() => setBadgeVisibleMutation.mutate({ visible: !isBadgeVisible })}
+          disabled={setBadgeVisibleMutation.isPending}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
+            isBadgeVisible ? "bg-[#1F3864]" : "bg-gray-300"
+          }`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+              isBadgeVisible ? "translate-x-6" : "translate-x-1"
+            }`}
+          />
+        </button>
+      </div>
+
+      <div className="flex items-center justify-between">
         <div>
           <h3 className="text-base font-bold text-[#1F3864] flex items-center gap-2">
             <Globe className="w-5 h-5 text-[#C9A961]" />

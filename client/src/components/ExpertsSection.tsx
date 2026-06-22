@@ -10,6 +10,7 @@
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getCountryName } from "@/lib/countryNames";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -756,7 +757,7 @@ export default function ExpertsSection() {
                   alt={code}
                   className="w-8 h-5 object-cover rounded shadow-sm"
                 />
-                <span className="text-[10px] leading-none mt-0.5">{code}</span>
+                <span className="text-[10px] leading-none mt-0.5">{COUNTRY_MAP[code]?.names[language] ?? getCountryName(code, language, code)}</span>
               </button>
             ))}
           </div>
