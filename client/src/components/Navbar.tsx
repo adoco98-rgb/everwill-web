@@ -186,7 +186,7 @@ export default function Navbar() {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
       dir="ltr"
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 overflow-x-hidden ${
         scrolled
           ? "bg-[#1F3864]/95 backdrop-blur-md shadow-lg shadow-[#1F3864]/20"
           : "bg-[#1F3864]"
@@ -198,10 +198,10 @@ export default function Navbar() {
           {/* 로고 - 좌측 고정 */}
           <a href="/" className="flex items-center group shrink-0">
             <img
-              src="/manus-storage/everwill_seal_b8f04a18.png"
+              src="/manus-storage/everwill_seal_32bd3abb.png"
               alt="EverWill Logo"
-              className="object-contain drop-shadow-lg"
-              style={{ height: '52px', width: '52px' }}
+              className="object-contain drop-shadow-xl brightness-110"
+              style={{ height: '64px', width: '64px' }}
             />
           </a>
 
@@ -397,7 +397,15 @@ export default function Navbar() {
       {/* 국기 언어 선택 바 - 네비게이션 바 하단에 항상 표시 */}
       <div className="border-t border-[#C9A961]/20 bg-[#162d52]">
         {/* 모바일/데스크탑 모두 가로 스크롤 1줄 */}
-        <div className="overflow-x-auto scrollbar-none w-full" style={{ WebkitOverflowScrolling: 'touch', overflowX: 'auto' }}>
+        <div
+          className="scrollbar-none w-full"
+          style={{
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            msOverflowStyle: 'none',
+            scrollbarWidth: 'none',
+          }}
+        >
           <div className="flex flex-nowrap items-center gap-0.5 sm:gap-1 py-1.5 sm:py-2 px-2 sm:px-4" style={{ width: 'max-content', minWidth: '100%', justifyContent: 'center' }}>
             {/* 현재 선택 언어를 맨 앞에 표시하고 나머지 언어 순서대로 정렬 */}
             {/* NZ·AU·CA 전용 페이지에서는 언어 기반 국기 활성화 비활성화 */}

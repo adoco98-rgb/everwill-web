@@ -125,7 +125,7 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
               <Shield className="w-8 h-8 text-[#C9A961]" />
             </div>
             <img
-              src="/manus-storage/everwill-logo-white-text2_1d48b8ab.png"
+              src="/manus-storage/everwill-logo-transparent_51e4e8ca.png"
               alt="EverWill"
               className="object-contain mx-auto mb-2"
               style={{ height: '48px', maxWidth: '180px' }}
@@ -198,10 +198,10 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3 flex-1">
                 <img
-                  src="/manus-storage/everwill-seal-transparent_74953131.png"
+                  src="/manus-storage/everwill_seal_32bd3abb.png"
                   alt="EverWill"
-                  className="object-contain drop-shadow-lg"
-                  style={{ height: '56px', width: '56px' }}
+                  className="object-contain drop-shadow-xl brightness-110"
+                  style={{ height: '64px', width: '64px' }}
                 />
                 <div>
                   <div className="text-white font-bold text-base leading-tight">EverWill</div>
@@ -349,10 +349,10 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
           </button>
           <div className="flex items-center gap-2">
             <img
-              src="/manus-storage/everwill-seal-transparent_74953131.png"
+              src="/manus-storage/everwill_seal_32bd3abb.png"
               alt="EverWill"
-              className="object-contain"
-              style={{ height: '40px', width: '40px' }}
+              className="object-contain drop-shadow-md brightness-110"
+              style={{ height: '48px', width: '48px' }}
             />
             <div>
               <div className="text-[#1F3864] font-bold text-sm leading-tight">EverWill</div>

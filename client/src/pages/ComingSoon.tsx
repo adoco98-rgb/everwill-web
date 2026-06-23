@@ -15,7 +15,7 @@ import { getLoginUrl } from "@/const";
 const HERO_IMAGE =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/hero-global-elders-v2-DB4mTEuKjbV7DYjdv5fYBA.webp";
 
-const LOGO_URL = "/manus-storage/everwill-logo-white-text2_1d48b8ab.png";
+const LOGO_URL = "/manus-storage/everwill_seal_32bd3abb.png";
 
 const PASSWORD = "2026";
 const SESSION_KEY = "ew_unlocked";
@@ -106,8 +106,8 @@ export default function ComingSoon() {
           <motion.img
             src={LOGO_URL}
             alt="EverWill"
-            className="relative z-10 h-28 md:h-36 lg:h-44 mx-auto object-contain"
-            style={{ filter: "drop-shadow(0 8px 24px rgba(201,169,97,0.5))" }}
+            className="relative z-10 h-40 md:h-52 lg:h-64 mx-auto object-contain brightness-110"
+            style={{ filter: "drop-shadow(0 12px 32px rgba(201,169,97,0.7)) brightness(1.1)" }}
             animate={{ y: [0, -8, 0] }}
             transition={{
               duration: 4,
