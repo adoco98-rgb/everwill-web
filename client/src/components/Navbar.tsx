@@ -194,15 +194,19 @@ export default function Navbar() {
     >
       {/* 메인 네비게이션 바 */}
       <div className="w-full px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-[auto_1fr_auto] items-center h-16 sm:h-20 gap-4">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-4">
           {/* 로고 - 좌측 고정 */}
-          <a href="/" className="flex items-center group shrink-0">
+          <a href="/" className="flex items-center gap-2 group shrink-0">
             <img
-              src="/manus-storage/logo_7_bronze_ace0005b.png"
+              src="/manus-storage/logo_7_bronze_a9146f73.png"
               alt="EverWill Logo"
               className="object-contain drop-shadow-xl brightness-110"
-              style={{ height: '64px', width: '64px' }}
+              style={{ height: '56px', width: '56px' }}
             />
+            <div className="hidden sm:block">
+              <span className="block text-white font-bold text-base leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>EverWill</span>
+              <span className="block text-[#C9A961] text-[9px] font-semibold tracking-widest uppercase">DIGITAL WILL OS</span>
+            </div>
           </a>
 
           {/* 데스크탑 메뉴 - 중앙 */}
@@ -406,7 +410,7 @@ export default function Navbar() {
             scrollbarWidth: 'none',
           }}
         >
-          <div className="flex flex-nowrap items-center gap-0.5 sm:gap-1 py-1.5 sm:py-2 px-2 sm:px-4" style={{ width: 'max-content', minWidth: '100%', justifyContent: 'center' }}>
+          <div className="flex flex-nowrap items-center gap-0.5 sm:gap-1 py-1.5 sm:py-2 px-2 sm:px-4 justify-center min-w-full">
             {/* 현재 선택 언어를 맨 앞에 표시하고 나머지 언어 순서대로 정렬 */}
             {/* NZ·AU·CA 전용 페이지에서는 언어 기반 국기 활성화 비활성화 */}
             {[
