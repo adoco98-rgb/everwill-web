@@ -329,6 +329,8 @@ export const pt = {
     cmpTransparencyNow: "Alta",
     cmpTransparencyFuture: "Totalmente transparente",
     aiNote: "Os serviços de automação IA serão implementados gradualmente.",
+    partnerDesc: "É advogado, contador ou tabelião? Cadastre-se como parceiro e receba casos automaticamente.",
+    partnerCta: "Cadastrar como parceiro profissional",
   },
   reviews: {
     title: "Avaliações de clientes",

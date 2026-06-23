@@ -329,6 +329,8 @@ export const fr = {
     cmpTransparencyNow: "Élevée",
     cmpTransparencyFuture: "Totalement transparent",
     aiNote: "Les services d'automatisation IA seront déployés progressivement.",
+    partnerDesc: "Vous êtes avocat, expert-comptable ou notaire? Inscrivez-vous comme partenaire.",
+    partnerCta: "S'inscrire comme partenaire professionnel",
   },
   reviews: {
     title: "Avis clients",

@@ -329,6 +329,8 @@ export const hi = {
     cmpTransparencyNow: "उच्च",
     cmpTransparencyFuture: "पूरी तरह पारदर्शी",
     aiNote: "AI स्वचालन सेवाएं धीरे-धीरे शुरू की जाएंगी।",
+    partnerDesc: "क्या आप वकील, सीए या कानूनी पेशेवर हैं? पार्टनर के रूप में पंजीकरण करें।",
+    partnerCta: "पेशेवर पार्टनर के रूप में पंजीकरण करें",
   },
   reviews: {
     title: "ग्राहक समीक्षाएं",

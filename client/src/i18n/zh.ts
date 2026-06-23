@@ -329,6 +329,8 @@ export const zh = {
     cmpTransparencyNow: "高",
     cmpTransparencyFuture: "完全透明",
     aiNote: "AI自动化服务将逐步推出。目前以签约律师支持方式运营。",
+    partnerDesc: "律师·税务师·法务师？注册合作伙伴，自动承接死后执行案件。",
+    partnerCta: "注册专业合作伙伴",
   },
   reviews: {
     title: "用户评价",

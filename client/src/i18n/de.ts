@@ -329,6 +329,8 @@ export const de = {
     cmpTransparencyNow: "Hoch",
     cmpTransparencyFuture: "Vollständig transparent",
     aiNote: "KI-Automatisierungsdienste werden schrittweise eingeführt. Derzeit mit Vertragsanwalt-Support.",
+    partnerDesc: "Sind Sie Rechtsanwalt, Steuerberater oder Notar? Registrieren Sie sich als Partner.",
+    partnerCta: "Als Fachpartner registrieren",
   },
   reviews: {
     title: "Kundenbewertungen",

@@ -332,6 +332,8 @@ export const en = {
     cmpTransparencyNow: "High",
     cmpTransparencyFuture: "Fully transparent",
     aiNote: "AI automation services will be rolled out gradually. Currently operating with contracted attorney support.",
+    partnerDesc: "Are you an attorney, CPA, or legal professional? Register as a partner and receive automatic case assignments.",
+    partnerCta: "Register as Professional Partner",
   },
   reviews: {
     title: "Customer Reviews",

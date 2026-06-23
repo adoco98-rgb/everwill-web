@@ -245,20 +245,14 @@ export default function LawyersSection() {
           {/* 전문가 파트너 등록 CTA */}
           <div className="mt-8 pt-6 border-t border-white/10 text-center">
             <p className="text-white/60 text-sm mb-4">
-              {language === 'ko' ? '변호사·세무사·법무사이신가요? 파트너로 등록하고 사후 집행 수임을 받으세요.' :
-               language === 'ja' ? '弁護士・税理士の方はパートナー登録で自動受任を受け取りましょう。' :
-               language === 'zh' ? '律师·税务师？注册合作伙伴，自动承接死后执行案件。' :
-               'Are you an attorney or CPA? Register as a partner and receive automatic case assignments.'}
+              {t.lawyers.partnerDesc}
             </p>
             <button
               onClick={() => navigate("/partner/professional")}
               className="inline-flex items-center gap-2 px-6 py-3 bg-[#C9A961] hover:bg-[#e8c97a] text-[#1F3864] font-bold rounded-xl transition-all shadow-lg hover:shadow-xl"
             >
               <Scale className="w-5 h-5" />
-              {language === 'ko' ? '전문가 파트너 등록하기' :
-               language === 'ja' ? '専門家パートナー登録' :
-               language === 'zh' ? '注册专家合作伙伴' :
-               'Register as Professional Partner'}
+              {t.lawyers.partnerCta}
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
