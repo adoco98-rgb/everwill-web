@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, FileText, Users, Shield, CreditCard, Mail, User, QrCode } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, FileText, Users, Shield, CreditCard, Mail, User, QrCode, Settings } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -166,8 +166,8 @@ function DashboardLayoutContent({
           className="border-r-0"
           disableTransition={isResizing}
         >
-          <SidebarHeader className="h-16 justify-center">
-            <div className="flex items-center gap-3 px-2 transition-all w-full">
+          <SidebarHeader className="h-16 justify-center border-b border-[#1F3864]/10">
+            <div className="flex items-center gap-2 px-2 transition-all w-full">
               <button
                 onClick={toggleSidebar}
                 className="h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
@@ -176,12 +176,26 @@ function DashboardLayoutContent({
                 <PanelLeft className="h-4 w-4 text-muted-foreground" />
               </button>
               {!isCollapsed ? (
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-semibold tracking-tight truncate">
-                    Navigation
-                  </span>
-                </div>
-              ) : null}
+                <a href="/" className="flex items-center gap-2 min-w-0">
+                  <img
+                    src="/manus-storage/logo_7_bronze_ace0005b.png"
+                    alt="EverWill"
+                    className="h-9 w-9 object-contain shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <span className="font-bold text-[#1F3864] tracking-tight truncate block text-sm">EverWill</span>
+                    <span className="text-[10px] text-[#C9A961] font-semibold tracking-widest uppercase">DIGITAL WILL OS</span>
+                  </div>
+                </a>
+              ) : (
+                <a href="/">
+                  <img
+                    src="/manus-storage/logo_7_bronze_ace0005b.png"
+                    alt="EverWill"
+                    className="h-8 w-8 object-contain"
+                  />
+                </a>
+              )}
             </div>
           </SidebarHeader>
 
@@ -206,6 +220,26 @@ function DashboardLayoutContent({
                 );
               })}
             </SidebarMenu>
+
+            {/* 관리자 메뉴 - admin 계정만 표시 */}
+            {user?.role === "admin" && (
+              <div className="px-2 py-1 border-t border-[#1F3864]/10 mt-2">
+                <p className="text-[10px] text-[#C9A961] font-bold uppercase tracking-widest px-2 py-1.5">관리자</p>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={location === "/799805"}
+                      onClick={() => setLocation("/799805")}
+                      tooltip="관리자 대시보드"
+                      className="h-10 font-normal"
+                    >
+                      <Settings className="h-4 w-4 text-[#C9A961]" />
+                      <span className="text-[#1F3864] font-medium">관리자 대시보드</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </div>
+            )}
           </SidebarContent>
 
           <SidebarFooter className="p-3">
