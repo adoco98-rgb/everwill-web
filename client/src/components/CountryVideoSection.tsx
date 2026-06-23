@@ -185,7 +185,7 @@ export default function CountryVideoSection() {
                     // 언어 변경 시 페이지 리로드 없이 영상만 교체
                     const langEntry = Object.entries(LANG_TO_VIDEO_KEY).find(([, v]) => v === key);
                     if (langEntry) {
-                      try { localStorage.setItem("everwill_lang", langEntry[0]); } catch {}
+                      try { localStorage.setItem("everwill_language", langEntry[0]); } catch {}
                       window.location.reload();
                     }
                   }}

@@ -7,7 +7,7 @@
  * - 모든 UI 텍스트 언어별 다국어 처리
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getCountryName } from "@/lib/countryNames";
@@ -695,6 +695,12 @@ export default function ExpertsSection() {
 
   // 언어에 따라 자동으로 해당 국가 선택
   const [selectedCountry, setSelectedCountry] = useState<string>(() => LANG_TO_COUNTRY[language] ?? "KR");
+
+  // 언어가 바뀔 때마다 selectedCountry 자동 업데이트 (US 페이지에서 CN 데이터 표시 버그 수정)
+  useEffect(() => {
+    const mapped = LANG_TO_COUNTRY[language];
+    if (mapped) setSelectedCountry(mapped);
+  }, [language]);
   const [selectedSpecialty, setSelectedSpecialty] = useState<"all" | "lawyer" | "tax">("all");
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");

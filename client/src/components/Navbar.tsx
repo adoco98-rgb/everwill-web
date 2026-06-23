@@ -115,7 +115,7 @@ export default function Navbar() {
     if (urlLang) return;
 
     // 수동 선택이 있으면 덮어쓰지 않음
-    const saved = localStorage.getItem("everwill-lang-manual");
+    const saved = localStorage.getItem("everwill_language") || localStorage.getItem("everwill-lang-manual");
     if (saved) return;
 
     // LanguageContext의 detectDefaultLanguage()가 브라우저 언어 기반으로 설정함
@@ -140,7 +140,7 @@ export default function Navbar() {
   // 언어 수동 변경 핸들러
   const handleSetLanguage = (code: Language) => {
     setLanguage(code);
-    localStorage.setItem("everwill-lang-manual", code);
+    localStorage.setItem("everwill_language", code);
     setMobileOpen(false);
     // 국가 페이지(/country/xx)에 있을 때 해당 언어의 국가 페이지로 이동
     if (location.startsWith("/country/")) {
