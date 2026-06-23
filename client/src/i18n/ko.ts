@@ -575,6 +575,9 @@ export const ko = {
     s11Title: "소중한 사람에게 편지 쓰기",
     s11Desc: "아들의 결혼식 날, 손녀의 성인이 되는 날 — 원하는 순간에 자동으로 전달되는 편지를 지금 써두세요. 인쇄·PDF 출력 가능.",
     s11Tag: "Legacy Letter PRO",
+    autobiographyCardTag: "Life Story PRO",
+    autobiographyCardTitle: "나의 자서전 만들기",
+    autobiographyCardDesc: "AI와 대화하며 나만의 인생 이야기를 책으로 만들어 보세요. 음성으로 말씀하시면 AI가 아름다운 자서전을 써드립니다.",
   },
   charityStats: {
     title: "전 세계 기부 유언 현황",

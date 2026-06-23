@@ -524,6 +524,9 @@ export const en = {
     s11Title: "Write a Letter to Someone Special",
     s11Desc: "Your son\u2019s wedding, your granddaughter\u2019s 18th birthday — write a letter now that delivers itself at the right moment. Print & PDF export available.",
     s11Tag: "Legacy Letter PRO",
+    autobiographyCardTag: "Life Story PRO",
+    autobiographyCardTitle: "Write My Autobiography",
+    autobiographyCardDesc: "Create your life story as a book through AI conversation. Speak your memories and AI will write a beautiful autobiography for you.",
   },
   charityStats: {
     title: "Global Charitable Will Statistics",

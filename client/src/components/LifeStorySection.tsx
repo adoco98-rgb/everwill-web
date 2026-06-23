@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { BookOpen, Mail, Camera, Lock, Sparkles, Mic } from "lucide-react";
+import { BookOpen, Mail, Camera, Lock, Sparkles, Mic, BookMarked } from "lucide-react";
 import { Link } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -30,18 +30,28 @@ export function LifeStorySection() {
       title: ls.journalCardTitle,
       desc: ls.journalCardDesc,
       badge: ls.journalCardTag,
+      href: "/life-story",
     },
     {
       icon: <Camera className="w-7 h-7" />,
       title: ls.albumCardTitle,
       desc: ls.albumCardDesc,
       badge: ls.albumCardTag,
+      href: "/life-story",
     },
     {
       icon: <Mail className="w-7 h-7" />,
       title: ls.letterCardTitle,
       desc: ls.letterCardDesc,
       badge: ls.letterCardTag,
+      href: "/life-story",
+    },
+    {
+      icon: <BookMarked className="w-7 h-7" />,
+      title: ls.autobiographyCardTitle,
+      desc: ls.autobiographyCardDesc,
+      badge: ls.autobiographyCardTag,
+      href: "/life-story/autobiography",
     },
   ];
 
@@ -91,19 +101,19 @@ export function LifeStorySection() {
           </div>
         </motion.div>
 
-        {/* 기능 카드 3개 */}
+        {/* 기능 카드 4개 */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-14"
         >
           {features.map((f, i) => (
+            <Link key={i} href={f.href}>
             <motion.div
-              key={i}
               variants={cardVariants}
-              className="relative rounded-2xl overflow-hidden border border-white/10 hover:border-[#C9A961]/40 transition-all duration-300 group"
+              className="relative rounded-2xl overflow-hidden border border-white/10 hover:border-[#C9A961]/40 transition-all duration-300 group cursor-pointer h-full"
               style={{ background: "rgba(255,255,255,0.04)" }}
             >
               <div className="p-8">
@@ -128,6 +138,7 @@ export function LifeStorySection() {
               {/* 하단 그라데이션 */}
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[#C9A961]/0 via-[#C9A961]/60 to-[#C9A961]/0 opacity-0 group-hover:opacity-100 transition-opacity" />
             </motion.div>
+            </Link>
           ))}
         </motion.div>
 

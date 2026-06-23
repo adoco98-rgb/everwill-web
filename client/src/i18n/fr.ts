@@ -521,6 +521,9 @@ export const fr = {
     s11Title: "Écrire une Lettre pour Quelqu’un de Spécial",
     s11Desc: "Mariage du fils, 18 ans de la petite-fille — écrivez maintenant une lettre livrée au bon moment. Impression & PDF disponibles.",
     s11Tag: "Legacy Letter PRO",
+    autobiographyCardTag: "Life Story PRO",
+    autobiographyCardTitle: "Écrire mon autobiographie",
+    autobiographyCardDesc: "Créez votre histoire de vie sous forme de livre grâce aux conversations avec l'IA. Parlez de vos souvenirs et l'IA écrira une belle autobiographie pour vous.",
   },
   charityStats: {
     title: "Statistiques Mondiales des Dons",

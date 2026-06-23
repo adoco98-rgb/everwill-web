@@ -522,6 +522,9 @@ export const de = {
     s11Title: "Einen Brief für jemanden Besonderen schreiben",
     s11Desc: "Hochzeit des Sohnes, 18. Geburtstag der Enkelin — schreiben Sie jetzt einen Brief, der zum richtigen Moment zugestellt wird. Druck & PDF-Export möglich.",
     s11Tag: "Legacy Letter PRO",
+    autobiographyCardTag: "Life Story PRO",
+    autobiographyCardTitle: "Meine Autobiografie schreiben",
+    autobiographyCardDesc: "Erstellen Sie Ihre Lebensgeschichte als Buch durch KI-Gespräche. Sprechen Sie Ihre Erinnerungen und die KI schreibt eine schöne Autobiografie für Sie.",
   },
   charityStats: {
     title: "Globale Spendenstatistik",

@@ -522,6 +522,9 @@ export const zh = {
     s11Title: "给最重要的人写信",
     s11Desc: "儿子婚礼、孙女成年——现在就写好将在完美时刻送达的信。支持打印与PDF导出。",
     s11Tag: "Legacy Letter PRO",
+    autobiographyCardTag: "Life Story PRO",
+    autobiographyCardTitle: "撰写我的自传",
+    autobiographyCardDesc: "通过与AI对话，将您的人生故事写成一本书。用语音讲述您的记忆，AI将为您撰写一部美丽的自传。",
   },
   charityStats: {
     title: "全球遗嘱捐赠统计",

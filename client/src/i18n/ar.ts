@@ -522,6 +522,9 @@ export const ar = {
     s11Title: "كتابة رسالة لشخص مميز",
     s11Desc: "زفاف الابن، عيد ميلاد الحفيدة — اكتب رسالة ستصل في الوقت المناسب. متاح الطباعة وPDF.",
     s11Tag: "Legacy Letter PRO",
+    autobiographyCardTag: "Life Story PRO",
+    autobiographyCardTitle: "كتابة سيرتي الذاتية",
+    autobiographyCardDesc: "أنشئ قصة حياتك كتاباً من خلال المحادثة مع الذكاء الاصطناعي. تحدث عن ذكرياتك وسيكتب الذكاء الاصطناعي سيرة ذاتية جميلة لك.",
   },
   charityStats: {
     title: "إحصائيات التبرع العالمية",

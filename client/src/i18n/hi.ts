@@ -521,6 +521,9 @@ export const hi = {
     s11Title: "किसी खास व्यक्ति को पत्र लिखें",
     s11Desc: "बेटे की शादी, पोती का 18वां जन्मदिन — अभी पत्र लिखें जो सही समय पर पहुंचेगा। प्रिंट और PDF उपलब्ध।",
     s11Tag: "Legacy Letter PRO",
+    autobiographyCardTag: "Life Story PRO",
+    autobiographyCardTitle: "मेरी आत्मकथा लिखें",
+    autobiographyCardDesc: "AI बातचीत के माध्यम से अपनी जीवन कहानी को एक किताब के रूप में बनाएं। अपनी यादें बोलें और AI आपके लिए एक सुंदर आत्मकथा लिखेगा।",
   },
   charityStats: {
     title: "वैश्विक दान सांख्यिकी",

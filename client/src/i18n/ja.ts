@@ -522,6 +522,9 @@ export const ja = {
     s11Title: "大切な人への手紙を書く",
     s11Desc: "息子の結婚式、孫娘の成人の日 — 望む瞬間に届く手紙を今書いておきましょう。印刷・PDF出力対応。",
     s11Tag: "Legacy Letter PRO",
+    autobiographyCardTag: "Life Story PRO",
+    autobiographyCardTitle: "私の自叙伝を書く",
+    autobiographyCardDesc: "AIとの会話を通じて、自分だけの人生の物語を本にしましょう。声で話すだけで、AIが美しい自叙伝を書いてくれます。",
   },
   charityStats: {
     title: "世界の遺贈寄付状況",

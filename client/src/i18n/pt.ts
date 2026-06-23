@@ -521,6 +521,9 @@ export const pt = {
     s11Title: "Escrever uma Carta para Alguém Especial",
     s11Desc: "Casamento do filho, 18 anos da neta — escreva agora uma carta que chegará no momento certo. Impressão e PDF disponíveis.",
     s11Tag: "Legacy Letter PRO",
+    autobiographyCardTag: "Life Story PRO",
+    autobiographyCardTitle: "Escrever minha autobiografia",
+    autobiographyCardDesc: "Crie sua história de vida como um livro através de conversas com IA. Fale suas memórias e a IA escreverá uma bela autobiografia para você.",
   },
   charityStats: {
     title: "Estatísticas Globais de Doações",
