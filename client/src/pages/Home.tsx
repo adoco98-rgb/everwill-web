@@ -72,11 +72,10 @@ export default function Home() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-[#C9A961] text-sm font-semibold tracking-widest uppercase mb-3">EverWill Partner</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
-            변호사·세무사·금융 전문가와 함께하세요
+            에버윌과 함께 당신의 미래를 만들어 가세요
           </h2>
           <p className="text-white/70 text-base mb-8 max-w-xl mx-auto">
-            EverWill 파트너로 등록하고 전 세계 고객과 연결되세요.<br />
-            사후 집행 수수료의 15-25%를 수익으로 받습니다.
+            EverWill 파트너로 등록하고 전 세계 고객과 연결되세요.
           </p>
           <a
             href="/partner"
