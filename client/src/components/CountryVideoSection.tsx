@@ -66,17 +66,30 @@ const VIDEO_SECTION_TEXT: Record<string, { label: string; title: string; subtitl
   ru: { label: "ВИДЕО EVERWILL", title: "EverWill: Цифровой акт любви", subtitle: "Узнайте о важности завещания и сервисе EverWill.", version: "версия", preparing: "Видео для этой страны готовится." },
 };
 
-// YouTube URL을 embed URL로 변환
-function toEmbedUrl(url: string): string {
+// 언어 코드 → YouTube hl 파라미터 매핑
+const LANG_TO_YT_HL: Record<string, string> = {
+  ko: 'ko', en: 'en', ja: 'ja', zh: 'zh-Hans', de: 'de',
+  es: 'es', ar: 'ar', fr: 'fr', ru: 'ru', hi: 'hi', pt: 'pt',
+  ca: 'en', au: 'en', nz: 'en', mx: 'es', it: 'it',
+  nl: 'nl', sg: 'en', th: 'th', vi: 'vi', tl: 'fil',
+};
+
+// YouTube URL을 embed URL로 변환 (언어 파라미터 포함)
+function toEmbedUrl(url: string, lang?: string): string {
   if (!url) return url;
+  const hl = LANG_TO_YT_HL[lang ?? 'ko'] ?? 'ko';
+  const hlParam = `hl=${hl}&cc_lang_pref=${hl}`;
   // 이미 embed URL인 경우
-  if (url.includes('youtube.com/embed/')) return url;
+  if (url.includes('youtube.com/embed/')) {
+    const sep = url.includes('?') ? '&' : '?';
+    return `${url}${sep}${hlParam}`;
+  }
   // youtu.be 단축 URL
   const shortMatch = url.match(/youtu\.be\/([^?&]+)/);
-  if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
+  if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}?${hlParam}`;
   // 일반 youtube.com/watch?v= URL
   const watchMatch = url.match(/[?&]v=([^?&]+)/);
-  if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`;
+  if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}?${hlParam}`;
   return url;
 }
 
@@ -86,7 +99,7 @@ export default function CountryVideoSection() {
 
   const videoKey = LANG_TO_VIDEO_KEY[language] ?? "video_kr";
   const rawUrl = videos?.[videoKey] ?? videos?.["video_kr"] ?? null;
-  const embedUrl = rawUrl ? toEmbedUrl(rawUrl) : null;
+  const embedUrl = rawUrl ? toEmbedUrl(rawUrl, language) : null;
   // 현재 언어로 국가명 표시
   const countryLabel = getVideoLabel(videoKey, language);
   const txt = VIDEO_SECTION_TEXT[language] ?? VIDEO_SECTION_TEXT["en"];

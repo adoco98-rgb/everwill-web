@@ -225,7 +225,7 @@ export default function GlobalSection() {
         {/* 섹션 헤더 */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.7 }}
           className="text-center mb-10"
         >
@@ -242,7 +242,7 @@ export default function GlobalSection() {
         {/* 세계지도 + 국기 핀 - 데스크탑만 표시 */}
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
-          animate={isInView ? { opacity: 1, scale: 1 } : {}}
+          animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative w-full mb-10 hidden sm:block"
           style={{ aspectRatio: '2/1', paddingBottom: undefined }}
@@ -263,7 +263,7 @@ export default function GlobalSection() {
               <motion.button
                 key={pin.code}
                 initial={{ opacity: 0, scale: 0 }}
-                animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.4, delay: 0.3 + i * 0.06 }}
                 onClick={() => handlePinClick(pin.code)}
                 className="absolute transform -translate-x-1/2 -translate-y-1/2 group z-10"
@@ -452,7 +452,7 @@ export default function GlobalSection() {
         {!selectedPin && (
           <motion.div
             initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
+            animate={isInView ? { opacity: 1 } : { opacity: 0 }}
             transition={{ duration: 0.6, delay: 0.8 }}
             className="text-center mb-12"
           >
@@ -465,7 +465,7 @@ export default function GlobalSection() {
         {/* 언어 지원 헤더 */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.7, delay: 0.4 }}
           className="text-center"
         >
@@ -485,7 +485,7 @@ export default function GlobalSection() {
                 key={pin.code}
                 onClick={() => handlePinClick(pin.code as Language)}
                 initial={{ opacity: 0, scale: 0.85, y: 10 }}
-                animate={isInView ? { opacity: 1, scale: 1, y: 0 } : {}}
+                animate={isInView ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
                 transition={{ duration: 0.4, delay: 0.5 + i * 0.05 }}
                 className={`flex items-center gap-2 border rounded-xl px-3 py-2 transition-all group shrink-0 ${
                   (selectedPin === pin.code || (!selectedPin && language === pin.code))
@@ -520,7 +520,7 @@ export default function GlobalSection() {
           {/* 아랍어 특별 안내 */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
+            animate={isInView ? { opacity: 1 } : { opacity: 0 }}
             transition={{ duration: 0.6, delay: 1.1 }}
             className="mt-8 inline-flex items-center gap-2 text-[#C9A961] text-sm font-medium"
           >

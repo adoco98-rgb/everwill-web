@@ -83,7 +83,7 @@ export default function ReviewsSection() {
         {/* 리뷰 섹션 */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.7 }}
           className="text-center mb-12"
         >
@@ -107,7 +107,7 @@ export default function ReviewsSection() {
             <motion.div
               key={review.name}
               initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: i * 0.08 }}
               className="bg-[#FAFAF8] rounded-xl p-6 border border-gray-100 card-hover"
             >
@@ -133,7 +133,7 @@ export default function ReviewsSection() {
         {/* FAQ 섹션 */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.7, delay: 0.2 }}
         >
           <div className="text-center mb-10">
@@ -147,7 +147,7 @@ export default function ReviewsSection() {
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 10 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                 transition={{ duration: 0.4, delay: 0.3 + i * 0.06 }}
                 className="bg-[#FAFAF8] rounded-xl border border-gray-100 overflow-hidden"
               >
@@ -175,7 +175,7 @@ export default function ReviewsSection() {
           {/* ── 법적 근거 비교표 ── */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.7, delay: 0.5 }}
             className="mt-16"
           >

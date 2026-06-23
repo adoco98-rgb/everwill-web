@@ -98,7 +98,7 @@ export default function HeroSection() {
           className="w-full h-full object-cover object-center"
         />
         {/* 다층 오버레이: 상단 네이비 + 하단 강한 어둠 */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1F3864]/75 via-[#1F3864]/55 to-[#0f1e36]/85" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1F3864]/80 via-[#1F3864]/65 to-[#0f1e36]/90" />
         {/* 중앙 집중 비네트 */}
         <div className="absolute inset-0 bg-radial-[ellipse_at_center] from-transparent via-transparent to-[#0f1e36]/40" />
       </div>
@@ -125,7 +125,7 @@ export default function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.15 }}
           className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-white leading-[1.15] mb-4 sm:mb-6 max-w-5xl w-full"
-          style={{ fontFamily: "'Playfair Display', serif" }}
+          style={{ fontFamily: "'Playfair Display', serif", textShadow: '0 2px 20px rgba(0,0,0,0.8), 0 1px 6px rgba(0,0,0,0.95)' }}
         >
           {t.hero.title1}
           <br />
