@@ -65,7 +65,7 @@ export default function LawyersSection() {
         {/* ── 섹션 헤더 ── */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
           className="text-center mb-16"
         >
@@ -88,7 +88,7 @@ export default function LawyersSection() {
         {/* ── 현재 집행 프로세스 ── */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1 }}
           className="mb-16"
         >
@@ -105,7 +105,7 @@ export default function LawyersSection() {
                 <motion.div
                   key={step.step}
                   initial={{ opacity: 0, y: 20 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.1 + i * 0.1 }}
                   className="relative"
                 >
@@ -133,7 +133,7 @@ export default function LawyersSection() {
           {/* 변호사 안내 배너 */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
             className="mt-6 bg-[#1F3864]/5 border border-[#1F3864]/10 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4"
           >
@@ -151,7 +151,7 @@ export default function LawyersSection() {
         {/* ── 미래 비전: AI 자동화 ── */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.3 }}
           className="bg-gradient-to-br from-[#1F3864] to-[#2a4a7f] rounded-3xl p-8 lg:p-12 text-white"
         >
@@ -179,7 +179,7 @@ export default function LawyersSection() {
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 20 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.4 + i * 0.1 }}
                   className="bg-white/10 backdrop-blur rounded-2xl p-5 border border-white/10 hover:border-[#C9A961]/30 transition-colors"
                 >

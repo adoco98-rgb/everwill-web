@@ -184,7 +184,7 @@ export default function ReferralSection() {
         {/* 섹션 헤더 */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
           className="text-center mb-14"
         >
@@ -205,7 +205,7 @@ export default function ReferralSection() {
         {/* 혜택 카드 3개 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.15 }}
           className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12"
         >
@@ -230,7 +230,7 @@ export default function ReferralSection() {
         {/* 공유 영역 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
           className="bg-white/8 border border-[#C9A961]/25 rounded-3xl p-5 sm:p-8"
         >

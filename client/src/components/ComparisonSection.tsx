@@ -753,7 +753,7 @@ export default function ComparisonSection() {
         {/* ── 헤더 ── */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
           className="text-center mb-14"
         >
@@ -772,7 +772,7 @@ export default function ComparisonSection() {
         {/* ── 테이블 헤더 ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
           className="grid grid-cols-3 gap-1 sm:gap-2 mb-3 px-1"
         >
@@ -803,7 +803,7 @@ export default function ComparisonSection() {
               <motion.div
                 key={i}
                 initial={{ opacity: 0, x: -20 }}
-                animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.15 + i * 0.08 }}
                 className="grid grid-cols-3 gap-0 bg-white rounded-xl sm:rounded-2xl border-2 border-gray-100 shadow-sm overflow-hidden min-w-0"
               >
@@ -848,7 +848,7 @@ export default function ComparisonSection() {
         {/* ── 요약 배너 ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.7 }}
           className="mt-10 bg-[#1F3864] rounded-2xl p-5 sm:p-10 text-center"
         >

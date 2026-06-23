@@ -46,7 +46,7 @@ export default function TrustSection() {
         {/* 글로벌 뉴스 게시판 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="mb-14"
         >
@@ -92,7 +92,7 @@ export default function TrustSection() {
                   target="_blank"
                   rel="noopener noreferrer"
                   initial={{ opacity: 0, y: 20 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: i * 0.08 }}
                   className="group bg-white border border-gray-100 rounded-xl p-5 hover:shadow-md hover:border-[#C9A961]/30 transition-all"
                 >

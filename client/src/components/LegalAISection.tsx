@@ -58,7 +58,7 @@ export default function LegalAISection() {
         {/* 헤더 */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
           className="text-center mb-14"
         >
@@ -82,7 +82,7 @@ export default function LegalAISection() {
           {/* 좌측: AI 채팅 미리보기 */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
-            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.2 }}
           >
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5 shadow-2xl">
@@ -158,7 +158,7 @@ export default function LegalAISection() {
           {/* 우측: 기능 설명 */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
-            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.3 }}
             className="space-y-4"
           >
@@ -168,7 +168,7 @@ export default function LegalAISection() {
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 20 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.3 + i * 0.1 }}
                   className="flex items-start gap-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-5 transition-all"
                 >
@@ -186,7 +186,7 @@ export default function LegalAISection() {
             {/* CTA 버튼 */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.7 }}
               className="pt-2"
             >
@@ -207,7 +207,7 @@ export default function LegalAISection() {
         {/* 하단: 예시 질문 4개 */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
         >

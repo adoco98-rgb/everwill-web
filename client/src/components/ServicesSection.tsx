@@ -117,7 +117,7 @@ export default function ServicesSection() {
         {/* ── 섹션 헤더 ── */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
           className="text-center mb-14"
         >
@@ -133,7 +133,7 @@ export default function ServicesSection() {
         {/* ── 법률 전문 AI 강조 배너 ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
           className="bg-gradient-to-r from-[#1F3864] to-[#2a4d8a] rounded-2xl p-6 mb-8 flex flex-col sm:flex-row items-center gap-5 shadow-lg"
         >
@@ -166,7 +166,7 @@ export default function ServicesSection() {
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
-                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.15 + i * 0.06 }}
                 className={`${feature.cardBg} rounded-2xl p-5 border ${
                   feature.isPremium ? 'border-[#C9A961]/40 ring-1 ring-[#C9A961]/20' : 'border-white/60'
@@ -198,7 +198,7 @@ export default function ServicesSection() {
         {/* ── 영상 유언장 + 자필 유언 스캔 통합 카드 ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.65 }}
           className="bg-orange-50 rounded-2xl p-6 border border-orange-100 hover:shadow-lg transition-all"
         >

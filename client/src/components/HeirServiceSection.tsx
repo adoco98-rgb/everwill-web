@@ -739,7 +739,7 @@ export default function HeirServiceSection() {
         {/* ── 헤더 ── */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
           className="text-center mb-14"
         >
@@ -765,7 +765,7 @@ export default function HeirServiceSection() {
           {/* 왼쪽: 가입 절차 */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
-            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.1 }}
             className="flex flex-col"
           >
@@ -780,7 +780,7 @@ export default function HeirServiceSection() {
                   <motion.div
                     key={i}
                     initial={{ opacity: 0, y: 15 }}
-                    animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
                     className="flex gap-4 bg-white rounded-2xl px-5 py-4 shadow-sm border border-gray-100"
                   >
@@ -818,7 +818,7 @@ export default function HeirServiceSection() {
           {/* 오른쪽: 수수료 계산기 */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
-            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.2 }}
             className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 flex flex-col"
           >
@@ -936,7 +936,7 @@ export default function HeirServiceSection() {
         {/* ── 기본 가입비 포함 내용 박스 ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-10 bg-white rounded-3xl shadow-sm border border-[#C9A961]/20 p-8"
         >
@@ -966,7 +966,7 @@ export default function HeirServiceSection() {
         {/* ── 법률 전문가 연결 서비스 섹션 ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.45 }}
           className="mt-6 bg-gradient-to-br from-[#1F3864] to-[#2a4a7f] rounded-3xl p-8 text-white"
         >
@@ -1006,7 +1006,7 @@ export default function HeirServiceSection() {
         {/* ── 서비스 비교 표 ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
           className="mt-6"
         >
@@ -1074,7 +1074,7 @@ export default function HeirServiceSection() {
         {/* ── 하단 안내 ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.55 }}
           className="mt-6 bg-[#1F3864]/5 border border-[#1F3864]/10 rounded-2xl px-6 py-4 text-center"
         >
