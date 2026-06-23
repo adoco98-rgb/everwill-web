@@ -548,7 +548,7 @@ const partnerTexts: Record<string, any> = {
     proGroupName: "전문가 그룹",
     proGroupDesc: "변호사, 세무사, 법무사 등 법률·세무 전문가를 위한 프리미엄 파트너십",
     proGroupFeatures: [
-      "고객 유치 시 최대 30% 커미션",
+      "고객 유치 시 커미션 지급",
       "전문가 소개 페이지 프로필 노출",
       "고객 사망 시 자동 수임 연결",
       "국가별·지역별 전문가 리스트 등재",
@@ -557,7 +557,7 @@ const partnerTexts: Record<string, any> = {
     helperGroupName: "헬퍼 그룹",
     helperGroupDesc: "보험설계사, 유튜버, 셀럽, 블로거 등 다양한 채널의 영업 파트너",
     helperGroupFeatures: [
-      "추천 링크로 고객 유치 시 커미션",
+      "추천 링크로 고객 유치 시 커미션 지급",
       "실적에 따라 등급 자동 승급",
       "마케팅 자료 및 배너 제공",
       "실시간 수익 대시보드",
@@ -629,7 +629,7 @@ const partnerTexts: Record<string, any> = {
     proGroupName: "Professional Group",
     proGroupDesc: "Premium partnership for attorneys, CPAs, and legal professionals",
     proGroupFeatures: [
-      "Up to 30% commission on client acquisition",
+      "Commission paid on client acquisition",
       "Profile listing on expert directory page",
       "Automatic case assignment upon client death",
       "Listed by country and region",
@@ -710,7 +710,7 @@ const partnerTexts: Record<string, any> = {
     proGroupName: "専門家グループ",
     proGroupDesc: "弁護士、税理士、司法書士などの法律・税務専門家向けプレミアムパートナーシップ",
     proGroupFeatures: [
-      "顧客獲得時最大30%コミッション",
+      "顧客獲得時コミッション支給",
       "専門家紹介ページにプロフィール掲載",
       "顧客死亡時に自動受任連携",
       "国別・地域別専門家リスト掲載",
@@ -791,7 +791,7 @@ const partnerTexts: Record<string, any> = {
     proGroupName: "专家组",
     proGroupDesc: "面向律师、税务师、法务师等法律·税务专家的高级合作伙伴关系",
     proGroupFeatures: [
-      "客户获取最高30%佣金",
+      "客户获取时支付佣金",
       "专家介绍页面展示个人资料",
       "客户去世时自动承接案件",
       "按国家·地区列入专家名单",
