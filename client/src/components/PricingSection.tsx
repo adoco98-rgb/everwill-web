@@ -184,7 +184,7 @@ export default function PricingSection() {
         {/* ── 섹션 헤더 ── */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
           className="text-center mb-12"
         >
@@ -216,7 +216,7 @@ export default function PricingSection() {
         {/* ── 카드 기능 4가지 ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-14"
         >
@@ -241,7 +241,7 @@ export default function PricingSection() {
             <motion.div
               key={card.tier}
               initial={{ opacity: 0, y: 40 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 + i * 0.12 }}
               className={`relative rounded-2xl border ${card.borderColor} ${card.bgCard} p-6 shadow-xl hover:-translate-y-1 transition-transform duration-300 flex flex-col ${card.popular ? "ring-2 ring-[#C9A961]/50" : ""}`}
             >
@@ -327,7 +327,7 @@ export default function PricingSection() {
         {/* ── 무료 시작 배너 ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.7 }}
           className="bg-white/5 border border-white/15 rounded-2xl p-6 lg:p-8 flex flex-col lg:flex-row items-center justify-between gap-6"
         >
@@ -361,7 +361,7 @@ export default function PricingSection() {
         {/* ── 포함 기능 체크리스트 (무료) ── */}
         <motion.div
           initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.9 }}
           className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-2"
         >
@@ -379,7 +379,7 @@ export default function PricingSection() {
         {/* ── 하단 안내 ── */}
         <motion.div
           initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 1.0 }}
           className="text-center mt-8"
         >
