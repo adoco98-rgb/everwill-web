@@ -10,7 +10,7 @@ import { MapPin, ArrowRight, Globe, Languages, CreditCard, Scale, Users, ShieldC
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Language } from "@/i18n";
 // WorldMapSVG 대신 실제 세계지도 이미지 사용
-const WORLD_MAP_URL = "/manus-storage/worldmap_bg_5db947eb.jpg";
+const WORLD_MAP_URL = "/manus-storage/worldmap_bg_processed_5de73b25.png";
 
 // 국가별 세계지도 위 위치 (% 기준, 지도 이미지에 맞게 조정)
 type CountryPin = {
