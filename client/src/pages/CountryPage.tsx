@@ -81,16 +81,6 @@ function CountryHero({ data }: { data: CountryPageData }) {
           </span>
         </motion.div>
 
-        {/* 법적 상태 배지 */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="flex justify-center mb-8"
-        >
-          <LegalStatusBadge status={data.legalStatus} label={data.legalStatusLabel} />
-        </motion.div>
-
         {/* 메인 타이틀 */}
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
@@ -152,15 +142,10 @@ function LegalBasisSection({ data }: { data: CountryPageData }) {
         >
           <span className="text-[#C9A961] text-sm font-semibold tracking-widest uppercase">Legal Basis</span>
           <h2 className="text-3xl font-bold text-[#1F3864] mt-2">
-            {data.legalStatus === "active" ? "Full Legal Validity" : data.legalStatus === "partial" ? "법적 근거" : "Legal Review in Progress"}
+            {data.countryCode} EverWill 법적 근거
           </h2>
           <p className="text-[#6B7280] mt-3 max-w-2xl mx-auto">
-            {data.legalStatus === "active"
-              ? `EverWill operates in full compliance with ${data.countryCode} law. Every will is legally valid and immediately enforceable.`
-              : data.legalStatus === "partial"
-              ? `EverWill은 한국 민법 및 전자서명법에 기반하여 서비스를 제공합니다. 현재 전자 유언 인증에 대한 세부 법률 검토가 진행 중입니다.`
-              : `Legal review is in progress for ${data.countryCode}. Service will be available upon completion.`
-            }
+            EverWill은 해당 국가의 관련 법률에 기반하여 서비스를 제공합니다.
           </p>
         </motion.div>
         <div className="grid md:grid-cols-2 gap-4">
