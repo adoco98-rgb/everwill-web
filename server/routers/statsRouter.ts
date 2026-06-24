@@ -16,6 +16,10 @@ const CERTIFIED_KEY = "certified_members";
 const COUNTRY_MEMBER_PREFIX = "country_members_";
 // Hero 배지(가입자 수 카운터) 노출 여부 키
 const MEMBER_BADGE_VISIBLE_KEY = "hero_member_badge_visible";
+// 실제 가입자 수 표시 여부 키
+const SHOW_REAL_COUNT_KEY = "show_real_member_count";
+// 임의 가입자 수 표시 여부 키
+const SHOW_MANUAL_COUNT_KEY = "show_manual_member_count";
 
 // 지원 국가 목록 (Hero 섹션 표시용)
 export const SUPPORTED_DISPLAY_COUNTRIES = [
@@ -57,10 +61,10 @@ export const statsRouter = router({
     return { count: rows[0].value };
   }),
 
-  /** 전체 회원 수 조회 (DB 실제 가입자 + 국가별 임의 가입자 합산) */
+  /** 전체 회원 수 조회 (DB 실제 가입자 + 국가별 임의 가입자 합산, 표시 여부 반영) */
   getTotalMemberCount: publicProcedure.query(async () => {
     const db = await getDb();
-    if (!db) return { total: 4709 }; // 기본값: 3509+450+750
+    if (!db) return { total: 4709, realCount: 0, manualCount: 4709, showReal: true, showManual: true };
 
     // DB 실제 가입자 수
     const result = await db.select({ cnt: count() }).from(users);
@@ -71,13 +75,17 @@ export const statsRouter = router({
       .select()
       .from(siteStats)
       .where(like(siteStats.key, `${COUNTRY_MEMBER_PREFIX}%`));
-
     const manualTotal = countryRows.reduce((sum, row) => sum + (row.value ?? 0), 0);
-
-    // 임의 설정값이 없으면 기본값 사용
     const baseManual = manualTotal > 0 ? manualTotal : 4709;
 
-    return { total: baseManual + dbCount };
+    // 실제/임의 표시 여부 조회
+    const showRealRows = await db.select().from(siteStats).where(eq(siteStats.key, SHOW_REAL_COUNT_KEY)).limit(1);
+    const showManualRows = await db.select().from(siteStats).where(eq(siteStats.key, SHOW_MANUAL_COUNT_KEY)).limit(1);
+    const showReal = showRealRows.length === 0 ? true : showRealRows[0].value === 1;
+    const showManual = showManualRows.length === 0 ? true : showManualRows[0].value === 1;
+
+    const total = (showReal ? dbCount : 0) + (showManual ? baseManual : 0);
+    return { total, realCount: dbCount, manualCount: baseManual, showReal, showManual };
   }),
 
   /**
@@ -245,6 +253,48 @@ export const statsRouter = router({
           value: input.visible ? 1 : 0,
           label: "Hero 가입자 수 배지 노출 여부",
         })
+        .onDuplicateKeyUpdate({ set: { value: input.visible ? 1 : 0 } });
+      return { success: true, visible: input.visible };
+    }),
+
+  /** 실제 가입자 수 표시 여부 조회 */
+  getShowRealCount: publicProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) return { visible: true };
+    const rows = await db.select().from(siteStats).where(eq(siteStats.key, SHOW_REAL_COUNT_KEY)).limit(1);
+    if (rows.length === 0) return { visible: true };
+    return { visible: rows[0].value === 1 };
+  }),
+
+  /** 관리자 전용 - 실제 가입자 수 표시/숨김 설정 */
+  setShowRealCount: adminProcedure
+    .input(z.object({ visible: z.boolean() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      await db.insert(siteStats)
+        .values({ key: SHOW_REAL_COUNT_KEY, value: input.visible ? 1 : 0, label: "실제 가입자 수 표시 여부" })
+        .onDuplicateKeyUpdate({ set: { value: input.visible ? 1 : 0 } });
+      return { success: true, visible: input.visible };
+    }),
+
+  /** 임의 가입자 수 표시 여부 조회 */
+  getShowManualCount: publicProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) return { visible: true };
+    const rows = await db.select().from(siteStats).where(eq(siteStats.key, SHOW_MANUAL_COUNT_KEY)).limit(1);
+    if (rows.length === 0) return { visible: true };
+    return { visible: rows[0].value === 1 };
+  }),
+
+  /** 관리자 전용 - 임의 가입자 수 표시/숨김 설정 */
+  setShowManualCount: adminProcedure
+    .input(z.object({ visible: z.boolean() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      await db.insert(siteStats)
+        .values({ key: SHOW_MANUAL_COUNT_KEY, value: input.visible ? 1 : 0, label: "임의 가입자 수 표시 여부" })
         .onDuplicateKeyUpdate({ set: { value: input.visible ? 1 : 0 } });
       return { success: true, visible: input.visible };
     }),

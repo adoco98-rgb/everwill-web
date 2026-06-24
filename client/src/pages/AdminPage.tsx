@@ -75,6 +75,28 @@ function CountryMemberManager() {
   });
   const isBadgeVisible = badgeVisibility?.visible !== false; // 기본값 true
 
+  // 실제/임의 가입자 수 표시 여부
+  const { data: showRealData } = trpc.stats.getShowRealCount.useQuery(undefined, { staleTime: 30_000 });
+  const { data: showManualData } = trpc.stats.getShowManualCount.useQuery(undefined, { staleTime: 30_000 });
+  const showReal = showRealData?.visible !== false;
+  const showManual = showManualData?.visible !== false;
+  const setShowRealMutation = trpc.stats.setShowRealCount.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.visible ? "실제 가입자 수가 표시됩니다." : "실제 가입자 수가 숨겨집니다.");
+      utils.stats.getShowRealCount.invalidate();
+      utils.stats.getTotalMemberCount.invalidate();
+    },
+    onError: () => toast.error("설정 저장에 실패했습니다."),
+  });
+  const setShowManualMutation = trpc.stats.setShowManualCount.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.visible ? "임의 가입자 수가 표시됩니다." : "임의 가입자 수가 숨겨집니다.");
+      utils.stats.getShowManualCount.invalidate();
+      utils.stats.getTotalMemberCount.invalidate();
+    },
+    onError: () => toast.error("설정 저장에 실패했습니다."),
+  });
+
   const [localData, setLocalData] = useState<Record<string, { manualCount: number; displayEnabled: boolean }>>({});
   const [initialized, setInitialized] = useState(false);
 
@@ -121,6 +143,46 @@ function CountryMemberManager() {
               isBadgeVisible ? "translate-x-6" : "translate-x-1"
             }`}
           />
+        </button>
+      </div>
+
+      {/* 실제 가입자 수 표시 토글 */}
+      <div className="flex items-center justify-between p-4 bg-blue-50 rounded-xl border border-blue-100">
+        <div>
+          <h4 className="text-sm font-bold text-[#1F3864] flex items-center gap-2">
+            <Shield className="w-4 h-4 text-blue-500" />
+            실제 가입자 수 표시
+          </h4>
+          <p className="text-xs text-gray-400 mt-0.5">DB에 실제 로그인한 회원 수를 합산에 포함할지 설정합니다. 현재 실제 가입자: {(showRealData as any)?.realCount ?? 0}명</p>
+        </div>
+        <button
+          onClick={() => setShowRealMutation.mutate({ visible: !showReal })}
+          disabled={setShowRealMutation.isPending}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
+            showReal ? "bg-blue-500" : "bg-gray-300"
+          }`}
+        >
+          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${showReal ? "translate-x-6" : "translate-x-1"}`} />
+        </button>
+      </div>
+
+      {/* 임의 가입자 수 표시 토글 */}
+      <div className="flex items-center justify-between p-4 bg-amber-50 rounded-xl border border-amber-100">
+        <div>
+          <h4 className="text-sm font-bold text-[#1F3864] flex items-center gap-2">
+            <Globe className="w-4 h-4 text-[#C9A961]" />
+            임의 가입자 수 표시
+          </h4>
+          <p className="text-xs text-gray-400 mt-0.5">관리자가 설정한 국가별 임의 가입자 수를 합산에 포함할지 설정합니다.</p>
+        </div>
+        <button
+          onClick={() => setShowManualMutation.mutate({ visible: !showManual })}
+          disabled={setShowManualMutation.isPending}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
+            showManual ? "bg-[#C9A961]" : "bg-gray-300"
+          }`}
+        >
+          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${showManual ? "translate-x-6" : "translate-x-1"}`} />
         </button>
       </div>
 

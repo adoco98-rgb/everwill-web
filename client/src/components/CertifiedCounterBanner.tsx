@@ -42,12 +42,12 @@ export default function CertifiedCounterBanner() {
   const [editing, setEditing] = useState(false);
   const [inputVal, setInputVal] = useState("");
 
-  const { data, refetch } = trpc.stats.getCertifiedCount.useQuery();
+  const { data, refetch } = trpc.stats.getTotalMemberCount.useQuery();
   const setCount = trpc.stats.setCertifiedCount.useMutation({
     onSuccess: () => { refetch(); setEditing(false); },
   });
 
-  const count = data?.count ?? 0;
+  const count = data?.total ?? 0;
   const animated = useCountUp(count);
 
   // count가 0이면 숨김 처리 (관리자는 항상 표시)
