@@ -104,7 +104,7 @@ export default function HeroSection() {
       </div>
 
       {/* 중앙 콘텐츠 */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 text-center pt-36 sm:pt-32 pb-16 sm:pb-24">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 text-center pt-48 sm:pt-44 pb-16 sm:pb-24">
 
         {/* 상단 배지 */}
         <motion.div
