@@ -125,7 +125,7 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
               <Shield className="w-8 h-8 text-[#C9A961]" />
             </div>
             <img
-              src="/manus-storage/everwill-logo-transparent_51e4e8ca.png"
+              src="/everwill-logo.png"
               alt="EverWill"
               className="object-contain mx-auto mb-2"
               style={{ height: '48px', maxWidth: '180px' }}
@@ -198,7 +198,7 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3 flex-1">
                 <img
-                  src="/manus-storage/logo_7_bronze_a9146f73.png"
+                  src="/everwill-logo.png"
                   alt="EverWill"
                   className="object-contain drop-shadow-xl brightness-110"
                   style={{ height: '64px', width: '64px' }}
@@ -349,7 +349,7 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
           </button>
           <div className="flex items-center gap-2">
             <img
-              src="/manus-storage/logo_7_bronze_a9146f73.png"
+              src="/everwill-logo.png"
               alt="EverWill"
               className="object-contain drop-shadow-md brightness-110"
               style={{ height: '48px', width: '48px' }}
