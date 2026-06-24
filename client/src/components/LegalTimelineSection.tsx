@@ -166,7 +166,7 @@ const countryStatus = [
     flag: "🇰🇷",
     nameKo: "한국",
     nameEn: "Korea",
-    stars: 3,
+    stars: 4,
     statusKo: "법리 분석 검토 중",
     statusEn: "Legal Analysis Underway",
     descKo: "전자서명법 완비(2020). 민법 개정 논의 진행 중. EverWill 1차 출시 시장.",
