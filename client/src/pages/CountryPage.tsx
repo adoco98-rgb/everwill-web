@@ -235,90 +235,145 @@ function FeaturesSection({ data }: { data: CountryPageData }) {
 }
 
 // ─── 가격 섹션 ───────────────────────────────────────────────────────────────
+// 국가별 통화에 따른 4개 플랜 가격 매핑
+const CURRENCY_PRICE_MAP: Record<string, { silver: string; gold: string; platinum: string; vip: string }> = {
+  KRW:     { silver: "₩49,000",    gold: "₩79,000",    platinum: "₩99,000",    vip: "₩199,000" },
+  USD:     { silver: "$49",        gold: "$79",        platinum: "$99",        vip: "$199" },
+  JPY:     { silver: "¥7,595",     gold: "¥12,245",    platinum: "¥15,345",    vip: "¥30,845" },
+  EUR:     { silver: "€49",        gold: "€79",        platinum: "€99",        vip: "€199" },
+  SAR:     { silver: "SAR 184",    gold: "SAR 296",    platinum: "SAR 371",    vip: "SAR 746" },
+  RUB:     { silver: "₽4,500",     gold: "₽7,200",     platinum: "₽9,000",     vip: "₽18,100" },
+  INR:     { silver: "₹4,100",     gold: "₹6,600",     platinum: "₹8,200",     vip: "₹16,500" },
+  BRL:     { silver: "R$249",      gold: "R$399",      platinum: "R$499",      vip: "R$999" },
+  AUD:     { silver: "A$75",       gold: "A$119",      platinum: "A$149",      vip: "A$299" },
+  NZD:     { silver: "NZ$82",      gold: "NZ$132",     platinum: "NZ$165",     vip: "NZ$329" },
+  CAD:     { silver: "C$67",       gold: "C$107",      platinum: "C$134",      vip: "C$269" },
+  "HKD/TWD": { silver: "HK$379",  gold: "HK$609",     platinum: "HK$759",     vip: "HK$1,529" },
+};
+
 function PricingSection({ data }: { data: CountryPageData }) {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true });
+
+  // 국가 통화에 맞는 가격 가져오기 (없으면 USD 기본값)
+  const prices = CURRENCY_PRICE_MAP[data.currency] ?? CURRENCY_PRICE_MAP["USD"];
 
   const plans = [
     {
-      name: "Free",
-      price: "Free",
-      desc: "AI will drafting, unlimited revisions",
-      features: ["AI will drafting", "10-step wizard", "PDF preview", "Unlimited edits"],
-      cta: "Start Free",
+      tier: "Silver",
+      name: data.currency === "KRW" ? "실버 카드" : "Silver Card",
+      price: prices.silver,
+      desc: data.currency === "KRW" ? "전자 인증 + 1년 보관" : "Certification + 1yr Storage",
+      features: [
+        data.currency === "KRW" ? "AI 유언장 작성 (무료)" : "AI will drafting (free)",
+        data.currency === "KRW" ? "eKYC 본인인증" : "eKYC identity verification",
+        data.currency === "KRW" ? "전자서명 + 블록체인 기록" : "Electronic signature + blockchain",
+        data.currency === "KRW" ? "인증 PDF 발급" : "Certified PDF issued",
+        data.currency === "KRW" ? "1년 보관 포함" : "1yr storage included",
+      ],
+      cta: data.currency === "KRW" ? "시작하기" : "Get Started",
       highlight: false,
+      popular: false,
     },
     {
-      name: "Certification",
-      price: data.certPrice,
-      desc: "Legally certified, blockchain secured",
+      tier: "Gold",
+      name: data.currency === "KRW" ? "골드 카드" : "Gold Card",
+      price: prices.gold,
+      desc: data.currency === "KRW" ? "전자 인증 + 3년 보관" : "Certification + 3yr Storage",
       features: [
-        "Everything in Free",
-        "eKYC identity verification",
-        "Electronic signature",
-        "Blockchain hash record",
-        "Certified PDF issued",
+        data.currency === "KRW" ? "실버 플랜 전체 포함" : "Everything in Silver",
+        data.currency === "KRW" ? "3년 보관 포함" : "3yr storage included",
+        data.currency === "KRW" ? "우선 사망 감지" : "Priority death detection",
+        data.currency === "KRW" ? "재인증 1회 포함" : "1 re-certification included",
       ],
-      cta: "Get Certified",
+      cta: data.currency === "KRW" ? "골드 시작" : "Start Gold",
       highlight: true,
+      popular: true,
     },
     {
-      name: "Membership",
-      price: data.membershipPrice,
-      desc: "Annual plan with all features",
+      tier: "Platinum",
+      name: data.currency === "KRW" ? "플래티넘 카드" : "Platinum Card",
+      price: prices.platinum,
+      desc: data.currency === "KRW" ? "전자 인증 + 5년 보관" : "Certification + 5yr Storage",
       features: [
-        "Everything in Certification",
-        "Unlimited re-certification",
-        "Video will recording",
-        "Handwritten will scan",
-        "Priority support",
-        "4-layer death detection",
+        data.currency === "KRW" ? "골드 플랜 전체 포함" : "Everything in Gold",
+        data.currency === "KRW" ? "5년 보관 포함" : "5yr storage included",
+        data.currency === "KRW" ? "영상 유언 포함" : "Video will included",
+        data.currency === "KRW" ? "자필 유언 스캔 포함" : "Handwritten will scan",
+        data.currency === "KRW" ? "VIP 변호사 접근" : "VIP attorney access",
       ],
-      cta: "Join Membership",
+      cta: data.currency === "KRW" ? "플래티넘 시작" : "Start Platinum",
       highlight: false,
+      popular: false,
+    },
+    {
+      tier: "VIP",
+      name: data.currency === "KRW" ? "VIP 프리미엄" : "VIP Premium",
+      price: prices.vip,
+      desc: data.currency === "KRW" ? "평생 보관 + 전담 서비스" : "Lifetime Storage + Dedicated Service",
+      features: [
+        data.currency === "KRW" ? "플래티넘 플랜 전체 포함" : "Everything in Platinum",
+        data.currency === "KRW" ? "평생 보관" : "Lifetime storage",
+        data.currency === "KRW" ? "전담 VIP 변호사" : "Dedicated VIP attorney",
+        data.currency === "KRW" ? "전담 컨시어지 서비스" : "Dedicated concierge",
+        data.currency === "KRW" ? "무제한 재인증" : "Unlimited re-certifications",
+      ],
+      cta: data.currency === "KRW" ? "VIP 시작" : "Start VIP",
+      highlight: false,
+      popular: false,
     },
   ];
 
   return (
     <section ref={ref} className="py-20 bg-gradient-to-br from-[#1F3864] to-[#0d1f3c]">
-      <div className="max-w-6xl mx-auto px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-14"
-        >
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center mb-14">
           <span className="text-[#C9A961] text-sm font-semibold tracking-widest uppercase">Pricing</span>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mt-2">Transparent Pricing, No Hidden Fees</h2>
-          <p className="text-white/60 mt-3">All prices in {data.currency}. Payment via {data.paymentMethods.join(", ")}.</p>
-        </motion.div>
-        <div className="grid md:grid-cols-3 gap-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mt-2">
+            {data.currency === "KRW" ? "투명한 가격 정책" : "Transparent Pricing, No Hidden Fees"}
+          </h2>
+          <p className="text-white/60 mt-3">
+            {data.currency === "KRW"
+              ? `모든 가격은 ${data.currency} 기준. 결제: ${data.paymentMethods.join(", ")}`
+              : `All prices in ${data.currency}. Payment via ${data.paymentMethods.join(", ")}.`
+            }
+          </p>
+          <p className="text-[#C9A961]/80 text-sm mt-2">
+            {data.currency === "KRW" ? "유언장 작성 무료 · 인증만 ₩49,000" : "Free to write · Certification only from " + prices.silver}
+          </p>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {plans.map((plan, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 30 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: i * 0.15 }}
-              className={`rounded-2xl p-8 flex flex-col ${
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className={`rounded-2xl p-6 flex flex-col relative ${
                 plan.highlight
-                  ? "bg-[#C9A961] text-[#1F3864]"
+                  ? "bg-[#C9A961] text-[#1F3864] shadow-2xl scale-105"
                   : "bg-white/10 text-white border border-white/20"
               }`}
             >
-              {plan.highlight && (
-                <div className="flex items-center gap-1 mb-3">
-                  <Star className="w-4 h-4 fill-[#1F3864]" />
-                  <span className="text-xs font-bold uppercase tracking-wider">Most Popular</span>
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="bg-[#1F3864] text-[#C9A961] text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                    ★ {data.currency === "KRW" ? "가장 인기" : "Most Popular"}
+                  </span>
                 </div>
               )}
-              <h3 className={`text-xl font-bold mb-1 ${plan.highlight ? "text-[#1F3864]" : "text-white"}`}>
+              <div className={`text-xs font-bold uppercase tracking-widest mb-2 ${
+                plan.highlight ? "text-[#1F3864]/60" : "text-[#C9A961]"
+              }`}>
+                {plan.tier}
+              </div>
+              <h3 className={`text-lg font-bold mb-1 ${plan.highlight ? "text-[#1F3864]" : "text-white"}`}>
                 {plan.name}
               </h3>
-              <div className={`text-3xl font-bold mb-2 ${plan.highlight ? "text-[#1F3864]" : "text-[#C9A961]"}`}>
+              <div className={`text-2xl font-bold mb-1 ${plan.highlight ? "text-[#1F3864]" : "text-[#C9A961]"}`}>
                 {plan.price}
               </div>
-              <p className={`text-sm mb-6 ${plan.highlight ? "text-[#1F3864]/70" : "text-white/60"}`}>{plan.desc}</p>
-              <ul className="space-y-2 flex-1 mb-8">
+              <p className={`text-xs mb-5 ${plan.highlight ? "text-[#1F3864]/70" : "text-white/50"}`}>{plan.desc}</p>
+              <ul className="space-y-2 flex-1 mb-6">
                 {plan.features.map((f, j) => (
                   <li key={j} className="flex items-start gap-2 text-sm">
                     <Check className={`w-4 h-4 mt-0.5 shrink-0 ${plan.highlight ? "text-[#1F3864]" : "text-[#C9A961]"}`} />
@@ -326,9 +381,9 @@ function PricingSection({ data }: { data: CountryPageData }) {
                   </li>
                 ))}
               </ul>
-              <Link href="/register">
+              <Link href="/payment">
                 <Button
-                  className={`w-full rounded-full font-bold ${
+                  className={`w-full rounded-full font-bold text-sm ${
                     plan.highlight
                       ? "bg-[#1F3864] text-white hover:bg-[#0d1f3c]"
                       : "bg-white/20 text-white hover:bg-white/30 border border-white/30"
@@ -340,6 +395,12 @@ function PricingSection({ data }: { data: CountryPageData }) {
             </motion.div>
           ))}
         </div>
+        <p className="text-center text-white/40 text-xs mt-8">
+          {data.currency === "KRW"
+            ? "* 유언장 작성은 무료. 재인증 ₩15,000. 영상 유언 +₩29,000. 자필 스캔 +₩19,000."
+            : `* Will writing is free. Re-certification ${prices.silver.replace(/\d.*/, "") + data.renewPrice}. Video will +${data.currency === "USD" ? "$29" : ""}. Handwritten scan +${data.currency === "USD" ? "$19" : ""}.`
+          }
+        </p>
       </div>
     </section>
   );
