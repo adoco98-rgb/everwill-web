@@ -162,8 +162,8 @@ export default function PricingSection() {
       popular: false,
       icon: Sparkles,
       features: isKo
-        ? ["eKYC 전자 인증 완료", "QR 신원 인증", "NFC 태그", "유언 인증 번호", "영구 보관", "자필·영상 유언 포함", "사망 트리거 우선 처리", "VIP 전담 변호사 연결", "전담 콘시어지 서비스", "수정 무제한 무료", "AI 일기쓰기 (Life Story)", "소중한 사람에게 편지쓰기"]
-        : ["eKYC Certified", "QR Identity", "NFC Tag", "Will Certificate", "Lifetime Storage", "Handwritten & Video Will", "Priority Death Trigger", "Dedicated VIP Attorney", "Dedicated Concierge", "Unlimited Free Revisions", "AI Life Story Diary", "Legacy Letter Writing"],
+        ? ["eKYC 전자 인증 완료", "QR 신원 인증", "NFC 태그", "유언 인증 번호", "영구 보관", "자필 유언 스캔 인증", "영상 유언 포함", "사망 트리거 우선 처리", "유족 자동 알림", "수정 무제한 무료", "AI 일기쓰기 (Life Story)", "소중한 사람에게 편지쓰기"]
+        : ["eKYC Certified", "QR Identity", "NFC Tag", "Will Certificate", "Lifetime Storage", "Handwritten Will Scan", "Video Will", "Priority Death Trigger", "Auto Family Notification", "Unlimited Free Revisions", "AI Life Story Diary", "Legacy Letter Writing"],
       breakdown: isKo
         ? [{ label: "전자 인증", val: "₩49,000" }, { label: "영구 보관", val: "₩150,000" }, { label: "합계", val: "₩199,000", bold: true }]
         : [{ label: "Certification", val: "$39" }, { label: "Lifetime Storage", val: "$150" }, { label: "Total", val: "$199", bold: true }],

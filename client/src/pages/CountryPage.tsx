@@ -298,8 +298,8 @@ function PricingSection({ data }: { data: CountryPageData }) {
       features: [
         data.currency === "KRW" ? "플래티넘 플랜 전체 포함" : "Everything in Platinum",
         data.currency === "KRW" ? "평생 보관" : "Lifetime storage",
-        data.currency === "KRW" ? "전담 VIP 변호사" : "Dedicated VIP attorney",
-        data.currency === "KRW" ? "전담 컨시어지 서비스" : "Dedicated concierge",
+        data.currency === "KRW" ? "AI 일기쓰기 (Life Story)" : "AI Life Story Diary",
+        data.currency === "KRW" ? "소중한 사람에게 편지쓰기" : "Legacy Letter Writing",
         data.currency === "KRW" ? "무제한 재인증" : "Unlimited re-certifications",
       ],
       cta: data.currency === "KRW" ? "VIP 시작" : "Start VIP",
