@@ -20,6 +20,7 @@ const SNS_CHANNELS = [
   {
     id: "copy",
     label: "링크 복사",
+    labelJa: "リンクコピー",
     labelEn: "Copy Link",
     color: "bg-gray-700 hover:bg-gray-600",
     icon: Copy,
@@ -28,6 +29,7 @@ const SNS_CHANNELS = [
   {
     id: "kakao",
     label: "카카오톡",
+    labelJa: "カカオトーク",
     labelEn: "KakaoTalk",
     color: "bg-[#FEE500] hover:bg-[#F0D800] text-black",
     icon: MessageCircle,
@@ -36,6 +38,7 @@ const SNS_CHANNELS = [
   {
     id: "x",
     label: "X (트위터)",
+    labelJa: "X (ツイッター)",
     labelEn: "X (Twitter)",
     color: "bg-black hover:bg-gray-900",
     icon: ExternalLink,
@@ -44,6 +47,7 @@ const SNS_CHANNELS = [
   {
     id: "facebook",
     label: "Facebook",
+    labelJa: "Facebook",
     labelEn: "Facebook",
     color: "bg-[#1877F2] hover:bg-[#166FE5]",
     icon: ExternalLink,
@@ -52,6 +56,7 @@ const SNS_CHANNELS = [
   {
     id: "linkedin",
     label: "LinkedIn",
+    labelJa: "LinkedIn",
     labelEn: "LinkedIn",
     color: "bg-[#0A66C2] hover:bg-[#0958A8]",
     icon: ExternalLink,
@@ -60,6 +65,7 @@ const SNS_CHANNELS = [
   {
     id: "whatsapp",
     label: "WhatsApp",
+    labelJa: "WhatsApp",
     labelEn: "WhatsApp",
     color: "bg-[#25D366] hover:bg-[#20BD5A]",
     icon: ExternalLink,
@@ -68,6 +74,7 @@ const SNS_CHANNELS = [
   {
     id: "line",
     label: "LINE",
+    labelJa: "LINE",
     labelEn: "LINE",
     color: "bg-[#00B900] hover:bg-[#009900]",
     icon: ExternalLink,
@@ -80,8 +87,10 @@ const BENEFITS = [
   {
     icon: Gift,
     title: "추천인 혜택",
+    titleJa: "紹介者特典",
     titleEn: "Referrer Reward",
     desc: "친구가 가입하면 5,000포인트 적립",
+    descJa: "友達が登録すると5,000ポイント獲得",
     descEn: "Earn 5,000 points when a friend joins",
     color: "text-[#C9A961]",
     bg: "bg-[#C9A961]/10",
@@ -89,8 +98,10 @@ const BENEFITS = [
   {
     icon: Star,
     title: "피추천인 혜택",
+    titleJa: "紹介された方の特典",
     titleEn: "New Member Bonus",
     desc: "추천 코드 입력 시 재인증 할인 쿠폰",
+    descJa: "紹介コード入力で再認証割引クーポン",
     descEn: "Re-certification discount coupon",
     color: "text-blue-400",
     bg: "bg-blue-400/10",
@@ -98,8 +109,10 @@ const BENEFITS = [
   {
     icon: Users,
     title: "무제한 추천",
+    titleJa: "無制限紹介",
     titleEn: "Unlimited Referrals",
     desc: "추천 횟수 제한 없이 포인트 적립",
+    descJa: "紹介回数無制限でポイント獲得",
     descEn: "No limit on referral points",
     color: "text-green-400",
     bg: "bg-green-400/10",
@@ -112,6 +125,8 @@ export default function ReferralSection() {
   const { isAuthenticated } = useAuth();
   const { language } = useLanguage();
   const isKo = language === "ko";
+  const isJa = language === "ja";
+  const getLang = (ko: string, ja: string, en: string) => isKo ? ko : isJa ? ja : en;
 
   const [copied, setCopied] = useState(false);
 
@@ -128,6 +143,8 @@ export default function ReferralSection() {
 
   const shareText = isKo
     ? `EverWill - 세계 최초 디지털 유언 OS. 나의 마지막 서명을 지금 준비하세요. 🌍`
+    : isJa
+    ? `EverWill - 世界初のデジタル遺言OS。今すぐあなたの最後のサインを準備しましょう。🌍`
     : `EverWill - World's First Digital Will OS. Prepare your last signature now. 🌍`;
 
   // SNS 공유 핸들러
@@ -190,14 +207,15 @@ export default function ReferralSection() {
         >
           <div className="inline-flex items-center gap-2 bg-[#C9A961]/15 border border-[#C9A961]/30 text-[#C9A961] text-sm font-semibold px-4 py-2 rounded-full mb-5">
             <Share2 className="w-4 h-4" />
-            {isKo ? "친구 추천 & 공유" : "Refer & Share"}
+            {getLang("친구 추천 & 공유", "友達紹介 & シェア", "Refer & Share")}
           </div>
           <h2 className="text-3xl lg:text-5xl font-bold text-white mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
-            {isKo ? "소중한 사람에게\n알려주세요" : "Share with\nSomeone Special"}
+            {getLang("소중한 사람에게\n알려주세요", "大切な人に\n教えてあげましょう", "Share with\nSomeone Special")}
           </h2>
           <p className="text-white/60 text-lg max-w-xl mx-auto">
             {isKo
               ? "EverWill을 공유하면 추천인과 피추천인 모두 혜택을 받습니다."
+              : isJa ? "EverWillをシェアすると、紹介者と紹介された方の両方が特典を受け取れます。"
               : "Both you and your friend receive rewards when you share EverWill."}
           </p>
         </motion.div>
@@ -217,10 +235,10 @@ export default function ReferralSection() {
                   <Icon className={`w-6 h-6 ${b.color}`} />
                 </div>
                 <h3 className="text-white font-bold text-base mb-1.5">
-                  {isKo ? b.title : b.titleEn}
+                  {isKo ? b.title : isJa ? (b as any).titleJa : b.titleEn}
                 </h3>
                 <p className="text-white/55 text-sm">
-                  {isKo ? b.desc : b.descEn}
+                  {isKo ? b.desc : isJa ? (b as any).descJa : b.descEn}
                 </p>
               </div>
             );
@@ -238,7 +256,7 @@ export default function ReferralSection() {
             <>
               {/* 내 추천 코드 표시 */}
               <div className="text-center mb-8">
-                <p className="text-white/50 text-sm mb-2">{isKo ? "내 추천 코드" : "My Referral Code"}</p>
+                <p className="text-white/50 text-sm mb-2">{getLang("내 추천 코드", "マイ紹介コード", "My Referral Code")}</p>
                 <div className="inline-flex items-center gap-3 bg-[#C9A961]/10 border border-[#C9A961]/40 rounded-2xl px-6 py-3">
                   <span className="text-[#C9A961] font-mono font-bold text-xl sm:text-2xl tracking-widest">
                     {referralData.referralCode}
@@ -251,13 +269,13 @@ export default function ReferralSection() {
                   </button>
                 </div>
                 <p className="text-white/40 text-xs mt-2">
-                  {isKo ? `현재 포인트: ${(referralData.pointBalance || 0).toLocaleString()}P` : `Current Points: ${(referralData.pointBalance || 0).toLocaleString()}P`}
+                  {isKo ? `현재 포인트: ${(referralData.pointBalance || 0).toLocaleString()}P` : isJa ? `現在のポイント: ${(referralData.pointBalance || 0).toLocaleString()}P` : `Current Points: ${(referralData.pointBalance || 0).toLocaleString()}P`}
                 </p>
               </div>
 
               {/* 추천 링크 */}
               <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 mb-6">
-                <span className="text-white/40 text-xs flex-shrink-0">{isKo ? "추천 링크" : "Referral Link"}</span>
+                <span className="text-white/40 text-xs flex-shrink-0">{getLang("추천 링크", "紹介リンク", "Referral Link")}</span>
                 <span className="text-white/70 text-sm truncate flex-1 font-mono">{referralUrl}</span>
                 <button
                   onClick={() => handleShare("copy")}
@@ -270,13 +288,13 @@ export default function ReferralSection() {
           ) : (
             <div className="text-center mb-8">
               <p className="text-white/60 text-sm mb-4">
-                {isKo ? "로그인하면 나만의 추천 코드를 받을 수 있습니다." : "Login to get your personal referral code."}
+                {getLang("로그인하면 나만의 추천 코드를 받을 수 있습니다.", "ログインしてマイ紹介コードを取得できます。", "Login to get your personal referral code.")}
               </p>
               <Button
                 onClick={() => window.location.href = "/login"}
                 className="bg-[#C9A961] hover:bg-[#b8944f] text-[#1F3864] font-bold px-6 py-2.5 rounded-xl"
               >
-                {isKo ? "로그인하고 추천 코드 받기" : "Login & Get Referral Code"}
+                {getLang("로그인하고 추천 코드 받기", "ログインして紹介コードを取得", "Login & Get Referral Code")}
               </Button>
             </div>
           )}
@@ -284,7 +302,7 @@ export default function ReferralSection() {
           {/* SNS 공유 버튼 */}
           <div>
             <p className="text-white/50 text-sm text-center mb-4">
-              {isKo ? "SNS로 바로 공유하기" : "Share on Social Media"}
+              {getLang("SNS로 바로 공유하기", "SNSでシェアする", "Share on Social Media")}
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               {SNS_CHANNELS.map((ch) => {
@@ -303,7 +321,7 @@ export default function ReferralSection() {
                     ) : (
                       <span className="text-base leading-none">{ch.emoji}</span>
                     )}
-                    <span>{isKo ? ch.label : ch.labelEn}</span>
+                    <span>{isKo ? ch.label : isJa ? (ch as any).labelJa : ch.labelEn}</span>
                   </button>
                 );
               })}
