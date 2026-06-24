@@ -195,18 +195,14 @@ export default function Navbar() {
       {/* 메인 네비게이션 바 */}
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20 gap-4">
-          {/* 로고 - 좌측 고정 */}
-          <a href="/" className="flex items-center gap-2 group shrink-0">
+          {/* 로고 - 좌측 고정 (원형 씰 로고) */}
+          <a href="/" className="flex items-center shrink-0">
             <img
-              src="/everwill-logo.png"
+              src="/manus-storage/everwill_seal_c51d92f0.png"
               alt="EverWill Logo"
-              className="object-contain drop-shadow-xl brightness-110"
-              style={{ height: '56px', width: '56px' }}
+              className="object-contain drop-shadow-xl"
+              style={{ height: '72px', width: '72px' }}
             />
-            <div className="hidden sm:block">
-              <span className="block text-white font-bold text-base leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>EverWill</span>
-              <span className="block text-[#C9A961] text-[9px] font-semibold tracking-widest uppercase">DIGITAL WILL OS</span>
-            </div>
           </a>
 
           {/* 데스크탑 메뉴 - 중앙 */}
