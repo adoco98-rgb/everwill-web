@@ -331,6 +331,9 @@ export const zh = {
     aiNote: "AI自动化服务将逐步推出。目前以签约律师支持方式运营。",
     partnerDesc: "律师·税务师·法务师？注册合作伙伴，自动承接死后执行案件。",
     partnerCta: "注册专业合作伙伴",
+    partnerBannerTitle: "与EverWill共创未来",
+    partnerBannerDesc: "注册成为EverWill合作伙伴，与全球客户建立联系。",
+    partnerBannerBtn: "申请成为合作伙伴",
   },
   reviews: {
     title: "用户评价",

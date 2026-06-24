@@ -331,6 +331,9 @@ export const fr = {
     aiNote: "Les services d'automatisation IA seront déployés progressivement.",
     partnerDesc: "Vous êtes avocat, expert-comptable ou notaire? Inscrivez-vous comme partenaire.",
     partnerCta: "S'inscrire comme partenaire professionnel",
+    partnerBannerTitle: "Construisez votre avenir avec EverWill",
+    partnerBannerDesc: "Inscrivez-vous en tant que partenaire EverWill et connectez-vous avec des clients du monde entier.",
+    partnerBannerBtn: "Postuler comme partenaire",
   },
   reviews: {
     title: "Avis clients",

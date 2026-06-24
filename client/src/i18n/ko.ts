@@ -349,6 +349,9 @@ export const ko = {
     aiNote: "AI 자동화 서비스는 단계적으로 출시 예정입니다. 현재는 계약 변호사 지원 방식으로 운영됩니다.",
     partnerDesc: "변호사·세무사·법무사이신가요? 파트너로 등록하고 사후 집행 수임을 받으세요.",
     partnerCta: "전문가 파트너 등록하기",
+    partnerBannerTitle: "에버윌과 함께 당신의 미래를 만들어 가세요",
+    partnerBannerDesc: "EverWill 파트너로 등록하고 전 세계 고객과 연결되세요.",
+    partnerBannerBtn: "파트너 신청하기",
   },
 
   // Reviews Section

@@ -334,6 +334,9 @@ export const en = {
     aiNote: "AI automation services will be rolled out gradually. Currently operating with contracted attorney support.",
     partnerDesc: "Are you an attorney, CPA, or legal professional? Register as a partner and receive automatic case assignments.",
     partnerCta: "Register as Professional Partner",
+    partnerBannerTitle: "Build Your Future with EverWill",
+    partnerBannerDesc: "Register as an EverWill partner and connect with clients worldwide.",
+    partnerBannerBtn: "Apply as Partner",
   },
   reviews: {
     title: "Customer Reviews",

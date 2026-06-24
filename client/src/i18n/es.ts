@@ -331,6 +331,9 @@ export const es = {
     aiNote: "Los servicios de automatización con IA se lanzarán gradualmente. Actualmente operando con soporte de abogados contratados.",
     partnerDesc: "¿Es abogado, contador o notario? Regístrese como socio y reciba asignaciones automáticas.",
     partnerCta: "Registrarse como socio profesional",
+    partnerBannerTitle: "Construya su futuro con EverWill",
+    partnerBannerDesc: "Regístrese como socio de EverWill y conéctese con clientes de todo el mundo.",
+    partnerBannerBtn: "Solicitar como socio",
   },
   reviews: {
     title: "Opiniones de Clientes",

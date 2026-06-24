@@ -22,8 +22,11 @@ import { LifeStorySection } from "@/components/LifeStorySection";
 import LegalAISection from "@/components/LegalAISection";
 import ExpertsSection from "@/components/ExpertsSection";
 import Footer from "@/components/Footer";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Home() {
+  const { t } = useLanguage();
+
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
       <Navbar />
@@ -72,16 +75,16 @@ export default function Home() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-[#C9A961] text-sm font-semibold tracking-widest uppercase mb-3">EverWill Partner</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
-            에버윌과 함께 당신의 미래를 만들어 가세요
+            {t.lawyers.partnerBannerTitle}
           </h2>
           <p className="text-white/70 text-base mb-8 max-w-xl mx-auto">
-            EverWill 파트너로 등록하고 전 세계 고객과 연결되세요.
+            {t.lawyers.partnerBannerDesc}
           </p>
           <a
             href="/partner"
             className="inline-flex items-center gap-2 bg-[#C9A961] hover:bg-[#d4b56e] text-[#1F3864] font-bold px-10 py-4 rounded-full text-base shadow-lg transition-all duration-200"
           >
-            파트너 신청하기 →
+            {t.lawyers.partnerBannerBtn} →
           </a>
         </div>
       </section>

@@ -331,6 +331,9 @@ export const pt = {
     aiNote: "Os serviços de automação IA serão implementados gradualmente.",
     partnerDesc: "É advogado, contador ou tabelião? Cadastre-se como parceiro e receba casos automaticamente.",
     partnerCta: "Cadastrar como parceiro profissional",
+    partnerBannerTitle: "Construa seu futuro com EverWill",
+    partnerBannerDesc: "Cadastre-se como parceiro EverWill e conecte-se com clientes em todo o mundo.",
+    partnerBannerBtn: "Candidatar-se como parceiro",
   },
   reviews: {
     title: "Avaliações de clientes",

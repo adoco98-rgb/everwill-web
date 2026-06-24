@@ -331,6 +331,9 @@ export const ja = {
     aiNote: "AI自動化サービスは段階的にリリース予定です。現在は契約弁護士支援方式で運営しています。",
     partnerDesc: "弁護士・税理士・司法書士の方はパートナー登録で自動受任を受け取りましょう。",
     partnerCta: "専門家パートナー登録",
+    partnerBannerTitle: "EverWillと共に未来を築きましょう",
+    partnerBannerDesc: "EverWillパートナーとして登録し、世界中のクライアントとつながりましょう。",
+    partnerBannerBtn: "パートナー申請",
   },
   reviews: {
     title: "お客様の声",

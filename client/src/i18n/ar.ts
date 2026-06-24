@@ -331,6 +331,9 @@ export const ar = {
     aiNote: "ستُطلق خدمات أتمتة الذكاء الاصطناعي تدريجياً. يعمل حالياً بدعم المحامين المتعاقدين.",
     partnerDesc: "هل أنت محامٍ أو مستشار ضريبي؟ سجّل كشريك واستقبل القضايا تلقائياً.",
     partnerCta: "التسجيل كشريك متخصص",
+    partnerBannerTitle: "ابنِ مستقبلك مع EverWill",
+    partnerBannerDesc: "سجّل كشريك في EverWill وتواصل مع العملاء حول العالم.",
+    partnerBannerBtn: "التقدم كشريك",
   },
   reviews: {
     title: "آراء العملاء",

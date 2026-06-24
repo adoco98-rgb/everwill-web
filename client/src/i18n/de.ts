@@ -331,6 +331,9 @@ export const de = {
     aiNote: "KI-Automatisierungsdienste werden schrittweise eingeführt. Derzeit mit Vertragsanwalt-Support.",
     partnerDesc: "Sind Sie Rechtsanwalt, Steuerberater oder Notar? Registrieren Sie sich als Partner.",
     partnerCta: "Als Fachpartner registrieren",
+    partnerBannerTitle: "Gestalten Sie Ihre Zukunft mit EverWill",
+    partnerBannerDesc: "Registrieren Sie sich als EverWill-Partner und verbinden Sie sich mit Kunden weltweit.",
+    partnerBannerBtn: "Als Partner bewerben",
   },
   reviews: {
     title: "Kundenbewertungen",
