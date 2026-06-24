@@ -76,7 +76,7 @@ const countryStatus = [
     nameKo: "미국",
     nameEn: "USA",
     stars: 5,
-    statusKo: "즉시 가능",
+    statusKo: "디지털공증 제도시행",
     statusEn: "Available Now",
     descKo: "UEWA로 20개 주 이상 전자유언 완전 합법. Trust & Will 등 플랫폼 이미 운영 중.",
     descEn: "UEWA adopted in 20+ states. Digital will platforms already active.",
@@ -89,7 +89,7 @@ const countryStatus = [
     nameKo: "UAE",
     nameEn: "UAE",
     stars: 5,
-    statusKo: "즉시 가능",
+    statusKo: "디지털공증 제도시행",
     statusEn: "Available Now",
     descKo: "비무슬림 외국인(인구 90%) 전자유언 가능. DIFC·ADGM 자유무역지구 허용.",
     descEn: "Non-Muslim expats (90% of population) can use digital wills. DIFC/ADGM zones permitted.",
@@ -102,7 +102,7 @@ const countryStatus = [
     nameKo: "뉴질랜드",
     nameEn: "New Zealand",
     stars: 5,
-    statusKo: "즉시 가능",
+    statusKo: "디지털공증 제도시행",
     statusEn: "Available Now",
     descKo: "2021년 Wills Act 개정으로 전자유언 공식 인정. 영미법 국가 최초 전면 합법화.",
     descEn: "2021 Wills Act amendment fully legalizes digital wills. First in common law countries.",
@@ -115,7 +115,7 @@ const countryStatus = [
     nameKo: "일본",
     nameEn: "Japan",
     stars: 4,
-    statusKo: "조건부 가능",
+    statusKo: "입법논의 진행중",
     statusEn: "Conditionally Available",
     descKo: "2025년 10월 공정증서 디지털화 시행. 온라인 신청·웹 회의 방식 공정증서 유언 가능.",
     descEn: "Notarized digital wills via online/video conference from Oct 2025.",
@@ -128,7 +128,7 @@ const countryStatus = [
     nameKo: "캐나다",
     nameEn: "Canada",
     stars: 4,
-    statusKo: "조건부 가능",
+    statusKo: "입법논의 진행중",
     statusEn: "Conditionally Available",
     descKo: "BC주·서스캐처원주 전자유언 합법(2021~2022). 타 주로 확산 추세.",
     descEn: "BC & Saskatchewan legalized digital wills (2021–2022). Spreading to other provinces.",
@@ -141,7 +141,7 @@ const countryStatus = [
     nameKo: "호주",
     nameEn: "Australia",
     stars: 4,
-    statusKo: "조건부 가능",
+    statusKo: "입법논의 진행중",
     statusEn: "Conditionally Available",
     descKo: "빅토리아·NSW주 원격 증인 허용(2021). 판례 축적으로 법적 인정 확대 중.",
     descEn: "Victoria & NSW allow remote witnesses (2021). Case law expanding recognition.",
@@ -154,7 +154,7 @@ const countryStatus = [
     nameKo: "멕시코",
     nameEn: "Mexico",
     stars: 4,
-    statusKo: "조건부 가능",
+    statusKo: "입법논의 진행중",
     statusEn: "Conditionally Available",
     descKo: "멕시코시티 민법 2021년 개정, 디지털 유언 조항 포함. 대법원 긍정 판례 축적.",
     descEn: "Mexico City civil code (2021) includes digital will provisions. Positive Supreme Court rulings.",
@@ -180,7 +180,7 @@ const countryStatus = [
     nameKo: "영국",
     nameEn: "UK",
     stars: 3,
-    statusKo: "입법 논의 진행 중",
+    statusKo: "입법논의 진행중",
     statusEn: "Legislation in Progress",
     descKo: "2025년 Law Commission 합법화 권고안 발표. 법 개정 임박.",
     descEn: "Law Commission issued legalization recommendation in 2025. Amendment imminent.",
@@ -193,7 +193,7 @@ const countryStatus = [
     nameKo: "브라질",
     nameEn: "Brazil",
     stars: 3,
-    statusKo: "논의 진행 중",
+    statusKo: "입법논의 진행중",
     statusEn: "Under Discussion",
     descKo: "전자서명 인프라 완비(2020). 디지털 유언 논의 초기 단계. 남미 최대 시장.",
     descEn: "E-signature infrastructure complete (2020). Digital will discussion in early stages.",
@@ -206,7 +206,7 @@ const countryStatus = [
     nameKo: "프랑스",
     nameEn: "France",
     stars: 2,
-    statusKo: "논의 진행 중",
+    statusKo: "입법논의 진행중",
     statusEn: "Under Discussion",
     descKo: "EU eIDAS 전자서명 유효. 유언 분야는 자필 방식 고수. EU 전체 입법 동향 모니터링 중.",
     descEn: "EU eIDAS e-signature valid. Wills still require handwritten format. Monitoring EU legislation.",
@@ -376,7 +376,7 @@ export default function LegalTimelineSection() {
             </h3>
             <p className="text-white/50 text-sm">
               {isKo
-                ? "★★★★★ 즉시 가능  ·  ★★★★ 조건부 가능  ·  ★★★ 논의 중  ·  ★★ 법 개정 필요"
+                ? "★★★★★ 디지털공증 제도시행  ·  ★★★★ 입법논의 진행중  ·  ★★ 법 개정 필요"
                 : "★★★★★ Available  ·  ★★★★ Conditional  ·  ★★★ Under Discussion  ·  ★★ Law Change Needed"}
             </p>
           </div>
