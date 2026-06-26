@@ -4,7 +4,7 @@
  * 등급 체계, 수수료 구조, 가입 CTA
  */
 import { motion } from "framer-motion";
-import { ArrowRight, Scale, Users, TrendingUp, Award, Globe, Shield, DollarSign, Star } from "lucide-react";
+import { ArrowRight, Scale, Users, TrendingUp, Award, Globe, Shield, DollarSign, Star, Heart } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Navbar from "@/components/Navbar";
@@ -19,6 +19,7 @@ export default function PartnerPage() {
 
   // 다국어 텍스트
   const texts = partnerTexts[language] || partnerTexts.ko;
+  const seniorTexts = partnerSeniorCardTexts[language] || partnerSeniorCardTexts.ko;
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
@@ -90,7 +91,7 @@ export default function PartnerPage() {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-3 gap-8">
             {/* 전문가 그룹 카드 */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
@@ -146,6 +147,40 @@ export default function PartnerPage() {
                 <button
                   onClick={() => navigate("/partner/helper")}
                   className="px-6 py-3 bg-[#C9A961] hover:bg-[#b8953a] text-[#1F3864] font-semibold rounded-xl transition-all flex items-center gap-2"
+                >
+                  {texts.applyBtn}
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+
+            {/* 시니어 그룹 카드 (NEW) */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="bg-white rounded-2xl p-8 shadow-lg border border-[#2D5016]/20 hover:shadow-xl transition-all relative overflow-hidden"
+            >
+              {/* NEW 배지 */}
+              <div className="absolute top-4 right-4 bg-[#2D5016] text-white text-xs font-bold px-2.5 py-1 rounded-full">NEW</div>
+              <div className="w-14 h-14 bg-[#2D5016]/10 rounded-xl flex items-center justify-center mb-6">
+                <Heart className="w-7 h-7 text-[#2D5016]" />
+              </div>
+              <h3 className="text-2xl font-bold text-[#1A1A1A] mb-3">{seniorTexts.groupName}</h3>
+              <p className="text-[#6B7280] mb-6">{seniorTexts.groupDesc}</p>
+              <ul className="space-y-3 mb-8">
+                {seniorTexts.groupFeatures.map((f: string, i: number) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <Heart className="w-5 h-5 text-[#2D5016] mt-0.5 shrink-0" />
+                    <span className="text-[#1A1A1A]">{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="flex items-center justify-end border-t pt-6">
+                <button
+                  onClick={() => navigate("/partner/senior")}
+                  className="px-6 py-3 bg-[#2D5016] hover:bg-[#3a6b1e] text-white font-semibold rounded-xl transition-all flex items-center gap-2"
                 >
                   {texts.applyBtn}
                   <ArrowRight className="w-4 h-4" />
@@ -865,4 +900,55 @@ const partnerTexts: Record<string, any> = {
 // 나머지 언어는 영어 fallback
 ["de", "es", "ar", "fr", "ru", "hi", "pt"].forEach(lang => {
   if (!partnerTexts[lang]) partnerTexts[lang] = partnerTexts.en;
+});
+
+// ─── 시니어 그룹 카드 텍스트 (PartnerPage 내 카드 표시용) ───────────────
+const partnerSeniorCardTexts: Record<string, any> = {
+  ko: {
+    groupName: "시니어 그룹",
+    groupDesc: "만 65세 이상 시니어 파트너 — 직접 홍보·지인 추천 특화. 자격증 없이 경험과 인맥으로 수입 창출",
+    groupFeatures: [
+      "시작 수수료 20% 우대 (헬퍼보다 높음)",
+      "자격증·학력 불필요",
+      "지인에게 직접 설명·추천 가능",
+      "연 등록비 없음 (VIP 가입비 1회)",
+      "한국 및 해외 시니어 모두 가능",
+    ],
+  },
+  en: {
+    groupName: "Senior Group",
+    groupDesc: "For age 65+. Direct referral & personal recommendation specialist. Earn income through experience and network — no license required.",
+    groupFeatures: [
+      "Start at 20% commission (higher than Helper)",
+      "No license or degree required",
+      "Direct personal recommendation welcome",
+      "No annual fee (VIP one-time only)",
+      "Open to seniors in Korea and worldwide",
+    ],
+  },
+  ja: {
+    groupName: "シニアグループ",
+    groupDesc: "65歳以上のシニアパートナー — 直接紹介・知人推薦特化。資格不要で経験と人脈で収入を得られます。",
+    groupFeatures: [
+      "開始手数料20%優遇（ヘルパーより高い）",
+      "資格・学歴不要",
+      "知人への直接説明・推薦可能",
+      "年会費なし（VIP入会費1回のみ）",
+      "韓国・海外シニア問わず参加可能",
+    ],
+  },
+  zh: {
+    groupName: "老年组",
+    groupDesc: "65岁以上老年合作伙伴 — 直接推荐·熟人介绍专项。无需资质，凭经验和人脉创造收入。",
+    groupFeatures: [
+      "起始佣金20%优待（高于助手组）",
+      "无需资质或学历",
+      "欢迎直接向熟人介绍推荐",
+      "无年费（VIP入会费仅一次）",
+      "韩国及海外老年人均可参与",
+    ],
+  },
+};
+["de", "es", "ar", "fr", "ru", "hi", "pt"].forEach(lang => {
+  if (!partnerSeniorCardTexts[lang]) partnerSeniorCardTexts[lang] = partnerSeniorCardTexts.en;
 });

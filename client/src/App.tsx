@@ -65,6 +65,7 @@ import MyConsultationsPage from "./pages/dashboard/MyConsultationsPage";
 import PartnerLandingPage from "./pages/PartnerLandingPage";
 import PartnerProfessionalPage from "./pages/PartnerProfessionalPage";
 import PartnerHelperPage from "./pages/PartnerHelperPage";
+import PartnerSeniorPage from "./pages/PartnerSeniorPage";
 import PartnerPolicyPage from "./pages/PartnerPolicyPage";
 import PartnerVerificationPage from "./pages/PartnerVerificationPage";
 import PartnerDashboardPage from "./pages/PartnerDashboardPage";
@@ -177,6 +178,7 @@ function Router() {
       {/* 전문가 파트너 가입 */}
       <Route path={"/partner/expert"} component={PartnerExpert} />
       <Route path={"/partner/helper"} component={PartnerHelperPage} />
+      <Route path={"/partner/senior"} component={PartnerSeniorPage} />
       <Route path={"/partner/policy"} component={PartnerPolicyPage} />
       <Route path={"/partner/verify"} component={PartnerVerificationPage} />
       <Route path={"/partner/dashboard"} component={PartnerDashboardPage} />
