@@ -10,6 +10,10 @@ import { motion, useInView } from "framer-motion";
 import VideoIntroSection from "@/components/VideoIntroSection";
 import LawyersSection from "@/components/LawyersSection";
 import GlobalSection from "@/components/GlobalSection";
+import ExpertsSection from "@/components/ExpertsSection";
+import LegalAISection from "@/components/LegalAISection";
+import HeirServiceSection from "@/components/HeirServiceSection";
+import ReferralSection from "@/components/ReferralSection";
 import CountryVideoSection from "@/components/CountryVideoSection";
 import ServicesSection from "@/components/ServicesSection";
 import ComparisonSection from "@/components/ComparisonSection";
@@ -667,11 +671,19 @@ export default function CountryPage() {
       <BadgeSection data={data} />
       {/* 12. 타깃 고객 */}
       <TargetSection data={data} />
-      {/* 13. 변호사 매칭 서비스 */}
+      {/* 13. 법률 AI 섹션 */}
+      <LegalAISection />
+      {/* 14. 변호사 매칭 서비스 (사후 집행) */}
       <LawyersSection />
-      {/* 14. 고객 후기 (국가별 현지 리뷰) */}
+      {/* 15. 전문가 파트너 (변호사 섹션) */}
+      <ExpertsSection />
+      {/* 16. 상속자 서비스 */}
+      <HeirServiceSection />
+      {/* 17. 추천인 섹션 */}
+      <ReferralSection />
+      {/* 18. 고객 후기 (국가별 현지 리뷰) */}
       <ReviewsSection countryReviews={data.reviews} />
-      {/* 15. CTA */}
+      {/* 19. CTA */}
       <CtaSection data={data} />
       <Footer />
     </div>
