@@ -216,7 +216,7 @@ export default function GlobalSection() {
     <section id="global" className="py-20 lg:py-28 relative overflow-hidden" ref={ref}>
       {/* 배경 - 빈티지 세계지도 이미지 */}
       <div className="absolute inset-0">
-        <img src="/manus-storage/pasted_file_n6kWUu_image_1fcbbf5c.png" alt="" className="w-full h-full object-cover" />
+        <img src="/world-map-vintage.jpg" alt="" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-[#0d1f3c]/60" />
       </div>
 
@@ -248,7 +248,7 @@ export default function GlobalSection() {
         >
           {/* 지도 - 빈티지 세계지도 이미지 */}
           <div className="absolute inset-0 rounded-3xl overflow-hidden border border-white/20">
-            <img src="/manus-storage/pasted_file_n6kWUu_image_1fcbbf5c.png" alt="세계지도" className="w-full h-full object-cover" />
+            <img src="/world-map-vintage.jpg" alt="세계지도" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-[#0d1f3c]/30" />
           </div>
 
