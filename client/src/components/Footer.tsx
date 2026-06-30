@@ -3,7 +3,7 @@
  * 마지막 전환 유도 + 사이트맵
  */
 
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -52,35 +52,15 @@ export default function Footer() {
                 {t.footer.tagline}
               </p>
               <div className="space-y-2 text-sm">
-                {isKorean ? (
-                  // 한국: 전체 회사 정보 표시
-                  <>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-[#C9A961]" />
-                      <span>경기도 안성시 | 주식회사 사람</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <Mail className="w-4 h-4 text-[#C9A961] mt-0.5" />
-                      <div>
-                        <div>everwill@everwill.co.kr</div>
-                        <div className="text-white/40 text-xs mt-0.5">사업자등록번호: 621-81-61690</div>
-                        <div className="text-white/40 text-xs">대표: 라수환</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-[#C9A961]" />
-                      <span>070-4735-0834</span>
-                    </div>
-                  </>
-                ) : (
-                  // 해외: 회사명 + 이메일만
-                  <>
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-[#C9A961]" />
-                      <span>everwill@everwill.co.kr</span>
-                    </div>
-                  </>
-                )}
+                <a
+                  href="mailto:adodo98@gmail.com"
+                  className="flex items-center gap-2 hover:text-[#C9A961] transition-colors group"
+                >
+                  <Mail className="w-5 h-5 text-[#C9A961]" />
+                  <span className="group-hover:text-[#C9A961]">
+                    {isKorean ? "이메일 연락하기" : "Contact via Email"}
+                  </span>
+                </a>
               </div>
             </div>
 
