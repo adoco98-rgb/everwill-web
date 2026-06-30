@@ -643,7 +643,7 @@ export default function CountryPage() {
       <TargetSection data={data} />
       <TrustSection data={data} />
       <LawyersSection />
-      <ReviewsSection />
+      <ReviewsSection countryReviews={data.reviews} />
       <CtaSection data={data} />
       <Footer />
     </div>
