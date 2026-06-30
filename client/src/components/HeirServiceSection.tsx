@@ -113,7 +113,7 @@ const LANG_TEXT: Record<string, {
     compareColBasic: "기본 서비스",
     compareColLawyer: "전문가 연결",
     compareRows: [
-      { feature: "서비스 비용", basic: "₩199,000 (기본)", lawyer: "₩990,000 착수금 + 성공 보수 1%" },
+      { feature: "서비스 비용", basic: "₩199,000 (기본)", lawyer: "전문 변호사 연결 신청" },
       { feature: "상속 절차 안내", basic: true, lawyer: true },
       { feature: "상속세 자동 계산", basic: true, lawyer: true },
       { feature: "상속 신고 서류 초안 자동 작성", basic: true, lawyer: true },
@@ -165,7 +165,7 @@ const LANG_TEXT: Record<string, {
     compareColBasic: "Basic Service",
     compareColLawyer: "Attorney Service",
     compareRows: [
-      { feature: "Service Fee", basic: "$149 (Basic)", lawyer: "$699 retainer + 1% success fee" },
+      { feature: "Service Fee", basic: "$149 (Basic)", lawyer: "Apply for Attorney Service" },
       { feature: "Inheritance Process Guidance", basic: true, lawyer: true },
       { feature: "Automatic Tax Calculation", basic: true, lawyer: true },
       { feature: "Auto-Generated Legal Documents", basic: true, lawyer: true },
