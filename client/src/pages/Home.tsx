@@ -70,24 +70,7 @@ export default function Home() {
           <CertifiedCounterBanner />
         </div>
       </section>
-      {/* 파트너 신청 CTA 배너 */}
-      <section className="py-16 bg-[#1F3864]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-[#C9A961] text-sm font-semibold tracking-widest uppercase mb-3">EverWill Partner</p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
-            {t.lawyers.partnerBannerTitle}
-          </h2>
-          <p className="text-white/70 text-base mb-8 max-w-xl mx-auto">
-            {t.lawyers.partnerBannerDesc}
-          </p>
-          <a
-            href="/partner"
-            className="inline-flex items-center gap-2 bg-[#C9A961] hover:bg-[#d4b56e] text-[#1F3864] font-bold px-10 py-4 rounded-full text-base shadow-lg transition-all duration-200"
-          >
-            {t.lawyers.partnerBannerBtn} →
-          </a>
-        </div>
-      </section>
+
       <Footer />
     </div>
   );

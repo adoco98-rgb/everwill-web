@@ -11,7 +11,7 @@ import {
   FileText, Video, Shield, Users,
   Bell, Globe, BookOpen, Mail,
   RefreshCw, Scale, Scroll, Mic,
-  MessageCircle, Sparkles
+  MessageCircle, Sparkles, PenLine
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "wouter";
@@ -105,6 +105,17 @@ export default function ServicesSection() {
       color: "bg-pink-50 text-pink-600",
       tagColor: "text-[#C9A961] bg-[#C9A961]/10",
       cardBg: "bg-pink-50",
+      isPremium: true,
+      href: "/life-story",
+    },
+    {
+      icon: PenLine,
+      tag: t.lifeStory.autobiographyCardTag,
+      title: t.lifeStory.autobiographyCardTitle,
+      desc: t.lifeStory.autobiographyCardDesc,
+      color: "bg-violet-50 text-violet-600",
+      tagColor: "text-[#C9A961] bg-[#C9A961]/10",
+      cardBg: "bg-violet-50",
       isPremium: true,
       href: "/life-story",
     },

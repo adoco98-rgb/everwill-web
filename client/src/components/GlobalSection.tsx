@@ -9,8 +9,7 @@ import { useRef, useState } from "react";
 import { MapPin, ArrowRight, Globe, Languages, CreditCard, Scale, Users, ShieldCheck, Zap, Globe2, BookOpen, FileText } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Language } from "@/i18n";
-// WorldMapSVG 대신 실제 세계지도 이미지 사용
-const WORLD_MAP_URL = "/manus-storage/worldmap_bg_processed_5de73b25.png";
+import WorldMapSVG from "@/components/WorldMapSVG";
 
 // 국가별 세계지도 위 위치 (% 기준, 지도 이미지에 맞게 조정)
 type CountryPin = {
@@ -215,9 +214,9 @@ export default function GlobalSection() {
 
   return (
     <section id="global" className="py-20 lg:py-28 relative overflow-hidden" ref={ref}>
-      {/* 배경 - 실제 세계지도 */}
+      {/* 배경 - SVG 세계지도 */}
       <div className="absolute inset-0">
-        <img src={WORLD_MAP_URL} alt="" className="w-full h-full object-cover" />
+        <WorldMapSVG className="w-full h-full" />
         <div className="absolute inset-0 bg-[#0d1f3c]/20" />
       </div>
 
@@ -249,7 +248,7 @@ export default function GlobalSection() {
         >
           {/* 지도 - 실제 세계지도 이미지 */}
           <div className="absolute inset-0 rounded-3xl overflow-hidden border border-white/20">
-            <img src={WORLD_MAP_URL} alt="세계지도" className="w-full h-full" style={{ display: 'block', objectFit: 'fill' }} />
+            <WorldMapSVG className="w-full h-full" />
             <div className="absolute inset-0" style={{ background: 'transparent' }} />
           </div>
 

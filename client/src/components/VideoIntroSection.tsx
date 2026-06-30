@@ -10,10 +10,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const SLIDE_BGS = [
-  "/manus-storage/slide1_writing_2c37efd7.jpg",
-  "/manus-storage/slide2_pen_d0fa71fc.jpg",
-  "/manus-storage/slide3_family_c5897e79.jpg",
-  "/manus-storage/slide4_legacy_f680f72a.png",
+  "/slide1_writing.jpg",
+  "/slide2_pen.jpg",
+  "/slide3_family.jpg",
+  "/manus-storage/slide4_legacy_ffdd7b23.png",
 ];
 
 const ACCENTS = [
