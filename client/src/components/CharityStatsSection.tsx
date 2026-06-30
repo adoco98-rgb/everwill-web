@@ -132,7 +132,8 @@ export default function CharityStatsSection() {
   const totalLocal = Math.round(totalKrw / localRate);
   const animatedLocal = useCountUp(totalLocal, 2200);
   const animatedDonors = useCountUp(donorCount, 1800);
-  const byCountry = data?.byCountry ?? [];
+  // KR(한국) 카드는 모든 언어에서 숨김 (한국 기부 데이터는 글로벌 통계에 포함되지 않음)
+  const byCountry = (data?.byCountry ?? []).filter(c => c.countryCode !== 'KR');
   const byCategory = data?.byCategory ?? [];
   const maxCategoryAmount = Math.max(...byCategory.map((c) => c.totalKrw), 1);
 

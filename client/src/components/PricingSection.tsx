@@ -81,6 +81,7 @@ export default function PricingSection() {
   const isKo = isKorean(language);
   const isJa = language === "ja";
   const isZh = language === "zh";
+  const isRu = language === "ru";
   const [, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
 
@@ -110,25 +111,25 @@ export default function PricingSection() {
     }
   };
 
-  const comingSoonMsg = isKo ? "서비스 준비 중입니다. 곧 오픈합니다!" : isJa ? "まもなくオープンします！" : isZh ? "即将开放！" : "Coming soon!";
+  const comingSoonMsg = isKo ? "서비스 준비 중입니다. 곧 오픈합니다!" : isJa ? "まもなくオープンします！" : isZh ? "即将开放！" : isRu ? "Скоро откроется!" : "Coming soon!";
 
-  // 4개 언어 헬퍼
-  const getLang = (ko: string, ja: string, en: string, zh?: string) =>
-    isKo ? ko : isJa ? ja : isZh ? (zh ?? en) : en;
+  // 다국어 헬퍼 (ko/ja/zh/ru + 기타 영어)
+  const getLang = (ko: string, ja: string, en: string, zh?: string, ru?: string) =>
+    isKo ? ko : isJa ? ja : isZh ? (zh ?? en) : isRu ? (ru ?? en) : en;
 
   /* 카드 4종 데이터 */
   const cards = [
     {
       tier: "Silver",
-      tierLabel: getLang("실버 카드", "シルバーカード", "Silver Card", "银卡"),
-      planName: getLang("전자 인증 + 1년 보관", "電子認証 + 1年保管", "Certification + 1yr Storage", "电子认证 + 1年存储"),
+      tierLabel: getLang("실버 카드", "シルバーカード", "Silver Card", "银卡", "Серебряная карта"),
+      planName: getLang("전자 인증 + 1년 보관", "電子認証 + 1年保管", "Certification + 1yr Storage", "电子认证 + 1年存储", "Сертификация + 1 год хранения"),
       color: "from-slate-400 to-slate-600",
       borderColor: "border-slate-400/40",
       textAccent: "text-slate-300",
       bgCard: "bg-gradient-to-br from-slate-700 to-slate-900",
       price: isKo ? "₩49,000" : fmtDB(dbPricing?.certificationPrice, PLAN_KRW_PRICES.cert.total),
       priceKrw: PLAN_KRW_PRICES.cert.total,
-      material: getLang("실버 컬러", "シルバーカラー", "Silver Color", "银色"),
+      material: getLang("실버 컬러", "シルバーカラー", "Silver Color", "银色", "Серебряный"),
       popular: false,
       icon: CreditCard,
       features: isKo
@@ -137,6 +138,8 @@ export default function PricingSection() {
         ? ["eKYC電子認証完了", "QR身元認証", "NFCタグ", "遺言認証番号", "1年保管込み", "死亡トリガー"]
         : isZh
         ? ["eKYC电子认证完成", "QR身份认证", "NFC标签", "遗嘱认证编号", "含1年存储", "死亡触发"]
+        : isRu
+        ? ["eKYC Сертификация", "QR Идентификация", "NFC Метка", "Свидетельство завещания", "Хранение 1 год", "Триггер смерти"]
         : ["eKYC Certified", "QR Identity", "NFC Tag", "Will Certificate", "1yr Storage", "Death Trigger"],
       breakdown: isKo
         ? [{ label: "전자 인증", val: "₩49,000" }, { label: "1년 보관", val: "₩15,000" }, { label: "할인", val: "-₩15,000", red: true }, { label: "합계", val: "₩49,000", bold: true }]
@@ -144,19 +147,21 @@ export default function PricingSection() {
         ? [{ label: "電子認証", val: "¥7,595" }, { label: "1年保管", val: "¥2,324" }, { label: "割引", val: "-¥2,324", red: true }, { label: "合計", val: "¥7,595", bold: true }]
         : isZh
         ? [{ label: "电子认证", val: "¥353" }, { label: "1年存储", val: "¥108" }, { label: "折扣", val: "-¥108", red: true }, { label: "合计", val: "¥353", bold: true }]
+        : isRu
+        ? [{ label: "Сертификация", val: "₽3,500" }, { label: "Хранение 1 год", val: "₽1,050" }, { label: "Скидка", val: "-₽1,050", red: true }, { label: "Итого", val: "₽3,500", bold: true }]
         : [{ label: "Certification", val: "$39" }, { label: "1yr Storage", val: "$15" }, { label: "Discount", val: "-$15", red: true }, { label: "Total", val: "$39", bold: true }],
     },
     {
       tier: "Gold",
-      tierLabel: getLang("골드 카드", "ゴールドカード", "Gold Card", "金卡"),
-      planName: getLang("전자 인증 + 3년 보관", "電子認証 + 3年保管", "Certification + 3yr Storage", "电子认证 + 3年存储"),
+      tierLabel: getLang("골드 카드", "ゴールドカード", "Gold Card", "金卡", "Золотая карта"),
+      planName: getLang("전자 인증 + 3년 보관", "電子認証 + 3年保管", "Certification + 3yr Storage", "电子认证 + 3年存储", "Сертификация + 3 года хранения"),
       color: "from-[#C9A961] to-[#a07c3a]",
       borderColor: "border-[#C9A961]/50",
       textAccent: "text-[#C9A961]",
       bgCard: "bg-gradient-to-br from-[#1a2f5a] to-[#0d1f3c]",
       price: isKo ? "₩79,000" : fmtDB(dbPricing?.goldPrice && dbPricing.goldPrice > 0 ? dbPricing.goldPrice : (dbPricing ? Math.round((dbPricing.certificationPrice ?? 0) * 1.6) : null), PLAN_KRW_PRICES.plan3y.total),
       priceKrw: PLAN_KRW_PRICES.plan3y.total,
-      material: getLang("골드 컬러", "ゴールドカラー", "Gold Color", "金色"),
+      material: getLang("골드 컬러", "ゴールドカラー", "Gold Color", "金色", "Золотой"),
       popular: true,
       icon: Star,
       features: isKo
@@ -165,6 +170,8 @@ export default function PricingSection() {
         ? ["eKYC電子認証完了", "QR身元認証", "NFCタグ", "遺言認証番号", "3年保管込み", "優先死亡トリガー", "遺族自動通知", "AIライフストーリー日記", "大切な人へのレター"]
         : isZh
         ? ["eKYC电子认证完成", "QR身份认证", "NFC标签", "遗嘱认证编号", "含3年存储", "优先死亡触发", "家属自动通知", "AI人生故事日记", "给挚爱的人写信"]
+        : isRu
+        ? ["eKYC Сертификация", "QR Идентификация", "NFC Метка", "Свидетельство завещания", "Хранение 3 года", "Приоритетный триггер смерти", "Авто-уведомление семьи", "AI Дневник жизни", "Письмо близким"]
         : ["eKYC Certified", "QR Identity", "NFC Tag", "Will Certificate", "3yr Storage", "Priority Death Trigger", "Auto Family Notification", "AI Life Story Diary", "Legacy Letter Writing"],
       breakdown: isKo
         ? [{ label: "전자 인증", val: "₩49,000" }, { label: "3년 보관", val: "₩30,000" }, { label: "합계", val: "₩79,000", bold: true }]
@@ -172,19 +179,21 @@ export default function PricingSection() {
         ? [{ label: "電子認証", val: "¥7,595" }, { label: "3年保管", val: "¥4,650" }, { label: "合計", val: "¥12,245", bold: true }]
         : isZh
         ? [{ label: "电子认证", val: "¥353" }, { label: "3年存储", val: "¥216" }, { label: "合计", val: "¥569", bold: true }]
+        : isRu
+        ? [{ label: "Сертификация", val: "₽3,500" }, { label: "Хранение 3 года", val: "₽2,100" }, { label: "Итого", val: "₽5,600", bold: true }]
         : [{ label: "Certification", val: "$39" }, { label: "3yr Storage", val: "$30" }, { label: "Total", val: "$79", bold: true }],
     },
     {
       tier: "Platinum",
-      tierLabel: getLang("플래티넘 카드", "プラチナカード", "Platinum Card", "白金卡"),
-      planName: getLang("전자 인증 + 5년 보관 + 자필·영상", "電子認証 + 5年保管 + 自筆・映像", "Certification + 5yr + Handwritten & Video", "电子认证 + 5年存储 + 手写·视频"),
+      tierLabel: getLang("플래티넘 카드", "プラチナカード", "Platinum Card", "白金卡", "Платиновая карта"),
+      planName: getLang("전자 인증 + 5년 보관 + 자필·영상", "電子認証 + 5年保管 + 自筆・映像", "Certification + 5yr + Handwritten & Video", "电子认证 + 5年存储 + 手写·视频", "Сертификация + 5 лет + Рукопись и Видео"),
       color: "from-purple-300 to-purple-600",
       borderColor: "border-purple-400/40",
       textAccent: "text-purple-300",
       bgCard: "bg-gradient-to-br from-purple-900 to-slate-900",
       price: isKo ? "₩99,000" : fmtDB(dbPricing?.platinumPrice && dbPricing.platinumPrice > 0 ? dbPricing.platinumPrice : (dbPricing ? Math.round((dbPricing.certificationPrice ?? 0) * 2) : null), PLAN_KRW_PRICES.plan5y.total),
       priceKrw: PLAN_KRW_PRICES.plan5y.total,
-      material: getLang("플래티넘 컬러", "プラチナカラー", "Platinum Color", "白金色"),
+      material: getLang("플래티넘 컬러", "プラチナカラー", "Platinum Color", "白金色", "Платиновый"),
       popular: false,
       icon: Sparkles,
       features: isKo
@@ -193,6 +202,8 @@ export default function PricingSection() {
         ? ["eKYC電子認証完了", "QR身元認証", "NFCタグ", "遺言認証番号", "5年保管込み", "自筆遺言スキャン認証", "映像遺言込み", "優先死亡トリガー", "AIライフストーリー日記", "大切な人へのレター"]
         : isZh
         ? ["eKYC电子认证完成", "QR身份认证", "NFC标签", "遗嘱认证编号", "含5年存储", "手写遗嘱扫描认证", "含视频遗嘱", "优先死亡触发", "AI人生故事日记", "给挚爱的人写信"]
+        : isRu
+        ? ["eKYC Сертификация", "QR Идентификация", "NFC Метка", "Свидетельство завещания", "Хранение 5 лет", "Скан рукописного завещания", "Видеозавещание", "Приоритетный триггер смерти", "AI Дневник жизни", "Письмо близким"]
         : ["eKYC Certified", "QR Identity", "NFC Tag", "Will Certificate", "5yr Storage", "Handwritten Scan", "Video Will", "Priority Death Trigger", "AI Life Story Diary", "Legacy Letter Writing"],
       breakdown: isKo
         ? [{ label: "전자 인증", val: "₩49,000" }, { label: "5년 보관", val: "₩50,000" }, { label: "합계", val: "₩99,000", bold: true }]
@@ -200,19 +211,21 @@ export default function PricingSection() {
         ? [{ label: "電子認証", val: "¥7,595" }, { label: "5年保管", val: "¥7,750" }, { label: "合計", val: "¥15,345", bold: true }]
         : isZh
         ? [{ label: "电子认证", val: "¥353" }, { label: "5年存储", val: "¥360" }, { label: "合计", val: "¥713", bold: true }]
+        : isRu
+        ? [{ label: "Сертификация", val: "₽3,500" }, { label: "Хранение 5 лет", val: "₽3,500" }, { label: "Итого", val: "₽7,000", bold: true }]
         : [{ label: "Certification", val: "$39" }, { label: "5yr Storage", val: "$50" }, { label: "Total", val: "$99", bold: true }],
     },
     {
       tier: "VIP",
-      tierLabel: getLang("VIP 프리미엄", "VIPプレミアム", "VIP Premium", "VIP尊享"),
-      planName: getLang("영구 보관 + 전체 기능 + VIP", "永久保管 + 全機能 + VIP", "Lifetime Storage + All Features + VIP", "永久存储 + 全功能 + VIP"),
+      tierLabel: getLang("VIP 프리미엄", "VIPプレミアム", "VIP Premium", "VIP尊享", "VIP Премиум"),
+      planName: getLang("영구 보관 + 전체 기능 + VIP", "永久保管 + 全機能 + VIP", "Lifetime Storage + All Features + VIP", "永久存储 + 全功能 + VIP", "Постоянное хранение + Все функции + VIP"),
       color: "from-amber-300 via-yellow-400 to-amber-600",
       borderColor: "border-amber-400/60",
       textAccent: "text-amber-300",
       bgCard: "bg-gradient-to-br from-amber-950 to-slate-900",
       price: isKo ? "₩199,000" : fmtDB(dbPricing?.vipPrice && dbPricing.vipPrice > 0 ? dbPricing.vipPrice : (dbPricing ? Math.round((dbPricing.certificationPrice ?? 0) * 4) : null), PLAN_KRW_PRICES.planLife.total),
       priceKrw: PLAN_KRW_PRICES.planLife.total,
-      material: getLang("티타늄 · 플래티넘", "チタン・プラチナ", "Titanium · Platinum", "钛金·铂金"),
+      material: getLang("티타늄 · 플래티넘", "チタン・プラチナ", "Titanium · Platinum", "钛金·铂金", "Титан · Платина"),
       popular: false,
       icon: Sparkles,
       features: isKo
@@ -221,6 +234,8 @@ export default function PricingSection() {
         ? ["eKYC電子認証完了", "QR身元認証", "NFCタグ", "遺言認証番号", "永久保管", "自筆遺言スキャン認証", "映像遺言込み", "優先死亡トリガー", "遺族自動通知", "修正無制限無料", "AIライフストーリー日記", "大切な人へのレター"]
         : isZh
         ? ["eKYC电子认证完成", "QR身份认证", "NFC标签", "遗嘱认证编号", "永久存储", "手写遗嘱扫描认证", "含视频遗嘱", "优先死亡触发", "家属自动通知", "无限次免费修改", "AI人生故事日记", "给挚爱的人写信"]
+        : isRu
+        ? ["eKYC Сертификация", "QR Идентификация", "NFC Метка", "Свидетельство завещания", "Постоянное хранение", "Скан рукописного завещания", "Видеозавещание", "Приоритетный триггер смерти", "Авто-уведомление семьи", "Безлимитные правки", "AI Дневник жизни", "Письмо близким"]
         : ["eKYC Certified", "QR Identity", "NFC Tag", "Will Certificate", "Lifetime Storage", "Handwritten Will Scan", "Video Will", "Priority Death Trigger", "Auto Family Notification", "Unlimited Free Revisions", "AI Life Story Diary", "Legacy Letter Writing"],
       breakdown: isKo
         ? [{ label: "전자 인증", val: "₩49,000" }, { label: "영구 보관", val: "₩150,000" }, { label: "합계", val: "₩199,000", bold: true }]
@@ -228,6 +243,8 @@ export default function PricingSection() {
         ? [{ label: "電子認証", val: "¥7,595" }, { label: "永久保管", val: "¥23,302" }, { label: "合計", val: "¥30,897", bold: true }]
         : isZh
         ? [{ label: "电子认证", val: "¥353" }, { label: "永久存储", val: "¥1,082" }, { label: "合计", val: "¥1,435", bold: true }]
+        : isRu
+        ? [{ label: "Сертификация", val: "₽3,500" }, { label: "Постоянное хранение", val: "₽10,500" }, { label: "Итого", val: "₽14,000", bold: true }]
         : [{ label: "Certification", val: "$39" }, { label: "Lifetime Storage", val: "$150" }, { label: "Total", val: "$199", bold: true }],
     },
   ];
@@ -354,7 +371,7 @@ export default function PricingSection() {
               {/* 가격 */}
               <div className="mb-4">
                 <span className={`text-3xl font-bold ${card.textAccent}`}>{card.price}</span>
-                <span className="text-white/40 text-sm ml-1">{getLang("/ 1회", "/ 1回", "/ once", "/ 次")}</span>
+                <span className="text-white/40 text-sm ml-1">{getLang("/ 1회", "/ 1回", "/ once", "/ 次", "/ раз")}</span>
               </div>
 
               {/* 가격 세분화 */}
@@ -381,10 +398,10 @@ export default function PricingSection() {
 
               {/* 신청 버튼 */}
               <button
-                onClick={() => toast.info(getLang("카드 주문 기능은 곧 오픈됩니다!", "カード注文機能はまもなくオープンします！", "Card ordering coming soon!", "卡片订购功能即将开放！"))}
+                onClick={() => toast.info(getLang("카드 주문 기능은 곧 오픈됩니다!", "カード注文機能はまもなくオープンします！", "Card ordering coming soon!", "卡片订购功能即将开放！", "Заказ карты скоро откроется!"))}
                 className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 bg-gradient-to-r ${card.color} text-white hover:opacity-90 hover:shadow-lg mt-auto`}
               >
-                {getLang("지금 신청하기", "今すぐ申し込む", "Apply Now", "立即申请")}
+                {getLang("지금 신청하기", "今すぐ申し込む", "Apply Now", "立即申请", "Подать заявку")}
               </button>
             </motion.div>
           ))}
@@ -403,13 +420,14 @@ export default function PricingSection() {
             </div>
             <div>
               <h3 className="text-white font-bold text-lg mb-1">
-                {getLang("무료로 시작하기", "無料で始める", "Start for Free", "免费开始")}
+                {getLang("무료로 시작하기", "無料で始める", "Start for Free", "免费开始", "Начать бесплатно")}
               </h3>
               <p className="text-white/60 text-sm">
                 {isKo
                   ? "AI 유언장 작성 · 상속자 등록 · 자산 분배 설계 · 미리보기 — 모두 무료"
                   : isJa ? "AI遺言作成・相続人登録・資産分配設計・プレビュー — すべて無料"
                   : isZh ? "AI遗嘱起草·继承人登记·资产分配设计·预览 — 全部免费"
+                  : isRu ? "Составление завещания · Регистрация наследников · Распределение активов · Предпросмотр — всё бесплатно"
                   : "AI will writing · heir registration · asset distribution · preview — all free"}
               </p>
             </div>
@@ -420,7 +438,7 @@ export default function PricingSection() {
               onClick={handleFreeStart}
               className="flex items-center gap-2 px-6 py-3 bg-white text-[#1F3864] font-bold rounded-xl hover:bg-white/90 transition-all whitespace-nowrap"
             >
-              {getLang("무료로 시작하기", "無料で始める", "Start Free", "免费开始")}
+              {getLang("무료로 시작하기", "無料で始める", "Start Free", "免费开始", "Начать бесплатно")}
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -433,10 +451,11 @@ export default function PricingSection() {
           transition={{ duration: 0.5, delay: 0.9 }}
           className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-2"
         >
-          {(isKo
+            {(isKo
             ? ["AI 유언장 작성 (무료)", "상속자 등록 (무료)", "자산 분배 설계 (무료)", "미리보기 확인 (무료)"]
             : isJa ? ["AI遺言作成（無料）", "相続人登録（無料）", "資産分配設計（無料）", "プレビュー確認（無料）"]
             : isZh ? ["AI遗嘱起草（免费）", "继承人登记（免费）", "资产分配设计（免费）", "预览确认（免费）"]
+            : isRu ? ["Составление завещания (Бесплатно)", "Регистрация наследников (Бесплатно)", "Распределение активов (Бесплатно)", "Предпросмотр (Бесплатно)"]
             : ["AI Will Writing (Free)", "Heir Registration (Free)", "Asset Distribution (Free)", "Preview & Review (Free)"]
           ).map((item) => (
             <div key={item} className="flex items-center gap-1.5">
