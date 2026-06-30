@@ -121,6 +121,34 @@ export function getPlanPrices(lang: Language) {
   };
 }
 
+// 언어 코드 → 국가 코드 매핑
+export const LANGUAGE_TO_COUNTRY: Record<string, string> = {
+  ko: "KR",
+  ja: "JP",
+  zh: "CN",
+  de: "DE",
+  es: "ES",
+  ar: "SA",
+  fr: "FR",
+  ru: "RU",
+  hi: "IN",
+  pt: "BR",
+  en: "US",
+};
+
+// DB 국가별 가격으로 포맷 (DB 가격이 없으면 기본 계산값 사용)
+export function formatPriceFromDB(
+  dbPrice: number | null | undefined,
+  symbol: string | null | undefined,
+  fallbackKrw: number,
+  lang: Language
+): string {
+  if (dbPrice != null && dbPrice > 0 && symbol) {
+    return `${symbol}${dbPrice.toLocaleString()}`;
+  }
+  return formatPrice(fallbackKrw, lang);
+}
+
 // 모든 가격을 언어에 맞게 변환하여 반환
 export function getPrices(lang: Language) {
   return {

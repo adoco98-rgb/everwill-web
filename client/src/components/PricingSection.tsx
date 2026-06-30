@@ -23,7 +23,8 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { formatPrice, isKorean, PLAN_KRW_PRICES } from "@/lib/pricing";
+import { formatPrice, isKorean, PLAN_KRW_PRICES, LANGUAGE_TO_COUNTRY, formatPriceFromDB } from "@/lib/pricing";
+import { trpc } from "@/lib/trpc";
 
 /* 카드 공통 기능 4가지 */
 const CARD_FEATURES = [
@@ -85,6 +86,15 @@ export default function PricingSection() {
 
   const fmtKrw = (krw: number) => formatPrice(krw, language);
 
+  // DB 국가별 가격 조회
+  const countryCode = LANGUAGE_TO_COUNTRY[language] ?? "US";
+  const { data: dbPricing } = trpc.countryPricing.getByCountry.useQuery({ countryCode });
+  const sym = dbPricing?.currencySymbol ?? null;
+
+  // DB 가격 우선, 없으면 기존 계산값 사용
+  const fmtDB = (dbPrice: number | null | undefined, fallbackKrw: number) =>
+    formatPriceFromDB(dbPrice, sym, fallbackKrw, language);
+
   const getPrice = (usd: string, krw: string, jpy: string, cny: string) => {
     if (isKo) return krw;
     if (isJa) return jpy;
@@ -116,7 +126,7 @@ export default function PricingSection() {
       borderColor: "border-slate-400/40",
       textAccent: "text-slate-300",
       bgCard: "bg-gradient-to-br from-slate-700 to-slate-900",
-      price: getPrice("$49", "₩49,000", "¥7,595", "¥353"),
+      price: isKo ? "₩49,000" : fmtDB(dbPricing?.certificationPrice, PLAN_KRW_PRICES.cert.total),
       priceKrw: PLAN_KRW_PRICES.cert.total,
       material: getLang("실버 컬러", "シルバーカラー", "Silver Color", "银色"),
       popular: false,
@@ -144,7 +154,7 @@ export default function PricingSection() {
       borderColor: "border-[#C9A961]/50",
       textAccent: "text-[#C9A961]",
       bgCard: "bg-gradient-to-br from-[#1a2f5a] to-[#0d1f3c]",
-      price: getPrice("$79", "₩79,000", "¥12,245", "¥569"),
+      price: isKo ? "₩79,000" : fmtDB(dbPricing ? Math.round((dbPricing.certificationPrice ?? 0) * 1.6) : null, PLAN_KRW_PRICES.plan3y.total),
       priceKrw: PLAN_KRW_PRICES.plan3y.total,
       material: getLang("골드 컬러", "ゴールドカラー", "Gold Color", "金色"),
       popular: true,
@@ -172,7 +182,7 @@ export default function PricingSection() {
       borderColor: "border-purple-400/40",
       textAccent: "text-purple-300",
       bgCard: "bg-gradient-to-br from-purple-900 to-slate-900",
-      price: getPrice("$99", "₩99,000", "¥15,345", "¥713"),
+      price: isKo ? "₩99,000" : fmtDB(dbPricing ? Math.round((dbPricing.certificationPrice ?? 0) * 2) : null, PLAN_KRW_PRICES.plan5y.total),
       priceKrw: PLAN_KRW_PRICES.plan5y.total,
       material: getLang("플래티넘 컬러", "プラチナカラー", "Platinum Color", "白金色"),
       popular: false,
@@ -200,7 +210,7 @@ export default function PricingSection() {
       borderColor: "border-amber-400/60",
       textAccent: "text-amber-300",
       bgCard: "bg-gradient-to-br from-amber-950 to-slate-900",
-      price: getPrice("$199", "₩199,000", "¥30,897", "¥1,435"),
+      price: isKo ? "₩199,000" : fmtDB(dbPricing ? Math.round((dbPricing.certificationPrice ?? 0) * 4) : null, PLAN_KRW_PRICES.planLife.total),
       priceKrw: PLAN_KRW_PRICES.planLife.total,
       material: getLang("티타늄 · 플래티넘", "チタン・プラチナ", "Titanium · Platinum", "钛金·铂金"),
       popular: false,

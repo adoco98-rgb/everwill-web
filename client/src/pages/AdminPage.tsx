@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { AdminExpertsTab } from "@/components/AdminExpertsTab";
 
-type Tab = "stats" | "users" | "payments" | "inquiries" | "news" | "socialLinks" | "videos" | "countries" | "sellers" | "experts";
+type Tab = "stats" | "users" | "payments" | "inquiries" | "news" | "socialLinks" | "videos" | "countries" | "sellers" | "experts" | "pricing";
 
 function formatKRW(amount: number) {
   if (amount >= 100_000_000) return `${(amount / 100_000_000).toFixed(1)}억원`;
@@ -2256,6 +2256,234 @@ function SellersTab() {
   );
 }
 
+/** 국가별 가격 관리 탭 */
+const COUNTRY_PRICING_LIST = [
+  { code: "KR", name: "한국", flag: "🇰🇷", defaultCurrency: "KRW", defaultSymbol: "₩" },
+  { code: "US", name: "미국", flag: "🇺🇸", defaultCurrency: "USD", defaultSymbol: "$" },
+  { code: "JP", name: "일본", flag: "🇯🇵", defaultCurrency: "JPY", defaultSymbol: "¥" },
+  { code: "CN", name: "중국", flag: "🇨🇳", defaultCurrency: "CNY", defaultSymbol: "¥" },
+  { code: "DE", name: "독일", flag: "🇩🇪", defaultCurrency: "EUR", defaultSymbol: "€" },
+  { code: "ES", name: "스페인", flag: "🇪🇸", defaultCurrency: "EUR", defaultSymbol: "€" },
+  { code: "SA", name: "사우디", flag: "🇸🇦", defaultCurrency: "SAR", defaultSymbol: "ر.س" },
+  { code: "FR", name: "프랑스", flag: "🇫🇷", defaultCurrency: "EUR", defaultSymbol: "€" },
+  { code: "RU", name: "러시아", flag: "🇷🇺", defaultCurrency: "USD", defaultSymbol: "$" },
+  { code: "IN", name: "인도", flag: "🇮🇳", defaultCurrency: "INR", defaultSymbol: "₹" },
+  { code: "BR", name: "브라질", flag: "🇧🇷", defaultCurrency: "BRL", defaultSymbol: "R$" },
+  { code: "NZ", name: "뉴질랜드", flag: "🇳🇿", defaultCurrency: "NZD", defaultSymbol: "NZ$" },
+  { code: "AU", name: "호주", flag: "🇦🇺", defaultCurrency: "AUD", defaultSymbol: "A$" },
+  { code: "CA", name: "캐나다", flag: "🇨🇦", defaultCurrency: "CAD", defaultSymbol: "C$" },
+];
+
+function CountryPricingTab() {
+  const [selectedCode, setSelectedCode] = useState("KR");
+  const [initialized, setInitialized] = useState(false);
+  const [form, setForm] = useState<Record<string, string>>({});
+  const { data: allPrices, refetch } = trpc.countryPricing.getAll.useQuery();
+  const upsert = trpc.countryPricing.upsert.useMutation({
+    onSuccess: () => { toast.success("가격이 저장되었습니다."); refetch(); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const selectedCountry = COUNTRY_PRICING_LIST.find(c => c.code === selectedCode)!;
+
+  const buildForm = (p: { currency: string; currencySymbol: string; certificationPrice: number; recertificationPrice: number; videoWillPrice: number; handwrittenScanPrice: number; membershipPrice: number; badgeEssentialPrice: number; badgeWearablePrice: number; badgeNecklacePrice: number; badgePremiumPrice: number; note?: string | null }) => ({
+    currency: p.currency,
+    currencySymbol: p.currencySymbol,
+    certificationPrice: String(p.certificationPrice),
+    recertificationPrice: String(p.recertificationPrice),
+    videoWillPrice: String(p.videoWillPrice),
+    handwrittenScanPrice: String(p.handwrittenScanPrice),
+    membershipPrice: String(p.membershipPrice),
+    badgeEssentialPrice: String(p.badgeEssentialPrice),
+    badgeWearablePrice: String(p.badgeWearablePrice),
+    badgeNecklacePrice: String(p.badgeNecklacePrice),
+    badgePremiumPrice: String(p.badgePremiumPrice),
+    note: p.note ?? "",
+  });
+
+  if (!initialized && allPrices) {
+    setInitialized(true);
+    const p = allPrices.find(x => x.countryCode === "KR");
+    if (p) setForm(buildForm(p));
+  }
+
+  const handleSelectCountry = (code: string) => {
+    setSelectedCode(code);
+    const p = allPrices?.find(x => x.countryCode === code);
+    const c = COUNTRY_PRICING_LIST.find(x => x.code === code)!;
+    if (p) {
+      setForm(buildForm(p));
+    } else {
+      setForm({ currency: c.defaultCurrency, currencySymbol: c.defaultSymbol, certificationPrice: "", recertificationPrice: "", videoWillPrice: "", handwrittenScanPrice: "", membershipPrice: "", badgeEssentialPrice: "", badgeWearablePrice: "", badgeNecklacePrice: "", badgePremiumPrice: "", note: "" });
+    }
+  };
+
+  const handleSave = () => {
+    upsert.mutate({
+      countryCode: selectedCode,
+      currency: form.currency || selectedCountry.defaultCurrency,
+      currencySymbol: form.currencySymbol || selectedCountry.defaultSymbol,
+      certificationPrice: Number(form.certificationPrice) || 0,
+      recertificationPrice: Number(form.recertificationPrice) || 0,
+      videoWillPrice: Number(form.videoWillPrice) || 0,
+      handwrittenScanPrice: Number(form.handwrittenScanPrice) || 0,
+      membershipPrice: Number(form.membershipPrice) || 0,
+      badgeEssentialPrice: Number(form.badgeEssentialPrice) || 0,
+      badgeWearablePrice: Number(form.badgeWearablePrice) || 0,
+      badgeNecklacePrice: Number(form.badgeNecklacePrice) || 0,
+      badgePremiumPrice: Number(form.badgePremiumPrice) || 0,
+      note: form.note,
+    });
+  };
+
+  const fields = [
+    { key: "certificationPrice", label: "최초 전자 인증" },
+    { key: "recertificationPrice", label: "재인증 (수정)" },
+    { key: "videoWillPrice", label: "영상 유언" },
+    { key: "handwrittenScanPrice", label: "자필 스캔" },
+    { key: "membershipPrice", label: "연 멤버십" },
+    { key: "badgeEssentialPrice", label: "Badge Essential" },
+    { key: "badgeWearablePrice", label: "Badge Wearable" },
+    { key: "badgeNecklacePrice", label: "Badge Necklace" },
+    { key: "badgePremiumPrice", label: "Badge Premium" },
+  ];
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-[#1F3864]">국가별 가격 관리</h2>
+        <p className="text-sm text-gray-500 mt-1">각 국가별 서비스 가격을 설정합니다. 홈페이지 가격 섹션에 자동 반영됩니다.</p>
+      </div>
+
+      {/* 국가 선택 버튼 */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {COUNTRY_PRICING_LIST.map(c => (
+          <button
+            key={c.code}
+            onClick={() => handleSelectCountry(c.code)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
+              selectedCode === c.code
+                ? "bg-[#1F3864] text-white border-[#1F3864]"
+                : "bg-white text-gray-600 border-gray-200 hover:border-[#1F3864]"
+            }`}
+          >
+            <span>{c.flag}</span>
+            <span>{c.name}</span>
+            {allPrices?.find(p => p.countryCode === c.code) && (
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* 가격 편집 폼 */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <span className="text-2xl">{selectedCountry.flag}</span>
+          <div>
+            <h3 className="font-bold text-[#1F3864]">{selectedCountry.name} 가격 설정</h3>
+            <p className="text-xs text-gray-400">{selectedCode} · {form.currency || selectedCountry.defaultCurrency}</p>
+          </div>
+        </div>
+
+        {/* 통화 설정 */}
+        <div className="grid grid-cols-2 gap-3 mb-4 pb-4 border-b border-gray-100">
+          <div>
+            <label className="text-xs font-medium text-gray-500 mb-1 block">통화 코드</label>
+            <input
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+              value={form.currency || ""}
+              onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}
+              placeholder="USD"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-gray-500 mb-1 block">통화 기호</label>
+            <input
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+              value={form.currencySymbol || ""}
+              onChange={e => setForm(f => ({ ...f, currencySymbol: e.target.value }))}
+              placeholder="$"
+            />
+          </div>
+        </div>
+
+        {/* 가격 항목 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+          {fields.map(f => (
+            <div key={f.key}>
+              <label className="text-xs font-medium text-gray-500 mb-1 block">{f.label}</label>
+              <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                <span className="px-2 py-2 bg-gray-50 text-gray-400 text-sm border-r border-gray-200">{form.currencySymbol || selectedCountry.defaultSymbol}</span>
+                <input
+                  type="number"
+                  className="flex-1 px-3 py-2 text-sm outline-none"
+                  value={form[f.key] || ""}
+                  onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 메모 */}
+        <div className="mb-4">
+          <label className="text-xs font-medium text-gray-500 mb-1 block">메모 (내부용)</label>
+          <input
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+            value={form.note || ""}
+            onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
+            placeholder="예: 부가세 포함 가격"
+          />
+        </div>
+
+        <button
+          onClick={handleSave}
+          disabled={upsert.isPending}
+          className="w-full bg-[#1F3864] text-white py-2.5 rounded-xl font-medium hover:bg-[#162a4e] transition-colors disabled:opacity-50"
+        >
+          {upsert.isPending ? "저장 중..." : `${selectedCountry.flag} ${selectedCountry.name} 가격 저장`}
+        </button>
+      </div>
+
+      {/* 전체 가격 현황 테이블 */}
+      <div className="mt-6 bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <h3 className="font-bold text-gray-700">전체 국가 가격 현황</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium">국가</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium">통화</th>
+                <th className="text-right px-4 py-3 text-gray-500 font-medium">전자인증</th>
+                <th className="text-right px-4 py-3 text-gray-500 font-medium">재인증</th>
+                <th className="text-right px-4 py-3 text-gray-500 font-medium">Badge Essential</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {COUNTRY_PRICING_LIST.map(c => {
+                const p = allPrices?.find(x => x.countryCode === c.code);
+                return (
+                  <tr key={c.code} className={`hover:bg-gray-50 cursor-pointer ${selectedCode === c.code ? "bg-blue-50" : ""}`} onClick={() => handleSelectCountry(c.code)}>
+                    <td className="px-4 py-3 font-medium">{c.flag} {c.name}</td>
+                    <td className="px-4 py-3 text-gray-500">{p?.currency ?? "-"}</td>
+                    <td className="px-4 py-3 text-right">{p ? `${p.currencySymbol}${p.certificationPrice.toLocaleString()}` : <span className="text-gray-300">미설정</span>}</td>
+                    <td className="px-4 py-3 text-right">{p ? `${p.currencySymbol}${p.recertificationPrice.toLocaleString()}` : <span className="text-gray-300">미설정</span>}</td>
+                    <td className="px-4 py-3 text-right">{p ? `${p.currencySymbol}${p.badgeEssentialPrice.toLocaleString()}` : <span className="text-gray-300">미설정</span>}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** 국가별 통합 관리 탭 (메인) */
 function CountriesTab() {
   const [selectedCountry, setSelectedCountry] = useState<typeof COUNTRY_LIST[0] | null>(null);
@@ -2360,7 +2588,7 @@ type AdminLocale = {
 const ADMIN_LOCALES: Record<string, AdminLocale> = {
   KR: {
     langName: "한국어", title: "SARAM 관리자 대시보드", subtitle: "관리자",
-    tabs: { stats: "통계 개요", countries: "국가별 관리", users: "회원 관리", payments: "결제/매출", inquiries: "문의 관리", news: "뉴스 관리", socialLinks: "SNS 소셜 링크", videos: "국가별 영상", sellers: "셀러 정산", experts: "전문가 파트너" },
+    tabs: { stats: "통계 개요", countries: "국가별 관리", users: "회원 관리", payments: "결제/매출", inquiries: "문의 관리", news: "뉴스 관리", socialLinks: "SNS 소셜 링크", videos: "국가별 영상", sellers: "셀러 정산", experts: "전문가 파트너", pricing: "국가별 가격" },
     ui: { totalMembers: "총 회원수", todayNew: "오늘 신규", monthRevenue: "이번달 매출", totalRevenue: "총 매출", totalWills: "유언장 수", pendingInquiries: "미답변 문의",
       memberMgmt: "회원 관리", searchPlaceholder: "이름, 이메일, 전화번호 검색", allRoles: "전체", normalRole: "일반", adminRole: "관리자",
       colName: "이름", colEmail: "이메일", colPhone: "전화번호", colCountry: "국가", colJoinDate: "가입일", colGrade: "등급", colRole: "역할", colManage: "관리",
@@ -2375,7 +2603,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   US: {
     langName: "English", title: "SARAM Admin Dashboard", subtitle: "Admin",
-    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos", sellers: "Seller Settlement", experts: "Expert Partners" },
+    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos", sellers: "Seller Settlement", experts: "Expert Partners", pricing: "Pricing" },
     ui: { totalMembers: "Total Members", todayNew: "Today New", monthRevenue: "Monthly Revenue", totalRevenue: "Total Revenue", totalWills: "Wills", pendingInquiries: "Pending Inquiries",
       memberMgmt: "Member Management", searchPlaceholder: "Search name, email, phone", allRoles: "All", normalRole: "User", adminRole: "Admin",
       colName: "Name", colEmail: "Email", colPhone: "Phone", colCountry: "Country", colJoinDate: "Joined", colGrade: "Grade", colRole: "Role", colManage: "Manage",
@@ -2390,7 +2618,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   JP: {
     langName: "日本語", title: "SARAM 管理ダッシュボード", subtitle: "管理者",
-    tabs: { stats: "統計概要", countries: "国別管理", users: "会員管理", payments: "決済/売上", inquiries: "お問い合わせ", news: "ニュース管理", socialLinks: "SNSリンク", videos: "国別動画", sellers: "セラー精算", experts: "専門家パートナー" },
+    tabs: { stats: "統計概要", countries: "国別管理", users: "会員管理", payments: "決済/売上", inquiries: "お問い合わせ", news: "ニュース管理", socialLinks: "SNSリンク", videos: "国別動画", sellers: "セラー精算", experts: "専門家パートナー", pricing: "国別価格" },
     ui: { totalMembers: "総会員数", todayNew: "今日の新規", monthRevenue: "今月の売上", totalRevenue: "総売上", totalWills: "遺言書数", pendingInquiries: "未回答問い合わせ",
       memberMgmt: "会員管理", searchPlaceholder: "名前・メール・電話番号で検索", allRoles: "全て", normalRole: "一般", adminRole: "管理者",
       colName: "名前", colEmail: "メール", colPhone: "電話番号", colCountry: "国", colJoinDate: "登録日", colGrade: "等級", colRole: "役割", colManage: "管理",
@@ -2405,7 +2633,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   CN: {
     langName: "中文", title: "SARAM 管理员仪表板", subtitle: "管理员",
-    tabs: { stats: "统计概览", countries: "国家管理", users: "会员管理", payments: "支付/收入", inquiries: "咨询管理", news: "新闻管理", socialLinks: "社交链接", videos: "国家视频", sellers: "卖家结算", experts: "专家合作伙伴" },
+    tabs: { stats: "统计概览", countries: "国家管理", users: "会员管理", payments: "支付/收入", inquiries: "咨询管理", news: "新闻管理", socialLinks: "社交链接", videos: "国家视频", sellers: "卖家结算", experts: "专家合作伙伴", pricing: "国家价格" },
     ui: { totalMembers: "总会员数", todayNew: "今日新增", monthRevenue: "本月收入", totalRevenue: "总收入", totalWills: "遗嘱数", pendingInquiries: "待回复咨询",
       memberMgmt: "会员管理", searchPlaceholder: "搜索姓名、邮箱、电话", allRoles: "全部", normalRole: "普通", adminRole: "管理员",
       colName: "姓名", colEmail: "邮箱", colPhone: "电话", colCountry: "国家", colJoinDate: "注册日期", colGrade: "等级", colRole: "角色", colManage: "管理",
@@ -2420,7 +2648,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   DE: {
     langName: "Deutsch", title: "SARAM Admin-Dashboard", subtitle: "Administrator",
-    tabs: { stats: "Statistiken", countries: "Länderverwaltung", users: "Mitglieder", payments: "Zahlungen", inquiries: "Anfragen", news: "Nachrichten", socialLinks: "Social Links", videos: "Ländervideos", sellers: "Händlerabrechnung", experts: "Expertenpartner" },
+    tabs: { stats: "Statistiken", countries: "Länderverwaltung", users: "Mitglieder", payments: "Zahlungen", inquiries: "Anfragen", news: "Nachrichten", socialLinks: "Social Links", videos: "Ländervideos", sellers: "Händlerabrechnung", experts: "Expertenpartner", pricing: "Länderpreise" },
     ui: { totalMembers: "Mitglieder gesamt", todayNew: "Heute neu", monthRevenue: "Monatsumsatz", totalRevenue: "Gesamtumsatz", totalWills: "Testamente", pendingInquiries: "Offene Anfragen",
       memberMgmt: "Mitgliederverwaltung", searchPlaceholder: "Name, E-Mail, Telefon suchen", allRoles: "Alle", normalRole: "Benutzer", adminRole: "Admin",
       colName: "Name", colEmail: "E-Mail", colPhone: "Telefon", colCountry: "Land", colJoinDate: "Beigetreten", colGrade: "Stufe", colRole: "Rolle", colManage: "Verwalten",
@@ -2435,7 +2663,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   ES: {
     langName: "Español", title: "Panel de Administración SARAM", subtitle: "Administrador",
-    tabs: { stats: "Estadísticas", countries: "Gestión de Países", users: "Miembros", payments: "Pagos", inquiries: "Consultas", news: "Noticias", socialLinks: "Redes Sociales", videos: "Videos por País", sellers: "Liquidación de Vendedores", experts: "Socios Expertos" },
+    tabs: { stats: "Estadísticas", countries: "Gestión de Países", users: "Miembros", payments: "Pagos", inquiries: "Consultas", news: "Noticias", socialLinks: "Redes Sociales", videos: "Videos por País", sellers: "Liquidación de Vendedores", experts: "Socios Expertos", pricing: "Precios por País" },
     ui: { totalMembers: "Total de Miembros", todayNew: "Nuevos hoy", monthRevenue: "Ingresos del mes", totalRevenue: "Ingresos totales", totalWills: "Testamentos", pendingInquiries: "Consultas pendientes",
       memberMgmt: "Gestión de Miembros", searchPlaceholder: "Buscar nombre, email, teléfono", allRoles: "Todos", normalRole: "Usuario", adminRole: "Admin",
       colName: "Nombre", colEmail: "Email", colPhone: "Teléfono", colCountry: "País", colJoinDate: "Registro", colGrade: "Nivel", colRole: "Rol", colManage: "Gestionar",
@@ -2450,7 +2678,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   SA: {
     langName: "العربية", title: "لوحة إدارة SARAM", subtitle: "المسؤول",
-    tabs: { stats: "الإحصائيات", countries: "إدارة الدول", users: "الأعضاء", payments: "المدفوعات", inquiries: "الاستفسارات", news: "الأخبار", socialLinks: "روابط التواصل", videos: "مقاطع الفيديو", sellers: "تسوية البائعين", experts: "شركاء الخبراء" },
+    tabs: { stats: "الإحصائيات", countries: "إدارة الدول", users: "الأعضاء", payments: "المدفوعات", inquiries: "الاستفسارات", news: "الأخبار", socialLinks: "روابط التواصل", videos: "مقاطع الفيديو", sellers: "تسوية البائعين", experts: "شركاء الخبراء", pricing: "الأسعار" },
     ui: { totalMembers: "إجمالي الأعضاء", todayNew: "جديد اليوم", monthRevenue: "إيرادات الشهر", totalRevenue: "إجمالي الإيرادات", totalWills: "الوصايا", pendingInquiries: "استفسارات معلقة",
       memberMgmt: "إدارة الأعضاء", searchPlaceholder: "ابحث بالاسم أو البريد أو الهاتف", allRoles: "الكل", normalRole: "مستخدم", adminRole: "مسؤول",
       colName: "الاسم", colEmail: "البريد الإلكتروني", colPhone: "الهاتف", colCountry: "الدولة", colJoinDate: "تاريخ الانضمام", colGrade: "الدرجة", colRole: "الدور", colManage: "إدارة",
@@ -2465,7 +2693,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   FR: {
     langName: "Français", title: "Tableau de Bord Admin SARAM", subtitle: "Administrateur",
-    tabs: { stats: "Statistiques", countries: "Gestion des Pays", users: "Membres", payments: "Paiements", inquiries: "Demandes", news: "Actualités", socialLinks: "Liens Sociaux", videos: "Vidéos par Pays", sellers: "Règlement des Vendeurs", experts: "Partenaires Experts" },
+    tabs: { stats: "Statistiques", countries: "Gestion des Pays", users: "Membres", payments: "Paiements", inquiries: "Demandes", news: "Actualités", socialLinks: "Liens Sociaux", videos: "Vidéos par Pays", sellers: "Règlement des Vendeurs", experts: "Partenaires Experts", pricing: "Prix par Pays" },
     ui: { totalMembers: "Total des membres", todayNew: "Nouveaux aujourd'hui", monthRevenue: "Revenus du mois", totalRevenue: "Revenus totaux", totalWills: "Testaments", pendingInquiries: "Demandes en attente",
       memberMgmt: "Gestion des membres", searchPlaceholder: "Rechercher nom, email, téléphone", allRoles: "Tous", normalRole: "Utilisateur", adminRole: "Admin",
       colName: "Nom", colEmail: "Email", colPhone: "Téléphone", colCountry: "Pays", colJoinDate: "Inscription", colGrade: "Niveau", colRole: "Rôle", colManage: "Gérer",
@@ -2480,7 +2708,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   RU: {
     langName: "Русский", title: "Панель администратора SARAM", subtitle: "Администратор",
-    tabs: { stats: "Статистика", countries: "Управление странами", users: "Участники", payments: "Платежи", inquiries: "Запросы", news: "Новости", socialLinks: "Соц. сети", videos: "Видео по странам", sellers: "Расчёт продавцов", experts: "Партнёры-эксперты" },
+    tabs: { stats: "Статистика", countries: "Управление странами", users: "Участники", payments: "Платежи", inquiries: "Запросы", news: "Новости", socialLinks: "Соц. сети", videos: "Видео по странам", sellers: "Расчёт продавцов", experts: "Партнёры-эксперты", pricing: "Цены" },
     ui: { totalMembers: "Всего участников", todayNew: "Новые сегодня", monthRevenue: "Доход за месяц", totalRevenue: "Общий доход", totalWills: "Завещания", pendingInquiries: "Ожидающие запросы",
       memberMgmt: "Управление участниками", searchPlaceholder: "Поиск по имени, email, телефону", allRoles: "Все", normalRole: "Пользователь", adminRole: "Администратор",
       colName: "Имя", colEmail: "Email", colPhone: "Телефон", colCountry: "Страна", colJoinDate: "Дата регистрации", colGrade: "Уровень", colRole: "Роль", colManage: "Управление",
@@ -2495,7 +2723,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   IN: {
     langName: "हिन्दी", title: "SARAM एडमिन डैशबोर्ड", subtitle: "व्यवस्थापक",
-    tabs: { stats: "आँकड़े", countries: "देश प्रबंधन", users: "सदस्य", payments: "भुगतान", inquiries: "पूछताछ", news: "समाचार", socialLinks: "सोशल लिंक", videos: "देश वीडियो", sellers: "विक्रेता निपटान", experts: "विशेषज्ञ भागीदार" },
+    tabs: { stats: "आँकड़े", countries: "देश प्रबंधन", users: "सदस्य", payments: "भुगतान", inquiries: "पूछताछ", news: "समाचार", socialLinks: "सोशल लिंक", videos: "देश वीडियो", sellers: "विक्रेता निपटान", experts: "विशेषज्ञ भागीदार", pricing: "मूल्य" },
     ui: { totalMembers: "कुल सदस्य", todayNew: "आज के नए", monthRevenue: "मासिक राजस्व", totalRevenue: "कुल राजस्व", totalWills: "वसीयतें", pendingInquiries: "लंबित पूछताछ",
       memberMgmt: "सदस्य प्रबंधन", searchPlaceholder: "नाम, ईमेल, फ़ोन खोजें", allRoles: "सभी", normalRole: "उपयोगकर्ता", adminRole: "व्यवस्थापक",
       colName: "नाम", colEmail: "ईमेल", colPhone: "फ़ोन", colCountry: "देश", colJoinDate: "शामिल हुए", colGrade: "स्तर", colRole: "भूमिका", colManage: "प्रबंधन",
@@ -2510,7 +2738,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   BR: {
     langName: "Português", title: "Painel Admin SARAM", subtitle: "Administrador",
-    tabs: { stats: "Estatísticas", countries: "Gestão de Países", users: "Membros", payments: "Pagamentos", inquiries: "Consultas", news: "Notícias", socialLinks: "Links Sociais", videos: "Vídeos por País", sellers: "Liquidação de Vendedores", experts: "Parceiros Especialistas" },
+    tabs: { stats: "Estatísticas", countries: "Gestão de Países", users: "Membros", payments: "Pagamentos", inquiries: "Consultas", news: "Notícias", socialLinks: "Links Sociais", videos: "Vídeos por País", sellers: "Liquidação de Vendedores", experts: "Parceiros Especialistas", pricing: "Preços por País" },
     ui: { totalMembers: "Total de Membros", todayNew: "Novos hoje", monthRevenue: "Receita do mês", totalRevenue: "Receita total", totalWills: "Testamentos", pendingInquiries: "Consultas pendentes",
       memberMgmt: "Gestão de Membros", searchPlaceholder: "Pesquisar nome, email, telefone", allRoles: "Todos", normalRole: "Usuário", adminRole: "Admin",
       colName: "Nome", colEmail: "Email", colPhone: "Telefone", colCountry: "País", colJoinDate: "Cadastro", colGrade: "Nível", colRole: "Função", colManage: "Gerenciar",
@@ -2525,7 +2753,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   CA: {
     langName: "English (CA)", title: "SARAM Admin Dashboard", subtitle: "Admin",
-    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos", sellers: "Seller Settlement", experts: "Expert Partners" },
+    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos", sellers: "Seller Settlement", experts: "Expert Partners", pricing: "Pricing" },
     ui: { totalMembers: "Total Members", todayNew: "Today New", monthRevenue: "Monthly Revenue", totalRevenue: "Total Revenue", totalWills: "Wills", pendingInquiries: "Pending Inquiries",
       memberMgmt: "Member Management", searchPlaceholder: "Search name, email, phone", allRoles: "All", normalRole: "User", adminRole: "Admin",
       colName: "Name", colEmail: "Email", colPhone: "Phone", colCountry: "Country", colJoinDate: "Joined", colGrade: "Grade", colRole: "Role", colManage: "Manage",
@@ -2540,7 +2768,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   AU: {
     langName: "English (AU)", title: "SARAM Admin Dashboard", subtitle: "Admin",
-    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos", sellers: "Seller Settlement", experts: "Expert Partners" },
+    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos", sellers: "Seller Settlement", experts: "Expert Partners", pricing: "Pricing" },
     ui: { totalMembers: "Total Members", todayNew: "Today New", monthRevenue: "Monthly Revenue", totalRevenue: "Total Revenue", totalWills: "Wills", pendingInquiries: "Pending Inquiries",
       memberMgmt: "Member Management", searchPlaceholder: "Search name, email, phone", allRoles: "All", normalRole: "User", adminRole: "Admin",
       colName: "Name", colEmail: "Email", colPhone: "Phone", colCountry: "Country", colJoinDate: "Joined", colGrade: "Grade", colRole: "Role", colManage: "Manage",
@@ -2555,7 +2783,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   NZ: {
     langName: "English (NZ)", title: "SARAM Admin Dashboard", subtitle: "Admin",
-    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos", sellers: "Seller Settlement", experts: "Expert Partners" },
+    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos", sellers: "Seller Settlement", experts: "Expert Partners", pricing: "Pricing" },
     ui: { totalMembers: "Total Members", todayNew: "Today New", monthRevenue: "Monthly Revenue", totalRevenue: "Total Revenue", totalWills: "Wills", pendingInquiries: "Pending Inquiries",
       memberMgmt: "Member Management", searchPlaceholder: "Search name, email, phone", allRoles: "All", normalRole: "User", adminRole: "Admin",
       colName: "Name", colEmail: "Email", colPhone: "Phone", colCountry: "Country", colJoinDate: "Joined", colGrade: "Grade", colRole: "Role", colManage: "Manage",
@@ -2622,6 +2850,7 @@ export default function AdminPage() {
     { id: "socialLinks", label: locale.tabs.socialLinks, icon: Link2 },
     { id: "videos", label: locale.tabs.videos, icon: Youtube },
     { id: "experts", label: "전문가 파트너", icon: Scale },
+    { id: "pricing", label: "국가별 가격", icon: DollarSign },
   ];
 
   return (
@@ -2704,6 +2933,7 @@ export default function AdminPage() {
         {activeTab === "socialLinks" && <SocialLinksTab />}
         {activeTab === "videos" && <VideosTab />}
         {activeTab === "experts" && <AdminExpertsTab />}
+        {activeTab === "pricing" && <CountryPricingTab />}
       </div>
     </div>
   );

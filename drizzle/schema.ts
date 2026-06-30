@@ -1358,3 +1358,41 @@ export const willAttachments = mysqlTable("will_attachments", {
 
 export type WillAttachment = typeof willAttachments.$inferSelect;
 export type InsertWillAttachment = typeof willAttachments.$inferInsert;
+
+// ─────────────────────────────────────────────
+// 국가별 가격 설정 테이블
+// 관리자가 각 국가별로 서비스 가격을 설정
+// ─────────────────────────────────────────────
+export const countryPricing = mysqlTable("countryPricing", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 국가 코드 (ISO 3166-1 alpha-2, 예: KR, US, JP) */
+  countryCode: varchar("countryCode", { length: 8 }).notNull().unique(),
+  /** 통화 코드 (예: KRW, USD, JPY) */
+  currency: varchar("currency", { length: 8 }).notNull().default("USD"),
+  /** 통화 기호 (예: ₩, $, ¥) */
+  currencySymbol: varchar("currencySymbol", { length: 8 }).notNull().default("$"),
+  /** 최초 전자 인증 가격 */
+  certificationPrice: int("certificationPrice").notNull().default(39),
+  /** 재인증 (수정) 가격 */
+  recertificationPrice: int("recertificationPrice").notNull().default(15),
+  /** 영상 유언 추가 가격 */
+  videoWillPrice: int("videoWillPrice").notNull().default(29),
+  /** 자필 스캔 추가 가격 */
+  handwrittenScanPrice: int("handwrittenScanPrice").notNull().default(19),
+  /** 연 멤버십 가격 */
+  membershipPrice: int("membershipPrice").notNull().default(29),
+  /** Badge Essential 가격 */
+  badgeEssentialPrice: int("badgeEssentialPrice").notNull().default(49),
+  /** Badge Wearable 가격 */
+  badgeWearablePrice: int("badgeWearablePrice").notNull().default(79),
+  /** Badge Necklace 가격 */
+  badgeNecklacePrice: int("badgeNecklacePrice").notNull().default(99),
+  /** Badge Premium 가격 */
+  badgePremiumPrice: int("badgePremiumPrice").notNull().default(299),
+  /** 관리자 메모 */
+  note: text("note"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type CountryPricing = typeof countryPricing.$inferSelect;
+export type InsertCountryPricing = typeof countryPricing.$inferInsert;

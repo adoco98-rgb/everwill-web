@@ -1,0 +1,20 @@
+CREATE TABLE `countryPricing` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`countryCode` varchar(8) NOT NULL,
+	`currency` varchar(8) NOT NULL DEFAULT 'USD',
+	`currencySymbol` varchar(8) NOT NULL DEFAULT '$',
+	`certificationPrice` int NOT NULL DEFAULT 39,
+	`recertificationPrice` int NOT NULL DEFAULT 15,
+	`videoWillPrice` int NOT NULL DEFAULT 29,
+	`handwrittenScanPrice` int NOT NULL DEFAULT 19,
+	`membershipPrice` int NOT NULL DEFAULT 29,
+	`badgeEssentialPrice` int NOT NULL DEFAULT 49,
+	`badgeWearablePrice` int NOT NULL DEFAULT 79,
+	`badgeNecklacePrice` int NOT NULL DEFAULT 99,
+	`badgePremiumPrice` int NOT NULL DEFAULT 299,
+	`note` text,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `countryPricing_id` PRIMARY KEY(`id`),
+	CONSTRAINT `countryPricing_countryCode_unique` UNIQUE(`countryCode`)
+);

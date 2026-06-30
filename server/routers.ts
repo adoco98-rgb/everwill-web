@@ -38,6 +38,7 @@ import { aiPromptRouter } from "./routers/aiPromptRouter";
 import { expertRouter } from "./routers/expertRouter";
 import { consultationRouter } from "./routers/consultationRouter";
 import { attachmentRouter } from "./routers/attachmentRouter";
+import { countryPricingRouter } from "./routers/countryPricingRouter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -126,6 +127,8 @@ export const appRouter = router({
   consultation: consultationRouter,
   // 유언 첨부파일 (부동산등본·통장사본·주식잔고증명·코인보유증명 등)
   attachment: attachmentRouter,
+  // 국가별 가격 관리
+  countryPricing: countryPricingRouter,
 });
 
 export type AppRouter = typeof appRouter;

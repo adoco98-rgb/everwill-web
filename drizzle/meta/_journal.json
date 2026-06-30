@@ -295,6 +295,13 @@
       "when": 1781607064499,
       "tag": "0041_chubby_living_mummy",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "5",
+      "when": 1782788630595,
+      "tag": "0042_ambiguous_vision",
+      "breakpoints": true
     }
   ]
 }
