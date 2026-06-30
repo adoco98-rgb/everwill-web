@@ -828,19 +828,7 @@ export default function ExpertsSection() {
           </div>
         )}
 
-        {/* 파트너 가입 CTA */}
-        <div className="mt-12 bg-gradient-to-r from-[#1F3864] to-[#2a4a7f] rounded-2xl p-8 text-center text-white">
-          <h3 className="text-xl font-bold mb-2">{ui.ctaTitle}</h3>
-          <p className="text-white/80 mb-5 text-sm whitespace-pre-line">
-            {ui.ctaDesc}
-          </p>
-          <Button
-            onClick={() => (window.location.href = "/partner/expert")}
-            className="bg-[#C9A961] hover:bg-[#C9A961]/90 text-white px-8"
-          >
-            {ui.ctaBtn} <ChevronRight className="w-4 h-4 ml-1" />
-          </Button>
-        </div>
+        {/* 파트너 가입 CTA - 일반 사용자 페이지에서 제거 */}
       </div>
 
       {/* 상세 모달 */}

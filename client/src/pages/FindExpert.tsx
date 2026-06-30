@@ -746,20 +746,7 @@ export default function FindExpert() {
           </div>
         )}
 
-        {/* 파트너 가입 CTA */}
-        <div className="mt-10 bg-gray-50 rounded-2xl p-6 text-center border border-gray-100">
-          <p className="text-[#1F3864] font-semibold mb-1">전문가이신가요?</p>
-          <p className="text-sm text-gray-500 mb-3">
-            EverWill 파트너로 가입하면 전 세계 고객에게 프로필이 노출됩니다.
-          </p>
-          <Button
-            variant="outline"
-            onClick={() => (window.location.href = "/partner/expert")}
-            className="border-[#1F3864] text-[#1F3864] hover:bg-[#1F3864] hover:text-white"
-          >
-            파트너 신청하기 <ChevronRight className="w-4 h-4 ml-1" />
-          </Button>
-        </div>
+        {/* 파트너 가입 CTA - 일반 사용자 페이지에서 제거 */}
       </div>
 
       {/* 상세 모달 */}
