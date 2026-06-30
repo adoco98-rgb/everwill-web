@@ -100,14 +100,14 @@ const LANG_TEXT: Record<string, {
     footerNote: "상속인 서비스는 유언자 사망 확인 후 활성화됩니다. 유언자가 EverWill 회원인 경우에만 이용 가능합니다.",
     features: ["상속 신고 서류 양식 자동 생성", "72시간 이내 서류 완성", "7개국 법률 정보 자동 적용"],
     includedItems: ["상속 절차 전 과정 안내", "상속세 자동 계산", "상속 신고 서류 초안 자동 작성", "온라인 접수 또는 PDF 다운로드"],
-    lawyerTitle: "법률 전문가 연결 서비스",
+    lawyerTitle: "전문 변호사 서비스",
     lawyerDesc: "이의제기·소송 발생 시 EverWill 파트너 법률 전문가가 상속 절차를 지원합니다.",
     lawyerFee1: "착수금",
     lawyerFee1Val: "₩990,000",
     lawyerFee2: "성공 보수",
     lawyerFee2Val: "상속 자산의 1%",
     lawyerNote: "* 전문가 연결 후 위임 동의서가 자동 생성되며 전자서명 후 절차가 진행됩니다.",
-    lawyerCta: "전문가 상담 신청하기",
+    lawyerCta: "전문 변호사 연결 신청하기",
     compareTitle: "서비스 비교",
     compareColFeature: "항목",
     compareColBasic: "기본 서비스",
@@ -977,16 +977,6 @@ export default function HeirServiceSection() {
             <div>
               <h3 className="font-bold text-white text-xl mb-1">{t.lawyerTitle}</h3>
               <p className="text-white/70 text-sm leading-relaxed">{t.lawyerDesc}</p>
-            </div>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-4 mb-6">
-            <div className="bg-white/10 rounded-2xl p-5">
-              <div className="text-white/60 text-xs font-medium mb-1">{t.lawyerFee1}</div>
-              <div className="text-3xl font-extrabold text-[#C9A961]">{t.lawyerFee1Val}</div>
-            </div>
-            <div className="bg-white/10 rounded-2xl p-5">
-              <div className="text-white/60 text-xs font-medium mb-1">{t.lawyerFee2}</div>
-              <div className="text-3xl font-extrabold text-[#C9A961]">{t.lawyerFee2Val}</div>
             </div>
           </div>
           <p className="text-white/50 text-xs mb-5">{t.lawyerNote}</p>
