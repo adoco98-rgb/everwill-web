@@ -2332,12 +2332,18 @@ function CountryPricingTab() {
       badgeWearablePrice: Number(form.badgeWearablePrice) || 0,
       badgeNecklacePrice: Number(form.badgeNecklacePrice) || 0,
       badgePremiumPrice: Number(form.badgePremiumPrice) || 0,
+      goldPrice: Number(form.goldPrice) || 0,
+      platinumPrice: Number(form.platinumPrice) || 0,
+      vipPrice: Number(form.vipPrice) || 0,
       note: form.note,
     });
   };
 
   const fields = [
-    { key: "certificationPrice", label: "최초 전자 인증" },
+    { key: "certificationPrice", label: "최초 전자 인증 (Silver)" },
+    { key: "goldPrice", label: "Gold 카드 (3년 보관)" },
+    { key: "platinumPrice", label: "Platinum 카드 (5년 보관)" },
+    { key: "vipPrice", label: "VIP 카드 (영구 보관)" },
     { key: "recertificationPrice", label: "재인증 (수정)" },
     { key: "videoWillPrice", label: "영상 유언" },
     { key: "handwrittenScanPrice", label: "자필 스캔" },

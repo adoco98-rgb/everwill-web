@@ -48,6 +48,9 @@ export const countryPricingRouter = router({
         badgeWearablePrice: z.number().int().min(0),
         badgeNecklacePrice: z.number().int().min(0),
         badgePremiumPrice: z.number().int().min(0),
+        goldPrice: z.number().int().min(0),
+        platinumPrice: z.number().int().min(0),
+        vipPrice: z.number().int().min(0),
         note: z.string().optional(),
       })
     )
@@ -81,6 +84,9 @@ export const countryPricingRouter = router({
             badgeWearablePrice: input.badgeWearablePrice,
             badgeNecklacePrice: input.badgeNecklacePrice,
             badgePremiumPrice: input.badgePremiumPrice,
+            goldPrice: input.goldPrice,
+            platinumPrice: input.platinumPrice,
+            vipPrice: input.vipPrice,
             note: input.note,
           })
           .where(eq(countryPricing.countryCode, code));

@@ -1381,6 +1381,12 @@ export const countryPricing = mysqlTable("countryPricing", {
   handwrittenScanPrice: int("handwrittenScanPrice").notNull().default(19),
   /** 연 멤버십 가격 */
   membershipPrice: int("membershipPrice").notNull().default(29),
+  /** Gold 카드 (3년 보관) 가격 */
+  goldPrice: int("goldPrice").notNull().default(0),
+  /** Platinum 카드 (5년 보관) 가격 */
+  platinumPrice: int("platinumPrice").notNull().default(0),
+  /** VIP 카드 (영구 보관) 가격 */
+  vipPrice: int("vipPrice").notNull().default(0),
   /** Badge Essential 가격 */
   badgeEssentialPrice: int("badgeEssentialPrice").notNull().default(49),
   /** Badge Wearable 가격 */
