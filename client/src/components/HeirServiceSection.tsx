@@ -217,7 +217,7 @@ const LANG_TEXT: Record<string, {
     compareColBasic: "基本サービス",
     compareColLawyer: "弁護士選任",
     compareRows: [
-      { feature: "サービス料金", basic: "$149（基本）", lawyer: "¥99,000着手金 + 成功報酬1%" },
+      { feature: "サービス料金", basic: "$149（基本）", lawyer: "専門家連結申請" },
       { feature: "相続手続きガイド", basic: true, lawyer: true },
       { feature: "相続税自動計算", basic: true, lawyer: true },
       { feature: "法的書類自動作成", basic: true, lawyer: true },
@@ -269,7 +269,7 @@ const LANG_TEXT: Record<string, {
     compareColBasic: "基本服务",
     compareColLawyer: "律师委托",
     compareRows: [
-      { feature: "服务费用", basic: "$149（基本）", lawyer: "¥4,900委托金 + 成功报酬1%" },
+      { feature: "服务费用", basic: "$149（基本）", lawyer: "申请专家连接" },
       { feature: "继承手续指导", basic: true, lawyer: true },
       { feature: "遗产税自动计算", basic: true, lawyer: true },
       { feature: "法律文件自动生成", basic: true, lawyer: true },
@@ -321,7 +321,7 @@ const LANG_TEXT: Record<string, {
     compareColBasic: "Basisservice",
     compareColLawyer: "Anwaltlicher Service",
     compareRows: [
-      { feature: "Servicegebühr", basic: "$149 (Basis)", lawyer: "€699 Vorschuss + 1% Erfolgsprovision" },
+      { feature: "Servicegebühr", basic: "$149 (Basis)", lawyer: "Expertenverbindung beantragen" },
       { feature: "Erbschaftsprozess-Beratung", basic: true, lawyer: true },
       { feature: "Automatische Steuerberechnung", basic: true, lawyer: true },
       { feature: "Automatisch erstellte Rechtsdokumente", basic: true, lawyer: true },
@@ -373,7 +373,7 @@ const LANG_TEXT: Record<string, {
     compareColBasic: "Servicio Básico",
     compareColLawyer: "Servicio de Abogado",
     compareRows: [
-      { feature: "Tarifa del Servicio", basic: "$149 (Básico)", lawyer: "$699 honorario + 1% honorario de éxito" },
+      { feature: "Tarifa del Servicio", basic: "$149 (Básico)", lawyer: "Solicitar Conexión con Experto" },
       { feature: "Guía del Proceso de Herencia", basic: true, lawyer: true },
       { feature: "Cálculo Automático de Impuestos", basic: true, lawyer: true },
       { feature: "Documentos Legales Generados Automáticamente", basic: true, lawyer: true },
@@ -425,7 +425,7 @@ const LANG_TEXT: Record<string, {
     compareColBasic: "الخدمة الأساسية",
     compareColLawyer: "خدمة المحامي",
     compareRows: [
-      { feature: "رسوم الخدمة", basic: "$149 (أساسي)", lawyer: "$699 استئجار + 1% رسوم النجاح" },
+      { feature: "رسوم الخدمة", basic: "$149 (أساسي)", lawyer: "طلب ربط خبير" },
       { feature: "إرشاد إجراءات الإرث", basic: true, lawyer: true },
       { feature: "حساب تلقائي للضرائب", basic: true, lawyer: true },
       { feature: "وثائق قانونية تُنشأ تلقائياً", basic: true, lawyer: true },
@@ -477,7 +477,7 @@ const LANG_TEXT: Record<string, {
     compareColBasic: "Service de Base",
     compareColLawyer: "Service d'Avocat",
     compareRows: [
-      { feature: "Frais de Service", basic: "$149 (Basique)", lawyer: "€699 honoraires + 1% honoraires de succès" },
+      { feature: "Frais de Service", basic: "$149 (Basique)", lawyer: "Demander une Connexion Expert" },
       { feature: "Guide du Processus de Succession", basic: true, lawyer: true },
       { feature: "Calcul Automatique des Impôts", basic: true, lawyer: true },
       { feature: "Documents Juridiques Générés Automatiquement", basic: true, lawyer: true },
@@ -529,7 +529,7 @@ const LANG_TEXT: Record<string, {
     compareColBasic: "Базовая Услуга",
     compareColLawyer: "Юридическая Услуга",
     compareRows: [
-      { feature: "Стоимость услуги", basic: "$149 (Базовый)", lawyer: "$699 гонорар + 1% гонорар за успех" },
+      { feature: "Стоимость услуги", basic: "$149 (Базовый)", lawyer: "Подать заявку на эксперта" },
       { feature: "Руководство по наследованию", basic: true, lawyer: true },
       { feature: "Автоматический расчёт налогов", basic: true, lawyer: true },
       { feature: "Автоматически созданные юридические документы", basic: true, lawyer: true },
@@ -1040,12 +1040,12 @@ export default function HeirServiceSection() {
                     </td>
                     <td className="px-5 py-3.5 text-center border-b border-gray-100">
                       {row.basic === true ? (
-                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-100">
-                          <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-100">
+                          <CheckCircle className="w-5 h-5 text-blue-600" />
                         </span>
                       ) : row.basic === false ? (
-                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100">
-                          <span className="text-gray-300 font-bold text-base leading-none">—</span>
+                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100">
+                          <span className="text-gray-400 font-bold text-base leading-none">—</span>
                         </span>
                       ) : (
                         <span className="text-[#1F3864] font-semibold text-xs">{row.basic}</span>
@@ -1053,12 +1053,12 @@ export default function HeirServiceSection() {
                     </td>
                     <td className="px-5 py-3.5 text-center bg-[#1F3864]/5 border-b border-gray-100">
                       {row.lawyer === true ? (
-                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#C9A961]/20">
-                          <CheckCircle className="w-4 h-4 text-[#C9A961]" />
+                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600">
+                          <CheckCircle className="w-5 h-5 text-white" />
                         </span>
                       ) : row.lawyer === false ? (
-                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100">
-                          <span className="text-gray-300 font-bold text-base leading-none">—</span>
+                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100">
+                          <span className="text-gray-400 font-bold text-base leading-none">—</span>
                         </span>
                       ) : (
                         <span className="text-[#1F3864] font-semibold text-xs">{row.lawyer}</span>
