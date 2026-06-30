@@ -9,6 +9,7 @@ import { useParams, Link, useLocation } from "wouter";
 import { motion, useInView } from "framer-motion";
 import VideoIntroSection from "@/components/VideoIntroSection";
 import LawyersSection from "@/components/LawyersSection";
+import GlobalSection from "@/components/GlobalSection";
 import CountryVideoSection from "@/components/CountryVideoSection";
 import ServicesSection from "@/components/ServicesSection";
 import ComparisonSection from "@/components/ComparisonSection";
@@ -143,10 +144,10 @@ function LegalBasisSection({ data }: { data: CountryPageData }) {
         >
           <span className="text-[#C9A961] text-sm font-semibold tracking-widest uppercase">Legal Basis</span>
           <h2 className="text-3xl font-bold text-[#1F3864] mt-2">
-            {data.countryCode} EverWill 법적 근거
+            {data.countryCode} EverWill Legal Basis
           </h2>
           <p className="text-[#6B7280] mt-3 max-w-2xl mx-auto">
-            EverWill은 해당 국가의 관련 법률에 기반하여 서비스를 제공합니다.
+            EverWill provides services based on the applicable laws and regulations of each country.
           </p>
         </motion.div>
         <div className="grid md:grid-cols-2 gap-4">
@@ -656,19 +657,21 @@ export default function CountryPage() {
       <ServicesSection />
       {/* 7. 기존 공증 vs EverWill 비교 */}
       <ComparisonSection />
-      {/* 8. Life Story 프리미엄 기능 */}
+      {/* 8. 글로벌 지원 세계지도 */}
+      <GlobalSection />
+      {/* 9. Life Story 프리미엄 기능 */}
       <LifeStorySection />
-      {/* 9. 국가별 가격 */}
+      {/* 10. 국가별 가격 */}
       <PricingSection data={data} />
-      {/* 10. Badge 섹션 */}
+      {/* 11. Badge 섹션 */}
       <BadgeSection data={data} />
-      {/* 11. 타깃 고객 */}
+      {/* 12. 타깃 고객 */}
       <TargetSection data={data} />
-      {/* 12. 변호사 매칭 서비스 */}
+      {/* 13. 변호사 매칭 서비스 */}
       <LawyersSection />
-      {/* 13. 고객 후기 (국가별 현지 리뷰) */}
+      {/* 14. 고객 후기 (국가별 현지 리뷰) */}
       <ReviewsSection countryReviews={data.reviews} />
-      {/* 14. CTA */}
+      {/* 15. CTA */}
       <CtaSection data={data} />
       <Footer />
     </div>
