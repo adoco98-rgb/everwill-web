@@ -52,6 +52,79 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
 }
 
 /** 통계 탭 */
+/** 인증회원 카운터 직접 수정 컴포넌트 */
+function AdminCertifiedCounterCard() {
+  const [editing, setEditing] = useState(false);
+  const [inputVal, setInputVal] = useState("");
+  const { data, refetch } = trpc.stats.getCertifiedCount.useQuery();
+  const setCount = trpc.stats.setCertifiedCount.useMutation({
+    onSuccess: () => { refetch(); setEditing(false); },
+  });
+  const count = data?.count ?? 0;
+
+  function handleSave() {
+    const n = parseInt(inputVal.replace(/[^0-9]/g, ""), 10);
+    if (isNaN(n) || n < 0) return;
+    setCount.mutate({ count: n });
+  }
+
+  return (
+    <div className="bg-[#1F3864] rounded-2xl p-5 text-white">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-5 h-5 text-[#C9A961]" />
+          <span className="font-bold text-sm">인증회원 카운터 관리</span>
+          <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">관리자 전용</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-4">
+        <div>
+          <p className="text-white/60 text-xs mb-1">현재 인증회원 수 (홈페이지 표시)</p>
+          <p className="text-4xl font-extrabold text-[#C9A961]">{count.toLocaleString()}<span className="text-lg ml-1 text-white/60">명</span></p>
+        </div>
+        <div className="flex-1">
+          {editing ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                inputMode="numeric"
+                value={inputVal}
+                onChange={(e) => setInputVal(e.target.value)}
+                placeholder="새 숫자 입력"
+                className="flex-1 px-3 py-2 rounded-xl text-[#1F3864] font-bold text-lg focus:outline-none"
+                autoFocus
+                onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+              />
+              <button
+                onClick={handleSave}
+                disabled={setCount.isPending}
+                className="w-10 h-10 rounded-xl bg-[#C9A961] flex items-center justify-center hover:bg-[#d4b870] transition-colors"
+              >
+                <CheckCircle className="w-5 h-5 text-[#1F3864]" />
+              </button>
+              <button
+                onClick={() => setEditing(false)}
+                className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => { setInputVal(String(count)); setEditing(true); }}
+              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
+            >
+              <Pencil className="w-4 h-4" />
+              숫자 수정하기
+            </button>
+          )}
+          <p className="text-white/40 text-xs mt-2">홈페이지 하단에 실시간으로 표시됩니다. 0명이면 자동 숨김.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** 국가별 가입자 수 관리 컴포넌트 */
 function CountryMemberManager() {
   const utils = trpc.useUtils();
@@ -302,6 +375,8 @@ function StatsTab({ country, locale }: { country: string; locale: typeof ADMIN_L
         <StatCard icon={FileText} label={locale.ui.totalWills} value={`${data.totalWills.toLocaleString()}`} color="bg-green-500" />
         <StatCard icon={MessageSquare} label={locale.ui.pendingInquiries} value={`${data.pendingInquiries}`} color="bg-orange-500" />
       </div>
+      {/* 인증회원 카운터 관리 */}
+      <AdminCertifiedCounterCard />
       {/* 국가별 가입자 수 관리 (전체 통계 탭에서만 표시) */}
       {country === "KR" || country === "ALL" ? <CountryMemberManager /> : null}
     </div>
