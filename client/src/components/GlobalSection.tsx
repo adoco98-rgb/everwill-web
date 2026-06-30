@@ -214,10 +214,10 @@ export default function GlobalSection() {
 
   return (
     <section id="global" className="py-20 lg:py-28 relative overflow-hidden" ref={ref}>
-      {/* 배경 - SVG 세계지도 */}
+      {/* 배경 - 빈티지 세계지도 이미지 */}
       <div className="absolute inset-0">
-        <WorldMapSVG className="w-full h-full" />
-        <div className="absolute inset-0 bg-[#0d1f3c]/20" />
+        <img src="/manus-storage/pasted_file_n6kWUu_image_d1397bb1.png" alt="" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-[#0d1f3c]/60" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -246,10 +246,10 @@ export default function GlobalSection() {
           className="relative w-full mb-10 hidden sm:block"
           style={{ aspectRatio: '2/1', paddingBottom: undefined }}
         >
-          {/* 지도 - 실제 세계지도 이미지 */}
+          {/* 지도 - 빈티지 세계지도 이미지 */}
           <div className="absolute inset-0 rounded-3xl overflow-hidden border border-white/20">
-            <WorldMapSVG className="w-full h-full" />
-            <div className="absolute inset-0" style={{ background: 'transparent' }} />
+            <img src="/manus-storage/pasted_file_n6kWUu_image_d1397bb1.png" alt="세계지도" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-[#0d1f3c]/30" />
           </div>
 
           {/* 국기 핀들 */}
