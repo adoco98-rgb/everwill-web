@@ -198,7 +198,7 @@ export default function Navbar() {
           {/* 로고 - 좌측 고정 (원형 씰 로고) */}
           <a href="/" className="flex items-center shrink-0">
             <img
-              src="/manus-storage/everwill_seal_32fed306.png"
+              src="/manus-storage/everwill-seal_86cf0744.png"
               alt="EverWill Logo"
               className="object-contain drop-shadow-xl"
               style={{ height: '72px', width: '72px' }}
