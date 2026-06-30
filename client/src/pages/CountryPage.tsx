@@ -8,6 +8,7 @@ import { useEffect, useRef } from "react";
 import { useParams, Link } from "wouter";
 import { motion, useInView } from "framer-motion";
 import VideoIntroSection from "@/components/VideoIntroSection";
+import LawyersSection from "@/components/LawyersSection";
 import CountryVideoSection from "@/components/CountryVideoSection";
 import ServicesSection from "@/components/ServicesSection";
 import ComparisonSection from "@/components/ComparisonSection";
@@ -641,6 +642,7 @@ export default function CountryPage() {
       <BadgeSection data={data} />
       <TargetSection data={data} />
       <TrustSection data={data} />
+      <LawyersSection />
       <ReviewsSection />
       <CtaSection data={data} />
       <Footer />
