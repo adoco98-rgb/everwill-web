@@ -9,20 +9,31 @@ import App from "./App";
 import { getLoginUrl } from "./const";
 import "./index.css";
 
-// 도메인별 자동 리다이렉트 (everwillus.com → /country/us, everwilljp.com → /country/jp)
+// 도메인별 언어 고정 설정
+// everwillus.com → 영어 고정 (홈페이지 영어 버전)
+// everwilljp.com → 일본어 고정 (/country/jp)
+const DOMAIN_LANG_MAP: Record<string, string> = {
+  "everwillus.com": "en",
+  "www.everwillus.com": "en",
+  "everwillusa.com": "en",
+  "www.everwillusa.com": "en",
+};
+
 const DOMAIN_REDIRECT_MAP: Record<string, string> = {
-  "everwillus.com": "/country/us",
-  "www.everwillus.com": "/country/us",
-  "everwillusa.com": "/country/us",
-  "www.everwillusa.com": "/country/us",
   "everwilljp.com": "/country/jp",
   "www.everwilljp.com": "/country/jp",
 };
 
-// 현재 도메인이 리다이렉트 대상이면 해당 국가 페이지로 이동
-// 이미 해당 경로에 있으면 리다이렉트 안 함
 if (typeof window !== "undefined") {
   const hostname = window.location.hostname;
+
+  // 언어 고정 (everwillus.com → 영어)
+  const forceLang = DOMAIN_LANG_MAP[hostname];
+  if (forceLang) {
+    localStorage.setItem("everwill_language", forceLang);
+  }
+
+  // 국가 페이지 리다이렉트 (everwilljp.com → /country/jp)
   const targetPath = DOMAIN_REDIRECT_MAP[hostname];
   if (targetPath && !window.location.pathname.startsWith(targetPath)) {
     window.location.replace(targetPath);
