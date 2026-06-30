@@ -594,7 +594,7 @@ export default function CountryPage() {
   const data = code ? countryPagesData[code] : null;
   const { setLanguage } = useLanguage();
 
-  // 국가 페이지 접속 시 해당 국가 언어로 자동 전환
+  // 국가 페이지 접속 시 해당 국가 언어로 즉시 전환 (localStorage 포함)
   useEffect(() => {
     if (data) {
       document.title = data.metaTitle;
@@ -604,7 +604,11 @@ export default function CountryPage() {
         ru: "ru", hi: "hi", pt: "pt",
       };
       const targetLang = langMap[data.langCode];
-      if (targetLang) setLanguage(targetLang);
+      if (targetLang) {
+        // localStorage를 먼저 업데이트하여 초기 렌더링 언어 불일치 방지
+        localStorage.setItem("everwill_language", targetLang);
+        setLanguage(targetLang);
+      }
     }
   }, [data, setLanguage]);
 

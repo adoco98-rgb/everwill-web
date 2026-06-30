@@ -9,6 +9,26 @@ import App from "./App";
 import { getLoginUrl } from "./const";
 import "./index.css";
 
+// 도메인별 자동 리다이렉트 (everwillus.com → /country/us, everwilljp.com → /country/jp)
+const DOMAIN_REDIRECT_MAP: Record<string, string> = {
+  "everwillus.com": "/country/us",
+  "www.everwillus.com": "/country/us",
+  "everwillusa.com": "/country/us",
+  "www.everwillusa.com": "/country/us",
+  "everwilljp.com": "/country/jp",
+  "www.everwilljp.com": "/country/jp",
+};
+
+// 현재 도메인이 리다이렉트 대상이면 해당 국가 페이지로 이동
+// 이미 해당 경로에 있으면 리다이렉트 안 함
+if (typeof window !== "undefined") {
+  const hostname = window.location.hostname;
+  const targetPath = DOMAIN_REDIRECT_MAP[hostname];
+  if (targetPath && !window.location.pathname.startsWith(targetPath)) {
+    window.location.replace(targetPath);
+  }
+}
+
 const queryClient = new QueryClient();
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
