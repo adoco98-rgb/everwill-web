@@ -178,7 +178,7 @@ function DashboardLayoutContent({
               {!isCollapsed ? (
                 <a href="/" className="flex items-center gap-2 min-w-0">
                   <img
-                    src="/everwill-logo.png"
+                    src="/manus-storage/everwill_seal_b48f9c39.png"
                     alt="EverWill"
                     className="h-9 w-9 object-contain shrink-0"
                   />
@@ -190,7 +190,7 @@ function DashboardLayoutContent({
               ) : (
                 <a href="/">
                   <img
-                    src="/everwill-logo.png"
+                    src="/manus-storage/everwill_seal_b48f9c39.png"
                     alt="EverWill"
                     className="h-8 w-8 object-contain"
                   />

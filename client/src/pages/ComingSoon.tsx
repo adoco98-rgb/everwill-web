@@ -15,7 +15,7 @@ import { getLoginUrl } from "@/const";
 const HERO_IMAGE =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/hero-global-elders-v2-DB4mTEuKjbV7DYjdv5fYBA.webp";
 
-const LOGO_URL = "/everwill-logo.png";
+const LOGO_URL = "/manus-storage/everwill_seal_b48f9c39.png";
 
 const PASSWORD = "2026";
 const SESSION_KEY = "ew_unlocked";
