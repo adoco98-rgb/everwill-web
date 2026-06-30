@@ -5,7 +5,7 @@
  * - 언어 자동 전환 (countryPages.ts의 langCode 기준)
  */
 import { useEffect, useRef } from "react";
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { motion, useInView } from "framer-motion";
 import VideoIntroSection from "@/components/VideoIntroSection";
 import LawyersSection from "@/components/LawyersSection";
@@ -593,6 +593,18 @@ export default function CountryPage() {
   const code = params.code?.toLowerCase();
   const data = code ? countryPagesData[code] : null;
   const { setLanguage } = useLanguage();
+  const [, navigate] = useLocation();
+
+  // US, AU, NZ, CA 페이지 접속 시 홈(/)으로 리다이렉트
+  // JP는 everwilljp.com 연결용으로 유지
+  const REDIRECT_CODES = ["us", "au", "nz", "ca"];
+  useEffect(() => {
+    if (code && REDIRECT_CODES.includes(code)) {
+      // US는 영어, AU/NZ/CA도 영어로 설정 후 홈으로 이동
+      localStorage.setItem("everwill_language", "en");
+      navigate("/");
+    }
+  }, [code, navigate]);
 
   // 국가 페이지 접속 시 해당 국가 언어로 즉시 전환 (localStorage 포함)
   useEffect(() => {
