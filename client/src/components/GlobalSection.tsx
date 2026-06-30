@@ -398,9 +398,9 @@ export default function GlobalSection() {
                     <div className="text-white/80 text-sm font-semibold">{selectedData.legalNote}</div>
                   </div>
                 </div>
-                {/* 국가 전용 페이지 링크 버튼 - JP만 /country/jp, 나머지는 홈(/)으로 */}
+                {/* 국가 전용 페이지 링크 버튼 - US만 홈(/), 나머지(JP/AU/NZ/CA 등)는 해당 국가 페이지 */}
                 <a
-                  href={selectedData.countryCode.toLowerCase() === "jp" ? "/country/jp" : "/"}
+                  href={selectedData.countryCode.toLowerCase() === "us" ? "/" : `/country/${selectedData.countryCode.toLowerCase() === "sa" ? "sa" : selectedData.countryCode.toLowerCase() === "in" ? "in" : selectedData.countryCode.toLowerCase()}`}
                   className="flex items-center justify-center gap-2 w-full bg-[#C9A961] text-[#1F3864] font-bold py-3 rounded-2xl hover:bg-[#d4b56e] transition-colors text-sm"
                 >
                   <Globe className="w-4 h-4" />

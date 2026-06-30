@@ -595,12 +595,10 @@ export default function CountryPage() {
   const { setLanguage } = useLanguage();
   const [, navigate] = useLocation();
 
-  // US, AU, NZ, CA 페이지 접속 시 홈(/)으로 리다이렉트
-  // JP는 everwilljp.com 연결용으로 유지
-  const REDIRECT_CODES = ["us", "au", "nz", "ca"];
+  // US 페이지만 홈(/)으로 리다이렉트
+  // JP, AU, NZ, CA는 전용 페이지 유지
   useEffect(() => {
-    if (code && REDIRECT_CODES.includes(code)) {
-      // US는 영어, AU/NZ/CA도 영어로 설정 후 홈으로 이동
+    if (code === "us") {
       localStorage.setItem("everwill_language", "en");
       navigate("/");
     }
@@ -642,24 +640,35 @@ export default function CountryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA]">
+    <div className="min-h-screen bg-[#FAFAF8]">
       <Navbar />
-      {/* 국가 고유 섹션 */}
+      {/* 1. 국가 전용 Hero (국가 법률·현지 내용 포함) */}
       <CountryHero data={data} />
+      {/* 2. 법적 근거 섹션 */}
       <LegalBasisSection data={data} />
-      {/* 홈페이지 공통 섹션 */}
+      {/* 3. 서비스 소개 슬라이드 */}
       <VideoIntroSection />
+      {/* 4. 국가별 유튜브 영상 */}
       <CountryVideoSection />
-      <ServicesSection />
-      <ComparisonSection />
-      <LifeStorySection />
-      {/* 국가별 가격 */}
-      <PricingSection data={data} />
-      <BadgeSection data={data} />
-      <TargetSection data={data} />
+      {/* 5. 신뢰 지표 */}
       <TrustSection data={data} />
+      {/* 6. 핵심 기능 소개 */}
+      <ServicesSection />
+      {/* 7. 기존 공증 vs EverWill 비교 */}
+      <ComparisonSection />
+      {/* 8. Life Story 프리미엄 기능 */}
+      <LifeStorySection />
+      {/* 9. 국가별 가격 */}
+      <PricingSection data={data} />
+      {/* 10. Badge 섹션 */}
+      <BadgeSection data={data} />
+      {/* 11. 타깃 고객 */}
+      <TargetSection data={data} />
+      {/* 12. 변호사 매칭 서비스 */}
       <LawyersSection />
+      {/* 13. 고객 후기 (국가별 현지 리뷰) */}
       <ReviewsSection countryReviews={data.reviews} />
+      {/* 14. CTA */}
       <CtaSection data={data} />
       <Footer />
     </div>

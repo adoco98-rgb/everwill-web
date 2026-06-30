@@ -454,6 +454,59 @@ export default function Navbar() {
                 </motion.button>
               );
             })}
+            {/* 뉴질랜드·호주·캐나다: 국가 전용 페이지로 이동 */}
+            {[
+              { code: "nz", label: "New Zealand", flagImg: "https://flagcdn.com/w80/nz.png", countryCode: "NZ" },
+              { code: "au", label: "Australia", flagImg: "https://flagcdn.com/w80/au.png", countryCode: "AU" },
+              { code: "ca", label: "Canada", flagImg: "https://flagcdn.com/w80/ca.png", countryCode: "CA" },
+            ].map((extra) => {
+              const isActive = activeCountryCode === extra.code;
+              return (
+                <motion.button
+                  key={extra.code}
+                  onClick={() => { navigate(`/country/${extra.code}`); setMobileOpen(false); }}
+                  title={extra.label}
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.92 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  className={`relative flex flex-col items-center gap-0.5 rounded-xl whitespace-nowrap flex-shrink-0 transition-all ${
+                    isActive
+                      ? "px-2 sm:px-3 py-1 sm:py-1.5 bg-[#C9A961]/25 ring-2 ring-[#C9A961] shadow-lg shadow-[#C9A961]/30"
+                      : "px-1.5 sm:px-2 py-0.5 sm:py-1 hover:bg-white/10"
+                  }`}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeExtra"
+                      className="absolute inset-0 rounded-xl bg-[#C9A961]/15"
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  )}
+                  <img
+                    src={extra.flagImg}
+                    alt={extra.label}
+                    loading="eager"
+                    decoding="async"
+                    className={`relative z-10 rounded-sm flex-shrink-0 transition-all ${
+                      isActive
+                        ? "ring-2 ring-[#C9A961] shadow-md shadow-[#C9A961]/40"
+                        : "opacity-75 hover:opacity-100"
+                    }`}
+                    style={{
+                      width: isActive ? 36 : 24,
+                      height: isActive ? 24 : 16,
+                      objectFit: "cover",
+                      display: "block",
+                    }}
+                  />
+                  <span className={`relative z-10 text-[8px] sm:text-[9px] font-bold mt-0.5 leading-none tracking-wide ${
+                    isActive ? "text-[#C9A961]" : "text-white/70"
+                  }`}>
+                    {extra.countryCode}
+                  </span>
+                </motion.button>
+              );
+            })}
 
           </div>
         </div>
