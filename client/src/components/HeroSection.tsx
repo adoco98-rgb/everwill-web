@@ -68,11 +68,23 @@ export default function HeroSection() {
   });
   const isBadgeVisible = badgeVisibility?.visible !== false; // 기본값 true
 
+  // 실제/임의 가입자 수 표시 여부 조회
+  const { data: showRealData } = trpc.stats.getShowRealCount.useQuery(undefined, { staleTime: 60_000 });
+  const { data: showManualData } = trpc.stats.getShowManualCount.useQuery(undefined, { staleTime: 60_000 });
+  const showReal = showRealData?.visible !== false; // 기본값 true
+  const showManual = showManualData?.visible !== false; // 기본값 true
+
   // 현재 선택된 국가에 해당하는 데이터만 표시
-  const currentCountry = (countryData ?? []).find(c => c.code === currentCountryCode && c.displayEnabled && c.total > 0);
+  // showReal/showManual 설정에 따라 각 국가의 합산 수치 조정
+  const adjustedCountryData = (countryData ?? []).map(c => ({
+    ...c,
+    total: (showManual ? c.manualCount : 0) + (showReal ? c.dbCount : 0),
+  }));
+
+  const currentCountry = adjustedCountryData.find(c => c.code === currentCountryCode && c.displayEnabled && c.total > 0);
   // 하위 호환: 현재 국가가 없으면 표시 활성화된 국가 최대 3개 표시
-  const displayCountries = currentCountry ? [currentCountry] : (countryData ?? []).filter(c => c.displayEnabled && c.total > 0).slice(0, 3);
-  const totalMembers = (countryData ?? []).filter(c => c.displayEnabled).reduce((s, c) => s + c.total, 0) || 4709;
+  const displayCountries = currentCountry ? [currentCountry] : adjustedCountryData.filter(c => c.displayEnabled && c.total > 0).slice(0, 3);
+  const totalMembers = adjustedCountryData.filter(c => c.displayEnabled).reduce((s, c) => s + c.total, 0) || 0;
 
   // 로그인 상태면 대시보드, 비로그인이면 회원가입 페이지로
   const handleStart = () => {
@@ -169,7 +181,8 @@ export default function HeroSection() {
           </button>
 
           {/* 회원 수 카운터 배지 - 관리자 설정 기반 동적 표시 / 숨김 가능 */}
-          {isBadgeVisible && <motion.div
+          {/* totalMembers가 0이고 displayCountries도 없으면 배지 숨김 */}
+          {isBadgeVisible && (displayCountries.length > 0 || totalMembers > 0) && <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.6 }}

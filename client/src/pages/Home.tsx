@@ -17,7 +17,6 @@ import ReferralSection from "@/components/ReferralSection";
 import CharityStatsSection from "@/components/CharityStatsSection";
 import CTASection from "@/components/CTASection";
 import PricingSection from "@/components/PricingSection";
-import CertifiedCounterBanner from "@/components/CertifiedCounterBanner";
 import { LifeStorySection } from "@/components/LifeStorySection";
 import LegalAISection from "@/components/LegalAISection";
 import ExpertsSection from "@/components/ExpertsSection";
@@ -64,13 +63,6 @@ export default function Home() {
       <HeirServiceSection />
       {/* 15. 전문가 파트너 그룹 소개 */}
       <ExpertsSection />
-      {/* 16. 인증회원 카운터 */}
-      <section className="py-10 bg-[#FAFAF8]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <CertifiedCounterBanner />
-        </div>
-      </section>
-
       <Footer />
     </div>
   );
