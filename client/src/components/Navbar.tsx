@@ -395,8 +395,8 @@ export default function Navbar() {
           </div>{/* 우측 액션 end */}
         </div>
       </div>
-      {/* 국기 언어 선택 바 - 네비게이션 바 하단에 항상 표시 */}
-      <div className="border-t border-[#C9A961]/20 bg-[#162d52]">
+      {/* 국기 언어 선택 바 - everwillus.com에서는 숨김 */}
+      {!window.location.hostname.includes('everwillus.com') && <div className="border-t border-[#C9A961]/20 bg-[#162d52]">
         {/* 모바일: 두 줄 wrap, 데스크탑: 한 줄 */}
         <div className="w-full">
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-0.5 sm:gap-1 py-1.5 sm:py-2 px-2 sm:px-4 justify-center">
@@ -508,11 +508,9 @@ export default function Navbar() {
                 </motion.button>
               );
             })}
-
           </div>
         </div>
-      </div>
-
+      </div>}
       {/* 모바일 메뉴 */}
       <AnimatePresence>
         {mobileOpen && (
