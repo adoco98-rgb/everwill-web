@@ -302,6 +302,13 @@
       "when": 1782788630595,
       "tag": "0042_ambiguous_vision",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "5",
+      "when": 1782897242253,
+      "tag": "0043_known_sauron",
+      "breakpoints": true
     }
   ]
 }

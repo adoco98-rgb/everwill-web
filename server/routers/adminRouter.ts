@@ -746,4 +746,102 @@ export const adminCountryRouter = router({
         .where(eq(inquiries.id, input.inquiryId));
       return { success: true };
     }),
+
+  /** 국가별 월별 매출 추이 (최근 12개월) */
+  getMonthlyRevenue: adminProcedure
+    .input(z.object({
+      country: z.string().optional(),
+    }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      // 최근 12개월 월별 매출
+      const rows = await db.execute(sql`
+        SELECT
+          DATE_FORMAT(p.paidAt, '%Y-%m') as month,
+          COALESCE(p.country, u.country, 'KR') as country,
+          COUNT(*) as cnt,
+          COALESCE(SUM(p.amountTotal), 0) as revenue
+        FROM payments p
+        LEFT JOIN users u ON p.userId = u.id
+        WHERE p.status = 'completed'
+          AND p.paidAt >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+          ${input.country ? sql`AND COALESCE(p.country, u.country, 'KR') = ${input.country}` : sql``}
+        GROUP BY month, COALESCE(p.country, u.country, 'KR')
+        ORDER BY month ASC
+      `);
+      const data = (rows as any)[0] as Array<{ month: string; country: string; cnt: number; revenue: number }>;
+      return { data: data ?? [] };
+    }),
+
+  /** 국가별 상품별 매출 통계 */
+  getProductRevenue: adminProcedure
+    .input(z.object({
+      country: z.string().optional(),
+    }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      const conditions: any[] = [eq(payments.status, "completed")];
+      if (input.country) {
+        conditions.push(sql`COALESCE(${payments.country}, ${users.country}, 'KR') = ${input.country}`);
+      }
+      const list = await db.select({
+        items: payments.items,
+        amount: payments.amountTotal,
+        currency: payments.currency,
+      })
+        .from(payments)
+        .leftJoin(users, eq(payments.userId, users.id))
+        .where(and(...conditions))
+        .limit(2000);
+      // 상품별 집계
+      const productMap: Record<string, { count: number; revenue: number }> = {};
+      for (const row of list) {
+        const items = (row.items || "certification").split(",").map((s: string) => s.trim()).filter(Boolean);
+        for (const item of items) {
+          if (!productMap[item]) productMap[item] = { count: 0, revenue: 0 };
+          productMap[item].count++;
+          productMap[item].revenue += Math.round(Number(row.amount ?? 0) / items.length);
+        }
+      }
+      return {
+        products: Object.entries(productMap)
+          .map(([name, v]) => ({ name, ...v }))
+          .sort((a, b) => b.revenue - a.revenue)
+      };
+    }),
+
+  /** 결제 데이터 country 필드 마이그레이션 (기존 데이터 업데이트) */
+  migratePaymentCountry: adminProcedure
+    .mutation(async () => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      const result = await db.execute(sql`
+        UPDATE payments p
+        LEFT JOIN users u ON p.userId = u.id
+        SET p.country = COALESCE(u.country, 'KR')
+        WHERE p.country IS NULL
+      `);
+      return { updated: (result as any)[0]?.affectedRows ?? 0 };
+    }),
+
+  /** 전체 국가별 매출 요약 (차트용) */
+  getRevenueSummary: adminProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+    const rows = await db.execute(sql`
+      SELECT
+        COALESCE(p.country, u.country, 'KR') as country,
+        COUNT(*) as cnt,
+        COALESCE(SUM(p.amountTotal), 0) as revenue,
+        COALESCE(SUM(CASE WHEN p.paidAt >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN p.amountTotal ELSE 0 END), 0) as monthRevenue
+      FROM payments p
+      LEFT JOIN users u ON p.userId = u.id
+      WHERE p.status = 'completed'
+      GROUP BY COALESCE(p.country, u.country, 'KR')
+      ORDER BY revenue DESC
+    `);
+    return { data: (rows as any)[0] as Array<{ country: string; cnt: number; revenue: number; monthRevenue: number }> };
+  }),
 });

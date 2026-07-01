@@ -906,16 +906,43 @@ function UsersTab({ country, locale }: { country: string; locale: typeof ADMIN_L
 
 
 
-/** 결제/매입 탭 */
+/** 결제/매출 탭 - 국가별 매출 통계 강화 */
 function PaymentsTab({ country, locale }: { country: string; locale: typeof ADMIN_LOCALES[string] }) {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "completed" | "failed" | "refunded">("all");
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  // 뷰 모드: country=국가별 요약, table=전체 결제 목록
+  const [viewMode, setViewMode] = useState<"country" | "table">("country");
+  // 선택된 국가 (국가별 상세 드릴다운)
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const countryFilter = country !== "ALL" ? country : undefined;
 
   const { data, isLoading } = trpc.admin.getPayments.useQuery({ page, limit: 20, search, country: countryFilter });
   const totalPages = data ? Math.ceil(data.total / 20) : 1;
+
+  // 국가별 매출 요약
+  const { data: revSummary, isLoading: revSummaryLoading } = trpc.adminCountry.getRevenueSummary.useQuery();
+  // 월별 매출 추이 (선택 국가 or 전체)
+  const { data: monthlyData } = trpc.adminCountry.getMonthlyRevenue.useQuery({ country: selectedCountry ?? undefined });
+  // 상품별 매출 (선택 국가 or 전체)
+  const { data: productData } = trpc.adminCountry.getProductRevenue.useQuery({ country: selectedCountry ?? undefined });
+  // 선택 국가 상세 결제 목록
+  const { data: countryRevData, isLoading: countryRevLoading } = trpc.adminCountry.getRevenueByCountry.useQuery(
+    { country: selectedCountry ?? "KR", page: 1, limit: 20 },
+    { enabled: !!selectedCountry }
+  );
+
+  const COUNTRY_FLAGS: Record<string, string> = {
+    KR: "🇰🇷", US: "🇺🇸", JP: "🇯🇵", CN: "🇨🇳", DE: "🇩🇪", ES: "🇪🇸",
+    SA: "🇸🇦", FR: "🇫🇷", RU: "🇷🇺", IN: "🇮🇳", BR: "🇧🇷", CA: "🇨🇦",
+    AU: "🇦🇺", NZ: "🇳🇿",
+  };
+  const COUNTRY_NAMES: Record<string, string> = {
+    KR: "한국", US: "미국", JP: "일본", CN: "중국", DE: "독일", ES: "스페인",
+    SA: "사우디", FR: "프랑스", RU: "러시아", IN: "인도", BR: "브라질", CA: "캐나다",
+    AU: "호주", NZ: "뉴질랜드",
+  };
 
   const statusLabel: Record<string, { label: string; color: string }> = {
     completed: { label: locale.ui.completed, color: "bg-green-50 text-green-700" },
@@ -924,85 +951,358 @@ function PaymentsTab({ country, locale }: { country: string; locale: typeof ADMI
     refunded: { label: locale.ui.refunded, color: "bg-gray-50 text-gray-600" },
   };
 
+  // 월별 데이터 가공 (차트용)
+  const monthlyChartData = (() => {
+    if (!monthlyData?.data?.length) return [];
+    // 국가별로 그룹핑
+    const months = Array.from(new Set(monthlyData.data.map((d: any) => d.month))).sort();
+    const countries = Array.from(new Set(monthlyData.data.map((d: any) => d.country)));
+    return months.map(month => {
+      const entry: Record<string, any> = { month };
+      for (const c of countries) {
+        const row = monthlyData.data.find((d: any) => d.month === month && d.country === c);
+        entry[c] = row ? Number(row.revenue) : 0;
+      }
+      return entry;
+    });
+  })();
+
+  const totalRevenue = revSummary?.data?.reduce((s: number, r: any) => s + Number(r.revenue), 0) ?? 0;
+  const topCountry = revSummary?.data?.[0];
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+      {/* 상단 헤더 + 뷰 전환 */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <h2 className="text-lg font-bold text-[#1F3864]">{locale.ui.paymentMgmt} <span className="text-sm font-normal text-gray-400">({data?.total ?? 0})</span></h2>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-52">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#1F3864]"
-              placeholder={locale.ui.searchEmail}
-              value={searchInput}
-              onChange={e => setSearchInput(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter") { setSearch(searchInput); setPage(1); } }}
-            />
-          </div>
-          <select
-            className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none"
-            value={statusFilter}
-            onChange={e => { setStatusFilter(e.target.value as any); setPage(1); }}
+        <div>
+          <h2 className="text-lg font-bold text-[#1F3864]">{locale.ui.paymentMgmt}</h2>
+          <p className="text-xs text-gray-400 mt-0.5">국가별 매출 현황 및 결제 내역 통합 관리</p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => { setViewMode("country"); setSelectedCountry(null); }}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+              viewMode === "country" ? "bg-[#1F3864] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
           >
-            <option value="all">{locale.ui.allStatus}</option>
-            <option value="completed">{locale.ui.completed}</option>
-            <option value="pending">{locale.ui.pending}</option>
-            <option value="failed">{locale.ui.failed}</option>
-            <option value="refunded">{locale.ui.refunded}</option>
-          </select>
+            🌍 국가별 통계
+          </button>
+          <button
+            onClick={() => setViewMode("table")}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+              viewMode === "table" ? "bg-[#1F3864] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            📋 전체 목록
+          </button>
         </div>
       </div>
 
+      {/* ===== 국가별 통계 뷰 ===== */}
+      {viewMode === "country" && (
+        <div className="space-y-5">
+          {/* 선택 국가 드릴다운 */}
+          {selectedCountry ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setSelectedCountry(null)}
+                  className="p-2 rounded-xl hover:bg-gray-100 transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5 text-[#1F3864]" />
+                </button>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{COUNTRY_FLAGS[selectedCountry] ?? "🌐"}</span>
+                  <div>
+                    <h3 className="font-bold text-[#1F3864]">{COUNTRY_NAMES[selectedCountry] ?? selectedCountry} 결제 상세</h3>
+                    <p className="text-xs text-gray-400">총 {countryRevData?.totalRevenue?.toLocaleString() ?? 0}원 / {countryRevData?.total ?? 0}건</p>
+                  </div>
+                </div>
+              </div>
+              {/* 상품별 매출 */}
+              {productData?.products && productData.products.length > 0 && (
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                  <h4 className="font-semibold text-[#1F3864] mb-4 flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-[#C9A961]" />
+                    상품별 매출
+                  </h4>
+                  <div className="space-y-2">
+                    {productData.products.slice(0, 8).map((p: any) => {
+                      const maxRev = productData.products[0]?.revenue ?? 1;
+                      const pct = Math.round((p.revenue / maxRev) * 100);
+                      return (
+                        <div key={p.name} className="flex items-center gap-3">
+                          <span className="text-xs text-gray-500 w-28 truncate flex-shrink-0">{p.name}</span>
+                          <div className="flex-1 bg-gray-100 rounded-full h-2">
+                            <div
+                              className="bg-[#C9A961] h-2 rounded-full transition-all"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-semibold text-[#1F3864] w-20 text-right flex-shrink-0">{p.revenue.toLocaleString()}원</span>
+                          <span className="text-xs text-gray-400 w-10 text-right flex-shrink-0">{p.count}건</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {/* 결제 목록 */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="px-5 py-4 border-b border-gray-100">
+                  <h4 className="font-semibold text-[#1F3864]">결제 내역</h4>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 border-b border-gray-100">
+                      <tr>
+                        <th className="text-left px-4 py-3 text-gray-500 font-medium">회원</th>
+                        <th className="text-left px-4 py-3 text-gray-500 font-medium">금액</th>
+                        <th className="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">상품</th>
+                        <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">결제일</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {countryRevLoading ? (
+                        <tr><td colSpan={4} className="text-center py-10 text-gray-400">로딩 중...</td></tr>
+                      ) : countryRevData?.list?.length === 0 ? (
+                        <tr><td colSpan={4} className="text-center py-10 text-gray-400">결제 내역이 없습니다.</td></tr>
+                      ) : countryRevData?.list?.map((p: any) => (
+                        <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3">
+                            <div className="font-medium text-[#1F3864] text-sm">{p.userName || "-"}</div>
+                            <div className="text-xs text-gray-400">{p.userEmail}</div>
+                          </td>
+                          <td className="px-4 py-3 font-bold text-[#C9A961]">{(p.amount ?? 0).toLocaleString()}원</td>
+                          <td className="px-4 py-3 text-gray-500 text-xs hidden md:table-cell truncate max-w-[120px]">{p.items ?? "-"}</td>
+                          <td className="px-4 py-3 text-gray-400 text-xs hidden lg:table-cell">{formatDate(p.paidAt)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {/* 전체 요약 카드 */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-[#1F3864] rounded-2xl p-4 text-white">
+                  <p className="text-white/60 text-xs mb-1">전체 매출</p>
+                  <p className="text-xl font-bold text-[#C9A961]">{formatKRW(totalRevenue)}</p>
+                </div>
+                <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                  <p className="text-gray-400 text-xs mb-1">결제 건수</p>
+                  <p className="text-xl font-bold text-[#1F3864]">{revSummary?.data?.reduce((s: number, r: any) => s + Number(r.cnt), 0)?.toLocaleString() ?? 0}건</p>
+                </div>
+                <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                  <p className="text-gray-400 text-xs mb-1">매출 1위 국가</p>
+                  <p className="text-xl font-bold text-[#1F3864]">{topCountry ? `${COUNTRY_FLAGS[topCountry.country] ?? "🌐"} ${COUNTRY_NAMES[topCountry.country] ?? topCountry.country}` : "-"}</p>
+                </div>
+                <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                  <p className="text-gray-400 text-xs mb-1">활성 국가 수</p>
+                  <p className="text-xl font-bold text-[#1F3864]">{revSummary?.data?.filter((r: any) => Number(r.revenue) > 0)?.length ?? 0}개국</p>
+                </div>
+              </div>
 
+              {/* 국가별 매출 바 차트 */}
+              <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <h3 className="font-semibold text-[#1F3864] mb-4 flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-[#C9A961]" />
+                  국가별 매출 현황
+                  <span className="text-xs font-normal text-gray-400 ml-auto">클릭하면 상세 보기</span>
+                </h3>
+                {revSummaryLoading ? (
+                  <div className="text-center py-8 text-gray-400">로딩 중...</div>
+                ) : !revSummary?.data?.length ? (
+                  <div className="text-center py-8 text-gray-400">결제 데이터가 없습니다.</div>
+                ) : (
+                  <div className="space-y-3">
+                    {revSummary.data.slice(0, 14).map((r: any) => {
+                      const maxRev = Number(revSummary.data[0]?.revenue ?? 1);
+                      const pct = Math.round((Number(r.revenue) / maxRev) * 100);
+                      const flag = COUNTRY_FLAGS[r.country] ?? "🌐";
+                      const name = COUNTRY_NAMES[r.country] ?? r.country;
+                      return (
+                        <button
+                          key={r.country}
+                          onClick={() => setSelectedCountry(r.country)}
+                          className="w-full flex items-center gap-3 hover:bg-gray-50 rounded-xl px-2 py-1.5 transition-colors group"
+                        >
+                          <span className="text-xl w-7 flex-shrink-0">{flag}</span>
+                          <span className="text-sm font-medium text-[#1F3864] w-16 text-left flex-shrink-0">{name}</span>
+                          <div className="flex-1 bg-gray-100 rounded-full h-3">
+                            <div
+                              className="bg-gradient-to-r from-[#1F3864] to-[#C9A961] h-3 rounded-full transition-all group-hover:opacity-80"
+                              style={{ width: `${Math.max(pct, 2)}%` }}
+                            />
+                          </div>
+                          <span className="text-sm font-bold text-[#C9A961] w-24 text-right flex-shrink-0">{formatKRW(Number(r.revenue))}</span>
+                          <span className="text-xs text-gray-400 w-12 text-right flex-shrink-0">{Number(r.cnt)}건</span>
+                          <span className="text-xs text-gray-300 w-16 text-right flex-shrink-0 hidden lg:block">
+                            이번달 {formatKRW(Number(r.monthRevenue))}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">{locale.ui.colEmail}</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">{locale.ui.colAmount}</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">{locale.ui.colCurrency}</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">{locale.ui.colStatus}</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">{locale.ui.colPaidAt}</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">{locale.ui.colItems}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {isLoading ? (
-                <tr><td colSpan={6} className="text-center py-10 text-gray-400">{locale.ui.loading}</td></tr>
-              ) : data?.list.length === 0 ? (
-                <tr><td colSpan={6} className="text-center py-10 text-gray-400">{locale.ui.noData}</td></tr>
-              ) : data?.list.map(p => (
-                <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 text-gray-600 truncate max-w-[160px]">{p.userEmail || "-"}</td>
-                  <td className="px-4 py-3 font-semibold text-[#1F3864]">{p.amount ? formatKRW(p.amount) : "-"}</td>
-                  <td className="px-4 py-3 text-gray-500 uppercase hidden md:table-cell">{p.currency || "krw"}</td>
-                  <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-1 rounded-lg font-medium ${statusLabel[p.status]?.color ?? "bg-gray-50 text-gray-600"}`}>
-                      {statusLabel[p.status]?.label ?? p.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500 hidden lg:table-cell">{formatDate(p.paidAt)}</td>
-                  <td className="px-4 py-3 text-gray-500 truncate max-w-[120px] hidden lg:table-cell">{p.items || "-"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+              {/* 월별 매출 추이 (전체) */}
+              {monthlyData?.data && monthlyData.data.length > 0 && (
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                  <h3 className="font-semibold text-[#1F3864] mb-4 flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-[#C9A961]" />
+                    최근 12개월 국가별 매출 추이
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="border-b border-gray-100">
+                          <th className="text-left py-2 px-2 text-gray-400 font-medium">월</th>
+                          {Array.from(new Set(monthlyData.data.map((d: any) => d.country))).map((c: any) => (
+                            <th key={c} className="text-right py-2 px-2 text-gray-400 font-medium">
+                              {COUNTRY_FLAGS[c] ?? "🌐"} {COUNTRY_NAMES[c] ?? c}
+                            </th>
+                          ))}
+                          <th className="text-right py-2 px-2 text-gray-500 font-semibold">합계</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {monthlyChartData.map((row: any) => {
+                          const countryKeys = Object.keys(row).filter(k => k !== "month");
+                          const total = countryKeys.reduce((s, k) => s + (row[k] ?? 0), 0);
+                          return (
+                            <tr key={row.month} className="border-b border-gray-50 hover:bg-gray-50">
+                              <td className="py-2 px-2 font-medium text-[#1F3864]">{row.month}</td>
+                              {countryKeys.map(c => (
+                                <td key={c} className="py-2 px-2 text-right text-gray-600">
+                                  {row[c] > 0 ? formatKRW(row[c]) : "-"}
+                                </td>
+                              ))}
+                              <td className="py-2 px-2 text-right font-bold text-[#C9A961]">{formatKRW(total)}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* 전체 상품별 매출 */}
+              {productData?.products && productData.products.length > 0 && (
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                  <h3 className="font-semibold text-[#1F3864] mb-4 flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-[#C9A961]" />
+                    상품별 매출 현황
+                  </h3>
+                  <div className="space-y-2">
+                    {productData.products.slice(0, 10).map((p: any) => {
+                      const maxRev = productData.products[0]?.revenue ?? 1;
+                      const pct = Math.round((p.revenue / maxRev) * 100);
+                      return (
+                        <div key={p.name} className="flex items-center gap-3">
+                          <span className="text-xs text-gray-500 w-32 truncate flex-shrink-0">{p.name}</span>
+                          <div className="flex-1 bg-gray-100 rounded-full h-2.5">
+                            <div
+                              className="bg-[#1F3864] h-2.5 rounded-full transition-all"
+                              style={{ width: `${Math.max(pct, 2)}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-bold text-[#C9A961] w-24 text-right flex-shrink-0">{p.revenue.toLocaleString()}원</span>
+                          <span className="text-xs text-gray-400 w-10 text-right flex-shrink-0">{p.count}건</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-          <span className="text-xs text-gray-400">{data?.total ?? 0}건</span>
-          <div className="flex gap-1">
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30">
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="px-3 py-1 text-sm">{page} / {totalPages}</span>
-            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30">
-              <ChevronRight className="w-4 h-4" />
-            </button>
+      )}
+
+      {/* ===== 전체 결제 목록 뷰 ===== */}
+      {viewMode === "table" && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+            <h3 className="font-semibold text-[#1F3864]">전체 결제 목록 <span className="text-sm font-normal text-gray-400">({data?.total ?? 0}건)</span></h3>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-52">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#1F3864]"
+                  placeholder={locale.ui.searchEmail}
+                  value={searchInput}
+                  onChange={e => setSearchInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") { setSearch(searchInput); setPage(1); } }}
+                />
+              </div>
+              <select
+                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none"
+                value={statusFilter}
+                onChange={e => { setStatusFilter(e.target.value as any); setPage(1); }}
+              >
+                <option value="all">{locale.ui.allStatus}</option>
+                <option value="completed">{locale.ui.completed}</option>
+                <option value="pending">{locale.ui.pending}</option>
+                <option value="failed">{locale.ui.failed}</option>
+                <option value="refunded">{locale.ui.refunded}</option>
+              </select>
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium">{locale.ui.colEmail}</th>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium">{locale.ui.colAmount}</th>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium hidden md:table-cell">{locale.ui.colCurrency}</th>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium">{locale.ui.colStatus}</th>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">{locale.ui.colPaidAt}</th>
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium hidden lg:table-cell">{locale.ui.colItems}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {isLoading ? (
+                    <tr><td colSpan={6} className="text-center py-10 text-gray-400">{locale.ui.loading}</td></tr>
+                  ) : data?.list.length === 0 ? (
+                    <tr><td colSpan={6} className="text-center py-10 text-gray-400">{locale.ui.noData}</td></tr>
+                  ) : data?.list.map(p => (
+                    <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3 text-gray-600 truncate max-w-[160px]">{p.userEmail || "-"}</td>
+                      <td className="px-4 py-3 font-semibold text-[#1F3864]">{p.amount ? formatKRW(p.amount) : "-"}</td>
+                      <td className="px-4 py-3 text-gray-500 uppercase hidden md:table-cell">{p.currency || "krw"}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs px-2 py-1 rounded-lg font-medium ${statusLabel[p.status]?.color ?? "bg-gray-50 text-gray-600"}`}>
+                          {statusLabel[p.status]?.label ?? p.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 hidden lg:table-cell">{formatDate(p.paidAt)}</td>
+                      <td className="px-4 py-3 text-gray-500 truncate max-w-[120px] hidden lg:table-cell">{p.items || "-"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+              <span className="text-xs text-gray-400">{data?.total ?? 0}건</span>
+              <div className="flex gap-1">
+                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30">
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span className="px-3 py-1 text-sm">{page} / {totalPages}</span>
+                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30">
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

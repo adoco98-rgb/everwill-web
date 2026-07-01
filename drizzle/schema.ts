@@ -194,6 +194,8 @@ export const payments = mysqlTable("payments", {
   items: text("items"),
   /** 고객 이메일 */
   customerEmail: varchar("customerEmail", { length: 320 }),
+  /** 결제 국가 코드 (ISO 3166-1 alpha-2, 예: KR, US, JP) - 결제 시점 사용자 국가 */
+  country: varchar("country", { length: 8 }).default("KR"),
   /** 결제 완료 시각 */
   paidAt: timestamp("paidAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
