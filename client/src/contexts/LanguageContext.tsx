@@ -53,9 +53,9 @@ const DOMAIN_LANGUAGE_MAP: Record<string, Language> = {
   // 포르투갈/브라질 (포르투갈어)
   "everwillbr.com": "pt",
   "www.everwillbr.com": "pt",
-  // 한국 (한국어) — 도메인 고정 해제: 국기 클릭 시 언어 변경 허용
-  // "everwill.co.kr": "ko",
-  // "www.everwill.co.kr": "ko",
+  // 한국 (한국어) — 도메인 고정: everwill.co.kr 접속 시 항상 한국어
+  "everwill.co.kr": "ko",
+  "www.everwill.co.kr": "ko",
 };
 
 /** 브라우저 언어 목록에서 지원 언어 매핑 */
