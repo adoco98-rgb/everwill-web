@@ -53,9 +53,7 @@ const DOMAIN_LANGUAGE_MAP: Record<string, Language> = {
   // 포르투갈/브라질 (포르투갈어)
   "everwillbr.com": "pt",
   "www.everwillbr.com": "pt",
-  // 한국 (한국어) — 도메인 고정: everwill.co.kr 접속 시 항상 한국어
-  "everwill.co.kr": "ko",
-  "www.everwill.co.kr": "ko",
+  // 한국 도메인은 고정하지 않음 — 첫 접속 시 한국어 기본값은 아래 detectDefaultLanguage에서 처리
 };
 
 /** 브라우저 언어 목록에서 지원 언어 매핑 */
@@ -95,7 +93,15 @@ function detectDefaultLanguage(): Language {
   const saved = localStorage.getItem(STORAGE_KEY) as Language | null;
   if (saved && translations[saved]) return saved;
 
-  // 기본값: 한국어 고정
+  // 4순위: 도메인이 everwill.co.kr이면 한국어 기본값
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    if (hostname === "everwill.co.kr" || hostname === "www.everwill.co.kr") {
+      return "ko";
+    }
+  }
+
+  // 기본값: 한국어
   return "ko";
 }
 
