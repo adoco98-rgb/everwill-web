@@ -139,14 +139,15 @@ export default function Navbar() {
 
   // 언어 수동 변경 핸들러
   const handleSetLanguage = (code: Language) => {
-    setLanguage(code);
-    localStorage.setItem("everwill_language", code);
     setMobileOpen(false);
-    // 국가 페이지(/country/xx)에 있을 때 해당 언어의 국가 페이지로 이동
-    if (location.startsWith("/country/")) {
-      const targetCountry = langToCountry[code];
-      if (targetCountry) navigate(`/country/${targetCountry}`);
+    // US(영어)는 현재 도메인(everwillus.com) 유지
+    if (code === "en") {
+      setLanguage(code);
+      localStorage.setItem("everwill_language", code);
+      return;
     }
+    // 그 외 모든 언어는 everwill.co.kr로 이동
+    window.location.href = "https://everwill.co.kr";
   };
 
   const handleNavClick = (href: string) => {
@@ -464,7 +465,7 @@ export default function Navbar() {
               return (
                 <motion.button
                   key={extra.code}
-                  onClick={() => { navigate(`/country/${extra.code}`); setMobileOpen(false); }}
+                  onClick={() => { window.location.href = `https://everwill.co.kr/country/${extra.code}`; setMobileOpen(false); }}
                   title={extra.label}
                   whileHover={{ scale: 1.1, y: -2 }}
                   whileTap={{ scale: 0.92 }}
