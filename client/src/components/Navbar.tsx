@@ -140,14 +140,26 @@ export default function Navbar() {
   // 언어 수동 변경 핸들러
   const handleSetLanguage = (code: Language) => {
     setMobileOpen(false);
-    // US(영어)는 현재 도메인(everwillus.com) 유지
-    if (code === "en") {
+    const hostname = window.location.hostname;
+    const isUSDomain = hostname.includes("everwillus.com");
+    const isKRDomain = hostname.includes("everwill.co.kr") || hostname.includes("localhost") || hostname.includes("manus.computer");
+
+    // 같은 도메인 내에서 언어 변경 가능한 경우
+    if (isKRDomain) {
       setLanguage(code);
       localStorage.setItem("everwill_language", code);
       return;
     }
-    // 그 외 모든 언어는 everwill.co.kr로 이동
-    window.location.href = "https://everwill.co.kr";
+
+    // everwillus.com에서 영어 선택 시 현재 도메인 유지
+    if (isUSDomain && code === "en") {
+      setLanguage(code);
+      localStorage.setItem("everwill_language", code);
+      return;
+    }
+
+    // everwillus.com에서 다른 언어 선택 시 everwill.co.kr로 이동 (언어 파라미터 포함)
+    window.location.href = `https://everwill.co.kr?lang=${code}`;
   };
 
   const handleNavClick = (href: string) => {
