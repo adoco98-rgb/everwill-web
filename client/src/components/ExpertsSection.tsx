@@ -690,17 +690,22 @@ function ExpertDetailModal({
 }
 
 // ===== 메인 섹션 =====
-export default function ExpertsSection() {
+export default function ExpertsSection({ initialCountry }: { initialCountry?: string } = {}) {
   const { language } = useLanguage();
 
-  // 언어에 따라 자동으로 해당 국가 선택
-  const [selectedCountry, setSelectedCountry] = useState<string>(() => LANG_TO_COUNTRY[language] ?? "KR");
+  // initialCountry가 있으면 그것을 우선 사용, 없으면 언어 기반 자동 선택
+  const [selectedCountry, setSelectedCountry] = useState<string>(() => {
+    if (initialCountry) return initialCountry.toUpperCase();
+    return LANG_TO_COUNTRY[language] ?? "KR";
+  });
 
-  // 언어가 바뀔 때마다 selectedCountry 자동 업데이트 (US 페이지에서 CN 데이터 표시 버그 수정)
+  // 언어가 바뀔 때마다 selectedCountry 자동 업데이트
+  // (단, initialCountry가 지정된 경우 언어 변경에 따른 자동 전환 비활성화)
   useEffect(() => {
+    if (initialCountry) return; // initialCountry가 있으면 언어 기반 자동 전환 안 함
     const mapped = LANG_TO_COUNTRY[language];
     if (mapped) setSelectedCountry(mapped);
-  }, [language]);
+  }, [language, initialCountry]);
   const [selectedSpecialty, setSelectedSpecialty] = useState<"all" | "lawyer" | "tax">("all");
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");

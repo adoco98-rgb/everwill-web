@@ -675,8 +675,8 @@ export default function CountryPage() {
       <LegalAISection />
       {/* 14. 변호사 매칭 서비스 (사후 집행) */}
       <LawyersSection />
-      {/* 15. 전문가 파트너 (변호사 섹션) */}
-      <ExpertsSection />
+      {/* 15. 전문가 파트너 (변호사 섹션) - 해당 국가 탭 자동 선택 */}
+      <ExpertsSection initialCountry={code?.toUpperCase()} />
       {/* 16. 상속자 서비스 */}
       <HeirServiceSection />
       {/* 17. 추천인 섹션 */}
