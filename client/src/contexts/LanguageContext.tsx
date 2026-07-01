@@ -1,6 +1,6 @@
 /**
  * 언어 Context/Provider
- * 전역 언어 상태를 관리하고 RTL 지원을 처리합니다.
+ * IP 위치 기반 자동 언어 감지 + 전역 언어 상태 관리 + RTL 지원
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
@@ -11,63 +11,69 @@ interface LanguageContextType {
   setLanguage: (lang: Language) => void;
   t: TranslationKeys;
   isRTL: boolean;
-  /** 도메인으로 언어가 고정된 경우 true — 언어 선택 UI 숨김 */
+  /** 도메인으로 언어가 고정된 경우 true */
   isLanguageLocked: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | null>(null);
 
 const STORAGE_KEY = "everwill_language";
+const GEO_DETECTED_KEY = "everwill_geo_detected"; // IP 감지 완료 여부
 
-/** 도메인 기반 기본 언어 매핑 */
+/** 도메인 기반 언어 고정 매핑 (전용 도메인만) */
 const DOMAIN_LANGUAGE_MAP: Record<string, Language> = {
-  // 미국 (영어)
   "everwillus.com": "en",
   "www.everwillus.com": "en",
   "everwillusa.com": "en",
   "www.everwillusa.com": "en",
-  // 일본 (일본어)
   "everwilljp.com": "ja",
   "www.everwilljp.com": "ja",
-  // 독일 (독일어)
   "everwillde.com": "de",
   "www.everwillde.com": "de",
-  // 중국 (중국어)
   "everwillcn.com": "zh",
   "www.everwillcn.com": "zh",
-  // 스페인 (스페인어)
   "everwilles.com": "es",
   "www.everwilles.com": "es",
-  // 프랑스 (프랑스어)
   "everwillfr.com": "fr",
   "www.everwillfr.com": "fr",
-  // 아랍 (아랍어)
   "everwillar.com": "ar",
   "www.everwillar.com": "ar",
-  // 인도 (힌디어)
   "everwillin.com": "hi",
   "www.everwillin.com": "hi",
-  // 러시아 (러시아어)
   "everwillru.com": "ru",
   "www.everwillru.com": "ru",
-  // 포르투갈/브라질 (포르투갈어)
   "everwillbr.com": "pt",
   "www.everwillbr.com": "pt",
-  // 한국 도메인은 고정하지 않음 — 첫 접속 시 한국어 기본값은 아래 detectDefaultLanguage에서 처리
 };
 
-/** 브라우저 언어 목록에서 지원 언어 매핑 */
-function mapBrowserLang(lang: string): Language | null {
-  const l = lang.toLowerCase();
-  if (l.startsWith("ko")) return "ko";
-  if (l.startsWith("ja")) return "ja";
-  if (l.startsWith("zh")) return "zh";
-  if (l.startsWith("de")) return "de";
-  if (l.startsWith("es")) return "es";
-  if (l.startsWith("ar")) return "ar";
-  if (l.startsWith("en")) return "en";
-  return null;
-}
+/** 국가 코드 → 언어 매핑 (14개국) */
+const COUNTRY_TO_LANGUAGE: Record<string, Language> = {
+  KR: "ko", // 한국
+  JP: "ja", // 일본
+  CN: "zh", // 중국
+  TW: "zh", // 대만
+  HK: "zh", // 홍콩
+  US: "en", // 미국
+  GB: "en", // 영국
+  AU: "en", // 호주
+  NZ: "en", // 뉴질랜드
+  CA: "en", // 캐나다
+  DE: "de", // 독일
+  AT: "de", // 오스트리아
+  CH: "de", // 스위스
+  ES: "es", // 스페인
+  MX: "es", // 멕시코
+  AR: "es", // 아르헨티나
+  FR: "fr", // 프랑스
+  BE: "fr", // 벨기에
+  SA: "ar", // 사우디아라비아
+  AE: "ar", // UAE
+  EG: "ar", // 이집트
+  IN: "hi", // 인도
+  RU: "ru", // 러시아
+  BR: "pt", // 브라질
+  PT: "pt", // 포르투갈
+};
 
 /** 현재 도메인이 고정 도메인인지 확인 */
 function getLockedDomainLang(): Language | null {
@@ -75,10 +81,9 @@ function getLockedDomainLang(): Language | null {
   return DOMAIN_LANGUAGE_MAP[hostname] ?? null;
 }
 
-/** 기본 언어 감지 (URL 파라미터 > 도메인 고정 > 저장값 > 한국어) */
-function detectDefaultLanguage(): Language {
-  // 1순위: 도메인 기반 언어 고정 (가장 우선)
-  // everwillus.com → en, everwilljp.com → ja 등
+/** 초기 언어 감지 (도메인 고정 > URL 파라미터 > 저장값 > 기본값) */
+function detectInitialLanguage(): Language {
+  // 1순위: 도메인 고정
   const lockedLang = getLockedDomainLang();
   if (lockedLang) return lockedLang;
 
@@ -89,39 +94,62 @@ function detectDefaultLanguage(): Language {
     if (urlLang && translations[urlLang]) return urlLang;
   }
 
-  // 3순위: 사용자가 직접 선택한 저장값
+  // 3순위: 이미 IP 감지 완료된 경우 저장값 사용
+  const geoDetected = localStorage.getItem(GEO_DETECTED_KEY);
   const saved = localStorage.getItem(STORAGE_KEY) as Language | null;
+  if (geoDetected && saved && translations[saved]) return saved;
+
+  // 4순위: 저장값 (사용자가 직접 선택한 경우)
   if (saved && translations[saved]) return saved;
 
-  // 4순위: 도메인이 everwill.co.kr이면 한국어 기본값
-  if (typeof window !== "undefined") {
-    const hostname = window.location.hostname;
-    if (hostname === "everwill.co.kr" || hostname === "www.everwill.co.kr") {
-      return "ko";
-    }
-  }
-
-  // 기본값: 한국어
+  // 기본값: 한국어 (IP 감지 전 임시)
   return "ko";
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>(detectDefaultLanguage);
+  const [language, setLanguageState] = useState<Language>(detectInitialLanguage);
 
   const isRTL = RTL_LANGUAGES.includes(language);
   const t = translations[language];
-
-  // 도메인 고정 여부
   const isLanguageLocked = getLockedDomainLang() !== null;
 
   const setLanguage = useCallback((lang: Language) => {
-    // 도메인 고정 사이트에서는 언어 변경 차단
     if (isLanguageLocked) return;
     setLanguageState(lang);
     localStorage.setItem(STORAGE_KEY, lang);
   }, [isLanguageLocked]);
 
-  // 언어 변경 시 HTML lang + dir 속성 업데이트 (AR 선택 시 dir="rtl" 적용)
+  // IP 위치 기반 자동 언어 감지 (최초 1회만)
+  useEffect(() => {
+    // 도메인 고정 사이트는 IP 감지 불필요
+    if (isLanguageLocked) return;
+
+    // 이미 IP 감지 완료된 경우 스킵
+    const geoDetected = localStorage.getItem(GEO_DETECTED_KEY);
+    if (geoDetected) return;
+
+    // ipapi.co 무료 API로 IP 위치 감지
+    fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(3000) })
+      .then((res) => res.json())
+      .then((data: { country_code?: string }) => {
+        const countryCode = data?.country_code;
+        if (!countryCode) return;
+
+        const detectedLang = COUNTRY_TO_LANGUAGE[countryCode];
+        if (detectedLang) {
+          setLanguageState(detectedLang);
+          localStorage.setItem(STORAGE_KEY, detectedLang);
+        }
+        // IP 감지 완료 표시 (재방문 시 스킵)
+        localStorage.setItem(GEO_DETECTED_KEY, "1");
+      })
+      .catch(() => {
+        // IP 감지 실패 시 기본값 유지 (한국어)
+        localStorage.setItem(GEO_DETECTED_KEY, "1");
+      });
+  }, [isLanguageLocked]);
+
+  // 언어 변경 시 HTML lang + dir 속성 업데이트
   useEffect(() => {
     const html = document.documentElement;
     html.setAttribute("dir", isRTL ? "rtl" : "ltr");
@@ -135,7 +163,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// HMR 호환성을 위해 named export 사용
 export const useLanguage = (): LanguageContextType => {
   const ctx = useContext(LanguageContext);
   if (!ctx) {
