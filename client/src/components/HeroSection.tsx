@@ -116,11 +116,11 @@ export default function HeroSection() {
       </div>
 
       {/* 중앙 콘텐츠 */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 text-center pt-48 sm:pt-44 pb-16 sm:pb-24">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 text-center pt-20 sm:pt-24 pb-16 sm:pb-24">
 
         {/* 상단 배지 */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/25 rounded-full px-5 py-2 mb-10"
@@ -133,7 +133,7 @@ export default function HeroSection() {
 
         {/* 메인 슬로건 */}
         <motion.h1
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.15 }}
           className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-white leading-[1.15] mb-4 sm:mb-6 max-w-5xl w-full"
@@ -153,7 +153,7 @@ export default function HeroSection() {
 
         {/* 서브 카피 */}
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.3 }}
           className="text-white/70 text-sm sm:text-xl leading-relaxed mb-8 sm:mb-12 max-w-2xl px-2 sm:px-0"
@@ -165,7 +165,7 @@ export default function HeroSection() {
 
         {/* CTA 버튼 + 회원 수 카운터 */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.45 }}
           className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center w-full max-w-xs sm:max-w-none"
@@ -183,7 +183,7 @@ export default function HeroSection() {
           {/* 회원 수 카운터 배지 - 관리자 설정 기반 동적 표시 / 숨김 가능 */}
           {/* totalMembers가 0이고 displayCountries도 없으면 배지 숨김 */}
           {isBadgeVisible && (displayCountries.length > 0 || totalMembers > 0) && <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 1, scale: 1 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.6 }}
             className="flex flex-col items-center sm:items-start gap-2 bg-[#1F3864]/80 backdrop-blur-md border border-[#C9A961]/40 rounded-2xl px-4 py-4 w-full sm:min-w-[220px] shadow-xl shadow-black/30"
@@ -225,7 +225,7 @@ export default function HeroSection() {
 
         {/* 가격 투명성 부연 문구 */}
         <motion.p
-          initial={{ opacity: 0 }}
+          initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.7, delay: 0.55 }}
           className="text-white/50 text-sm mt-1 text-center"
@@ -235,7 +235,7 @@ export default function HeroSection() {
 
         {/* 신뢰 지표 */}
         <motion.div
-          initial={{ opacity: 0 }}
+          initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.65 }}
           className="flex flex-wrap justify-center gap-2 sm:gap-8 mt-8 sm:mt-14 text-white text-xs sm:text-lg font-semibold"
@@ -260,7 +260,7 @@ export default function HeroSection() {
 
       {/* 하단 스크롤 유도 화살표 */}
       <motion.div
-        initial={{ opacity: 0 }}
+        initial={{ opacity: 1 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 1 }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
