@@ -113,7 +113,7 @@ const MODE_WELCOME: Record<AiMode, Record<string, string>> = {
     pt: "Olá! Sou seu **IA dedicado Ever**. 🌟\n\nPosso ajudar com informações jurídicas sobre testamentos e heranças, escrita de autobiografia e cartas familiares.\n\nPergunte qualquer coisa!",
   },
   legal: {
-    ko: "안녕하세요! **법률 전문 AI 에버 법률**입니다. ⚖️\n\n11개국 유언·상속법 전문가입니다. 한국 민법부터 미국 UPC, 일본 민법, 샤리아 상속법까지 알고 있어요.\n\n어떤 법률 궁금증이 있으신가요?",
+    ko: "안녕하세요! **법률 정보 AI 에버**입니다. ⚖️\n\n14개국 유언·상속법 정보를 안내해 드립니다. 한국 민법부터 미국 UPC, 일본 민법, 샤리아 상속법까지 알고 있어요.\n\n어떤 유언·상속 관련 정보가 필요하신가요? (법률 자문이 아닌 정보 제공 서비스입니다)",
     en: "Hello! I'm **Ever Legal**, your will & inheritance law specialist. ⚖️\n\nI'm an expert in will and inheritance laws across 11 countries. Ask me anything about legal matters!\n\nWhat legal question do you have?",
     ja: "こんにちは！**法律専門AI エバーリーガル**です。⚖️\n\n11カ国の遺言・相続法の専門家です。日本民法から米国UPC、シャリーア相続法まで対応します。\n\nどんな法律のご質問でもどうぞ！",
     zh: "您好！我是**法律专业AI Ever Legal**。⚖️\n\n我精通11个国家的遗嘱和继承法。请问您有什么法律问题？",

@@ -69,7 +69,7 @@ const COMPARE = [
   { feature: "자필 스캔 인증", everwill: "+₩19,000", trustwill: "없음", farewill: "없음" },
   { feature: "NFC 인증 카드", everwill: "₩49,000~", trustwill: "없음", farewill: "없음" },
   { feature: "4중 사망 감지", everwill: "포함", trustwill: "없음", farewill: "없음" },
-  { feature: "다국어 지원", everwill: "11개 언어 (예정)", trustwill: "영어만", farewill: "영어만" },
+  { feature: "다국어 지원", everwill: "14개 언어 (예정)", trustwill: "영어만", farewill: "영어만" },
 ];
 
 export default function PricingPage() {

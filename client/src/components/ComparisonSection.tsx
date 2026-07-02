@@ -1,5 +1,5 @@
 /**
- * 기존 공증 vs EverWill 전자공증 비교 섹션
+ * 기존 공증 vs EverWill 전자인증 비교 섹션
  * 각국 유언 법률 시스템 차이 반영 (민법 조항·증인 요건·유류분·특수 규정)
  */
 import { motion } from "framer-motion";
@@ -17,7 +17,7 @@ export default function ComparisonSection() {
   const localeData = {
     ko: {
       sectionTitle: "왜 EverWill인가?",
-      sectionSub: "기존 공증 방식과 EverWill 전자공증을 직접 비교해보세요.",
+      sectionSub: "기존 공증 방식과 EverWill 전자인증을 직접 비교해보세요.",
       categoryLabel: "비교 항목",
       traditionalLabel: "기존 공증",
       summaryLabel: "기존 공증 대비 EverWill",
@@ -75,7 +75,7 @@ export default function ComparisonSection() {
           label: "사후 집행",
           traditional: "가족이 직접 진행",
           traditionalSub: "가정법원 검인(공정증서 제외) → 변호사 선임 → 상속 절차 → 수개월",
-          everwill: "자동 집행",
+          everwill: "집행 지원",
           everwillSub: "다층 안심 확인 → 상속자 자동 알림 → 소송 발생 시 최고 상속전문 변호사 매칭",
           highlight: false,
         },

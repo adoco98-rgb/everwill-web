@@ -23,7 +23,7 @@ const ACCENTS = [
   "from-[#0d1f3c]/80 via-[#0d1f3c]/50 to-transparent",
 ];
 
-// 11개국 국기 + 언어명 (flagcdn PNG 이미지 사용)
+// 14개국 국기 + 언어명 (flagcdn PNG 이미지 사용)
 const GLOBAL_FLAGS = [
   { flagImg: "https://flagcdn.com/w80/kr.png", name: "한국어", code: "KO" },
   { flagImg: "https://flagcdn.com/w80/us.png", name: "English", code: "EN" },
@@ -200,7 +200,7 @@ export default function VideoIntroSection() {
                 {slide.title}
               </h3>
 
-              {/* 슬라이드 3: 11개국 국기 표시 */}
+              {/* 슬라이드 3: 14개국 국기 표시 */}
               {slide.isGlobal ? (
                 <div className="mb-4">
                   {/* 국기 그리드 - 2줄 */}

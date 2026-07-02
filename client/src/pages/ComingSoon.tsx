@@ -164,7 +164,7 @@ export default function ComingSoon() {
           className="text-white text-4xl md:text-6xl font-bold leading-tight mb-3"
           style={{ fontFamily: "'Pretendard', 'Inter', sans-serif" }}
         >
-          누구나 한번은<br />꼭 해야할,
+          누구나 한번은<br />꼭 해야 할,
         </motion.h1>
 
         <motion.p

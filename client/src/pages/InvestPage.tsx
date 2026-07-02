@@ -38,7 +38,7 @@ const T: Record<LangCode, Record<string, string>> = {
     heroBadge: "Series A 투자 유치 중 · 2026",
     heroTitle1: "세계 최초",
     heroTitle2: "디지털 유언 OS",
-    heroSub: "유언 작성부터 사후 자동 집행까지 — 아시아 시장 선점 기회",
+    heroSub: "유언 작성부터 사후 집행 지원까지 — 아시아 시장 선점 기회",
     heroCta1: "투자 문의하기",
     heroCta2: "시장 분석 보기",
     kpi1v: "$3.7B", kpi1l: "글로벌 시장 규모", kpi1s: "2026년 기준",

@@ -225,7 +225,7 @@ const T: Record<Lang, TranslationData> = {
     nav_invest: "투자자 전용",
     hero_badge: "🌍 세계 최초 디지털 유언 OS",
     hero_title: "유언 산업의\nOS가 됩니다",
-    hero_sub: "Trust & Will·Farewill·GoodTrust를 뛰어넘는 올인원 글로벌 유언 플랫폼.\n작성부터 사후 자동 집행까지, 전 과정을 책임집니다.",
+    hero_sub: "Trust & Will·Farewill·GoodTrust를 뛰어넘는 올인원 글로벌 유언 플랫폼.\n작성부터 사후 집행 지원까지, 전 과정을 책임집니다.",
     hero_cta: "투자 문의하기",
     m1_label: "목표 MAU (Year 2)", m1_val: "50,000",
     m2_label: "목표 ARR (Year 3)", m2_val: "1,584억원",
@@ -407,7 +407,7 @@ const T: Record<Lang, TranslationData> = {
     cta_email: "adoco98@gmail.com",
     footer_conf: "본 자료는 기밀입니다. 무단 배포를 금합니다.",
     slides: [
-      { badge: "세계 최초", title: "유언 산업의 OS", sub: "작성부터 사후 자동 집행까지", highlight: "Trust & Will을 뛰어넘는 글로벌 플랫폼" },
+      { badge: "세계 최초", title: "유언 산업의 OS", sub: "작성부터 사후 집행 지원까지", highlight: "Trust & Will을 뛰어넘는 글로벌 플랫폼" },
       { badge: "핵심 차별화", title: "NFC 인증 카드 시스템", sub: "MedicAlert + AirTag + 유언 인증", highlight: "전 세계 어떤 유언 플랫폼도 시도하지 않은 혁신" },
       { badge: "글로벌 시장", title: "1,840억 달러 시장", sub: "2030년 글로벌 유언 시장 규모", highlight: "한국·일본·미국·중국 동시 진출" },
       { badge: "수익 모델", title: "LTV ₩7,260,000+", sub: "Trust & Will 대비 28배 고객 생애 가치", highlight: "재인증 ₩15,000으로 평생 반복 수익" },

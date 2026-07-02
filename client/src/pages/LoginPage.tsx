@@ -469,13 +469,13 @@ export default function LoginPage() {
             <span className="text-[#C9A961]">지금 시작하세요</span>
           </h2>
           <p className="text-white/70 text-base leading-relaxed mb-10">
-            유언 작성부터 사후 자동 집행까지.<br />
+            유언 작성부터 사후 집행 지원까지.<br />
             세계 최초 디지털 유언 OS
           </p>
           <div className="space-y-4">
             {[
               "유언장 작성 무료 · 언제든 재개 가능",
-              "11개 언어 · 195개국 결제 지원",
+              "14개 언어 · 195개국 결제 지원",
               "4중 사망 감지 · 자동 집행 시스템",
               "블록체인 무결성 인증",
             ].map((item, i) => (

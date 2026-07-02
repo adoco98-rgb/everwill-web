@@ -596,7 +596,7 @@ const partnerTexts: Record<string, any> = {
       "실적에 따라 등급 자동 승급",
       "마케팅 자료 및 배너 제공",
       "실시간 수익 대시보드",
-      "글로벌 활동 가능 (11개 언어)",
+      "글로벌 활동 가능 (14개 언어)",
     ],
     joinFeeLabel: "가입비 (1회)",
     applyBtn: "가입 신청",

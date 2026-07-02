@@ -59,7 +59,7 @@ const AI_MODES = [
     icon: Scale,
     color: "#1D4ED8",
     bg: "#EFF6FF",
-    description: "11개국 유언·상속법 전문 AI. 법조문 인용, 실무 주의사항, 변호사 연결을 안내합니다.",
+    description: "14개국 유언·상속법 정보 AI. 법조문 인용, 실무 주의사항, 변호사 연결을 안내합니다.",
   },
   {
     id: "autobiography",

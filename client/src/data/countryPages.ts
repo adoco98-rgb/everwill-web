@@ -45,9 +45,9 @@ export const countryPagesData: Record<string, CountryPageData> = {
     code: "kr", countryCode: "KR", lang: "한국어", langCode: "ko",
     flag: "🇰🇷", flagImg: "https://flagcdn.com/w80/kr.png",
     legalStatus: "partial", legalStatusLabel: "법적 검토 진행 중",
-    heroTitle: "누구나 한번은 꼭 해야할,\n나의 마지막 서명",
+    heroTitle: "누구나 한번은 꼭 해야 할,\n나의 마지막 서명",
     heroSubtitle: "세계 최초 디지털 유언 OS",
-    heroTagline: "유언 작성부터 사후 자동 집행까지, 전 과정을 책임지는 EverWill",
+    heroTagline: "유언 작성부터 사후 집행 지원까지, 전 과정을 책임지는 EverWill",
     heroCtaText: "무료로 시작하기",
     legalBasis: [
       "한국 민법 제1060조 ~ 제1072조 (유언의 방식)",
@@ -58,7 +58,7 @@ export const countryPagesData: Record<string, CountryPageData> = {
     ],
     legalNote: "한국 민법 기반 유언 · 가정법원 검인",
     serviceTitle: "세계 최초 디지털 유언 OS",
-    serviceDesc: "AI 유언장 작성, 전자 인증, 사후 자동 집행까지 한 플랫폼에서",
+    serviceDesc: "AI 유언장 작성, 전자 인증, 사후 집행 지원까지 한 플랫폼에서",
     features: [
       { title: "AI 유언장 작성", desc: "체크박스 10단계로 17분 만에 법적 효력 있는 유언장 완성", icon: "FileText" },
       { title: "전자 인증 (eKYC)", desc: "NICE평가정보 본인인증 + 블록체인 해시 기록", icon: "ShieldCheck" },
@@ -73,7 +73,7 @@ export const countryPagesData: Record<string, CountryPageData> = {
     trustPoints: ["한국 민법 완전 준수", "개인정보보호법 준수", "E2E 암호화", "블록체인 무결성 기록"],
     ctaTitle: "지금 바로 시작하세요", ctaDesc: "AI 유언장 작성은 무료입니다. 인증만 ₩49,000", ctaButton: "무료로 시작하기",
     metaTitle: "EverWill 한국 — 세계 최초 디지털 유언 OS",
-    metaDesc: "한국 민법 기반 AI 유언장 작성, 전자 인증, 사후 자동 집행. 무료로 시작하세요.",
+    metaDesc: "한국 민법 기반 AI 유언장 작성, 전자 인증, 사후 집행 지원. 무료로 시작하세요.",
   },
 
   us: {
