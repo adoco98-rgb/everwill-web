@@ -3,7 +3,7 @@
  * 마지막 전환 유도 + 사이트맵
  */
 
-import { Mail, Phone, Building2, MapPin } from "lucide-react";
+import { Mail, Building2, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { trpc } from "@/lib/trpc";
@@ -80,16 +80,7 @@ export default function Footer() {
                     <span className="group-hover:text-[#C9A961]">{fi.footer_email}</span>
                   </a>
                 )}
-                {/* 전화번호 */}
-                {fi.footer_phone_visible === "true" && fi.footer_phone && (
-                  <a
-                    href={`tel:${fi.footer_phone.replace(/-/g, "")}`}
-                    className="flex items-center gap-2 hover:text-[#C9A961] transition-colors"
-                  >
-                    <Phone className="w-4 h-4 text-[#C9A961] shrink-0" />
-                    <span>{fi.footer_phone}</span>
-                  </a>
-                )}
+
                 {/* 사업자번호 (한국어 페이지만) */}
                 {isKorean && fi.footer_biz_number_visible === "true" && fi.footer_biz_number && (
                   <div className="flex items-center gap-2">
