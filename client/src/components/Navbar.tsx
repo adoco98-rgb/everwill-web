@@ -137,6 +137,21 @@ export default function Navbar() {
   const extraCountryCodes = ["nz", "au", "ca"];
   const isExtraCountryActive = activeCountryCode && extraCountryCodes.includes(activeCountryCode);
 
+  // 언어 코드 → 국가 서비스 페이지 경로 매핑
+  const languageToCountryPath: Record<Language, string> = {
+    ko: "/",           // 한국 홈
+    en: "/country/us", // 미국
+    ja: "/country/jp", // 일본
+    zh: "/country/cn", // 중국
+    de: "/country/de", // 독일
+    es: "/country/es", // 스페인
+    ar: "/country/sa", // 사우디(아랍)
+    fr: "/country/fr", // 프랑스
+    ru: "/country/ru", // 러시아
+    hi: "/country/in", // 인도
+    pt: "/country/br", // 브라질
+  };
+
   // 언어 수동 변경 핸들러
   const handleSetLanguage = (code: Language) => {
     setMobileOpen(false);
@@ -144,7 +159,14 @@ export default function Navbar() {
     const isUSDomain = hostname.includes("everwillus.com");
     const isKRDomain = hostname.includes("everwill.co.kr") || hostname.includes("localhost") || hostname.includes("manus.computer");
 
-    // 같은 도메인 내에서 언어 변경 가능한 경우
+    // /country/ 페이지에 있을 때는 해당 국가 서비스 페이지로 이동
+    if (location.startsWith("/country/") && isKRDomain) {
+      const targetPath = languageToCountryPath[code];
+      window.location.href = targetPath;
+      return;
+    }
+
+    // 일반 페이지(홈 등)에서 언어 변경
     if (isKRDomain) {
       setLanguage(code);
       localStorage.setItem("everwill_language", code);
