@@ -76,7 +76,7 @@ function CountryHero({ data }: { data: CountryPageData }) {
       <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
         {/* 국가 배지 */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 1, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="flex items-center justify-center gap-3 mb-6"
@@ -89,7 +89,7 @@ function CountryHero({ data }: { data: CountryPageData }) {
 
         {/* 메인 타이틀 */}
         <motion.h1
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 1, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.8 }}
           className="text-4xl md:text-6xl font-bold text-white mb-4 leading-tight whitespace-pre-line"
@@ -98,7 +98,7 @@ function CountryHero({ data }: { data: CountryPageData }) {
         </motion.h1>
 
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 1, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
           className="text-[#C9A961] text-xl font-semibold mb-4"
@@ -107,7 +107,7 @@ function CountryHero({ data }: { data: CountryPageData }) {
         </motion.p>
 
         <motion.p
-          initial={{ opacity: 0 }}
+          initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
           className="text-white/70 text-lg mb-10 max-w-2xl mx-auto"
@@ -117,7 +117,7 @@ function CountryHero({ data }: { data: CountryPageData }) {
 
         {/* CTA 버튼 */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 1, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
           className="flex flex-col sm:flex-row gap-4 justify-center items-center"
