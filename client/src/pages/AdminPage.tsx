@@ -16,11 +16,11 @@ import {
   TrendingUp, Shield, Clock, CheckCircle,
   Newspaper, Plus, Trash2, Eye, EyeOff, ExternalLink, Pencil, KeyRound,
   ShieldCheck, XCircle, AlertTriangle, ImageIcon, Link2, Save, Youtube, Instagram,
-  X, BookOpen, Mail, BookMarked, Wallet, ClipboardList, Globe, ArrowLeft, DollarSign, Scale
+  X, BookOpen, Mail, BookMarked, Wallet, ClipboardList, Globe, ArrowLeft, DollarSign, Scale, Building2, Phone, MapPin
 } from "lucide-react";
 import { AdminExpertsTab } from "@/components/AdminExpertsTab";
 
-type Tab = "stats" | "users" | "payments" | "inquiries" | "news" | "socialLinks" | "videos" | "countries" | "sellers" | "experts" | "pricing";
+type Tab = "stats" | "users" | "payments" | "inquiries" | "news" | "socialLinks" | "videos" | "countries" | "sellers" | "experts" | "pricing" | "footerInfo";
 
 function formatKRW(amount: number) {
   if (amount >= 100_000_000) return `${(amount / 100_000_000).toFixed(1)}억원`;
@@ -2866,6 +2866,173 @@ function CountriesTab() {
   );
 }
 
+/** Footer 회사 정보 관리 탭 */
+function FooterInfoTab() {
+  const utils = trpc.useUtils();
+  const { data: footerInfo, isLoading } = trpc.siteSettings.getFooterInfo.useQuery(undefined, { staleTime: 30_000 });
+  const updateMutation = trpc.siteSettings.updateFooterInfo.useMutation({
+    onSuccess: () => {
+      toast.success("Footer 정보가 저장되었습니다.");
+      utils.siteSettings.getFooterInfo.invalidate();
+    },
+    onError: () => toast.error("저장에 실패했습니다."),
+  });
+
+  const [form, setForm] = useState<Record<string, string>>({
+    footer_email: "",
+    footer_email_visible: "true",
+    footer_biz_number: "",
+    footer_biz_number_visible: "true",
+    footer_phone: "",
+    footer_phone_visible: "true",
+    footer_address: "",
+    footer_address_visible: "false",
+    footer_company_name: "",
+    footer_company_name_visible: "true",
+  });
+  const [initialized, setInitialized] = useState(false);
+
+  if (footerInfo && !initialized) {
+    setForm({ ...footerInfo });
+    setInitialized(true);
+  }
+
+  const handleSave = () => {
+    updateMutation.mutate({
+      footer_email: form.footer_email,
+      footer_email_visible: form.footer_email_visible as "true" | "false",
+      footer_biz_number: form.footer_biz_number,
+      footer_biz_number_visible: form.footer_biz_number_visible as "true" | "false",
+      footer_phone: form.footer_phone,
+      footer_phone_visible: form.footer_phone_visible as "true" | "false",
+      footer_address: form.footer_address,
+      footer_address_visible: form.footer_address_visible as "true" | "false",
+      footer_company_name: form.footer_company_name,
+      footer_company_name_visible: form.footer_company_name_visible as "true" | "false",
+    });
+  };
+
+  if (isLoading) return <div className="text-center py-16 text-gray-400">로딩 중...</div>;
+
+  type FieldConfig = {
+    key: string;
+    label: string;
+    icon: React.ElementType;
+    placeholder: string;
+    visibleKey: string;
+    koOnly?: boolean;
+  };
+
+  const fields: FieldConfig[] = [
+    { key: "footer_email", label: "이메일", icon: Mail, placeholder: "adoco98@gmail.com", visibleKey: "footer_email_visible" },
+    { key: "footer_phone", label: "전화번호", icon: Phone, placeholder: "070-4735-0834", visibleKey: "footer_phone_visible" },
+    { key: "footer_biz_number", label: "사업자번호", icon: Building2, placeholder: "621-81-61690", visibleKey: "footer_biz_number_visible", koOnly: true },
+    { key: "footer_company_name", label: "회사명", icon: Building2, placeholder: "주식회사 사람", visibleKey: "footer_company_name_visible" },
+    { key: "footer_address", label: "주소", icon: MapPin, placeholder: "경기도 안성시...", visibleKey: "footer_address_visible" },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-[#1F3864] flex items-center gap-2">
+            <Building2 className="w-5 h-5 text-[#C9A961]" />
+            Footer 회사 정보 관리
+          </h2>
+          <p className="text-sm text-gray-400 mt-1">홈페이지 하단에 표시되는 회사 정보를 수정하고 노출 여부를 설정합니다.</p>
+        </div>
+        <button
+          onClick={handleSave}
+          disabled={updateMutation.isPending}
+          className="flex items-center gap-2 bg-[#1F3864] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#162a4e] disabled:opacity-50 transition-colors"
+        >
+          <Save className="w-4 h-4" />
+          {updateMutation.isPending ? "저장 중..." : "저장"}
+        </button>
+      </div>
+
+      <div className="grid gap-4">
+        {fields.map((field) => (
+          <div key={field.key} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <field.icon className="w-4 h-4 text-[#C9A961]" />
+                <span className="font-semibold text-[#1F3864] text-sm">{field.label}</span>
+                {field.koOnly && (
+                  <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">한국어 전용</span>
+                )}
+              </div>
+              {/* 노출 여부 토글 */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400">{form[field.visibleKey] === "true" ? "노출" : "숨김"}</span>
+                <button
+                  onClick={() => setForm(prev => ({ ...prev, [field.visibleKey]: prev[field.visibleKey] === "true" ? "false" : "true" }))}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                    form[field.visibleKey] === "true" ? "bg-[#1F3864]" : "bg-gray-300"
+                  }`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                    form[field.visibleKey] === "true" ? "translate-x-6" : "translate-x-1"
+                  }`} />
+                </button>
+              </div>
+            </div>
+            <input
+              type="text"
+              value={form[field.key]}
+              onChange={(e) => setForm(prev => ({ ...prev, [field.key]: e.target.value }))}
+              placeholder={field.placeholder}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm text-[#1F3864] focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864] transition-colors"
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* 미리보기 */}
+      <div className="bg-[#0f1e36] rounded-2xl p-6">
+        <h3 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-4">Footer 미리보기</h3>
+        <div className="space-y-2 text-sm">
+          {form.footer_email_visible === "true" && form.footer_email && (
+            <div className="flex items-center gap-2 text-white/60">
+              <Mail className="w-4 h-4 text-[#C9A961]" />
+              <span>{form.footer_email}</span>
+            </div>
+          )}
+          {form.footer_phone_visible === "true" && form.footer_phone && (
+            <div className="flex items-center gap-2 text-white/60">
+              <Phone className="w-4 h-4 text-[#C9A961]" />
+              <span>{form.footer_phone}</span>
+            </div>
+          )}
+          {form.footer_biz_number_visible === "true" && form.footer_biz_number && (
+            <div className="flex items-center gap-2 text-white/60">
+              <Building2 className="w-4 h-4 text-[#C9A961]" />
+              <span>사업자 {form.footer_biz_number}</span>
+            </div>
+          )}
+          {form.footer_company_name_visible === "true" && form.footer_company_name && (
+            <div className="flex items-center gap-2 text-white/60">
+              <Building2 className="w-4 h-4 text-[#C9A961]" />
+              <span>{form.footer_company_name}</span>
+            </div>
+          )}
+          {form.footer_address_visible === "true" && form.footer_address && (
+            <div className="flex items-center gap-2 text-white/60">
+              <MapPin className="w-4 h-4 text-[#C9A961]" />
+              <span>{form.footer_address}</span>
+            </div>
+          )}
+          {["footer_email", "footer_phone", "footer_biz_number", "footer_company_name", "footer_address"].every(
+            k => form[k + "_visible"] !== "true" || !form[k]
+          ) && (
+            <p className="text-white/30 text-xs">표시할 정보가 없습니다. 위에서 정보를 입력하고 노출을 켜주세요.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // 14개국 언어 번역 데이터
 type AdminLocale = {
   langName: string;
@@ -2894,7 +3061,7 @@ type AdminLocale = {
 const ADMIN_LOCALES: Record<string, AdminLocale> = {
   KR: {
     langName: "한국어", title: "SARAM 관리자 대시보드", subtitle: "관리자",
-    tabs: { stats: "통계 개요", countries: "국가별 관리", users: "회원 관리", payments: "결제/매출", inquiries: "문의 관리", news: "뉴스 관리", socialLinks: "SNS 소셜 링크", videos: "국가별 영상", sellers: "셀러 정산", experts: "전문가 파트너", pricing: "국가별 가격" },
+    tabs: { stats: "통계 개요", countries: "국가별 관리", users: "회원 관리", payments: "결제/매출", inquiries: "문의 관리", news: "뉴스 관리", socialLinks: "SNS 소셜 링크", videos: "국가별 영상", sellers: "셀러 정산", experts: "전문가 파트너", pricing: "국가별 가격", footerInfo: "Footer 정보" },
     ui: { totalMembers: "총 회원수", todayNew: "오늘 신규", monthRevenue: "이번달 매출", totalRevenue: "총 매출", totalWills: "유언장 수", pendingInquiries: "미답변 문의",
       memberMgmt: "회원 관리", searchPlaceholder: "이름, 이메일, 전화번호 검색", allRoles: "전체", normalRole: "일반", adminRole: "관리자",
       colName: "이름", colEmail: "이메일", colPhone: "전화번호", colCountry: "국가", colJoinDate: "가입일", colGrade: "등급", colRole: "역할", colManage: "관리",
@@ -2909,7 +3076,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   US: {
     langName: "English", title: "SARAM Admin Dashboard", subtitle: "Admin",
-    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos", sellers: "Seller Settlement", experts: "Expert Partners", pricing: "Pricing" },
+    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos", sellers: "Seller Settlement", experts: "Expert Partners", pricing: "Pricing", footerInfo: "Footer Info" },
     ui: { totalMembers: "Total Members", todayNew: "Today New", monthRevenue: "Monthly Revenue", totalRevenue: "Total Revenue", totalWills: "Wills", pendingInquiries: "Pending Inquiries",
       memberMgmt: "Member Management", searchPlaceholder: "Search name, email, phone", allRoles: "All", normalRole: "User", adminRole: "Admin",
       colName: "Name", colEmail: "Email", colPhone: "Phone", colCountry: "Country", colJoinDate: "Joined", colGrade: "Grade", colRole: "Role", colManage: "Manage",
@@ -2924,7 +3091,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   JP: {
     langName: "日本語", title: "SARAM 管理ダッシュボード", subtitle: "管理者",
-    tabs: { stats: "統計概要", countries: "国別管理", users: "会員管理", payments: "決済/売上", inquiries: "お問い合わせ", news: "ニュース管理", socialLinks: "SNSリンク", videos: "国別動画", sellers: "セラー精算", experts: "専門家パートナー", pricing: "国別価格" },
+    tabs: { stats: "統計概要", countries: "国別管理", users: "会員管理", payments: "決済/売上", inquiries: "お問い合わせ", news: "ニュース管理", socialLinks: "SNSリンク", videos: "国別動画", sellers: "セラー精算", experts: "専門家パートナー", pricing: "国別価格", footerInfo: "Footer情報" },
     ui: { totalMembers: "総会員数", todayNew: "今日の新規", monthRevenue: "今月の売上", totalRevenue: "総売上", totalWills: "遺言書数", pendingInquiries: "未回答問い合わせ",
       memberMgmt: "会員管理", searchPlaceholder: "名前・メール・電話番号で検索", allRoles: "全て", normalRole: "一般", adminRole: "管理者",
       colName: "名前", colEmail: "メール", colPhone: "電話番号", colCountry: "国", colJoinDate: "登録日", colGrade: "等級", colRole: "役割", colManage: "管理",
@@ -2939,7 +3106,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   CN: {
     langName: "中文", title: "SARAM 管理员仪表板", subtitle: "管理员",
-    tabs: { stats: "统计概览", countries: "国家管理", users: "会员管理", payments: "支付/收入", inquiries: "咨询管理", news: "新闻管理", socialLinks: "社交链接", videos: "国家视频", sellers: "卖家结算", experts: "专家合作伙伴", pricing: "国家价格" },
+    tabs: { stats: "统计概览", countries: "国家管理", users: "会员管理", payments: "支付/收入", inquiries: "咨询管理", news: "新闻管理", socialLinks: "社交链接", videos: "国家视频", sellers: "卖家结算", experts: "专家合作伙伴", pricing: "国家价格", footerInfo: "Footer信息" },
     ui: { totalMembers: "总会员数", todayNew: "今日新增", monthRevenue: "本月收入", totalRevenue: "总收入", totalWills: "遗嘱数", pendingInquiries: "待回复咨询",
       memberMgmt: "会员管理", searchPlaceholder: "搜索姓名、邮箱、电话", allRoles: "全部", normalRole: "普通", adminRole: "管理员",
       colName: "姓名", colEmail: "邮箱", colPhone: "电话", colCountry: "国家", colJoinDate: "注册日期", colGrade: "等级", colRole: "角色", colManage: "管理",
@@ -2954,7 +3121,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   DE: {
     langName: "Deutsch", title: "SARAM Admin-Dashboard", subtitle: "Administrator",
-    tabs: { stats: "Statistiken", countries: "Länderverwaltung", users: "Mitglieder", payments: "Zahlungen", inquiries: "Anfragen", news: "Nachrichten", socialLinks: "Social Links", videos: "Ländervideos", sellers: "Händlerabrechnung", experts: "Expertenpartner", pricing: "Länderpreise" },
+    tabs: { stats: "Statistiken", countries: "Länderverwaltung", users: "Mitglieder", payments: "Zahlungen", inquiries: "Anfragen", news: "Nachrichten", socialLinks: "Social Links", videos: "Ländervideos", sellers: "Händlerabrechnung", experts: "Expertenpartner", pricing: "Länderpreise", footerInfo: "Footer-Info" },
     ui: { totalMembers: "Mitglieder gesamt", todayNew: "Heute neu", monthRevenue: "Monatsumsatz", totalRevenue: "Gesamtumsatz", totalWills: "Testamente", pendingInquiries: "Offene Anfragen",
       memberMgmt: "Mitgliederverwaltung", searchPlaceholder: "Name, E-Mail, Telefon suchen", allRoles: "Alle", normalRole: "Benutzer", adminRole: "Admin",
       colName: "Name", colEmail: "E-Mail", colPhone: "Telefon", colCountry: "Land", colJoinDate: "Beigetreten", colGrade: "Stufe", colRole: "Rolle", colManage: "Verwalten",
@@ -2969,7 +3136,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   ES: {
     langName: "Español", title: "Panel de Administración SARAM", subtitle: "Administrador",
-    tabs: { stats: "Estadísticas", countries: "Gestión de Países", users: "Miembros", payments: "Pagos", inquiries: "Consultas", news: "Noticias", socialLinks: "Redes Sociales", videos: "Videos por País", sellers: "Liquidación de Vendedores", experts: "Socios Expertos", pricing: "Precios por País" },
+    tabs: { stats: "Estadísticas", countries: "Gestión de Países", users: "Miembros", payments: "Pagos", inquiries: "Consultas", news: "Noticias", socialLinks: "Redes Sociales", videos: "Videos por País", sellers: "Liquidación de Vendedores", experts: "Socios Expertos", pricing: "Precios por País", footerInfo: "Info Footer" },
     ui: { totalMembers: "Total de Miembros", todayNew: "Nuevos hoy", monthRevenue: "Ingresos del mes", totalRevenue: "Ingresos totales", totalWills: "Testamentos", pendingInquiries: "Consultas pendientes",
       memberMgmt: "Gestión de Miembros", searchPlaceholder: "Buscar nombre, email, teléfono", allRoles: "Todos", normalRole: "Usuario", adminRole: "Admin",
       colName: "Nombre", colEmail: "Email", colPhone: "Teléfono", colCountry: "País", colJoinDate: "Registro", colGrade: "Nivel", colRole: "Rol", colManage: "Gestionar",
@@ -2984,7 +3151,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   SA: {
     langName: "العربية", title: "لوحة إدارة SARAM", subtitle: "المسؤول",
-    tabs: { stats: "الإحصائيات", countries: "إدارة الدول", users: "الأعضاء", payments: "المدفوعات", inquiries: "الاستفسارات", news: "الأخبار", socialLinks: "روابط التواصل", videos: "مقاطع الفيديو", sellers: "تسوية البائعين", experts: "شركاء الخبراء", pricing: "الأسعار" },
+    tabs: { stats: "الإحصائيات", countries: "إدارة الدول", users: "الأعضاء", payments: "المدفوعات", inquiries: "الاستفسارات", news: "الأخبار", socialLinks: "روابط التواصل", videos: "مقاطع الفيديو", sellers: "تسوية البائعين", experts: "شركاء الخبراء", pricing: "الأسعار", footerInfo: "معلومات التذييل" },
     ui: { totalMembers: "إجمالي الأعضاء", todayNew: "جديد اليوم", monthRevenue: "إيرادات الشهر", totalRevenue: "إجمالي الإيرادات", totalWills: "الوصايا", pendingInquiries: "استفسارات معلقة",
       memberMgmt: "إدارة الأعضاء", searchPlaceholder: "ابحث بالاسم أو البريد أو الهاتف", allRoles: "الكل", normalRole: "مستخدم", adminRole: "مسؤول",
       colName: "الاسم", colEmail: "البريد الإلكتروني", colPhone: "الهاتف", colCountry: "الدولة", colJoinDate: "تاريخ الانضمام", colGrade: "الدرجة", colRole: "الدور", colManage: "إدارة",
@@ -2999,7 +3166,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   FR: {
     langName: "Français", title: "Tableau de Bord Admin SARAM", subtitle: "Administrateur",
-    tabs: { stats: "Statistiques", countries: "Gestion des Pays", users: "Membres", payments: "Paiements", inquiries: "Demandes", news: "Actualités", socialLinks: "Liens Sociaux", videos: "Vidéos par Pays", sellers: "Règlement des Vendeurs", experts: "Partenaires Experts", pricing: "Prix par Pays" },
+    tabs: { stats: "Statistiques", countries: "Gestion des Pays", users: "Membres", payments: "Paiements", inquiries: "Demandes", news: "Actualités", socialLinks: "Liens Sociaux", videos: "Vidéos par Pays", sellers: "Règlement des Vendeurs", experts: "Partenaires Experts", pricing: "Prix par Pays", footerInfo: "Info Footer" },
     ui: { totalMembers: "Total des membres", todayNew: "Nouveaux aujourd'hui", monthRevenue: "Revenus du mois", totalRevenue: "Revenus totaux", totalWills: "Testaments", pendingInquiries: "Demandes en attente",
       memberMgmt: "Gestion des membres", searchPlaceholder: "Rechercher nom, email, téléphone", allRoles: "Tous", normalRole: "Utilisateur", adminRole: "Admin",
       colName: "Nom", colEmail: "Email", colPhone: "Téléphone", colCountry: "Pays", colJoinDate: "Inscription", colGrade: "Niveau", colRole: "Rôle", colManage: "Gérer",
@@ -3014,7 +3181,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   RU: {
     langName: "Русский", title: "Панель администратора SARAM", subtitle: "Администратор",
-    tabs: { stats: "Статистика", countries: "Управление странами", users: "Участники", payments: "Платежи", inquiries: "Запросы", news: "Новости", socialLinks: "Соц. сети", videos: "Видео по странам", sellers: "Расчёт продавцов", experts: "Партнёры-эксперты", pricing: "Цены" },
+    tabs: { stats: "Статистика", countries: "Управление странами", users: "Участники", payments: "Платежи", inquiries: "Запросы", news: "Новости", socialLinks: "Соц. сети", videos: "Видео по странам", sellers: "Расчёт продавцов", experts: "Партнёры-эксперты", pricing: "Цены", footerInfo: "Footer" },
     ui: { totalMembers: "Всего участников", todayNew: "Новые сегодня", monthRevenue: "Доход за месяц", totalRevenue: "Общий доход", totalWills: "Завещания", pendingInquiries: "Ожидающие запросы",
       memberMgmt: "Управление участниками", searchPlaceholder: "Поиск по имени, email, телефону", allRoles: "Все", normalRole: "Пользователь", adminRole: "Администратор",
       colName: "Имя", colEmail: "Email", colPhone: "Телефон", colCountry: "Страна", colJoinDate: "Дата регистрации", colGrade: "Уровень", colRole: "Роль", colManage: "Управление",
@@ -3029,7 +3196,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   IN: {
     langName: "हिन्दी", title: "SARAM एडमिन डैशबोर्ड", subtitle: "व्यवस्थापक",
-    tabs: { stats: "आँकड़े", countries: "देश प्रबंधन", users: "सदस्य", payments: "भुगतान", inquiries: "पूछताछ", news: "समाचार", socialLinks: "सोशल लिंक", videos: "देश वीडियो", sellers: "विक्रेता निपटान", experts: "विशेषज्ञ भागीदार", pricing: "मूल्य" },
+    tabs: { stats: "आँकड़े", countries: "देश प्रबंधन", users: "सदस्य", payments: "भुगतान", inquiries: "पूछताछ", news: "समाचार", socialLinks: "सोशल लिंक", videos: "देश वीडियो", sellers: "विक्रेता निपटान", experts: "विशेषज्ञ भागीदार", pricing: "मूल्य", footerInfo: "Footer जानकारी" },
     ui: { totalMembers: "कुल सदस्य", todayNew: "आज के नए", monthRevenue: "मासिक राजस्व", totalRevenue: "कुल राजस्व", totalWills: "वसीयतें", pendingInquiries: "लंबित पूछताछ",
       memberMgmt: "सदस्य प्रबंधन", searchPlaceholder: "नाम, ईमेल, फ़ोन खोजें", allRoles: "सभी", normalRole: "उपयोगकर्ता", adminRole: "व्यवस्थापक",
       colName: "नाम", colEmail: "ईमेल", colPhone: "फ़ोन", colCountry: "देश", colJoinDate: "शामिल हुए", colGrade: "स्तर", colRole: "भूमिका", colManage: "प्रबंधन",
@@ -3044,7 +3211,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   BR: {
     langName: "Português", title: "Painel Admin SARAM", subtitle: "Administrador",
-    tabs: { stats: "Estatísticas", countries: "Gestão de Países", users: "Membros", payments: "Pagamentos", inquiries: "Consultas", news: "Notícias", socialLinks: "Links Sociais", videos: "Vídeos por País", sellers: "Liquidação de Vendedores", experts: "Parceiros Especialistas", pricing: "Preços por País" },
+    tabs: { stats: "Estatísticas", countries: "Gestão de Países", users: "Membros", payments: "Pagamentos", inquiries: "Consultas", news: "Notícias", socialLinks: "Links Sociais", videos: "Vídeos por País", sellers: "Liquidação de Vendedores", experts: "Parceiros Especialistas", pricing: "Preços por País", footerInfo: "Info Footer" },
     ui: { totalMembers: "Total de Membros", todayNew: "Novos hoje", monthRevenue: "Receita do mês", totalRevenue: "Receita total", totalWills: "Testamentos", pendingInquiries: "Consultas pendentes",
       memberMgmt: "Gestão de Membros", searchPlaceholder: "Pesquisar nome, email, telefone", allRoles: "Todos", normalRole: "Usuário", adminRole: "Admin",
       colName: "Nome", colEmail: "Email", colPhone: "Telefone", colCountry: "País", colJoinDate: "Cadastro", colGrade: "Nível", colRole: "Função", colManage: "Gerenciar",
@@ -3059,7 +3226,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   CA: {
     langName: "English (CA)", title: "SARAM Admin Dashboard", subtitle: "Admin",
-    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos", sellers: "Seller Settlement", experts: "Expert Partners", pricing: "Pricing" },
+    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos", sellers: "Seller Settlement", experts: "Expert Partners", pricing: "Pricing", footerInfo: "Footer Info" },
     ui: { totalMembers: "Total Members", todayNew: "Today New", monthRevenue: "Monthly Revenue", totalRevenue: "Total Revenue", totalWills: "Wills", pendingInquiries: "Pending Inquiries",
       memberMgmt: "Member Management", searchPlaceholder: "Search name, email, phone", allRoles: "All", normalRole: "User", adminRole: "Admin",
       colName: "Name", colEmail: "Email", colPhone: "Phone", colCountry: "Country", colJoinDate: "Joined", colGrade: "Grade", colRole: "Role", colManage: "Manage",
@@ -3074,7 +3241,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   AU: {
     langName: "English (AU)", title: "SARAM Admin Dashboard", subtitle: "Admin",
-    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos", sellers: "Seller Settlement", experts: "Expert Partners", pricing: "Pricing" },
+    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos", sellers: "Seller Settlement", experts: "Expert Partners", pricing: "Pricing", footerInfo: "Footer Info" },
     ui: { totalMembers: "Total Members", todayNew: "Today New", monthRevenue: "Monthly Revenue", totalRevenue: "Total Revenue", totalWills: "Wills", pendingInquiries: "Pending Inquiries",
       memberMgmt: "Member Management", searchPlaceholder: "Search name, email, phone", allRoles: "All", normalRole: "User", adminRole: "Admin",
       colName: "Name", colEmail: "Email", colPhone: "Phone", colCountry: "Country", colJoinDate: "Joined", colGrade: "Grade", colRole: "Role", colManage: "Manage",
@@ -3089,7 +3256,7 @@ const ADMIN_LOCALES: Record<string, AdminLocale> = {
   },
   NZ: {
     langName: "English (NZ)", title: "SARAM Admin Dashboard", subtitle: "Admin",
-    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos", sellers: "Seller Settlement", experts: "Expert Partners", pricing: "Pricing" },
+    tabs: { stats: "Statistics", countries: "Country Mgmt", users: "Members", payments: "Payments", inquiries: "Inquiries", news: "News", socialLinks: "Social Links", videos: "Country Videos", sellers: "Seller Settlement", experts: "Expert Partners", pricing: "Pricing", footerInfo: "Footer Info" },
     ui: { totalMembers: "Total Members", todayNew: "Today New", monthRevenue: "Monthly Revenue", totalRevenue: "Total Revenue", totalWills: "Wills", pendingInquiries: "Pending Inquiries",
       memberMgmt: "Member Management", searchPlaceholder: "Search name, email, phone", allRoles: "All", normalRole: "User", adminRole: "Admin",
       colName: "Name", colEmail: "Email", colPhone: "Phone", colCountry: "Country", colJoinDate: "Joined", colGrade: "Grade", colRole: "Role", colManage: "Manage",
@@ -3157,6 +3324,7 @@ export default function AdminPage() {
     { id: "videos", label: locale.tabs.videos, icon: Youtube },
     { id: "experts", label: "전문가 파트너", icon: Scale },
     { id: "pricing", label: "국가별 가격", icon: DollarSign },
+    { id: "footerInfo", label: "Footer 정보", icon: Building2 },
   ];
 
   return (
@@ -3240,6 +3408,7 @@ export default function AdminPage() {
         {activeTab === "videos" && <VideosTab />}
         {activeTab === "experts" && <AdminExpertsTab />}
         {activeTab === "pricing" && <CountryPricingTab />}
+        {activeTab === "footerInfo" && <FooterInfoTab />}
       </div>
     </div>
   );

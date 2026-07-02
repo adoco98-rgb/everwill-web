@@ -3,13 +3,31 @@
  * 마지막 전환 유도 + 사이트맵
  */
 
-import { Mail } from "lucide-react";
+import { Mail, Phone, Building2, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { trpc } from "@/lib/trpc";
 
 export default function Footer() {
   const { t, language } = useLanguage();
   const isKorean = language === "ko";
+
+  // DB에서 Footer 회사 정보 조회
+  const { data: footerInfo } = trpc.siteSettings.getFooterInfo.useQuery(undefined, {
+    staleTime: 60_000,
+  });
+  const fi = footerInfo ?? {
+    footer_email: "adoco98@gmail.com",
+    footer_email_visible: "true",
+    footer_biz_number: "621-81-61690",
+    footer_biz_number_visible: "true",
+    footer_phone: "070-4735-0834",
+    footer_phone_visible: "true",
+    footer_address: "",
+    footer_address_visible: "false",
+    footer_company_name: "주식회사 사람",
+    footer_company_name_visible: "true",
+  };
 
   const serviceLinks = [
     t.services.s1Title,
@@ -52,15 +70,40 @@ export default function Footer() {
                 {t.footer.tagline}
               </p>
               <div className="space-y-2 text-sm">
-                <a
-                  href="mailto:adodo98@gmail.com"
-                  className="flex items-center gap-2 hover:text-[#C9A961] transition-colors group"
-                >
-                  <Mail className="w-5 h-5 text-[#C9A961]" />
-                  <span className="group-hover:text-[#C9A961]">
-                    {isKorean ? "이메일 연락하기" : "Contact via Email"}
-                  </span>
-                </a>
+                {/* 이메일 */}
+                {fi.footer_email_visible === "true" && fi.footer_email && (
+                  <a
+                    href={`mailto:${fi.footer_email}`}
+                    className="flex items-center gap-2 hover:text-[#C9A961] transition-colors group"
+                  >
+                    <Mail className="w-4 h-4 text-[#C9A961] shrink-0" />
+                    <span className="group-hover:text-[#C9A961]">{fi.footer_email}</span>
+                  </a>
+                )}
+                {/* 전화번호 */}
+                {fi.footer_phone_visible === "true" && fi.footer_phone && (
+                  <a
+                    href={`tel:${fi.footer_phone.replace(/-/g, "")}`}
+                    className="flex items-center gap-2 hover:text-[#C9A961] transition-colors"
+                  >
+                    <Phone className="w-4 h-4 text-[#C9A961] shrink-0" />
+                    <span>{fi.footer_phone}</span>
+                  </a>
+                )}
+                {/* 사업자번호 (한국어 페이지만) */}
+                {isKorean && fi.footer_biz_number_visible === "true" && fi.footer_biz_number && (
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-[#C9A961] shrink-0" />
+                    <span>사업자 {fi.footer_biz_number}</span>
+                  </div>
+                )}
+                {/* 주소 */}
+                {fi.footer_address_visible === "true" && fi.footer_address && (
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-[#C9A961] shrink-0 mt-0.5" />
+                    <span>{fi.footer_address}</span>
+                  </div>
+                )}
               </div>
             </div>
 

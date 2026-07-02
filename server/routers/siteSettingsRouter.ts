@@ -10,6 +10,20 @@ import { eq } from "drizzle-orm";
 
 const SOCIAL_KEYS = ["youtube_url", "instagram_url", "kakao_url", "line_url"] as const;
 
+/** Footer 회사 정보 키 목록 */
+const FOOTER_INFO_KEYS = [
+  "footer_email",
+  "footer_email_visible",
+  "footer_biz_number",
+  "footer_biz_number_visible",
+  "footer_phone",
+  "footer_phone_visible",
+  "footer_address",
+  "footer_address_visible",
+  "footer_company_name",
+  "footer_company_name_visible",
+] as const;
+
 const VIDEO_KEYS = [
   "video_kr", "video_us", "video_jp", "video_cn",
   "video_de", "video_es", "video_ar", "video_fr",
@@ -41,6 +55,71 @@ async function upsertSetting(db: Awaited<ReturnType<typeof getDb>>, key: string,
 }
 
 export const siteSettingsRouter = router({
+  /** Footer 회사 정보 조회 (공개) */
+  getFooterInfo: publicProcedure.query(async () => {
+    const db = await getDb();
+    const defaults: Record<string, string> = {
+      footer_email: "adoco98@gmail.com",
+      footer_email_visible: "true",
+      footer_biz_number: "621-81-61690",
+      footer_biz_number_visible: "true",
+      footer_phone: "070-4735-0834",
+      footer_phone_visible: "true",
+      footer_address: "",
+      footer_address_visible: "false",
+      footer_company_name: "주식회사 사람",
+      footer_company_name_visible: "true",
+    };
+    if (!db) return defaults;
+    const allRows = await db.select().from(siteSettings);
+    const map: Record<string, string> = {};
+    for (const row of allRows) map[row.settingKey] = row.settingValue ?? "";
+    // DB 값이 없으면 기본값 사용
+    const result: Record<string, string> = {};
+    for (const key of FOOTER_INFO_KEYS) {
+      result[key] = map[key] !== undefined ? map[key] : defaults[key];
+    }
+    return result;
+  }),
+
+  /** Footer 회사 정보 수정 (관리자 전용) */
+  updateFooterInfo: adminProcedure
+    .input(z.object({
+      footer_email: z.string().optional(),
+      footer_email_visible: z.enum(["true", "false"]).optional(),
+      footer_biz_number: z.string().optional(),
+      footer_biz_number_visible: z.enum(["true", "false"]).optional(),
+      footer_phone: z.string().optional(),
+      footer_phone_visible: z.enum(["true", "false"]).optional(),
+      footer_address: z.string().optional(),
+      footer_address_visible: z.enum(["true", "false"]).optional(),
+      footer_company_name: z.string().optional(),
+      footer_company_name_visible: z.enum(["true", "false"]).optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB 오류");
+      const labels: Record<string, string> = {
+        footer_email: "이메일",
+        footer_email_visible: "이메일 노출 여부",
+        footer_biz_number: "사업자번호",
+        footer_biz_number_visible: "사업자번호 노출 여부",
+        footer_phone: "전화번호",
+        footer_phone_visible: "전화번호 노출 여부",
+        footer_address: "주소",
+        footer_address_visible: "주소 노출 여부",
+        footer_company_name: "회사명",
+        footer_company_name_visible: "회사명 노출 여부",
+      };
+      for (const key of FOOTER_INFO_KEYS) {
+        const value = input[key as keyof typeof input];
+        if (value !== undefined) {
+          await upsertSetting(db, key, value, labels[key] ?? key);
+        }
+      }
+      return { success: true };
+    }),
+
   /** 소셜 링크 조회 (공개) */
   getSocialLinks: publicProcedure.query(async () => {
     const db = await getDb();
