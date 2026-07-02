@@ -110,7 +110,7 @@ export default function WillWizardPage() {
       {/* 헤더 */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[#1F3864] mb-1">유언 완성하기</h1>
-        <p className="text-gray-500 text-sm">6단계를 완료하면 법적 효력이 있는 유언장이 완성됩니다.</p>
+        <p className="text-gray-500 text-sm">6단계를 완료하면 민법 요건에 맞는 유언장이 완성됩니다.</p>
       </div>
 
       {/* 진행 단계 표시 */}

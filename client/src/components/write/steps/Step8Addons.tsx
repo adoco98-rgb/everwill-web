@@ -18,11 +18,11 @@ export default function Step8Addons({ will, update }: StepProps) {
         <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
         <div>
           <p className="text-blue-800 text-sm font-semibold mb-1">
-            {isKo ? "기본 가입만으로도 법적 효력이 있습니다" : "Basic certification is legally valid"}
+            {isKo ? "기본 가입만으로도 민법 유언 요건을 충족합니다" : "Basic certification is legally valid"}
           </p>
           <p className="text-blue-700 text-xs leading-relaxed">
             {isKo
-              ? "에버윌 기본 가입 + eKYC 전자 인증만으로 법적 효력 있는 유언장이 완성됩니다. 아래 추가 인증 서비스는 더 높은 수준의 법적 확실성을 원하시는 분들을 위한 선택적 옵션입니다."
+              ? "에버윌 기본 가입 + eKYC 전자 인증만으로 민법 유언 요건에 맞는 유언장이 완성됩니다. 아래 추가 인증 서비스는 더 높은 수준의 인증 확실성을 원하시는 분들을 위한 선택적 옵션입니다."
               : "EverWill basic membership + eKYC electronic certification alone creates a legally valid will."}
           </p>
         </div>

@@ -476,7 +476,7 @@ export default function LoginPage() {
             {[
               "유언장 작성 무료 · 언제든 재개 가능",
               "11개 언어 · 14개국 서비스 지원",
-              "4중 사망 감지 · 자동 집행 시스템",
+              "4중 사망 감지 xb7 사후 집행 지원 시스템",
               "블록체인 무결성 인증",
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-3">
