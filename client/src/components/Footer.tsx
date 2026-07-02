@@ -22,7 +22,7 @@ export default function Footer() {
     footer_biz_number: "621-81-61690",
     footer_biz_number_visible: "true",
     footer_phone: "070-4735-0834",
-    footer_phone_visible: "true",
+    footer_phone_visible: "false",
     footer_address: "",
     footer_address_visible: "false",
     footer_company_name: "주식회사 사람",
