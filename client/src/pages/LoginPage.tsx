@@ -475,7 +475,7 @@ export default function LoginPage() {
           <div className="space-y-4">
             {[
               "유언장 작성 무료 · 언제든 재개 가능",
-              "14개 언어 · 195개국 결제 지원",
+              "11개 언어 · 14개국 서비스 지원",
               "4중 사망 감지 · 자동 집행 시스템",
               "블록체인 무결성 인증",
             ].map((item, i) => (

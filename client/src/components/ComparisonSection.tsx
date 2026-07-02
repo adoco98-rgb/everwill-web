@@ -7,6 +7,7 @@ import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { X, Check, Clock, DollarSign, FileText, Users, AlertTriangle, Zap } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useLocation } from "wouter";
 
 export default function ComparisonSection() {
   const ref = useRef(null);
@@ -743,7 +744,72 @@ export default function ComparisonSection() {
     },
   };
 
-  const d = localeData[language as keyof typeof localeData] ?? localeData.ko;
+  // NZ/AU/CA 전용 비교표 데이터 (각국 법률 기준)
+  const countryLocaleData: Record<string, typeof localeData.en> = {
+    nz: {
+      sectionTitle: "Why EverWill?",
+      sectionSub: "Compare traditional probate with EverWill — legally valid under Wills Act 2007 (NZ) and Electronic Transactions Act 2002.",
+      categoryLabel: "Category",
+      traditionalLabel: "Traditional Probate (NZ)",
+      summaryLabel: "EverWill vs Traditional Probate",
+      costSaving: "Cost Savings",
+      timeSaving: "Time Saved",
+      zeroLoss: "Zero Loss Risk",
+      rows: [
+        { icon: DollarSign, label: "Total Cost", traditional: "NZ$2,000 ~ NZ$8,000+", traditionalSub: "Solicitor fees + High Court probate + executor costs", everwill: "NZ$65", everwillSub: "All-inclusive (1yr free storage) · No annual subscription", highlight: true },
+        { icon: Clock, label: "Time Required", traditional: "6 months ~ 2 years", traditionalSub: "High Court probate → solicitor → asset distribution", everwill: "17 minutes", everwillSub: "AI checkbox wizard — done instantly", highlight: true },
+        { icon: Users, label: "Witnesses", traditional: "2 witnesses required (Wills Act 2007 s.11)", traditionalSub: "COVID-19 Response (Wills) Amendment Act 2021 — remote witnessing allowed", everwill: "Not required", everwillSub: "Replaced by eKYC · Electronic Transactions Act 2002 compliant", highlight: false },
+        { icon: FileText, label: "Will Types & Legal Basis", traditional: "Formal Will / Informal Will (s.14 Wills Act 2007)", traditionalSub: "Wills Act 2007 (NZ) · Electronic Transactions Act 2002 · Administration Act 1969", everwill: "E-Certified Will", everwillSub: "eKYC + RFC 3161 certified timestamp · Wills Act 2007 compliant", highlight: false },
+        { icon: AlertTriangle, label: "Forced Heirship", traditional: "No forced heirship (common law)", traditionalSub: "Family Protection Act 1955 — spouse/children may claim · Testamentary Promises Act 1949", everwill: "Auto Compliance Check", everwillSub: "AI flags Family Protection Act requirements · Legal risk prevention", highlight: false },
+        { icon: Zap, label: "Post-Death Execution", traditional: "Family must handle everything", traditionalSub: "High Court probate → hire solicitor → Births Deaths & Marriages NZ → months of process", everwill: "Execution Support", everwillSub: "Births Deaths & Marriages NZ → auto notify heirs → solicitor match → asset transfer", highlight: false },
+      ],
+    },
+    au: {
+      sectionTitle: "Why EverWill?",
+      sectionSub: "Compare traditional probate with EverWill — legally valid under state-based Succession Acts and Electronic Transactions Acts.",
+      categoryLabel: "Category",
+      traditionalLabel: "Traditional Probate (AU)",
+      summaryLabel: "EverWill vs Traditional Probate",
+      costSaving: "Cost Savings",
+      timeSaving: "Time Saved",
+      zeroLoss: "Zero Loss Risk",
+      rows: [
+        { icon: DollarSign, label: "Total Cost", traditional: "A$3,000 ~ A$12,000+", traditionalSub: "Solicitor fees + Supreme Court probate + executor costs (varies by state)", everwill: "A$59", everwillSub: "All-inclusive (1yr free storage) · No annual subscription", highlight: true },
+        { icon: Clock, label: "Time Required", traditional: "6 months ~ 2 years", traditionalSub: "Supreme Court probate → solicitor → asset distribution (varies by state)", everwill: "17 minutes", everwillSub: "AI checkbox wizard — done instantly", highlight: true },
+        { icon: Users, label: "Witnesses", traditional: "2 witnesses required (all states)", traditionalSub: "Electronic Wills Act (SA 2021, QLD 2021, VIC 2022) — remote witnessing allowed", everwill: "Not required", everwillSub: "Replaced by eKYC · Electronic Transactions Act compliant", highlight: false },
+        { icon: FileText, label: "Will Types & Legal Basis", traditional: "Formal Will / Informal Will", traditionalSub: "Succession Act (NSW/VIC/QLD/SA/WA) · Electronic Wills Act (SA/QLD/VIC) · Electronic Transactions Act", everwill: "E-Certified Will", everwillSub: "eKYC + RFC 3161 certified timestamp · State Succession Act compliant", highlight: false },
+        { icon: AlertTriangle, label: "Forced Heirship", traditional: "No forced heirship (common law)", traditionalSub: "Family Provision legislation (all states) — eligible persons may claim", everwill: "Auto Compliance Check", everwillSub: "AI flags Family Provision requirements · State-specific legal risk prevention", highlight: false },
+        { icon: Zap, label: "Post-Death Execution", traditional: "Family must handle everything", traditionalSub: "Supreme Court probate → hire solicitor → BDM registry → months of process", everwill: "Execution Support", everwillSub: "BDM registry → auto notify heirs → solicitor match → asset transfer", highlight: false },
+      ],
+    },
+    ca: {
+      sectionTitle: "Why EverWill?",
+      sectionSub: "Compare traditional probate with EverWill — legally valid under WESA (BC), Succession Law Reform Act (ON), and Electronic Wills Acts.",
+      categoryLabel: "Category",
+      traditionalLabel: "Traditional Probate (CA)",
+      summaryLabel: "EverWill vs Traditional Probate",
+      costSaving: "Cost Savings",
+      timeSaving: "Time Saved",
+      zeroLoss: "Zero Loss Risk",
+      rows: [
+        { icon: DollarSign, label: "Total Cost", traditional: "C$3,000 ~ C$10,000+", traditionalSub: "Lawyer fees + probate fees + executor costs (varies by province)", everwill: "C$52", everwillSub: "All-inclusive (1yr free storage) · No annual subscription", highlight: true },
+        { icon: Clock, label: "Time Required", traditional: "6 months ~ 2 years", traditionalSub: "Probate court → lawyer → asset distribution (varies by province)", everwill: "17 minutes", everwillSub: "AI checkbox wizard — done instantly", highlight: true },
+        { icon: Users, label: "Witnesses", traditional: "2 witnesses required (most provinces)", traditionalSub: "Electronic Wills Act (BC, SK) — remote witnessing allowed", everwill: "Not required", everwillSub: "Replaced by eKYC · Electronic Wills Act compliant", highlight: false },
+        { icon: FileText, label: "Will Types & Legal Basis", traditional: "Formal Will / Holographic Will", traditionalSub: "WESA (BC 2014) · Succession Law Reform Act (ON) · Electronic Wills Act (BC, SK) · PIPEDA", everwill: "E-Certified Will", everwillSub: "eKYC + RFC 3161 certified timestamp · WESA & Electronic Wills Act compliant", highlight: false },
+        { icon: AlertTriangle, label: "Forced Heirship", traditional: "No forced heirship (common law)", traditionalSub: "Wills Variation Act (BC) · Dependants' Relief (ON) — dependants may claim", everwill: "Auto Compliance Check", everwillSub: "AI flags provincial requirements · Dependant relief risk prevention", highlight: false },
+        { icon: Zap, label: "Post-Death Execution", traditional: "Family must handle everything", traditionalSub: "Probate court → hire lawyer → Vital Statistics → months of process", everwill: "Execution Support", everwillSub: "Vital Statistics → auto notify heirs → lawyer match → asset transfer", highlight: false },
+      ],
+    },
+  };
+
+  // URL에서 국가 코드 추출하여 해당 국가 데이터 우선 사용
+  const [location] = useLocation();
+  const urlCountryMatch = location.match(/\/country\/([a-z]+)/);
+  const urlCountry = urlCountryMatch ? urlCountryMatch[1] : null;
+
+  const d = (urlCountry && countryLocaleData[urlCountry])
+    ? countryLocaleData[urlCountry]
+    : (localeData[language as keyof typeof localeData] ?? localeData.ko);
   const rows = d.rows;
 
   return (
