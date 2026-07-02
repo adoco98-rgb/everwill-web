@@ -108,7 +108,7 @@ export const countryPagesData: Record<string, CountryPageData> = {
     trustPoints: ["ESIGN Act Compliant", "UEWA 2019 Compliant", "HIPAA Compliant", "E2E Encrypted", "Blockchain Integrity"],
     ctaTitle: "Start Your Will Today", ctaDesc: "AI will drafting is completely free. Certification only $39.", ctaButton: "Start for Free",
     metaTitle: "EverWill USA — World's First Digital Will OS",
-    metaDesc: "ESIGN Act & UEWA 2019 compliant AI will drafting, electronic certification, automatic estate execution. Start free.",
+    metaDesc: "ESIGN Act & UEWA 2019 compliant AI will drafting, electronic certification, post-death execution support. Start free.",
   },
 
   jp: {
@@ -434,7 +434,7 @@ export const countryPagesData: Record<string, CountryPageData> = {
     legalStatus: "active", legalStatusLabel: "Legally Valid — Immediately Applicable",
     heroTitle: "Something everyone must do\nat least once,\nMy Final Signature",
     heroSubtitle: "World's First Digital Will OS",
-    heroTagline: "From will creation to automatic estate execution — EverWill handles it all",
+    heroTagline: "From will creation to post-death execution support — EverWill handles it all",
     heroCtaText: "Start for Free",
     legalBasis: [
       "Succession Act 2006 (NSW) — Immediately Applicable",
@@ -445,7 +445,7 @@ export const countryPagesData: Record<string, CountryPageData> = {
     ],
     legalNote: "Succession Act 2006 · Electronic Transactions Act 1999 · Privacy Act",
     serviceTitle: "World's First Digital Will OS",
-    serviceDesc: "AI will drafting, electronic certification, and automatic estate execution — all in one platform",
+    serviceDesc: "AI will drafting, electronic certification, and post-death execution support — all in one platform",
     features: [
       { title: "AI Will Drafting", desc: "Legally valid will in 17 minutes with our 10-step checkbox wizard", icon: "FileText" },
       { title: "Electronic Certification", desc: "Identity verification + blockchain hash record", icon: "ShieldCheck" },
@@ -460,7 +460,7 @@ export const countryPagesData: Record<string, CountryPageData> = {
     trustPoints: ["Succession Act Compliant", "Privacy Act Compliant", "E2E Encrypted", "Blockchain Integrity"],
     ctaTitle: "Start Today", ctaDesc: "AI will drafting is completely free. Certification only A$59.", ctaButton: "Start for Free",
     metaTitle: "EverWill Australia — World's First Digital Will OS",
-    metaDesc: "Succession Act compliant AI will, electronic certification, automatic estate execution. Start free.",
+    metaDesc: "Succession Act compliant AI will, electronic certification, post-death execution support. Start free.",
     reviews: [
       { name: "David Thompson", age: "67", location: "Sydney, NSW", rating: 5, text: "I completed my will in 18 minutes. As an Australian, I was impressed that EverWill fully complies with the Succession Act 2006. No solicitor needed for a straightforward estate.", avatar: "D" },
       { name: "Margaret Wilson", age: "63", location: "Melbourne, VIC", rating: 5, text: "The Badge system is brilliant. My family will know exactly what to do in an emergency. The QR code linking to my medical info and contacts is genuinely life-saving.", avatar: "M" },
@@ -477,7 +477,7 @@ export const countryPagesData: Record<string, CountryPageData> = {
     legalStatus: "active", legalStatusLabel: "Legally Valid — Immediately Applicable",
     heroTitle: "Something everyone must do\nat least once,\nMy Final Signature",
     heroSubtitle: "World's First Digital Will OS",
-    heroTagline: "From will creation to automatic estate execution — EverWill handles it all",
+    heroTagline: "From will creation to post-death execution support — EverWill handles it all",
     heroCtaText: "Start for Free",
     legalBasis: [
       "Wills Act 2007 (NZ) — Immediately Applicable",
@@ -488,7 +488,7 @@ export const countryPagesData: Record<string, CountryPageData> = {
     ],
     legalNote: "Wills Act 2007 (NZ) · Electronic Transactions Act 2002 · Privacy Act 2020",
     serviceTitle: "World's First Digital Will OS",
-    serviceDesc: "AI will drafting, electronic certification, and automatic estate execution — all in one platform",
+    serviceDesc: "AI will drafting, electronic certification, and post-death execution support — all in one platform",
     features: [
       { title: "AI Will Drafting", desc: "Legally valid will in 17 minutes with our 10-step checkbox wizard", icon: "FileText" },
       { title: "Electronic Certification", desc: "Identity verification + blockchain hash record", icon: "ShieldCheck" },
@@ -503,14 +503,14 @@ export const countryPagesData: Record<string, CountryPageData> = {
     trustPoints: ["Wills Act 2007 Compliant", "Privacy Act 2020 Compliant", "E2E Encrypted", "Blockchain Integrity"],
     ctaTitle: "Start Today", ctaDesc: "AI will drafting is completely free. Certification only NZ$65.", ctaButton: "Start for Free",
     metaTitle: "EverWill New Zealand — World's First Digital Will OS",
-    metaDesc: "Wills Act 2007 compliant AI will, electronic certification, automatic estate execution. Start free.",
+    metaDesc: "Wills Act 2007 compliant AI will, electronic certification, post-death execution support. Start free.",
     reviews: [
       { name: "Andrew Mackenzie", age: "64", location: "Auckland", rating: 5, text: "I completed my will in 20 minutes. EverWill fully complies with the Wills Act 2007 (NZ) and the COVID-19 remote witnessing rules. Incredibly straightforward for a Kiwi.", avatar: "A" },
       { name: "Sarah Williams", age: "59", location: "Wellington", rating: 5, text: "The Badge system is a game-changer. In an emergency, paramedics can scan the QR code and reach my family immediately. Nothing like this exists anywhere else in NZ.", avatar: "S" },
       { name: "Michael Tane", age: "68", location: "Christchurch", rating: 5, text: "I have assets in New Zealand and Australia. EverWill coordinated both legal systems perfectly and assigned me a solicitor experienced in trans-Tasman estate matters.", avatar: "M" },
       { name: "Jennifer Park", age: "55", location: "Hamilton", rating: 5, text: "The video will feature is extraordinary. I recorded personal messages for each of my children to receive at milestones in their lives. Truly a priceless legacy.", avatar: "J" },
       { name: "William Foster", age: "72", location: "Dunedin", rating: 5, text: "Blockchain certification under the Electronic Transactions Act 2002 gives me total confidence. My solicitor confirmed it is fully legally valid. Excellent service.", avatar: "W" },
-      { name: "Catherine Lim", age: "61", location: "Tauranga", rating: 5, text: "The automatic estate execution service is what sold me. My family will not have to deal with probate stress — EverWill handles everything after I'm gone. Brilliant.", avatar: "C" },
+      { name: "Catherine Lim", age: "61", location: "Tauranga", rating: 5, text: "The post-death execution support service is what sold me. My family will not have to deal with probate stress — EverWill handles everything after I'm gone. Brilliant.", avatar: "C" },
     ],
   },
 
@@ -520,7 +520,7 @@ export const countryPagesData: Record<string, CountryPageData> = {
     legalStatus: "active", legalStatusLabel: "Legally Valid — Immediately Applicable (BC & ON)",
     heroTitle: "Something everyone must do\nat least once,\nMy Final Signature",
     heroSubtitle: "World's First Digital Will OS",
-    heroTagline: "From will creation to automatic estate execution — EverWill handles it all",
+    heroTagline: "From will creation to post-death execution support — EverWill handles it all",
     heroCtaText: "Start for Free",
     legalBasis: [
       "Wills, Estates and Succession Act (WESA) — BC 2014: Immediately Applicable",
@@ -531,7 +531,7 @@ export const countryPagesData: Record<string, CountryPageData> = {
     ],
     legalNote: "WESA (BC) · Succession Law Reform Act (ON) · Electronic Wills Act · PIPEDA",
     serviceTitle: "World's First Digital Will OS",
-    serviceDesc: "AI will drafting, electronic certification, and automatic estate execution — all in one platform",
+    serviceDesc: "AI will drafting, electronic certification, and post-death execution support — all in one platform",
     features: [
       { title: "AI Will Drafting", desc: "Legally valid will in 17 minutes with our 10-step checkbox wizard", icon: "FileText" },
       { title: "Electronic Certification", desc: "Identity verification + blockchain hash record under Electronic Wills Act", icon: "ShieldCheck" },
@@ -546,14 +546,14 @@ export const countryPagesData: Record<string, CountryPageData> = {
     trustPoints: ["WESA (BC) Compliant", "PIPEDA Compliant", "Electronic Wills Act Compliant", "E2E Encrypted"],
     ctaTitle: "Start Today", ctaDesc: "AI will drafting is completely free. Certification only C$52.", ctaButton: "Start for Free",
     metaTitle: "EverWill Canada — World's First Digital Will OS",
-    metaDesc: "WESA & Electronic Wills Act compliant AI will, electronic certification, automatic estate execution. Start free.",
+    metaDesc: "WESA & Electronic Wills Act compliant AI will, electronic certification, post-death execution support. Start free.",
     reviews: [
       { name: "Daniel Tremblay", age: "65", location: "Toronto, ON", rating: 5, text: "I completed my will in 19 minutes. EverWill is fully compliant with Ontario's Succession Law Reform Act and the Electronic Commerce Act. No lawyer needed for my straightforward estate.", avatar: "D" },
       { name: "Michelle Laroche", age: "60", location: "Vancouver, BC", rating: 5, text: "The Badge system is incredible. As someone who lives alone, knowing that emergency responders can immediately reach my family via QR code gives me enormous peace of mind.", avatar: "M" },
       { name: "Kevin Park", age: "58", location: "Calgary, AB", rating: 5, text: "I'm a Korean-Canadian with assets in both countries. EverWill is the only platform that handles both Korean and Canadian inheritance law simultaneously. Absolutely essential.", avatar: "K" },
       { name: "Elizabeth MacDonald", age: "69", location: "Ottawa, ON", rating: 5, text: "The video will feature is extraordinary. I've recorded messages for my grandchildren to receive at their graduations and weddings. What a meaningful legacy to leave behind.", avatar: "E" },
       { name: "Thomas Nguyen", age: "73", location: "Montreal, QC", rating: 5, text: "Blockchain certification under BC's Electronic Wills Act gives me complete confidence. My notary confirmed it is fully legally valid. Highly recommended for all Canadians.", avatar: "T" },
-      { name: "Sandra Kim", age: "56", location: "Mississauga, ON", rating: 5, text: "The automatic estate execution service is what convinced me. My family won't have to navigate probate court alone — EverWill and their lawyers handle everything. Brilliant.", avatar: "S" },
+      { name: "Sandra Kim", age: "56", location: "Mississauga, ON", rating: 5, text: "The post-death execution support service is what convinced me. My family won't have to navigate probate court alone — EverWill and their lawyers handle everything. Brilliant.", avatar: "S" },
     ],
   },
 };
