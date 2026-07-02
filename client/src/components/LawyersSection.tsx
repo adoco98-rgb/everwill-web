@@ -4,8 +4,6 @@
  * 미래 비전: AI가 법원 제출 서류 자동 생성 → 변호사 불필요
  */
 import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
-import { useRef } from "react";
 import {
   Cpu,
   FileCheck,
@@ -30,8 +28,6 @@ const stepColors = [
 const futureIcons = [Cpu, FileCheck, Sparkles, Users];
 
 export default function LawyersSection() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-80px" });
   const { t, language } = useLanguage();
   const [, navigate] = useLocation();
 
@@ -59,16 +55,11 @@ export default function LawyersSection() {
   ];
 
   return (
-    <section id="lawyers" className="py-20 lg:py-28 bg-[#FAFAF8]" ref={ref}>
+    <section id="lawyers" className="py-20 lg:py-28 bg-gray-50 relative z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* ── 섹션 헤더 ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          className="text-center mb-16"
-        >
+        <div className="text-center mb-16">
           <div className="section-divider mx-auto mb-6" />
           <div className="inline-flex items-center gap-2 bg-[#1F3864]/10 border border-[#1F3864]/20 rounded-full px-4 py-1.5 mb-5">
             <Scale className="w-4 h-4 text-[#1F3864]" />
@@ -83,15 +74,10 @@ export default function LawyersSection() {
           <p className="text-gray-500 text-lg max-w-2xl mx-auto">
             {t.lawyers.subtitle}
           </p>
-        </motion.div>
+        </div>
 
         {/* ── 현재 집행 프로세스 ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          className="mb-16"
-        >
+        <div className="mb-16">
           <div className="flex items-center gap-2 mb-8">
             <div className="w-2 h-6 rounded-full bg-[#1F3864]" />
             <h3 className="text-xl font-bold text-[#1F3864]">{t.lawyers.currentTitle}</h3>
@@ -102,13 +88,7 @@ export default function LawyersSection() {
               const Icon = stepIcons[i];
               const { color, bg } = stepColors[i];
               return (
-                <motion.div
-                  key={step.step}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 + i * 0.1 }}
-                  className="relative"
-                >
+                <div key={step.step} className="relative">
                   <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-[#1F3864]/20 hover:shadow-md transition-all h-full">
                     <div className="flex items-center justify-between mb-4">
                       <div className={`w-10 h-10 rounded-xl ${bg} flex items-center justify-center`}>
@@ -125,18 +105,13 @@ export default function LawyersSection() {
                       <ArrowRight className="w-4 h-4 text-gray-300" />
                     </div>
                   )}
-                </motion.div>
+                </div>
               );
             })}
           </div>
 
           {/* 변호사 안내 배너 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="mt-6 bg-[#1F3864]/5 border border-[#1F3864]/10 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4"
-          >
+          <div className="mt-6 bg-[#1F3864]/5 border border-[#1F3864]/10 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="w-10 h-10 rounded-xl bg-[#1F3864] flex items-center justify-center flex-shrink-0">
               <Scale className="w-5 h-5 text-[#C9A961]" />
             </div>
@@ -144,17 +119,11 @@ export default function LawyersSection() {
               <div className="font-bold text-[#1F3864] mb-1">{t.lawyers.bannerTitle}</div>
               <p className="text-sm text-gray-600">{t.lawyers.bannerDesc}</p>
             </div>
-
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* ── 미래 비전: AI 자동화 ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.3 }}
-          className="bg-gradient-to-br from-[#1F3864] to-[#2a4a7f] rounded-3xl p-8 lg:p-12 text-white"
-        >
+        <div className="bg-gradient-to-br from-[#1F3864] to-[#2a4a7f] rounded-3xl p-8 lg:p-12 text-white">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-lg bg-[#C9A961]/20 flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-[#C9A961]" />
@@ -176,11 +145,8 @@ export default function LawyersSection() {
             {futureFeatures.map((feat, i) => {
               const FeatIcon = futureIcons[i];
               return (
-                <motion.div
+                <div
                   key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.4 + i * 0.1 }}
                   className="bg-white/10 backdrop-blur rounded-2xl p-5 border border-white/10 hover:border-[#C9A961]/30 transition-colors"
                 >
                   <div className="w-9 h-9 rounded-xl bg-[#C9A961]/20 flex items-center justify-center mb-3">
@@ -188,7 +154,7 @@ export default function LawyersSection() {
                   </div>
                   <h4 className="font-bold text-white mb-2 text-sm">{feat.title}</h4>
                   <p className="text-white/60 text-xs leading-relaxed">{feat.desc}</p>
-                </motion.div>
+                </div>
               );
             })}
           </div>
@@ -256,7 +222,7 @@ export default function LawyersSection() {
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
-        </motion.div>
+        </div>
 
       </div>
     </section>
