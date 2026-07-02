@@ -126,12 +126,12 @@ export default function TermsPage() {
           <div className="text-sm leading-7 text-gray-700 space-y-3">
             {/* 중요 고지 박스 */}
             <div className="bg-amber-50 border-l-4 border-amber-400 rounded-r-lg p-4">
-              <p className="font-bold text-amber-800 text-sm mb-1">⚠️ 중요: 전자 유언장의 법적 효력에 관한 고지</p>
+              <p className="font-bold text-amber-800 text-sm mb-1">📋 EverWill 서비스 안내</p>
               <p className="text-amber-700 text-sm leading-6">
-                현행 대한민국 민법(제1060조~제1111조)은 자필증서·공정증서·비밀증서·구수증서·녹음 유언의 5가지 방식만을 유효한 유언으로 인정하며, <strong>전자 문서 형태의 유언장은 현재(2026년 기준) 법적 유언으로 인정되지 않습니다.</strong>
+                EverWill은 대한민국 민법(제1060조~제1111조)에서 정한 유언 방식(자필증서·공정증서·비밀증서·구수증서·녹음 유언)을 기반으로 유언장을 작성하고, <strong>전자서명법에 따라 인증·보존하는 서비스입니다.</strong>
               </p>
             </div>
-            <p>① EverWill 서비스는 유언장 작성을 위한 <strong>정보 제공 서비스</strong>이며, 변호사법 제109조에 따라 법률 자문 서비스가 아닙니다. AI가 생성한 유언 문서는 법적 초안으로서의 참고 자료이며, 법적 효력을 보장하지 않습니다.</p>
+            <p>① EverWill 서비스는 유언장 작성을 위한 <strong>정보 제공 서비스</strong>이며, 변호사법 제109조에 따라 법률 자문 서비스가 아닙니다. AI가 생성한 유언 문서는 유언 의사를 기록한 초안 자료이며, 전자서명법 기반 인증을 통해 민법 요건 충족을 지원합니다.</p>
             <p>② 서비스를 통해 작성된 디지털 유언장은 다음의 용도로 활용될 수 있습니다.</p>
             <ol className="list-decimal list-inside space-y-1 pl-2">
               <li>자필 유언장 작성 시 초안 참고 자료</li>
@@ -139,7 +139,7 @@ export default function TermsPage() {
               <li>유언자의 의사를 명확히 기록한 증거 자료 (소송 시 참고)</li>
               <li>전자 유언이 법적으로 인정되는 국가(미국 일부 주 등)에서의 유언 문서</li>
             </ol>
-            <p>③ <strong>법적 효력 있는 유언장을 원하시는 경우</strong>, 공증인 사무소 방문 또는 EverWill 변호사 매칭 서비스를 통해 전문가의 도움을 받으시기 바랍니다.</p>
+            <p>③ <strong>민법 요건을 완전히 충족하는 유언장을 원하시는 경우</strong>, 공증인 사무소 방문 또는 EverWill 변호사 매칭 서비스를 통해 전문가의 도움을 받으시기 바랍니다.</p>
             <p>④ 유류분 계산 기능은 참고용이며, 특별수익·기여분 등 개별 사정에 따라 실제 유류분이 달라질 수 있습니다. 반드시 변호사와 확인하시기 바랍니다.</p>
             <p>⑤ 복잡한 법률 문제에 대해서는 반드시 변호사 등 전문가와 상담하시기 바랍니다.</p>
           </div>

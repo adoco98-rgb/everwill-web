@@ -341,7 +341,7 @@ function ModeSelect({ onSelect }: { onSelect: (m: WillMode) => void }) {
               유류분·상속세 계산 결과는 참고용이며, 특별수익·기여분 등 개별 상황에 따라 달라질 수 있습니다. 복잡한 상속 문제는 반드시 전문 변호사와 상담하시기 바랍니다.
             </p>
             <p className="text-amber-700 text-xs leading-relaxed">
-              현행 한국법상 전자 유언장은 법적 효력이 인정되지 않습니다. EverWill의 전자 인증은 유언 의사 기록 및 보존을 위한 서비스입니다.
+              EverWill은 민법 제1060조~제1111조에서 정한 유언 방식을 기반으로 유언장을 작성하고, 전자서명법에 따라 인증·보존하는 서비스입니다.
             </p>
           </div>
         </div>
