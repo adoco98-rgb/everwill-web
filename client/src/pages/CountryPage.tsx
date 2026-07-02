@@ -673,16 +673,16 @@ export default function CountryPage() {
       <TargetSection data={data} />
       {/* 13. 법률 AI 섹션 */}
       <LegalAISection />
-      {/* 14. 변호사 매칭 서비스 (사후 집행) */}
-      <LawyersSection />
-      {/* 15. 전문가 파트너 (변호사 섹션) - 해당 국가 탭 자동 선택 */}
+      {/* 14. 전문가 파트너 (변호사 섹션) - 해당 국가 탭 자동 선택 */}
       <ExpertsSection initialCountry={code?.toUpperCase()} />
-      {/* 16. 상속자 서비스 */}
+      {/* 15. 상속자 서비스 */}
       <HeirServiceSection />
-      {/* 17. 추천인 섹션 */}
+      {/* 16. 추천인 섹션 */}
       <ReferralSection />
-      {/* 18. 고객 후기 (국가별 현지 리뷰) */}
+      {/* 17. 고객 후기 (국가별 현지 리뷰) */}
       <ReviewsSection countryReviews={data.reviews} />
+      {/* 18. 변호사 매칭 서비스 (사후 집행) - CTA 바로 앞 */}
+      <LawyersSection />
       {/* 19. CTA */}
       <CtaSection data={data} />
       <Footer />
