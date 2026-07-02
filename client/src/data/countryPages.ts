@@ -82,7 +82,7 @@ export const countryPagesData: Record<string, CountryPageData> = {
     legalStatus: "active", legalStatusLabel: "Legally Valid — Immediately Applicable",
     heroTitle: "Everyone needs to do\nat least once,\nMy Final Signature",
     heroSubtitle: "World's First Digital Will OS",
-    heroTagline: "From will creation to automatic post-death execution — EverWill handles it all",
+    heroTagline: "From will creation to post-death execution support — EverWill handles it all",
     heroCtaText: "Start for Free",
     legalBasis: [
       "ESIGN Act (2000) — Federal Electronic Signature Law: Legally Valid",
@@ -93,7 +93,7 @@ export const countryPagesData: Record<string, CountryPageData> = {
     ],
     legalNote: "ESIGN Act · UEWA 2019 · Holographic Will · Probate Court",
     serviceTitle: "World's First Digital Will OS",
-    serviceDesc: "AI will drafting, electronic certification, and automatic post-death execution — all in one platform",
+    serviceDesc: "AI will drafting, electronic certification, and post-death execution support — all in one platform",
     features: [
       { title: "AI Will Drafting", desc: "Complete a legally valid will in 17 minutes with our 10-step checkbox wizard", icon: "FileText" },
       { title: "Electronic Certification", desc: "Identity verification + blockchain hash record under ESIGN Act", icon: "ShieldCheck" },

@@ -418,7 +418,7 @@ const T: Record<Lang, TranslationData> = {
     nav_invest: "Investors Only",
     hero_badge: "🌍 World's First Digital Will OS",
     hero_title: "Becoming the OS\nof the Will Industry",
-    hero_sub: "An all-in-one global will platform surpassing Trust & Will, Farewill, and GoodTrust.\nFrom writing to automatic post-death execution — we own the entire journey.",
+    hero_sub: "An all-in-one global will platform surpassing Trust & Will, Farewill, and GoodTrust.\nFrom writing to post-death execution support — we own the entire journey.",
     hero_cta: "Contact for Investment",
     m1_label: "Target MAU (Year 2)", m1_val: "50,000",
     m2_label: "Target ARR (Year 3)", m2_val: "$12M",
@@ -600,7 +600,7 @@ const T: Record<Lang, TranslationData> = {
     cta_email: "adoco98@gmail.com",
     footer_conf: "This document is confidential. Unauthorized distribution is prohibited.",
     slides: [
-      { badge: "World's First", title: "OS of the Will Industry", sub: "From writing to automatic post-death execution", highlight: "The global platform surpassing Trust & Will" },
+      { badge: "World's First", title: "OS of the Will Industry", sub: "From writing to post-death execution support", highlight: "The global platform surpassing Trust & Will" },
       { badge: "Key Differentiator", title: "Physical Badge System", sub: "MedicAlert + AirTag + Will Certification", highlight: "Innovation no will platform has attempted worldwide" },
       { badge: "Global Market", title: "$184B Market", sub: "2030 global will market size", highlight: "Simultaneous entry: Korea, Japan, USA, China" },
       { badge: "Revenue Model", title: "LTV $5,500+", sub: "28x customer lifetime value vs Trust & Will", highlight: "$15 re-certification drives lifetime recurring revenue" },

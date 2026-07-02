@@ -118,7 +118,7 @@ const T: Record<LangCode, Record<string, string>> = {
     heroBadge: "Series A Fundraising · 2026",
     heroTitle1: "World's First",
     heroTitle2: "Digital Will OS",
-    heroSub: "From will drafting to automated posthumous execution — Asia market first-mover opportunity",
+    heroSub: "From will drafting to post-death execution support — Asia market first-mover opportunity",
     heroCta1: "Contact Us",
     heroCta2: "View Market Analysis",
     kpi1v: "$3.7B", kpi1l: "Global Market Size", kpi1s: "2026 Estimate",

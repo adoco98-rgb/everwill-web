@@ -142,7 +142,7 @@ export default function ComparisonSection() {
           label: "Post-Death Execution",
           traditional: "Family must handle everything",
           traditionalSub: "Probate court → hire attorney → months of process → attorney fees 3–7% of estate",
-          everwill: "Auto Execution",
+          everwill: "Execution Support",
           everwillSub: "Government death registry → auto notify heirs → attorney match → asset transfer",
           highlight: false,
         },
