@@ -26,4 +26,6 @@ export const ENV = {
   // LINE OAuth
   lineChannelId: process.env.LINE_CHANNEL_ID ?? "",
   lineChannelSecret: process.env.LINE_CHANNEL_SECRET ?? "",
+  // OpenAI GPT-4o
+  openaiApiKey: process.env.OPENAI_API_KEY ?? "",
 };

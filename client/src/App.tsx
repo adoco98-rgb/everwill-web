@@ -120,7 +120,7 @@ function Router() {
       <Route path={"/dashboard/badge"} component={() => <SaramDashboardLayout><BadgePage /></SaramDashboardLayout>} />
       {/* 인증 현황 */}
       <Route path={"/dashboard/certification"} component={() => <SaramDashboardLayout><CertificationPage /></SaramDashboardLayout>} />
-      {/* 유언 완성 6단계 위저드 */}
+      {/* 유언 작성 6단계 위저드 */}
       <Route path={"/dashboard/will-wizard"} component={() => <SaramDashboardLayout><WillWizardPage /></SaramDashboardLayout>} />
       {/* 유언인증서 신청·발급 */}
       <Route path={"/dashboard/will-certificate"} component={() => <SaramDashboardLayout><WillCertificatePage /></SaramDashboardLayout>} />

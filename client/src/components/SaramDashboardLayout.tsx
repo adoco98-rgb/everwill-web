@@ -45,22 +45,22 @@ import {
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 
-/** 유언 완성 플로우 메뉴 */
+/** 유언 작성 플로우 메뉴 */
 const willFlowMenuItems = [
-  { icon: Sparkles, label: "유언 완성하기", path: "/dashboard/will-wizard", highlight: true },
+  { icon: Sparkles, label: "유언 작성하기", path: "/dashboard/will-wizard", highlight: true },
 ];
 
 /** 유언 작성 단계별 메뉴 (순서대로) */
 const mainMenuItems = [
-  { icon: Home, label: "대시보드", path: "/dashboard" },
   { icon: User, label: "개인 인증", path: "/dashboard/profile" },
   { icon: ClipboardList, label: "자산 등록", path: "/assets" },
   { icon: Users, label: "상속자 등록", path: "/dashboard/heirs" },
-  { icon: FileText, label: "유언장 작성", path: "/dashboard/wills" },
   { icon: BadgeCheck, label: "서명 인증", path: "/dashboard/certification" },
-  { icon: ScrollText, label: "유언인증서 신청·발급", path: "/dashboard/will-certificate" },
-  { icon: Video, label: "영상 유언장", path: "/video-will" },
-  { icon: ScanLine, label: "자필 유언 스캔", path: "/will/scan" },
+  { icon: Video, label: "영상 유언 (선택)", path: "/video-will" },
+  { icon: ScanLine, label: "자필 유언장 (선택)", path: "/will/scan" },
+  { icon: Home, label: "유언진행 현황", path: "/dashboard" },
+  { icon: ScrollText, label: "유언 인증서 발급신청", path: "/dashboard/will-certificate" },
+  { icon: CreditCard, label: "결제하기", path: "/dashboard/payments" },
 ];
 
 /** 멤버십 / 카드 메뉴 */
@@ -219,7 +219,7 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
 
         {/* 메뉴 */}
         <nav className="flex-1 p-4 overflow-y-auto space-y-1">
-          {/* 유언 완성하기 - 핵심 CTA */}
+          {/* 유언 작성하기 - 핵심 CTA */}
           {willFlowMenuItems.map((item) => {
             const isActive = location.startsWith(item.path);
             return (

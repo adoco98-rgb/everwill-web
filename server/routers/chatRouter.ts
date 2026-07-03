@@ -7,6 +7,7 @@
 import { z } from "zod";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { invokeLLM } from "../_core/llm";
+import { invokeGPT4o } from "../openai";
 import { generateImage } from "../_core/imageGeneration";
 import { getDb } from "../db";
 import { chatSessions, chatMessages } from "../../drizzle/schema";
@@ -347,21 +348,39 @@ const AI_MODE_PROMPTS: Record<string, string> = {
 async function getSystemConfig(mode: string): Promise<{ systemPrompt: string; aiModel: string; aiProvider: string }> {
   try {
     const db = await getDb();
-    if (!db) return { systemPrompt: AI_MODE_PROMPTS[mode] ?? MEMBER_AI_SYSTEM_PROMPT, aiModel: "default", aiProvider: "manus" };
+    if (!db) return { systemPrompt: AI_MODE_PROMPTS[mode] ?? MEMBER_AI_SYSTEM_PROMPT, aiModel: "gpt-4o", aiProvider: "openai" };
     const { aiPrompts } = await import("../../drizzle/schema");
     const { eq } = await import("drizzle-orm");
     const [row] = await db.select().from(aiPrompts).where(eq(aiPrompts.mode, mode as any));
     if (row && row.isActive && row.systemPrompt) {
       return {
         systemPrompt: row.systemPrompt,
-        aiModel: (row as any).aiModel ?? "default",
-        aiProvider: (row as any).aiProvider ?? "manus",
+        aiModel: (row as any).aiModel ?? "gpt-4o",
+        aiProvider: (row as any).aiProvider ?? "openai",
       };
     }
   } catch (e) {
     console.warn("[chatRouter] DB 프롬프트 조회 실패, 기본값 사용:", e);
   }
-  return { systemPrompt: AI_MODE_PROMPTS[mode] ?? MEMBER_AI_SYSTEM_PROMPT, aiModel: "default", aiProvider: "manus" };
+  return { systemPrompt: AI_MODE_PROMPTS[mode] ?? MEMBER_AI_SYSTEM_PROMPT, aiModel: "gpt-4o", aiProvider: "openai" };
+}
+
+// AI 호출 통합 함수 - provider에 따라 GPT-4o 또는 Manus LLM 사용
+async function callAI(messages: Array<{role: string; content: string}>, provider: string = "openai") {
+  const formattedMessages = messages.map(m => ({
+    role: m.role as "system" | "user" | "assistant",
+    content: m.content,
+  }));
+
+  if (provider === "openai") {
+    try {
+      return await invokeGPT4o({ messages: formattedMessages });
+    } catch (e) {
+      console.warn("[chatRouter] GPT-4o 호출 실패, Manus LLM으로 폴백:", e);
+      return await invokeLLM({ messages: formattedMessages });
+    }
+  }
+  return await invokeLLM({ messages: formattedMessages });
 }
 
 // 하위 호환성 유지
@@ -416,15 +435,13 @@ export const chatRouter = router({
           : "";
 
       try {
-        const response = await invokeLLM({
-          messages: [
+        const response = await callAI([
             { role: "system", content: PUBLIC_BOT_SYSTEM_PROMPT + langNote },
             ...messages.map((m) => ({
               role: m.role as "user" | "assistant",
               content: m.content,
             })),
-          ],
-        });
+          ], "openai");
         const content =
           response.choices?.[0]?.message?.content ||
           "죄송합니다. 잠시 후 다시 시도해 주세요.";
@@ -510,17 +527,16 @@ export const chatRouter = router({
           ? `\n\n[언어 설정] 사용자 언어: ${language}. 반드시 해당 언어로만 답변하세요.`
           : "";
 
-      // 모드별 시스템 프롬프트 선택 (DB 우선, 없으면 코드 기본값)
-      const systemPrompt = (await getSystemPrompt(aiMode)) + langNote;
+      // 모드별 시스템 프롬프트 + provider 선택 (DB 우선, 없으면 코드 기본값)
+      const config = await getSystemConfig(aiMode);
+      const systemPrompt = config.systemPrompt + langNote;
 
       try {
-        const response = await invokeLLM({
-          messages: [
+        const response = await callAI([
             { role: "system", content: systemPrompt },
             ...historyMessages,
             { role: "user", content: message },
-          ],
-        });
+          ], config.aiProvider);
 
         const rawContent = response.choices?.[0]?.message?.content;
         const aiContent: string = typeof rawContent === "string"

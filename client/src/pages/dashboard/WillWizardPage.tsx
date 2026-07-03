@@ -1,5 +1,5 @@
 /**
- * 유언 완성하기 - 6단계 위저드
+ * 유언 작성하기 - 6단계 위저드
  * 1단계: 개인 인증 (eKYC)
  * 2단계: 자산 등록
  * 3단계: 상속자 등록
@@ -109,7 +109,7 @@ export default function WillWizardPage() {
     <div className="max-w-4xl mx-auto">
       {/* 헤더 */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#1F3864] mb-1">유언 완성하기</h1>
+        <h1 className="text-2xl font-bold text-[#1F3864] mb-1">유언 작성하기</h1>
         <p className="text-gray-500 text-sm">6단계를 완료하면 민법 요건에 맞는 유언장이 완성됩니다.</p>
       </div>
 
