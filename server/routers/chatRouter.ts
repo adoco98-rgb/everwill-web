@@ -13,6 +13,14 @@ import { getDb } from "../db";
 import { chatSessions, chatMessages } from "../../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
+import {
+  PUBLIC_BOT_SYSTEM_PROMPT_V2,
+  LEGAL_AI_PROMPT_V2,
+  AUTOBIOGRAPHY_AI_PROMPT_V2,
+  DIARY_AI_PROMPT_V2,
+  LETTER_AI_PROMPT_V2,
+  MEMBER_AI_SYSTEM_PROMPT_V2,
+} from "../prompts/ai-prompts";
 
 // ─── 비회원 안내 봇 시스템 프롬프트 ───
 const PUBLIC_BOT_SYSTEM_PROMPT = `당신은 EverWill 서비스 안내 봇 '에버'입니다.
@@ -334,14 +342,14 @@ const MEMBER_AI_SYSTEM_PROMPT = `당신은 EverWill 회원 전담 AI '에버'입
 6. 유언장 작성은 /will/create 페이지로 안내
 7. 답변 길이: 질문 복잡도에 따라 조절`;
 
-// ─── AI 모드별 시스템 프롬프트 맵 (코드 기본값) ───
+// ─── AI 모드별 시스템 프롬프트 맵 (v2 업그레이드) ───
 const AI_MODE_PROMPTS: Record<string, string> = {
-  general: MEMBER_AI_SYSTEM_PROMPT,
-  legal: LEGAL_AI_PROMPT,
-  autobiography: AUTOBIOGRAPHY_AI_PROMPT,
-  diary: DIARY_AI_PROMPT,
-  letter: LETTER_AI_PROMPT,
-  public: PUBLIC_BOT_SYSTEM_PROMPT,
+  general: MEMBER_AI_SYSTEM_PROMPT_V2,
+  legal: LEGAL_AI_PROMPT_V2,
+  autobiography: AUTOBIOGRAPHY_AI_PROMPT_V2,
+  diary: DIARY_AI_PROMPT_V2,
+  letter: LETTER_AI_PROMPT_V2,
+  public: PUBLIC_BOT_SYSTEM_PROMPT_V2,
 };
 
 // DB에서 관리자가 설정한 프롬프트 + 모델 정보 우선 조회 (없으면 코드 기본값 사용)
