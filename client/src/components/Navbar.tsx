@@ -243,7 +243,7 @@ export default function Navbar() {
           </a>
 
           {/* 데스크탑 메뉴 - 중앙 */}
-          <div className="hidden lg:flex items-center justify-center gap-3 xl:gap-5">
+          <div className="hidden lg:flex flex-1 items-center justify-center gap-3 xl:gap-5">
             {navLinks.map((link) => (
               <button
                 key={link.href}
