@@ -159,17 +159,19 @@ export default function Navbar() {
     const isUSDomain = hostname.includes("everwillus.com");
     const isKRDomain = hostname.includes("everwill.co.kr") || hostname.includes("localhost") || hostname.includes("manus.computer");
 
-    // /country/ 페이지에 있을 때는 해당 국가 서비스 페이지로 이동
-    if (location.startsWith("/country/") && isKRDomain) {
-      const targetPath = languageToCountryPath[code];
-      window.location.href = targetPath;
-      return;
-    }
-
-    // 일반 페이지(홈 등)에서 언어 변경
+    // everwill.co.kr에서 국기 클릭 시 해당 국가 페이지로 이동
     if (isKRDomain) {
-      setLanguage(code);
-      localStorage.setItem("everwill_language", code);
+      const targetPath = languageToCountryPath[code];
+      // 한국어 = 홈, 나머지 = /country/xx 페이지로 이동
+      if (code === "ko") {
+        setLanguage(code);
+        localStorage.setItem("everwill_language", code);
+        window.location.href = "/";
+      } else {
+        setLanguage(code);
+        localStorage.setItem("everwill_language", code);
+        window.location.href = targetPath;
+      }
       return;
     }
 
