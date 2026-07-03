@@ -772,15 +772,13 @@ export const chatRouter = router({
           ? `\n\n[언어 설정] 사용자 언어: ${language}. 해당 언어로 답변하세요.`
           : "";
       try {
-        const response = await invokeLLM({
-          messages: [
+        const response = await callAI([
             { role: "system", content: PUBLIC_BOT_SYSTEM_PROMPT + langNote },
             ...messages.map((m) => ({
               role: m.role as "user" | "assistant",
               content: m.content,
             })),
-          ],
-        });
+          ], "openai");
         const content =
           response.choices?.[0]?.message?.content ||
           "죄송합니다. 잠시 후 다시 시도해 주세요.";
