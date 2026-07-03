@@ -231,8 +231,9 @@ export default function Navbar() {
     >
       {/* 메인 네비게이션 바 */}
       <div className="w-full px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20 gap-4">
-          {/* 로고 - 좌측 고정 (원형 씰 로고) */}
+        <div className="flex items-center h-16 sm:h-20">
+          {/* 로고 - 좌측 (flex-1로 동일 너비 확보) */}
+          <div className="flex-1 flex items-center">
           <a href="/" className="flex items-center shrink-0">
             <img
               src="/everwill-seal.png"
@@ -241,9 +242,10 @@ export default function Navbar() {
               style={{ height: '72px', width: '72px' }}
             />
           </a>
+          </div>
 
-          {/* 데스크탑 메뉴 - 중앙 */}
-          <div className="hidden lg:flex flex-1 items-center justify-center gap-3 xl:gap-5">
+          {/* 데스크탑 메뉴 - 정중앙 */}
+          <div className="hidden lg:flex items-center justify-center gap-3 xl:gap-5">
             {navLinks.map((link) => (
               <button
                 key={link.href}
@@ -265,8 +267,8 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* 우측 액션 - grid 3번째 컬럼 */}
-          <div className="flex items-center gap-2 justify-end">
+          {/* 우측 액션 (flex-1로 동일 너비 확보) */}
+          <div className="flex-1 flex items-center gap-2 justify-end">
           <div className="hidden lg:flex items-center gap-3">
             {/* 소셜 링크 아이콘 */}
             {socialItems.length > 0 && (
