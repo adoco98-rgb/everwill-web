@@ -83,7 +83,7 @@ function getLockedDomainLang(): Language | null {
 
 /** 초기 언어 감지 (도메인 고정 > URL 파라미터 > 저장값 > 기본값) */
 function detectInitialLanguage(): Language {
-  // 1순위: 도메인 고정
+  // 1순위: 도메인 고정 (everwillus.com 등)
   const lockedLang = getLockedDomainLang();
   if (lockedLang) return lockedLang;
 
@@ -94,15 +94,30 @@ function detectInitialLanguage(): Language {
     if (urlLang && translations[urlLang]) return urlLang;
   }
 
-  // 3순위: 이미 IP 감지 완료된 경우 저장값 사용
-  const geoDetected = localStorage.getItem(GEO_DETECTED_KEY);
-  const saved = localStorage.getItem(STORAGE_KEY) as Language | null;
-  if (geoDetected && saved && translations[saved]) return saved;
+  // everwill.co.kr / manus.computer / localhost 도메인은 항상 한국어 기본
+  // (국기 클릭 시 /country/xx로 이동하므로 홈은 항상 한국어)
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    const isMainDomain = hostname.includes("everwill.co.kr") || hostname.includes("manus.computer") || hostname.includes("localhost") || hostname.includes("manus.space");
+    if (isMainDomain) {
+      // /country/ 경로에 있으면 해당 언어 사용
+      const path = window.location.pathname;
+      if (path.startsWith("/country/")) {
+        const countryCode = path.split("/country/")[1]?.split("/")[0]?.toUpperCase();
+        const countryLangMap: Record<string, Language> = {
+          US: "en", JP: "ja", CN: "zh", DE: "de", ES: "es",
+          SA: "ar", FR: "fr", RU: "ru", IN: "hi", BR: "pt",
+          NZ: "en", AU: "en", CA: "en",
+        };
+        const lang = countryLangMap[countryCode];
+        if (lang) return lang;
+      }
+      // 홈 및 기타 페이지는 항상 한국어
+      return "ko";
+    }
+  }
 
-  // 4순위: 저장값 (사용자가 직접 선택한 경우)
-  if (saved && translations[saved]) return saved;
-
-  // 기본값: 한국어 (IP 감지 전 임시)
+  // 기본값: 한국어
   return "ko";
 }
 
