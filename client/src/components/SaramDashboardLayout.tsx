@@ -52,6 +52,7 @@ const willFlowMenuItems = [
 
 /** 유언 작성 단계별 메뉴 (순서대로) */
 const mainMenuItems = [
+  { icon: FileText, label: "공증서류", path: "/dashboard/notarization-docs" },
   { icon: User, label: "개인 인증", path: "/dashboard/profile" },
   { icon: ClipboardList, label: "자산 등록", path: "/assets" },
   { icon: Users, label: "상속자 등록", path: "/dashboard/heirs" },

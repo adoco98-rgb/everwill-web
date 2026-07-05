@@ -56,6 +56,7 @@ import WillWizardPage from "./pages/dashboard/WillWizardPage";
 import WillCertificatePage from "./pages/dashboard/WillCertificatePage";
 import PhoneVerifyPage from "./pages/dashboard/PhoneVerifyPage";
 import InheritanceTaxPage from "./pages/dashboard/InheritanceTaxPage";
+import NotarizationDocsPage from "./pages/dashboard/NotarizationDocsPage";
 import CountryPage from "./pages/CountryPage";
 import AutobiographyPage from "./pages/AutobiographyPage";
 import PartnerPage from "./pages/PartnerPage";
@@ -105,6 +106,8 @@ function Router() {
       <Route path={"/will/scan"} component={ScanVerifyPage} />
       <Route path={"/will/chat"} component={WillChatPage} />
       <Route path={"/dashboard"} component={() => <SaramDashboardLayout><DashboardHome /></SaramDashboardLayout>} />
+      {/* 공증서류 등록 */}
+      <Route path={"/dashboard/notarization-docs"} component={() => <SaramDashboardLayout><NotarizationDocsPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/payments"} component={() => <SaramDashboardLayout><PaymentsPage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/profile"} component={() => <SaramDashboardLayout><ProfilePage /></SaramDashboardLayout>} />
       <Route path={"/dashboard/membership"} component={() => <SaramDashboardLayout><MembershipPage /></SaramDashboardLayout>} />
