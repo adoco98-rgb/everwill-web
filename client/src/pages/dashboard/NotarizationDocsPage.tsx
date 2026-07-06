@@ -66,6 +66,10 @@ interface UploadedDoc {
   analyzing?: boolean;
   /** AI 분석 진행 단계 (0~4) */
   analysisStep?: number;
+  /** AI 분석 실패 여부 */
+  analysisFailed?: boolean;
+  /** AI 분석 건너뛰기 (사용자가 수동 확인) */
+  analysisSkipped?: boolean;
 }
 
 const SECTIONS: DocumentSection[] = [
@@ -205,9 +209,41 @@ export default function NotarizationDocsPage() {
       stepTimers.forEach(clearTimeout);
       setUploadedDocs((prev) => ({
         ...prev,
-        [docId]: { ...prev[docId], analyzing: false, analysisStep: undefined },
+        [docId]: { ...prev[docId], analyzing: false, analysisStep: undefined, analysisFailed: true },
       }));
-      toast.error("AI 분석 중 오류가 발생했습니다. 다시 시도해주세요.");
+      toast.error("AI 분석에 실패했습니다. 재시도하거나 건너뛸 수 있습니다.");
+    }
+  };
+
+  /** AI 분석 건너뛰기 */
+  const handleSkipAnalysis = (docId: string) => {
+    setUploadedDocs((prev) => ({
+      ...prev,
+      [docId]: { ...prev[docId], analysisFailed: false, analysisSkipped: true },
+    }));
+    toast.info("AI 분석을 건너뛰었습니다. 서류는 제출된 상태로 유지됩니다.");
+  };
+
+  /** AI 분석 재시도 */
+  const handleRetryAnalysis = async (docId: string) => {
+    const doc = uploadedDocs[docId];
+    if (!doc) return;
+    // previewUrl에서 blob을 다시 fetch하여 분석
+    if (doc.previewUrl) {
+      try {
+        const resp = await fetch(doc.previewUrl);
+        const blob = await resp.blob();
+        const file = new globalThis.File([blob], doc.fileName, { type: blob.type });
+        setUploadedDocs((prev) => ({
+          ...prev,
+          [docId]: { ...prev[docId], analysisFailed: false },
+        }));
+        runAnalysis(docId, file);
+      } catch {
+        toast.error("파일을 다시 읽을 수 없습니다. 재업로드해주세요.");
+      }
+    } else {
+      toast.error("파일을 다시 업로드해주세요.");
     }
   };
 
@@ -452,6 +488,40 @@ export default function NotarizationDocsPage() {
                             {/* AI 분석 진행 상태 애니메이션 */}
                             {isUploaded && uploadedDoc?.analyzing && (
                               <AnalysisProgressAnimation step={uploadedDoc.analysisStep ?? 0} />
+                            )}
+                            {/* AI 분석 실패 시 재시도/건너뛰기 카드 */}
+                            {isUploaded && uploadedDoc?.analysisFailed && !uploadedDoc?.analyzing && (
+                              <div className="mt-3 p-3 rounded-lg bg-red-50 border border-red-200">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <AlertTriangle className="w-4 h-4 text-red-500" />
+                                  <span className="text-xs font-bold text-red-700">AI 분석 실패</span>
+                                </div>
+                                <p className="text-xs text-red-600 mb-3">서버 오류로 분석을 완료하지 못했습니다. 다시 시도하거나, 분석 없이 진행할 수 있습니다.</p>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => handleRetryAnalysis(doc.id)}
+                                    className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium"
+                                  >
+                                    <RotateCcw className="w-3.5 h-3.5" />
+                                    다시 분석
+                                  </button>
+                                  <button
+                                    onClick={() => handleSkipAnalysis(doc.id)}
+                                    className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors font-medium"
+                                  >
+                                    분석 건너뛰기
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                            {/* AI 분석 건너뛴 상태 */}
+                            {isUploaded && uploadedDoc?.analysisSkipped && !uploadedDoc?.analyzing && (
+                              <div className="mt-3 p-2.5 rounded-lg bg-gray-50 border border-gray-200">
+                                <div className="flex items-center gap-2">
+                                  <Info className="w-3.5 h-3.5 text-gray-500" />
+                                  <span className="text-xs text-gray-600">AI 분석을 건너뛰었습니다. 서류는 정상 제출되었습니다.</span>
+                                </div>
+                              </div>
                             )}
                             {isUploaded && uploadedDoc?.analysis && !uploadedDoc?.analyzing && (
                               <AnalysisResultCard analysis={uploadedDoc.analysis} />
