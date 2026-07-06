@@ -4,7 +4,7 @@
  * 모든 서류: AI 자동 분석 (선명도·서류종류·유효기간·필수항목)
  * 신분증/인감도장: 이미지 미리보기 기능 포함
  */
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
@@ -64,6 +64,8 @@ interface UploadedDoc {
   previewUrl?: string;
   analysis?: AnalysisResult;
   analyzing?: boolean;
+  /** AI 분석 진행 단계 (0~4) */
+  analysisStep?: number;
 }
 
 const SECTIONS: DocumentSection[] = [
@@ -149,11 +151,23 @@ export default function NotarizationDocsPage() {
 
   /** AI 서류 분석 실행 */
   const runAnalysis = async (docId: string, file: File) => {
-    // 분석 중 상태 표시
+    // 분석 중 상태 + 단계 초기화
     setUploadedDocs((prev) => ({
       ...prev,
-      [docId]: { ...prev[docId], analyzing: true },
+      [docId]: { ...prev[docId], analyzing: true, analysisStep: 0 },
     }));
+
+    // 단계별 진행 시뮬레이션 (실제 AI 호출과 병행)
+    const stepTimers: NodeJS.Timeout[] = [];
+    stepTimers.push(setTimeout(() => {
+      setUploadedDocs((prev) => prev[docId]?.analyzing ? { ...prev, [docId]: { ...prev[docId], analysisStep: 1 } } : prev);
+    }, 1500));
+    stepTimers.push(setTimeout(() => {
+      setUploadedDocs((prev) => prev[docId]?.analyzing ? { ...prev, [docId]: { ...prev[docId], analysisStep: 2 } } : prev);
+    }, 3500));
+    stepTimers.push(setTimeout(() => {
+      setUploadedDocs((prev) => prev[docId]?.analyzing ? { ...prev, [docId]: { ...prev[docId], analysisStep: 3 } } : prev);
+    }, 5500));
 
     try {
       const dataUrl = await fileToDataUrl(file);
@@ -162,13 +176,22 @@ export default function NotarizationDocsPage() {
         expectedDocType: docId as any,
       });
 
+      // 타이머 정리
+      stepTimers.forEach(clearTimeout);
+
       if (result.success) {
+        // 완료 단계 표시 후 결과 전환
         setUploadedDocs((prev) => ({
           ...prev,
-          [docId]: { ...prev[docId], analysis: result.data as AnalysisResult, analyzing: false },
+          [docId]: { ...prev[docId], analysisStep: 4 },
+        }));
+        // 짧은 딜레이 후 결과 표시 (완료 애니메이션 보여주기)
+        await new Promise((r) => setTimeout(r, 600));
+        setUploadedDocs((prev) => ({
+          ...prev,
+          [docId]: { ...prev[docId], analysis: result.data as AnalysisResult, analyzing: false, analysisStep: undefined },
         }));
 
-        // 결과에 따른 토스트
         const status = (result.data as AnalysisResult).overallStatus;
         if (status === "pass") {
           toast.success("AI 검증 통과! 서류가 정상입니다.");
@@ -179,9 +202,10 @@ export default function NotarizationDocsPage() {
         }
       }
     } catch (error) {
+      stepTimers.forEach(clearTimeout);
       setUploadedDocs((prev) => ({
         ...prev,
-        [docId]: { ...prev[docId], analyzing: false },
+        [docId]: { ...prev[docId], analyzing: false, analysisStep: undefined },
       }));
       toast.error("AI 분석 중 오류가 발생했습니다. 다시 시도해주세요.");
     }
@@ -425,14 +449,9 @@ export default function NotarizationDocsPage() {
                                 </div>
                               </div>
                             )}
-                            {/* AI 분석 결과 표시 */}
+                            {/* AI 분석 진행 상태 애니메이션 */}
                             {isUploaded && uploadedDoc?.analyzing && (
-                              <div className="mt-3 p-3 rounded-lg bg-blue-50 border border-blue-100">
-                                <div className="flex items-center gap-2">
-                                  <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
-                                  <span className="text-xs text-blue-700 font-medium">AI가 서류를 분석하고 있습니다...</span>
-                                </div>
-                              </div>
+                              <AnalysisProgressAnimation step={uploadedDoc.analysisStep ?? 0} />
                             )}
                             {isUploaded && uploadedDoc?.analysis && !uploadedDoc?.analyzing && (
                               <AnalysisResultCard analysis={uploadedDoc.analysis} />
@@ -630,6 +649,102 @@ export default function NotarizationDocsPage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+/** AI 분석 진행 상태 애니메이션 컴포넌트 */
+function AnalysisProgressAnimation({ step }: { step: number }) {
+  const steps = [
+    { label: "이미지 스캔 중...", icon: "scan" },
+    { label: "선명도 분석 중...", icon: "clarity" },
+    { label: "서류 종류 확인 중...", icon: "type" },
+    { label: "유효기간 · 필수항목 검증 중...", icon: "verify" },
+    { label: "분석 완료!", icon: "done" },
+  ];
+
+  const progress = Math.min(((step + 1) / steps.length) * 100, 100);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 5 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mt-3 p-4 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100"
+    >
+      {/* 상단: AI 분석 중 헤더 */}
+      <div className="flex items-center gap-2 mb-3">
+        <div className="relative w-5 h-5">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="w-5 h-5 rounded-full border-2 border-blue-200 border-t-blue-600"
+          />
+        </div>
+        <span className="text-xs font-bold text-[#1F3864]">AI 서류 분석</span>
+        <span className="text-[10px] text-blue-500 ml-auto font-medium">{Math.round(progress)}%</span>
+      </div>
+
+      {/* 프로그레스 바 */}
+      <div className="h-1.5 bg-blue-100 rounded-full overflow-hidden mb-3">
+        <motion.div
+          className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
+          initial={{ width: "0%" }}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        />
+      </div>
+
+      {/* 단계별 체크리스트 */}
+      <div className="space-y-1.5">
+        {steps.map((s, i) => {
+          const isActive = i === step;
+          const isDone = i < step;
+          const isPending = i > step;
+
+          return (
+            <motion.div
+              key={i}
+              initial={false}
+              animate={{
+                opacity: isPending ? 0.4 : 1,
+                x: isActive ? 2 : 0,
+              }}
+              className="flex items-center gap-2"
+            >
+              {/* 상태 아이콘 */}
+              {isDone && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center"
+                >
+                  <Check className="w-2.5 h-2.5 text-white" />
+                </motion.div>
+              )}
+              {isActive && (
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                  className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center"
+                >
+                  <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                </motion.div>
+              )}
+              {isPending && (
+                <div className="w-4 h-4 rounded-full border border-gray-300 bg-white" />
+              )}
+              {/* 레이블 */}
+              <span className={`text-[11px] ${
+                isDone ? "text-green-700 font-medium" :
+                isActive ? "text-blue-700 font-semibold" :
+                "text-gray-400"
+              }`}>
+                {s.label}
+              </span>
+            </motion.div>
+          );
+        })}
+      </div>
+    </motion.div>
   );
 }
 
