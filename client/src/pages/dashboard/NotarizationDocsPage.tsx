@@ -1,9 +1,10 @@
 /**
  * 공증서류 등록 페이지
  * 유언공증에 필요한 서류를 업로드하고, 발급 사이트 바로가기 제공
+ * 신분증/인감도장은 이미지 미리보기 기능 포함
  */
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
   FileText,
@@ -11,13 +12,12 @@ import {
   Check,
   AlertCircle,
   User,
-  Users,
-  Building2,
-  Banknote,
-  Shield,
   Info,
   X,
   File,
+  ZoomIn,
+  RotateCcw,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,8 +27,8 @@ interface DocumentItem {
   description: string;
   required: boolean;
   helpLink?: { label: string; url: string };
-  uploaded?: boolean;
-  fileName?: string;
+  /** 이미지 미리보기가 필요한 항목 (신분증, 인감도장) */
+  needsPreview?: boolean;
 }
 
 interface DocumentSection {
@@ -39,6 +39,13 @@ interface DocumentSection {
   color: string;
   bgColor: string;
   documents: DocumentItem[];
+}
+
+interface UploadedDoc {
+  fileName: string;
+  uploadedAt: string;
+  /** 이미지 미리보기 URL (blob URL) */
+  previewUrl?: string;
 }
 
 const SECTIONS: DocumentSection[] = [
@@ -83,23 +90,69 @@ const SECTIONS: DocumentSection[] = [
         name: "신분증 사본",
         description: "주민등록증, 운전면허증, 여권 중 택1",
         required: true,
+        needsPreview: true,
       },
       {
         id: "seal_stamp",
         name: "인감도장 날인",
         description: "인감증명서에 등록된 인감도장 날인 이미지",
         required: false,
+        needsPreview: true,
       },
     ],
   },
 ];
 
 export default function NotarizationDocsPage() {
-  const [uploadedDocs, setUploadedDocs] = useState<Record<string, { fileName: string; uploadedAt: string }>>({});
+  const [uploadedDocs, setUploadedDocs] = useState<Record<string, UploadedDoc>>({});
   const [expandedSection, setExpandedSection] = useState<string | null>("testator");
+  // 미리보기 모달 상태
+  const [previewModal, setPreviewModal] = useState<{ docId: string; url: string; name: string } | null>(null);
+  // 제출 전 미리보기 상태 (파일 선택 직후)
+  const [pendingPreview, setPendingPreview] = useState<{
+    docId: string;
+    file: File;
+    url: string;
+    docName: string;
+  } | null>(null);
 
+  /** 이미지 파일 선택 시 미리보기 표시 (제출 전 확인) */
+  const handleImageSelect = (docId: string, docName: string, file: File) => {
+    // 이미지 파일인지 확인
+    if (!file.type.startsWith("image/")) {
+      toast.error("이미지 파일만 업로드 가능합니다. (JPG, PNG, HEIC)");
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setPendingPreview({ docId, file, url, docName });
+  };
+
+  /** 미리보기 확인 후 업로드 확정 */
+  const handleConfirmUpload = () => {
+    if (!pendingPreview) return;
+    const { docId, file, url } = pendingPreview;
+    setUploadedDocs((prev) => ({
+      ...prev,
+      [docId]: {
+        fileName: file.name,
+        uploadedAt: new Date().toLocaleString("ko-KR"),
+        previewUrl: url,
+      },
+    }));
+    toast.success(`${file.name} 업로드 완료`);
+    setPendingPreview(null);
+  };
+
+  /** 미리보기 취소 (다시 선택) */
+  const handleCancelPreview = () => {
+    if (pendingPreview) {
+      URL.revokeObjectURL(pendingPreview.url);
+    }
+    setPendingPreview(null);
+  };
+
+  /** 일반 파일 업로드 (미리보기 불필요 항목) */
   const handleFileUpload = (docId: string, file: File) => {
-    // 실제로는 S3 업로드 API 호출
     setUploadedDocs((prev) => ({
       ...prev,
       [docId]: { fileName: file.name, uploadedAt: new Date().toLocaleString("ko-KR") },
@@ -108,6 +161,10 @@ export default function NotarizationDocsPage() {
   };
 
   const handleRemoveDoc = (docId: string) => {
+    const doc = uploadedDocs[docId];
+    if (doc?.previewUrl) {
+      URL.revokeObjectURL(doc.previewUrl);
+    }
     setUploadedDocs((prev) => {
       const next = { ...prev };
       delete next[docId];
@@ -212,6 +269,7 @@ export default function NotarizationDocsPage() {
                 <div className="px-5 pb-5 space-y-3 border-t border-gray-50 pt-3">
                   {section.documents.map((doc) => {
                     const isUploaded = !!uploadedDocs[doc.id];
+                    const uploadedDoc = uploadedDocs[doc.id];
                     return (
                       <div
                         key={doc.id}
@@ -229,17 +287,51 @@ export default function NotarizationDocsPage() {
                               {isUploaded && <Check className="w-4 h-4 text-green-500" />}
                             </div>
                             <p className="text-xs text-gray-500 mt-0.5">{doc.description}</p>
+                            {doc.needsPreview && !isUploaded && (
+                              <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                                <Eye className="w-3 h-3" />
+                                이미지 선택 후 선명도를 확인할 수 있습니다
+                              </p>
+                            )}
                             {isUploaded && (
                               <div className="flex items-center gap-2 mt-2">
                                 <File className="w-3.5 h-3.5 text-green-600" />
-                                <span className="text-xs text-green-700 font-medium">{uploadedDocs[doc.id].fileName}</span>
-                                <span className="text-xs text-gray-400">({uploadedDocs[doc.id].uploadedAt})</span>
+                                <span className="text-xs text-green-700 font-medium">{uploadedDoc.fileName}</span>
+                                <span className="text-xs text-gray-400">({uploadedDoc.uploadedAt})</span>
+                                {/* 미리보기 가능한 항목은 확대 보기 버튼 */}
+                                {uploadedDoc.previewUrl && (
+                                  <button
+                                    onClick={() => setPreviewModal({ docId: doc.id, url: uploadedDoc.previewUrl!, name: doc.name })}
+                                    className="text-xs text-blue-500 hover:text-blue-700 ml-1 flex items-center gap-0.5"
+                                  >
+                                    <ZoomIn className="w-3.5 h-3.5" />
+                                    보기
+                                  </button>
+                                )}
                                 <button
                                   onClick={() => handleRemoveDoc(doc.id)}
                                   className="text-xs text-red-400 hover:text-red-600 ml-2"
                                 >
                                   <X className="w-3.5 h-3.5" />
                                 </button>
+                              </div>
+                            )}
+                            {/* 업로드된 이미지 썸네일 미리보기 */}
+                            {isUploaded && uploadedDoc.previewUrl && (
+                              <div className="mt-3">
+                                <div
+                                  className="relative w-full max-w-[240px] h-[150px] rounded-lg overflow-hidden border border-gray-200 cursor-pointer group"
+                                  onClick={() => setPreviewModal({ docId: doc.id, url: uploadedDoc.previewUrl!, name: doc.name })}
+                                >
+                                  <img
+                                    src={uploadedDoc.previewUrl}
+                                    alt={doc.name}
+                                    className="w-full h-full object-contain bg-gray-100"
+                                  />
+                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                                    <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                  </div>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -264,11 +356,17 @@ export default function NotarizationDocsPage() {
                               {isUploaded ? "재업로드" : "업로드"}
                               <input
                                 type="file"
-                                accept=".pdf,.jpg,.jpeg,.png,.heic"
+                                accept={doc.needsPreview ? ".jpg,.jpeg,.png,.heic" : ".pdf,.jpg,.jpeg,.png,.heic"}
                                 className="hidden"
                                 onChange={(e) => {
                                   const file = e.target.files?.[0];
-                                  if (file) handleFileUpload(doc.id, file);
+                                  if (file) {
+                                    if (doc.needsPreview) {
+                                      handleImageSelect(doc.id, doc.name, file);
+                                    } else {
+                                      handleFileUpload(doc.id, file);
+                                    }
+                                  }
                                   e.target.value = "";
                                 }}
                               />
@@ -293,11 +391,144 @@ export default function NotarizationDocsPage() {
           <ul className="text-xs text-amber-700 space-y-1 list-disc list-inside">
             <li>인감증명서는 발급일로부터 3개월 이내 것만 유효합니다.</li>
             <li>가족관계증명서·기본증명서는 "상세" 버전으로 발급해주세요.</li>
-            <li>부동산 서류는 공증사무소에서 대행 발급도 가능합니다.</li>
+            <li>신분증 사본은 글자와 사진이 선명하게 보여야 합니다.</li>
             <li>업로드된 서류는 암호화되어 안전하게 보관됩니다.</li>
           </ul>
         </div>
       </div>
+
+      {/* ===== 미리보기 확인 모달 (파일 선택 직후) ===== */}
+      <AnimatePresence>
+        {pendingPreview && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            onClick={handleCancelPreview}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* 모달 헤더 */}
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-[#1F3864] text-base">{pendingPreview.docName} 미리보기</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">이미지가 선명하게 잘 찍혔는지 확인해주세요</p>
+                </div>
+                <button
+                  onClick={handleCancelPreview}
+                  className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"
+                >
+                  <X className="w-4 h-4 text-gray-500" />
+                </button>
+              </div>
+
+              {/* 이미지 미리보기 */}
+              <div className="p-6">
+                <div className="rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                  <img
+                    src={pendingPreview.url}
+                    alt="미리보기"
+                    className="w-full h-auto max-h-[400px] object-contain"
+                  />
+                </div>
+
+                {/* 체크리스트 안내 */}
+                <div className="mt-4 bg-blue-50 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-blue-800 mb-2">확인 사항</p>
+                  <ul className="text-xs text-blue-700 space-y-1.5">
+                    <li className="flex items-start gap-1.5">
+                      <Check className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
+                      <span>글자가 선명하게 읽을 수 있나요?</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <Check className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
+                      <span>이미지가 잘리거나 기울어지지 않았나요?</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <Check className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
+                      <span>빛 반사나 그림자가 없나요?</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* 파일 정보 */}
+                <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+                  <File className="w-3.5 h-3.5" />
+                  <span>{pendingPreview.file.name}</span>
+                  <span className="text-gray-300">|</span>
+                  <span>{(pendingPreview.file.size / 1024 / 1024).toFixed(2)} MB</span>
+                </div>
+              </div>
+
+              {/* 하단 버튼 */}
+              <div className="px-6 py-4 border-t border-gray-100 flex items-center gap-3">
+                <button
+                  onClick={handleCancelPreview}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  다시 선택
+                </button>
+                <button
+                  onClick={handleConfirmUpload}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#1F3864] text-white text-sm font-medium hover:bg-[#1F3864]/90 transition-colors"
+                >
+                  <Check className="w-4 h-4" />
+                  이 이미지로 제출
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== 확대 보기 모달 (업로드 완료 후) ===== */}
+      <AnimatePresence>
+        {previewModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+            onClick={() => setPreviewModal(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative max-w-3xl w-full max-h-[90vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* 닫기 버튼 */}
+              <button
+                onClick={() => setPreviewModal(null)}
+                className="absolute -top-10 right-0 text-white/80 hover:text-white flex items-center gap-1 text-sm"
+              >
+                <X className="w-4 h-4" />
+                닫기
+              </button>
+              {/* 제목 */}
+              <div className="mb-2">
+                <span className="text-white/90 text-sm font-medium">{previewModal.name}</span>
+              </div>
+              {/* 이미지 */}
+              <div className="rounded-xl overflow-hidden bg-white shadow-2xl">
+                <img
+                  src={previewModal.url}
+                  alt={previewModal.name}
+                  className="w-full h-auto max-h-[75vh] object-contain"
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
