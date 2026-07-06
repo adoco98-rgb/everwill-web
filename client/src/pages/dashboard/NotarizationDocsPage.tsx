@@ -1,9 +1,10 @@
 /**
  * 공증서류 등록 페이지
  * 유언공증에 필요한 서류를 업로드하고, 발급 사이트 바로가기 제공
- * 신분증/인감도장은 이미지 미리보기 기능 포함
+ * 모든 서류: AI 자동 분석 (선명도·서류종류·유효기간·필수항목)
+ * 신분증/인감도장: 이미지 미리보기 기능 포함
  */
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
@@ -18,8 +19,14 @@ import {
   ZoomIn,
   RotateCcw,
   Eye,
+  Loader2,
+  ShieldCheck,
+  ShieldAlert,
+  ShieldX,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 interface DocumentItem {
   id: string;
@@ -41,11 +48,22 @@ interface DocumentSection {
   documents: DocumentItem[];
 }
 
+interface AnalysisResult {
+  clarity: { status: string; message: string };
+  docTypeMatch: { status: string; detectedType: string; message: string };
+  validity: { status: string; issueDate: string | null; message: string };
+  requiredElements: { status: string; found: string[]; missing: string[]; message: string };
+  overallStatus: string;
+  overallMessage: string;
+  confidence: string;
+}
+
 interface UploadedDoc {
   fileName: string;
   uploadedAt: string;
-  /** 이미지 미리보기 URL (blob URL) */
   previewUrl?: string;
+  analysis?: AnalysisResult;
+  analyzing?: boolean;
 }
 
 const SECTIONS: DocumentSection[] = [
@@ -103,12 +121,22 @@ const SECTIONS: DocumentSection[] = [
   },
 ];
 
+/** 파일을 base64 data URL로 변환 */
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function NotarizationDocsPage() {
   const [uploadedDocs, setUploadedDocs] = useState<Record<string, UploadedDoc>>({});
   const [expandedSection, setExpandedSection] = useState<string | null>("testator");
   // 미리보기 모달 상태
   const [previewModal, setPreviewModal] = useState<{ docId: string; url: string; name: string } | null>(null);
-  // 제출 전 미리보기 상태 (파일 선택 직후)
+  // 제출 전 미리보기 상태 (이미지 파일 선택 직후)
   const [pendingPreview, setPendingPreview] = useState<{
     docId: string;
     file: File;
@@ -116,9 +144,51 @@ export default function NotarizationDocsPage() {
     docName: string;
   } | null>(null);
 
+  // AI 분석 mutation
+  const analyzeMutation = trpc.docAnalyze.analyzeDocument.useMutation();
+
+  /** AI 서류 분석 실행 */
+  const runAnalysis = async (docId: string, file: File) => {
+    // 분석 중 상태 표시
+    setUploadedDocs((prev) => ({
+      ...prev,
+      [docId]: { ...prev[docId], analyzing: true },
+    }));
+
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      const result = await analyzeMutation.mutateAsync({
+        imageUrl: dataUrl,
+        expectedDocType: docId as any,
+      });
+
+      if (result.success) {
+        setUploadedDocs((prev) => ({
+          ...prev,
+          [docId]: { ...prev[docId], analysis: result.data as AnalysisResult, analyzing: false },
+        }));
+
+        // 결과에 따른 토스트
+        const status = (result.data as AnalysisResult).overallStatus;
+        if (status === "pass") {
+          toast.success("AI 검증 통과! 서류가 정상입니다.");
+        } else if (status === "warning") {
+          toast.warning("AI 검증 주의사항이 있습니다. 아래 결과를 확인해주세요.");
+        } else {
+          toast.error("AI 검증 실패. 서류를 다시 확인해주세요.");
+        }
+      }
+    } catch (error) {
+      setUploadedDocs((prev) => ({
+        ...prev,
+        [docId]: { ...prev[docId], analyzing: false },
+      }));
+      toast.error("AI 분석 중 오류가 발생했습니다. 다시 시도해주세요.");
+    }
+  };
+
   /** 이미지 파일 선택 시 미리보기 표시 (제출 전 확인) */
   const handleImageSelect = (docId: string, docName: string, file: File) => {
-    // 이미지 파일인지 확인
     if (!file.type.startsWith("image/")) {
       toast.error("이미지 파일만 업로드 가능합니다. (JPG, PNG, HEIC)");
       return;
@@ -127,7 +197,7 @@ export default function NotarizationDocsPage() {
     setPendingPreview({ docId, file, url, docName });
   };
 
-  /** 미리보기 확인 후 업로드 확정 */
+  /** 미리보기 확인 후 업로드 확정 + AI 분석 */
   const handleConfirmUpload = () => {
     if (!pendingPreview) return;
     const { docId, file, url } = pendingPreview;
@@ -139,11 +209,13 @@ export default function NotarizationDocsPage() {
         previewUrl: url,
       },
     }));
-    toast.success(`${file.name} 업로드 완료`);
+    toast.success(`${file.name} 업로드 완료. AI 분석을 시작합니다...`);
     setPendingPreview(null);
+    // AI 분석 실행
+    runAnalysis(docId, file);
   };
 
-  /** 미리보기 취소 (다시 선택) */
+  /** 미리보기 취소 */
   const handleCancelPreview = () => {
     if (pendingPreview) {
       URL.revokeObjectURL(pendingPreview.url);
@@ -151,13 +223,16 @@ export default function NotarizationDocsPage() {
     setPendingPreview(null);
   };
 
-  /** 일반 파일 업로드 (미리보기 불필요 항목) */
+  /** 일반 파일 업로드 (미리보기 불필요 항목) + AI 분석 */
   const handleFileUpload = (docId: string, file: File) => {
+    const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined;
     setUploadedDocs((prev) => ({
       ...prev,
-      [docId]: { fileName: file.name, uploadedAt: new Date().toLocaleString("ko-KR") },
+      [docId]: { fileName: file.name, uploadedAt: new Date().toLocaleString("ko-KR"), previewUrl },
     }));
-    toast.success(`${file.name} 업로드 완료`);
+    toast.success(`${file.name} 업로드 완료. AI 분석을 시작합니다...`);
+    // AI 분석 실행
+    runAnalysis(docId, file);
   };
 
   const handleRemoveDoc = (docId: string) => {
@@ -187,7 +262,7 @@ export default function NotarizationDocsPage() {
           공증서류 등록
         </h1>
         <p className="text-gray-500 text-sm mt-1">
-          유언공증에 필요한 서류를 업로드해주세요. 발급이 필요한 서류는 바로가기 링크를 이용하세요.
+          유언공증에 필요한 서류를 업로드해주세요. AI가 자동으로 서류를 분석하여 문제가 있으면 안내합니다.
         </p>
       </div>
 
@@ -219,10 +294,10 @@ export default function NotarizationDocsPage() {
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
         <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
         <div className="text-sm text-blue-700">
-          <p className="font-semibold mb-1">서류 발급 안내</p>
+          <p className="font-semibold mb-1">AI 자동 검증 안내</p>
           <p className="text-blue-600 text-xs">
-            대부분의 서류는 <a href="https://www.gov.kr" target="_blank" rel="noopener noreferrer" className="underline font-medium">정부24</a>에서 
-            공동인증서(구 공인인증서)로 온라인 발급 가능합니다. 각 서류 옆 "발급받기" 버튼을 클릭하면 해당 사이트로 바로 이동합니다.
+            업로드된 서류는 AI가 자동으로 <strong>선명도, 서류 종류, 유효기간, 필수 항목</strong>을 검증합니다. 
+            문제가 발견되면 즉시 안내해드리니 안심하고 업로드하세요.
           </p>
         </div>
       </div>
@@ -274,7 +349,13 @@ export default function NotarizationDocsPage() {
                       <div
                         key={doc.id}
                         className={`rounded-lg border p-4 transition-all ${
-                          isUploaded ? "border-green-200 bg-green-50/50" : "border-gray-100 bg-gray-50/30"
+                          isUploaded
+                            ? uploadedDoc?.analysis?.overallStatus === "fail"
+                              ? "border-red-200 bg-red-50/50"
+                              : uploadedDoc?.analysis?.overallStatus === "warning"
+                              ? "border-amber-200 bg-amber-50/50"
+                              : "border-green-200 bg-green-50/50"
+                            : "border-gray-100 bg-gray-50/30"
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">
@@ -284,7 +365,18 @@ export default function NotarizationDocsPage() {
                               {doc.required && (
                                 <span className="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-medium">필수</span>
                               )}
-                              {isUploaded && <Check className="w-4 h-4 text-green-500" />}
+                              {isUploaded && !uploadedDoc?.analyzing && uploadedDoc?.analysis?.overallStatus === "pass" && (
+                                <ShieldCheck className="w-4 h-4 text-green-500" />
+                              )}
+                              {isUploaded && !uploadedDoc?.analyzing && uploadedDoc?.analysis?.overallStatus === "warning" && (
+                                <ShieldAlert className="w-4 h-4 text-amber-500" />
+                              )}
+                              {isUploaded && !uploadedDoc?.analyzing && uploadedDoc?.analysis?.overallStatus === "fail" && (
+                                <ShieldX className="w-4 h-4 text-red-500" />
+                              )}
+                              {uploadedDoc?.analyzing && (
+                                <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+                              )}
                             </div>
                             <p className="text-xs text-gray-500 mt-0.5">{doc.description}</p>
                             {doc.needsPreview && !isUploaded && (
@@ -298,7 +390,6 @@ export default function NotarizationDocsPage() {
                                 <File className="w-3.5 h-3.5 text-green-600" />
                                 <span className="text-xs text-green-700 font-medium">{uploadedDoc.fileName}</span>
                                 <span className="text-xs text-gray-400">({uploadedDoc.uploadedAt})</span>
-                                {/* 미리보기 가능한 항목은 확대 보기 버튼 */}
                                 {uploadedDoc.previewUrl && (
                                   <button
                                     onClick={() => setPreviewModal({ docId: doc.id, url: uploadedDoc.previewUrl!, name: doc.name })}
@@ -333,6 +424,18 @@ export default function NotarizationDocsPage() {
                                   </div>
                                 </div>
                               </div>
+                            )}
+                            {/* AI 분석 결과 표시 */}
+                            {isUploaded && uploadedDoc?.analyzing && (
+                              <div className="mt-3 p-3 rounded-lg bg-blue-50 border border-blue-100">
+                                <div className="flex items-center gap-2">
+                                  <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+                                  <span className="text-xs text-blue-700 font-medium">AI가 서류를 분석하고 있습니다...</span>
+                                </div>
+                              </div>
+                            )}
+                            {isUploaded && uploadedDoc?.analysis && !uploadedDoc?.analyzing && (
+                              <AnalysisResultCard analysis={uploadedDoc.analysis} />
                             )}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
@@ -505,7 +608,6 @@ export default function NotarizationDocsPage() {
               className="relative max-w-3xl w-full max-h-[90vh]"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* 닫기 버튼 */}
               <button
                 onClick={() => setPreviewModal(null)}
                 className="absolute -top-10 right-0 text-white/80 hover:text-white flex items-center gap-1 text-sm"
@@ -513,11 +615,9 @@ export default function NotarizationDocsPage() {
                 <X className="w-4 h-4" />
                 닫기
               </button>
-              {/* 제목 */}
               <div className="mb-2">
                 <span className="text-white/90 text-sm font-medium">{previewModal.name}</span>
               </div>
-              {/* 이미지 */}
               <div className="rounded-xl overflow-hidden bg-white shadow-2xl">
                 <img
                   src={previewModal.url}
@@ -529,6 +629,60 @@ export default function NotarizationDocsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+/** AI 분석 결과 카드 컴포넌트 */
+function AnalysisResultCard({ analysis }: { analysis: AnalysisResult }) {
+  const statusConfig = {
+    pass: { bg: "bg-green-50", border: "border-green-200", icon: ShieldCheck, iconColor: "text-green-600", label: "검증 통과", labelColor: "text-green-700" },
+    warning: { bg: "bg-amber-50", border: "border-amber-200", icon: ShieldAlert, iconColor: "text-amber-600", label: "주의사항 있음", labelColor: "text-amber-700" },
+    fail: { bg: "bg-red-50", border: "border-red-200", icon: ShieldX, iconColor: "text-red-600", label: "재업로드 필요", labelColor: "text-red-700" },
+  };
+
+  const config = statusConfig[analysis.overallStatus as keyof typeof statusConfig] || statusConfig.warning;
+  const StatusIcon = config.icon;
+
+  return (
+    <div className={`mt-3 p-3 rounded-lg ${config.bg} border ${config.border}`}>
+      {/* 전체 판정 */}
+      <div className="flex items-center gap-2 mb-2">
+        <StatusIcon className={`w-4 h-4 ${config.iconColor}`} />
+        <span className={`text-xs font-bold ${config.labelColor}`}>{config.label}</span>
+        <span className="text-[10px] text-gray-400 ml-auto">신뢰도: {analysis.confidence}</span>
+      </div>
+      <p className="text-xs text-gray-700 mb-3">{analysis.overallMessage}</p>
+
+      {/* 4가지 항목 상세 */}
+      <div className="grid grid-cols-2 gap-2">
+        <AnalysisItem label="선명도" status={analysis.clarity.status} message={analysis.clarity.message} />
+        <AnalysisItem label="서류 종류" status={analysis.docTypeMatch.status} message={analysis.docTypeMatch.message} />
+        <AnalysisItem label="유효기간" status={analysis.validity.status} message={analysis.validity.message} />
+        <AnalysisItem label="필수 항목" status={analysis.requiredElements.status} message={analysis.requiredElements.message} />
+      </div>
+
+      {/* 누락 항목 경고 */}
+      {analysis.requiredElements.missing.length > 0 && (
+        <div className="mt-2 flex items-start gap-1.5 text-xs text-red-600">
+          <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+          <span>누락 항목: {analysis.requiredElements.missing.join(", ")}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** 개별 분석 항목 */
+function AnalysisItem({ label, status, message }: { label: string; status: string; message: string }) {
+  const dotColor = status === "pass" ? "bg-green-500" : status === "fail" ? "bg-red-500" : status === "warning" ? "bg-amber-500" : "bg-gray-400";
+  return (
+    <div className="flex items-start gap-1.5">
+      <div className={`w-2 h-2 rounded-full ${dotColor} shrink-0 mt-1`} />
+      <div>
+        <span className="text-[10px] font-semibold text-gray-600">{label}</span>
+        <p className="text-[10px] text-gray-500 leading-tight">{message}</p>
+      </div>
     </div>
   );
 }
