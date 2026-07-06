@@ -911,3 +911,10 @@
 - [x] 추가 옵션: 인증서 발급 ₩5,000, 증인 선정 +₩30,000, 수정 6회~ ₩15,000/회
 - [x] lib/pricing.ts 가격 상수 업데이트
 - [x] CountryPage, InvestPage, InvestorPage, FaqPage, NFCCardPage 등 모든 서브페이지 반영
+## 기부 섹션 노인복지 전용 변경
+- [x] 기존 12개 분야 체크박스 제거 → 노인복지 5개 분야로 변경
+- [x] 노인복지 이미지 2장 업로드 (히어로 + 안내 배너)
+- [x] "에버윌은 노인복지를 위한 많은 노력과 지원으로 함께 하겠습니다" 문구 반영
+- [x] DB 스키마에 elderly_poverty/elderly_biz/elderly_care/elderly_health/elderly_culture enum 추가
+- [x] charityRouter.ts 카테고리 목록 업데이트
+- [x] DB 마이그레이션 적용 완료

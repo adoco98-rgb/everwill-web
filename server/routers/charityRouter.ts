@@ -9,7 +9,7 @@ import { getDb } from "../db";
 import { charityDonations, users } from "../../drizzle/schema";
 import { eq, and, sql } from "drizzle-orm";
 
-// 기부 분야 카테고리 목록
+// 기부 분야 카테고리 목록 (노인복지 전용 카테고리 포함)
 const CHARITY_CATEGORIES = [
   "education",
   "children",
@@ -23,6 +23,11 @@ const CHARITY_CATEGORIES = [
   "disaster",
   "religion",
   "other",
+  "elderly_poverty",
+  "elderly_biz",
+  "elderly_care",
+  "elderly_health",
+  "elderly_culture",
 ] as const;
 
 /** 국가 코드 → 통화 매핑 */

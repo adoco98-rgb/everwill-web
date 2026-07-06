@@ -1,0 +1,1 @@
+ALTER TABLE `charityDonations` MODIFY COLUMN `category` enum('education','children','elderly','disabled','medical','environment','culture','science','animal','disaster','religion','other','elderly_poverty','elderly_biz','elderly_care','elderly_health','elderly_culture') NOT NULL;

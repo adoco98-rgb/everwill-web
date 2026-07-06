@@ -309,6 +309,13 @@
       "when": 1782897242253,
       "tag": "0043_known_sauron",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "5",
+      "when": 1783306790276,
+      "tag": "0044_zippy_bloodstrike",
+      "breakpoints": true
     }
   ]
 }

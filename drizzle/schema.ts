@@ -764,6 +764,11 @@ export const charityDonations = mysqlTable("charityDonations", {
     "disaster",     // 재난·긴급구호
     "religion",     // 종교·사회봉사
     "other",        // 기타 (단체명 직접 입력)
+    "elderly_poverty",  // 노인 빈곤 해결
+    "elderly_biz",      // 노인 사업 지원
+    "elderly_care",     // 노인 돌봄 서비스
+    "elderly_health",   // 노인 의료·건강
+    "elderly_culture",  // 노인 문화·여가
   ]).notNull(),
   /** 단체 지정 여부 (false=EverWill이 선정, true=직접 지정) */
   hasSpecificOrg: tinyint("hasSpecificOrg").default(0),
