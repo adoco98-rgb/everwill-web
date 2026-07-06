@@ -172,7 +172,7 @@ export default function HeirAcceptPage() {
                 <span className="text-sm text-gray-500">가입 요금</span>
                 <div className="flex items-center gap-1 text-sm font-semibold text-[#C9A961]">
                   <Banknote className="w-3 h-3" />
-                  {heir.heirFee ? `₩${heir.heirFee.toLocaleString()}` : heir.isExecutor ? "₩149,000" : heir.priority === 1 ? "₩99,000" : "₩49,000"}
+                  {heir.heirFee ? `₩${heir.heirFee.toLocaleString()}` : heir.isExecutor ? "₩149,000" : heir.priority === 1 ? "₩99,000" : "₩79,000"}
                 </div>
               </div>
             </div>

@@ -1,6 +1,6 @@
 /**
  * 6단계: 개인 전자서명 + 인증 결제
- * 서명 캔버스 + ₩49,000 결제 (Stripe/Toss)
+ * 서명 캔버스 + ₩99,000 결제 (Stripe/Toss)
  */
 import { useState, useRef } from "react";
 import { PenLine, CreditCard, CheckCircle2, ShieldCheck, Lock } from "lucide-react";
@@ -184,7 +184,7 @@ export default function Step6Signature({ onComplete }: Props) {
         <div className="bg-gray-50 rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-bold text-gray-700">전자 인증 비용</span>
-            <span className="text-xl font-bold text-[#1F3864]">₩49,000</span>
+            <span className="text-xl font-bold text-[#1F3864]">₩99,000</span>
           </div>
           <div className="space-y-1.5 text-xs text-gray-500">
             <div className="flex items-center gap-2"><CheckCircle2 className="w-3 h-3 text-green-500" />블록체인 해시 기록 (Polygon)</div>
@@ -203,7 +203,7 @@ export default function Step6Signature({ onComplete }: Props) {
           {paying ? (
             <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />결제 처리 중...</>
           ) : (
-            <><CreditCard className="w-4 h-4" />₩49,000 결제 후 인증 완료</>
+            <><CreditCard className="w-4 h-4" />₩99,000 결제 후 인증 완료</>
           )}
         </button>
         <div className="flex items-center justify-center gap-2 text-xs text-gray-400">

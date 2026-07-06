@@ -54,7 +54,7 @@ export default function Step8Addons({ will, update }: StepProps) {
             </div>
           </div>
           <div className="text-2xl font-bold text-[#1F3864] mb-3">
-            {isKo ? "₩49,000" : "$39"}
+            {isKo ? "₩99,000" : "$39"}
           </div>
           <ul className="space-y-1.5">
             {(isKo

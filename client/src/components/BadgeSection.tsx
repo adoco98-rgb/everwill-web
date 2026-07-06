@@ -55,7 +55,7 @@ export default function BadgeSection() {
       borderColor: "border-slate-400/40",
       textAccent: "text-slate-300",
       bgCard: "bg-gradient-to-br from-slate-700 to-slate-900",
-      price: getPrice("$49", "₩49,000", "¥7,595", "¥353"),
+      price: getPrice("$79", "₩99,000", "¥14,800", "¥580"),
       material: t.badge.silverMat,
       features: t.badge.silverFeatures.split("|"),
       popular: false,

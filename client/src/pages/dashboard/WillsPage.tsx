@@ -276,7 +276,7 @@ export default function WillsPage() {
                         className="gap-1.5 text-xs bg-[#C9A961] hover:bg-[#b8923f] text-white font-semibold shadow-sm"
                       >
                         <ShieldCheck className="w-3 h-3" />
-                        전자 인증하기 ₩49,000
+                        전자 인증하기 ₩99,000
                       </Button>
                     </Link>
                   )}

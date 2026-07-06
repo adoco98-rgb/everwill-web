@@ -578,7 +578,7 @@ export default function InvestPage() {
     { no: "05", title: "체크박스 17분 완성", desc: "AI가 체크박스 → 법률 문장 자동 변환. 유류분 실시간 검증. 상속세 자동 계산." },
     { no: "06", title: "영상 유언 + 미래 전달", desc: "손녀 성인식, 아들 결혼식 날 자동 전송. 평생 보관. 수십 년 후에도 재생 보장.", badge: "세계 최초" },
     { no: "07", title: "자필 유언 스캔 인증", desc: "AI 형식 검증 + 위조 탐지 + 분산 암호화 무결성 기록." },
-    { no: "08", title: "재인증 체계 (LTV 28배)", desc: "결혼·출산·이사·자산 변동마다 재인증 유도. 최초 ₩49,000 → 재인증 ₩15,000.", badge: "세계 최초" },
+    { no: "08", title: "재인증 체계 (LTV 28배)", desc: "결혼·출산·이사·자산 변동마다 재인증 유도. 최초 ₩99,000 → 수정 5회 무료 → 6회부터 ₩15,000.", badge: "세계 최초" },
     { no: "09", title: "글로벌 멀티관할권", desc: "한국+미국+일본 자산 동시 관리. 각국 법률 자동 적용. 크로스보더 상속 자동 조율.", badge: "세계 최초" },
     { no: "10", title: "7개 언어 + 아랍어 RTL", desc: "한국어·영어·일본어·중국어·독일어·스페인어·아랍어. 샤리아 상속법 자동 적용." },
   ];
@@ -600,7 +600,7 @@ export default function InvestPage() {
 
   const REVENUE_STREAMS = [
     { icon: "✍️", title: lang === "ko" ? "AI 유언장 작성" : "AI Will Drafting", amount: lang === "ko" ? "무료" : "Free", type: lang === "ko" ? "진입장벽 제거" : "Remove barriers" },
-    { icon: "🔐", title: lang === "ko" ? "최초 전자 인증" : "First Certification", amount: "₩49,000 / $39", type: lang === "ko" ? "핵심 수익" : "Core revenue" },
+    { icon: "🔐", title: lang === "ko" ? "최초 전자 인증" : "First Certification", amount: "₩99,000 / $79", type: lang === "ko" ? "핵심 수익" : "Core revenue" },
     { icon: "🔄", title: lang === "ko" ? "재인증 (수정)" : "Re-certification", amount: "₩15,000 / $15", type: lang === "ko" ? "반복 수익" : "Recurring" },
     { icon: "🎬", title: lang === "ko" ? "영상 유언" : "Video Will", amount: "+₩29,000 / +$29", type: lang === "ko" ? "옵션 수익" : "Optional" },
     { icon: "🏅", title: lang === "ko" ? "Badge (5종)" : "Badge (5 types)", amount: "₩49K~299K", type: lang === "ko" ? "하드웨어 수익" : "Hardware" },

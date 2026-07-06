@@ -902,3 +902,12 @@
 - [ ] 대시보드 전문가 찾기 페이지 (/dashboard/find-expert) - 국가/지역/전문분야 필터
 - [ ] 관리자 전문가 파트너 승인·관리 페이지 (/799805/experts)
 - [ ] 라우트 등록 (App.tsx, SaramDashboardLayout 사이드바)
+
+## 가격 구조 전면 업데이트 (2026.07)
+- [x] 가격 구조 변경: ₩49,000 → ₩99,000 올인원 (모든 기능 포함)
+- [x] 랜딩 페이지 가격 섹션 하나의 박스로 통합 재작성 (PricingSection)
+- [x] ko.ts 번역 파일 가격 텍스트 전체 업데이트
+- [x] 사이트 전체 ₩49,000 텍스트 → ₩99,000으로 일괄 변경 (16개 파일)
+- [x] 추가 옵션: 인증서 발급 ₩5,000, 증인 선정 +₩30,000, 수정 6회~ ₩15,000/회
+- [x] lib/pricing.ts 가격 상수 업데이트
+- [x] CountryPage, InvestPage, InvestorPage, FaqPage, NFCCardPage 등 모든 서브페이지 반영

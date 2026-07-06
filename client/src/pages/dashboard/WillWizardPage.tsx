@@ -77,7 +77,7 @@ const STEPS = [
     icon: PenLine,
     title: "전자서명",
     subtitle: "서명 및 인증 완료",
-    description: "전자서명 후 유언장이 공식 인증됩니다. (₩49,000)",
+    description: "전자서명 후 유언장이 공식 인증됩니다. (₩99,000)",
     color: "#C9A961",
   },
 ];

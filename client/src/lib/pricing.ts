@@ -4,21 +4,21 @@
  * - 해외: 달러 결제, 환율 대비 15% 프리미엄
  * 기준 환율: 1 USD = 1,400 KRW
  *
- * [새 가격 정책 2026.05]
- * - 전자 인증 ₩49,000 (1년 보관 ₩15,000 포함, 실버 카드 포함)
- * - 1년 후 연장 보관: ₩15,000/년
- * - 자필 유언서 스캔 인증: +₩15,000 (별도 옵션)
- * - 영상 유언: +₩19,000 (별도 옵션)
- * - 3년 보관 플랜: ₩79,000 (인증+3년 보관, 골드 카드)
- * - 5년 보관 플랜: ₩99,000 (인증+5년 보관+자필+영상 모두 포함, 플래티넘 카드)
- * - 영구 플랜: ₩199,000 (인증+영구 보관+자필+영상 모두 포함, VIP)
+ * [새 가격 정책 2026.07]
+ * - 전자 인증 ₩99,000 (모든 기능 포함, 수정 5회 무료, 카드 포함)
+ * - 인증서 발급: ₩5,000
+ * - 증인 선정: +₩30,000 (헬퍼 2명 화상 증인, 옵션)
+ * - 수정 6회부터: ₩15,000/회
  */
 
 import { Language } from "@/i18n";
 
 // 한국 원화 기준 단품 가격
 export const KRW_PRICES = {
-  certification: 49000,       // 최초 전자 인증 (1년 보관 포함)
+  certification: 99000,       // 전자 인증 (모든 기능 포함)
+  certificateIssue: 5000,     // 인증서 발급
+  witnessService: 30000,      // 증인 선정 (헬퍼 2명)
+  modifyAfter5: 15000,        // 수정 6회부터
   storageAnnual: 15000,       // 1년 연장 보관료 (1년 후 매년)
   handwrittenScan: 15000,     // 자필 유언서 스캔 인증 (별도 옵션)
   videoWill: 19000,           // 영상 유언 (별도 옵션)
@@ -26,15 +26,15 @@ export const KRW_PRICES = {
 } as const;
 
 // 플랜별 원화 가격
-// cert: 전자인증 ₩49,000 (1년 보관 ₩15,000 포함, 실버 카드)
-// plan3y: 3년 보관 ₩79,000 (골드 카드)
-// plan5y: 5년 보관 ₩99,000 (자필+영상 포함, 플래티넘 카드)
-// planLife: 영구 플랜 ₩199,000 (자필+영상 포함, VIP)
+// cert: 전자인증 ₩99,000 (모든 기능 포함, 카드 포함)
+// plan3y: 3년 보관 ₩129,000 (골드 카드)
+// plan5y: 5년 보관 ₩159,000 (플래티넘 카드)
+// planLife: 영구 플랜 ₩199,000 (VIP)
 export const PLAN_KRW_PRICES = {
-  cert:     { baseFee: 49000, storageFee: 15000, discount: 15000, total: 49000  },
-  plan3y:   { baseFee: 49000, storageFee: 30000, discount: 0,     total: 79000  },
-  plan5y:   { baseFee: 49000, storageFee: 50000, discount: 0,     total: 99000  },
-  planLife: { baseFee: 49000, storageFee: 150000, discount: 0,    total: 199000 },
+  cert:     { baseFee: 99000, storageFee: 0, discount: 0, total: 99000  },
+  plan3y:   { baseFee: 99000, storageFee: 30000, discount: 0,     total: 129000  },
+  plan5y:   { baseFee: 99000, storageFee: 60000, discount: 0,     total: 159000  },
+  planLife: { baseFee: 99000, storageFee: 100000, discount: 0,    total: 199000 },
 } as const;
 
 // 기준 환율 (1 USD = KRW)

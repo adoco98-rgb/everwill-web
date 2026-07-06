@@ -228,7 +228,7 @@ function FeaturesSection({ data }: { data: CountryPageData }) {
 // ─── 가격 섹션 ───────────────────────────────────────────────────────────────
 // 국가별 통화에 따른 4개 플랜 가격 매핑
 const CURRENCY_PRICE_MAP: Record<string, { silver: string; gold: string; platinum: string; vip: string }> = {
-  KRW:     { silver: "₩49,000",    gold: "₩79,000",    platinum: "₩99,000",    vip: "₩199,000" },
+  KRW:     { silver: "₩99,000",    gold: "₩129,000",    platinum: "₩159,000",    vip: "₩199,000" },
   USD:     { silver: "$49",        gold: "$79",        platinum: "$99",        vip: "$199" },
   JPY:     { silver: "¥7,595",     gold: "¥12,245",    platinum: "¥15,345",    vip: "¥30,845" },
   EUR:     { silver: "€49",        gold: "€79",        platinum: "€99",        vip: "€199" },
@@ -329,7 +329,7 @@ function PricingSection({ data }: { data: CountryPageData }) {
             }
           </p>
           <p className="text-[#C9A961]/80 text-sm mt-2">
-            {data.currency === "KRW" ? "유언장 작성 무료 · 인증만 ₩49,000" : "Free to write · Certification only from " + prices.silver}
+            {data.currency === "KRW" ? "유언장 작성 무료 · 인증 ₩99,000 (모든 기능 포함)" : "Free to write · Certification from " + prices.silver + " (all features included)"}
           </p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">

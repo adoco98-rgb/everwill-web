@@ -31,8 +31,8 @@ export default function ComparisonSection() {
           label: "총 비용",
           traditional: "300,000원 ~ 3,000,000원+",
           traditionalSub: "공증료(상한 300만원) + 변호사 수임료 + 증인 교통비",
-          everwill: "49,000원",
-          everwillSub: "모든 비용 포함 (1년 무료 보관)",
+          everwill: "99,000원",
+          everwillSub: "모든 기능 포함 (보관 + 수정 5회 무료)",
           highlight: true,
         },
         {

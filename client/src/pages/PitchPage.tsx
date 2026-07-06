@@ -390,7 +390,7 @@ const innovations = [
   { num: "05", title_ko: "체크박스 17분 완성", title_en: "17-Min Checkbox Wizard", wf: false, desc_ko: "AI가 체크박스 → 법률 문장 자동 변환. 유류분 실시간 검증." },
   { num: "06", title_ko: "영상 유언 + 미래 전달", title_en: "Video Will + Future Delivery", wf: true, desc_ko: "손녀 성인식, 아들 결혼식 날 자동 전송. 평생 보관." },
   { num: "07", title_ko: "자필 유언 스캔 인증", title_en: "Handwritten Will Scan", wf: false, desc_ko: "AI 형식 검증 + 위조 탐지 + 분산 암호화 무결성 기록." },
-  { num: "08", title_ko: "재인증 체계 (LTV 28배)", title_en: "Re-certification System", wf: true, desc_ko: "결혺·출산·이사·자산 변동마다 재인증. 최초 ₩49,000 → 재인증 ₩15,000." },
+  { num: "08", title_ko: "재인증 체계 (LTV 28배)", title_en: "Re-certification System", wf: true, desc_ko: "결혺·출산·이사·자산 변동마다 재인증. 최초 ₩99,000 → 재인증 ₩15,000." },
   { num: "09", title_ko: "글로벌 멀티관할권", title_en: "Multi-Jurisdiction", wf: true, desc_ko: "한국+미국+일본 자산 동시 관리. 각국 법률 자동 적용." },
   { num: "10", title_ko: "7개 언어 + 아랍어 RTL", title_en: "7 Languages + Arabic RTL", wf: false, desc_ko: "한·영·일·중·독·스·아랍어. 샤리아 상속법 자동 적용." },
 ];
@@ -398,7 +398,7 @@ const innovations = [
 const pricingData = [
   { product: "회원가입", krw: "무료", usd: "Free", type: "획득" },
   { product: "AI 유언장 작성", krw: "무료", usd: "Free", type: "획득" },
-  { product: "유언장 인증 (사후 집행 포함)", krw: "₩49,000", usd: "$39", type: "핵심 수익" },
+  { product: "유언장 인증 (사후 집행 포함)", krw: "₩99,000", usd: "$39", type: "핵심 수익" },
   { product: "재인증 (수정)", krw: "₩17,000", usd: "$17", type: "반복 수익" },
   { product: "영상 유언장", krw: "+₩29,000", usd: "+$29", type: "업셀" },
   { product: "자필 유언 스캔", krw: "+₩19,000", usd: "+$19", type: "업셀" },
@@ -407,7 +407,7 @@ const pricingData = [
   { product: "보관료 5년", krw: "₩39,000", usd: "$38", type: "보관" },
   { product: "보관료 10년", krw: "₩79,000", usd: "$76", type: "보관" },
   { product: "보관료 20년+ (영구)", krw: "₩199,000", usd: "$189", type: "보관" },
-  { product: "EverWill 실버 카드", krw: "₩49,000", usd: "$49", type: "하드웨어" },
+  { product: "EverWill 실버 카드", krw: "₩99,000", usd: "$49", type: "하드웨어" },
   { product: "Badge Premium", krw: "₩299,000", usd: "$299", type: "하드웨어" },
 ];
 
