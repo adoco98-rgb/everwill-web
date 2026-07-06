@@ -786,6 +786,15 @@ const MANUAL_FIELDS: Record<string, { label: string; placeholder: string; type?:
   ],
 };
 
+/** 숫자 입력 시 자동 하이픈 삽입 (YYYY-MM-DD) */
+function formatDateInput(raw: string): string {
+  // 숫자만 추출
+  const digits = raw.replace(/[^\d]/g, "").slice(0, 8);
+  if (digits.length <= 4) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+  return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
+}
+
 /** 날짜 형식 검증 함수 */
 function validateDateField(value: string): { valid: boolean; message: string } {
   if (!value || value.trim().length === 0) {
@@ -863,7 +872,11 @@ function ManualInputForm({
                   type="text"
                   placeholder={field.placeholder}
                   value={value}
-                  onChange={(e) => onChange(docId, field.label, e.target.value)}
+                  maxLength={isDateField ? 10 : undefined}
+                  onChange={(e) => {
+                    const newVal = isDateField ? formatDateInput(e.target.value) : e.target.value;
+                    onChange(docId, field.label, newVal);
+                  }}
                   className={`flex-1 text-xs px-2.5 py-1.5 rounded-md border bg-white focus:outline-none focus:ring-1 transition-colors ${
                     showError
                       ? "border-red-300 focus:ring-red-300 focus:border-red-400"
