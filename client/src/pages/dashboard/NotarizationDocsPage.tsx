@@ -786,6 +786,33 @@ const MANUAL_FIELDS: Record<string, { label: string; placeholder: string; type?:
   ],
 };
 
+/** 날짜 형식 검증 함수 */
+function validateDateField(value: string): { valid: boolean; message: string } {
+  if (!value || value.trim().length === 0) {
+    return { valid: true, message: "" }; // 빈 값은 검증 안 함
+  }
+  // YYYY-MM-DD 형식 체크
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(value)) {
+    return { valid: false, message: "YYYY-MM-DD 형식으로 입력해주세요 (예: 2024-03-15)" };
+  }
+  // 실제 유효한 날짜인지 확인
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return { valid: false, message: "존재하지 않는 날짜입니다" };
+  }
+  // 미래 날짜 체크
+  if (date > new Date()) {
+    return { valid: false, message: "미래 날짜는 입력할 수 없습니다" };
+  }
+  // 너무 오래된 날짜 체크 (1900년 이전)
+  if (year < 1900) {
+    return { valid: false, message: "1900년 이전 날짜는 입력할 수 없습니다" };
+  }
+  return { valid: true, message: "" };
+}
+
 /** 수동 입력 폼 컴포넌트 */
 function ManualInputForm({
   docId,
@@ -799,7 +826,13 @@ function ManualInputForm({
   onSubmit: (docId: string) => void;
 }) {
   const fields = MANUAL_FIELDS[docId] || [];
+
+  // 모든 필드 채워졌는지 + 날짜 필드 유효성 확인
   const allFilled = fields.every((f) => (manualData[f.label] || "").trim().length > 0);
+  const allDatesValid = fields
+    .filter((f) => f.type === "date")
+    .every((f) => validateDateField(manualData[f.label] || "").valid);
+  const canSubmit = allFilled && allDatesValid;
 
   return (
     <motion.div
@@ -816,25 +849,54 @@ function ManualInputForm({
         서류에 표시된 정보를 직접 입력해주세요. 정확한 정보 입력이 필요합니다.
       </p>
       <div className="space-y-2">
-        {fields.map((field) => (
-          <div key={field.label} className="flex items-center gap-2">
-            <label className="text-[11px] font-medium text-gray-700 w-24 shrink-0">{field.label}</label>
-            <input
-              type={field.type || "text"}
-              placeholder={field.placeholder}
-              value={manualData[field.label] || ""}
-              onChange={(e) => onChange(docId, field.label, e.target.value)}
-              className="flex-1 text-xs px-2.5 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#1F3864]/30 focus:border-[#1F3864]/50 transition-colors"
-            />
-          </div>
-        ))}
+        {fields.map((field) => {
+          const value = manualData[field.label] || "";
+          const isDateField = field.type === "date";
+          const dateValidation = isDateField ? validateDateField(value) : { valid: true, message: "" };
+          const showError = isDateField && value.length > 0 && !dateValidation.valid;
+
+          return (
+            <div key={field.label}>
+              <div className="flex items-center gap-2">
+                <label className="text-[11px] font-medium text-gray-700 w-24 shrink-0">{field.label}</label>
+                <input
+                  type="text"
+                  placeholder={field.placeholder}
+                  value={value}
+                  onChange={(e) => onChange(docId, field.label, e.target.value)}
+                  className={`flex-1 text-xs px-2.5 py-1.5 rounded-md border bg-white focus:outline-none focus:ring-1 transition-colors ${
+                    showError
+                      ? "border-red-300 focus:ring-red-300 focus:border-red-400"
+                      : isDateField && value.length > 0 && dateValidation.valid
+                      ? "border-green-300 focus:ring-green-300 focus:border-green-400"
+                      : "border-gray-200 focus:ring-[#1F3864]/30 focus:border-[#1F3864]/50"
+                  }`}
+                />
+              </div>
+              {/* 날짜 검증 에러 메시지 */}
+              {showError && (
+                <div className="flex items-center gap-1 mt-0.5 ml-[104px]">
+                  <AlertCircle className="w-3 h-3 text-red-500" />
+                  <span className="text-[10px] text-red-500">{dateValidation.message}</span>
+                </div>
+              )}
+              {/* 날짜 유효 확인 표시 */}
+              {isDateField && value.length > 0 && dateValidation.valid && (
+                <div className="flex items-center gap-1 mt-0.5 ml-[104px]">
+                  <Check className="w-3 h-3 text-green-500" />
+                  <span className="text-[10px] text-green-600">유효한 날짜입니다</span>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
       <div className="mt-3 flex items-center gap-2">
         <button
           onClick={() => onSubmit(docId)}
-          disabled={!allFilled}
+          disabled={!canSubmit}
           className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
-            allFilled
+            canSubmit
               ? "bg-[#1F3864] text-white hover:bg-[#1F3864]/90"
               : "bg-gray-200 text-gray-400 cursor-not-allowed"
           }`}
@@ -842,6 +904,9 @@ function ManualInputForm({
           <Check className="w-3.5 h-3.5" />
           입력 완료
         </button>
+        {!canSubmit && allFilled && !allDatesValid && (
+          <span className="text-[10px] text-red-500">날짜 형식을 확인해주세요</span>
+        )}
         {!allFilled && (
           <span className="text-[10px] text-gray-400">모든 항목을 입력해주세요</span>
         )}
