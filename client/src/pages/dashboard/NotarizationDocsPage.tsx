@@ -58,6 +58,10 @@ interface AnalysisResult {
   confidence: string;
 }
 
+interface ManualFormData {
+  [key: string]: string;
+}
+
 interface UploadedDoc {
   fileName: string;
   uploadedAt: string;
@@ -70,6 +74,8 @@ interface UploadedDoc {
   analysisFailed?: boolean;
   /** AI 분석 건너뛰기 (사용자가 수동 확인) */
   analysisSkipped?: boolean;
+  /** 수동 입력 데이터 */
+  manualData?: ManualFormData;
 }
 
 const SECTIONS: DocumentSection[] = [
@@ -215,13 +221,29 @@ export default function NotarizationDocsPage() {
     }
   };
 
-  /** AI 분석 건너뛰기 */
+  /** AI 분석 건너뛰기 → 수동 입력 폼 표시 */
   const handleSkipAnalysis = (docId: string) => {
     setUploadedDocs((prev) => ({
       ...prev,
-      [docId]: { ...prev[docId], analysisFailed: false, analysisSkipped: true },
+      [docId]: { ...prev[docId], analysisFailed: false, analysisSkipped: true, manualData: {} },
     }));
-    toast.info("AI 분석을 건너뛰었습니다. 서류는 제출된 상태로 유지됩니다.");
+    toast.info("AI 분석을 건너뛰었습니다. 필수 정보를 직접 입력해주세요.");
+  };
+
+  /** 수동 입력 폼 데이터 업데이트 */
+  const handleManualDataChange = (docId: string, field: string, value: string) => {
+    setUploadedDocs((prev) => ({
+      ...prev,
+      [docId]: {
+        ...prev[docId],
+        manualData: { ...(prev[docId]?.manualData || {}), [field]: value },
+      },
+    }));
+  };
+
+  /** 수동 입력 확인 완료 */
+  const handleManualSubmit = (docId: string) => {
+    toast.success("수동 입력이 저장되었습니다.");
   };
 
   /** AI 분석 재시도 */
@@ -514,14 +536,14 @@ export default function NotarizationDocsPage() {
                                 </div>
                               </div>
                             )}
-                            {/* AI 분석 건너뛴 상태 */}
+                            {/* AI 분석 건너뛴 상태 → 수동 입력 폼 */}
                             {isUploaded && uploadedDoc?.analysisSkipped && !uploadedDoc?.analyzing && (
-                              <div className="mt-3 p-2.5 rounded-lg bg-gray-50 border border-gray-200">
-                                <div className="flex items-center gap-2">
-                                  <Info className="w-3.5 h-3.5 text-gray-500" />
-                                  <span className="text-xs text-gray-600">AI 분석을 건너뛰었습니다. 서류는 정상 제출되었습니다.</span>
-                                </div>
-                              </div>
+                              <ManualInputForm
+                                docId={doc.id}
+                                manualData={uploadedDoc.manualData || {}}
+                                onChange={handleManualDataChange}
+                                onSubmit={handleManualSubmit}
+                              />
                             )}
                             {isUploaded && uploadedDoc?.analysis && !uploadedDoc?.analyzing && (
                               <AnalysisResultCard analysis={uploadedDoc.analysis} />
@@ -719,6 +741,112 @@ export default function NotarizationDocsPage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+/** 서류별 수동 입력 필드 정의 */
+const MANUAL_FIELDS: Record<string, { label: string; placeholder: string; type?: string }[]> = {
+  basic_cert: [
+    { label: "성명", placeholder: "예: 홍길동" },
+    { label: "생년월일", placeholder: "YYYY-MM-DD", type: "date" },
+    { label: "등록기준지", placeholder: "예: 서울특별시 강남구" },
+    { label: "발급일", placeholder: "YYYY-MM-DD", type: "date" },
+    { label: "발급기관", placeholder: "예: 대한민국 법원" },
+  ],
+  family_cert: [
+    { label: "성명", placeholder: "예: 홍길동" },
+    { label: "등록기준지", placeholder: "예: 서울특별시 강남구" },
+    { label: "가족 수", placeholder: "예: 4명" },
+    { label: "발급일", placeholder: "YYYY-MM-DD", type: "date" },
+    { label: "발급기관", placeholder: "예: 대한민국 법원" },
+  ],
+  resident_reg: [
+    { label: "세대주 성명", placeholder: "예: 홍길동" },
+    { label: "주소", placeholder: "현재 주소지" },
+    { label: "세대원 수", placeholder: "예: 3명" },
+    { label: "발급일", placeholder: "YYYY-MM-DD", type: "date" },
+    { label: "발급기관", placeholder: "예: 안성시청" },
+  ],
+  seal_cert: [
+    { label: "성명", placeholder: "예: 홍길동" },
+    { label: "주민등록번호 앞자리", placeholder: "예: 800101" },
+    { label: "주소", placeholder: "등록된 주소" },
+    { label: "발급일", placeholder: "YYYY-MM-DD", type: "date" },
+    { label: "발급기관", placeholder: "예: 안성시청" },
+  ],
+  id_card: [
+    { label: "신분증 종류", placeholder: "예: 주민등록증 / 운전면허증 / 여권" },
+    { label: "성명", placeholder: "예: 홍길동" },
+    { label: "생년월일", placeholder: "YYYY-MM-DD", type: "date" },
+    { label: "발급기관", placeholder: "예: 서울지방경찰청" },
+  ],
+  seal_stamp: [
+    { label: "도장 종류", placeholder: "예: 인감도장 / 막도장" },
+    { label: "도장 상태", placeholder: "예: 선명함 / 일부 번짐" },
+  ],
+};
+
+/** 수동 입력 폼 컴포넌트 */
+function ManualInputForm({
+  docId,
+  manualData,
+  onChange,
+  onSubmit,
+}: {
+  docId: string;
+  manualData: ManualFormData;
+  onChange: (docId: string, field: string, value: string) => void;
+  onSubmit: (docId: string) => void;
+}) {
+  const fields = MANUAL_FIELDS[docId] || [];
+  const allFilled = fields.every((f) => (manualData[f.label] || "").trim().length > 0);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: "auto" }}
+      className="mt-3 p-4 rounded-lg bg-amber-50 border border-amber-200"
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <FileText className="w-4 h-4 text-amber-600" />
+        <span className="text-xs font-bold text-amber-800">수동 입력</span>
+        <span className="text-[10px] text-amber-600 ml-auto">AI 분석 대신 직접 확인</span>
+      </div>
+      <p className="text-[11px] text-amber-700 mb-3">
+        서류에 표시된 정보를 직접 입력해주세요. 정확한 정보 입력이 필요합니다.
+      </p>
+      <div className="space-y-2">
+        {fields.map((field) => (
+          <div key={field.label} className="flex items-center gap-2">
+            <label className="text-[11px] font-medium text-gray-700 w-24 shrink-0">{field.label}</label>
+            <input
+              type={field.type || "text"}
+              placeholder={field.placeholder}
+              value={manualData[field.label] || ""}
+              onChange={(e) => onChange(docId, field.label, e.target.value)}
+              className="flex-1 text-xs px-2.5 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#1F3864]/30 focus:border-[#1F3864]/50 transition-colors"
+            />
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 flex items-center gap-2">
+        <button
+          onClick={() => onSubmit(docId)}
+          disabled={!allFilled}
+          className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
+            allFilled
+              ? "bg-[#1F3864] text-white hover:bg-[#1F3864]/90"
+              : "bg-gray-200 text-gray-400 cursor-not-allowed"
+          }`}
+        >
+          <Check className="w-3.5 h-3.5" />
+          입력 완료
+        </button>
+        {!allFilled && (
+          <span className="text-[10px] text-gray-400">모든 항목을 입력해주세요</span>
+        )}
+      </div>
+    </motion.div>
   );
 }
 
