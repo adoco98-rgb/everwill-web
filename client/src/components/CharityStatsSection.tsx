@@ -1,57 +1,17 @@
 /**
- * EverWill 사회기부 섹션 - 노인복지 전용
- * 분야 선택 없이, 에버윌이 지원하는 분야를 이미지로 안내
- * 금액 입력 + 즉시/사후 기부 선택만 유지
+ * EverWill 사회기부 섹션 - 노인복지 전용 (랜딩 페이지)
+ * 기부 폼은 대시보드(로그인 후)에서만 제공
+ * 여기서는 에버윌의 노인복지 지원 의지를 안내만 함
  */
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { Heart, ChevronRight } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { toast } from "sonner";
+import { Heart, ArrowRight } from "lucide-react";
+import { Link } from "wouter";
 
 const BANNER_IMG = "/manus-storage/elderly-welfare-2_8647a9e2.webp";
 const CARE_IMG = "/manus-storage/elderly-welfare-1_fb890531.jpg";
 const SUPPORT_AREAS_IMG = "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/elderly-welfare-support-areas-65KjjE5ALCWx99ndFtPtJc.webp";
 
-// ─── 통화 매핑 ────────────────────────────────────────────────────
-const QUICK_AMOUNTS_KRW = [
-  { label: "₩10,000", value: "10000" },
-  { label: "₩30,000", value: "30000" },
-  { label: "₩50,000", value: "50000" },
-  { label: "₩100,000", value: "100000" },
-];
-
 export default function CharityStatsSection() {
-  const { language } = useLanguage();
-
-  // ── 기부 폼 상태 ──
-  const [amount, setAmount] = useState("");
-  const [displayAmount, setDisplayAmount] = useState("");
-  const [donationType, setDonationType] = useState<"now" | "posthumous">("posthumous");
-
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/[^0-9]/g, "");
-    setAmount(raw);
-    setDisplayAmount(raw ? Number(raw).toLocaleString() : "");
-  };
-
-  const handleQuickAmount = (val: string) => {
-    setAmount(val);
-    setDisplayAmount(Number(val).toLocaleString());
-  };
-
-  const handleDonate = () => {
-    if (!amount || Number(amount) <= 0) {
-      toast.error("기부 금액을 입력해주세요.");
-      return;
-    }
-    if (donationType === "now") {
-      toast.info("즉시 결제 기능은 곧 오픈됩니다!");
-    } else {
-      toast.success("사후 기부 의사가 유언에 기록됩니다.");
-    }
-  };
-
   return (
     <section className="bg-gradient-to-b from-[#0d1f3c] to-[#1F3864] text-white relative overflow-hidden">
 
@@ -105,7 +65,7 @@ export default function CharityStatsSection() {
             어렵고 힘든 상황에 놓인 노인분들께<br className="hidden md:block" />
             사랑과 희망을 드립니다."
           </blockquote>
-          <p className="text-[#C9A961] text-base font-bold">
+          <p className="text-[#C9A961] text-lg font-bold">
             에버윌이 함께 합니다.
           </p>
         </motion.div>
@@ -127,8 +87,8 @@ export default function CharityStatsSection() {
         </motion.div>
       </div>
 
-      {/* ── 노인 빈곤 현실 안내 ── */}
-      <div className="max-w-3xl mx-auto px-4 pb-8">
+      {/* ── 노인 빈곤 현실 통계 ── */}
+      <div className="max-w-3xl mx-auto px-4 pb-10">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -153,152 +113,33 @@ export default function CharityStatsSection() {
         </motion.div>
       </div>
 
-      {/* ── 기부 폼 (금액 + 방식만) ── */}
-      <div className="relative max-w-4xl mx-auto px-4 pb-16">
+      {/* ── CTA: 가입 후 기부 참여 안내 ── */}
+      <div className="max-w-2xl mx-auto px-4 pb-16">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          className="bg-white/8 border border-white/15 rounded-3xl p-6 md:p-10"
+          transition={{ duration: 0.7 }}
+          className="text-center"
         >
-          {/* 금액 입력 */}
-          <div className="mb-8">
-            <h3 className="text-white font-bold text-lg mb-1">
-              기부 금액을 입력하세요
-            </h3>
-            <p className="text-white/50 text-sm mb-4">
-              노인복지를 위한 기부 금액을 입력해주세요.
-            </p>
-            {/* 빠른 선택 */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              {QUICK_AMOUNTS_KRW.map((item) => (
-                <button
-                  key={item.value}
-                  onClick={() => handleQuickAmount(item.value)}
-                  className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all ${
-                    amount === item.value
-                      ? "bg-[#C9A961] border-[#C9A961] text-[#1F3864]"
-                      : "bg-white/5 border-white/20 text-white/80 hover:bg-white/10"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-            {/* 직접 입력 */}
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#C9A961] font-bold text-xl select-none pointer-events-none">
-                ₩
-              </span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={displayAmount}
-                onChange={handleAmountChange}
-                placeholder="금액 직접 입력"
-                className="w-full bg-white/10 border border-white/20 rounded-xl pl-10 pr-12 py-3.5 text-white placeholder-white/30 text-lg font-semibold focus:outline-none focus:border-[#C9A961] transition-colors"
-              />
-              {displayAmount && (
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 text-sm">
-                  원
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* 기부 방식 선택 */}
-          <div className="mb-8">
-            <h3 className="text-white font-bold text-lg mb-4">
-              기부 방식을 선택하세요
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* 즉시 결제 */}
-              <button
-                onClick={() => setDonationType("now")}
-                className={`flex items-start gap-4 p-5 rounded-2xl border-2 text-left transition-all ${
-                  donationType === "now"
-                    ? "border-[#C9A961] bg-[#C9A961]/15"
-                    : "border-white/15 bg-white/5 hover:border-white/30"
-                }`}
-              >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${donationType === "now" ? "bg-[#C9A961]" : "bg-white/10"}`}>
-                  <span className="text-lg">💳</span>
-                </div>
-                <div>
-                  <p className={`font-bold text-base mb-1 ${donationType === "now" ? "text-[#C9A961]" : "text-white"}`}>
-                    지금 기부하기
-                  </p>
-                  <p className="text-white/50 text-xs leading-relaxed">
-                    지금 바로 기부합니다. 즉시 영수증 발급 및 세금 공제 혜택.
-                  </p>
-                </div>
-              </button>
-
-              {/* 사후 기부 */}
-              <button
-                onClick={() => setDonationType("posthumous")}
-                className={`flex items-start gap-4 p-5 rounded-2xl border-2 text-left transition-all ${
-                  donationType === "posthumous"
-                    ? "border-[#C9A961] bg-[#C9A961]/15"
-                    : "border-white/15 bg-white/5 hover:border-white/30"
-                }`}
-              >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${donationType === "posthumous" ? "bg-[#C9A961]" : "bg-white/10"}`}>
-                  <span className="text-lg">📜</span>
-                </div>
-                <div>
-                  <p className={`font-bold text-base mb-1 ${donationType === "posthumous" ? "text-[#C9A961]" : "text-white"}`}>
-                    유언에 기부 기록하기
-                  </p>
-                  <p className="text-white/50 text-xs leading-relaxed">
-                    유언장에 기부 의사를 기록합니다. 사망 후 에버윌이 투명하게 전달합니다.
-                  </p>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          {/* 요약 + 기부 버튼 */}
-          {amount && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="bg-white/5 border border-white/10 rounded-xl p-4 mb-6"
-            >
-              <p className="text-white/60 text-xs mb-1">선택 요약</p>
-              <p className="text-white font-bold text-sm">
-                ₩{Number(amount).toLocaleString()}원 · 노인복지 기부
-                {" · "}
-                <span className="text-[#C9A961]">
-                  {donationType === "now" ? "즉시 결제" : "사후 기부"}
-                </span>
-              </p>
-            </motion.div>
-          )}
-
-          <button
-            onClick={handleDonate}
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#C9A961] to-[#a88840] text-white font-bold py-4 rounded-2xl text-base hover:opacity-90 transition-opacity shadow-lg"
-          >
-            <Heart className="w-5 h-5" />
-            {donationType === "now" ? "지금 기부하기" : "유언에 기부 의사 기록하기"}
-            <ChevronRight className="w-4 h-4" />
-          </button>
-
-          <p className="text-center text-white/30 text-xs mt-4">
-            🔒 에버윌이 검증한 노인복지 단체를 선정하여 투명하게 전달합니다.
+          <p className="text-white/60 text-sm mb-6">
+            에버윌 회원이 되시면 유언장에 기부 의사를 기록하거나,<br />
+            즉시 기부에 참여하실 수 있습니다.
           </p>
-        </motion.div>
+          <Link href="/signup">
+            <button className="inline-flex items-center gap-2 bg-gradient-to-r from-[#C9A961] to-[#a88840] text-white font-bold px-8 py-4 rounded-2xl text-base hover:opacity-90 transition-opacity shadow-lg">
+              <Heart className="w-5 h-5" />
+              무료 가입하고 기부에 참여하기
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </Link>
 
-        {/* ── 하단 안내 ── */}
-        <div className="mt-8 text-center">
-          <p className="text-white/40 text-xs leading-relaxed">
+          <p className="text-white/30 text-xs mt-8 leading-relaxed">
             * 기부 유언은 유언자 사망 확인 후 EverWill이 선정한 노인복지 단체에 전달됩니다.<br />
             * 기부 금액은 상속 자산에서 우선 공제 후 집행됩니다.<br />
             * 집행 결과는 유족에게 투명하게 보고됩니다.
           </p>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
