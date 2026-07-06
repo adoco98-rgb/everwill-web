@@ -143,26 +143,6 @@ export default function PricingSection() {
             </div>
           </div>
 
-          {/* 구분선 */}
-          <div className="border-t border-white/10 mb-8" />
-
-          {/* 추가 옵션 */}
-          <div className="mb-8">
-            <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4 text-center">
-              {isKo ? "추가 옵션" : "Add-ons"}
-            </h3>
-            <div className="space-y-3">
-              {addOns.map((addon, i) => (
-                <div key={i} className="flex items-center justify-between bg-white/5 rounded-xl px-4 py-3">
-                  <div>
-                    <span className="text-white/90 text-sm font-medium">{addon.label}</span>
-                    <span className="text-white/40 text-xs ml-2">{addon.desc}</span>
-                  </div>
-                  <span className="text-[#C9A961] font-bold text-sm whitespace-nowrap">{addon.price}</span>
-                </div>
-              ))}
-            </div>
-          </div>
 
           {/* CTA 버튼 */}
           <button
