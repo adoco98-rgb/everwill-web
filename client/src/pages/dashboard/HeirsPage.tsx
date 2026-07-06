@@ -737,7 +737,7 @@ function CharitySection() {
         <div className="absolute inset-0 bg-gradient-to-t from-[#1F3864]/90 via-[#1F3864]/40 to-transparent flex items-end">
           <div className="p-5">
             <h2 className="text-xl font-bold text-white mb-1">노인복지 기부 유언</h2>
-            <p className="text-sm text-white/80">에버윌은 노인복지를 위한 많은 노력과 지원으로 함께 하겠습니다</p>
+            <p className="text-sm text-white/80">세계의 모든 빈곤노인들과 독거노인, 어렵고 힘든 상황에 놓인 노인분들께 사랑과 희망을 드립니다. 에버윌이 함께 합니다.</p>
           </div>
         </div>
       </div>
