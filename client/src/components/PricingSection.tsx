@@ -85,7 +85,7 @@ export default function PricingSection() {
             className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
-            {isKo ? "하나의 가격, 모든 기능" : "One Price, Everything Included"}
+            {isKo ? "전자 디지털 서명인증!! 당신의 뜻을 실천합니다" : "Digital e-Signature Authentication!! We Fulfill Your Will"}
           </h2>
           <p className="text-white/70 text-base lg:text-lg max-w-2xl mx-auto">
             {isKo
