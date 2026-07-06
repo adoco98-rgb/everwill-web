@@ -816,35 +816,7 @@ export default function HeirServiceSection() {
           </motion.div>
         </div>
 
-        {/* ── 기본 가입비 포함 내용 박스 ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-10 bg-white rounded-3xl shadow-sm border border-[#C9A961]/20 p-8"
-        >
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-[#C9A961]/15 flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-[#C9A961]" />
-            </div>
-            <div>
-              <h3 className="font-bold text-[#1F3864] text-lg">
-                {isKo ? "₩199,000 기본 가입비에 포함된 내용" : "Included in the Base Service Fee"}
-              </h3>
-              <p className="text-gray-500 text-xs">
-                {isKo ? "별도 추가 비용 없음" : "No additional charges"}
-              </p>
-            </div>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-3">
-            {t.includedItems.map((item, i) => (
-              <div key={i} className="flex items-center gap-3 bg-[#F5F3EE] rounded-xl px-4 py-3">
-                <CheckCircle className="w-4 h-4 text-[#C9A961] flex-shrink-0" />
-                <span className="text-[#1F3864] text-sm font-semibold">{item}</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
+
 
         {/* ── 법률 전문가 연결 서비스 섹션 ── */}
         <motion.div
