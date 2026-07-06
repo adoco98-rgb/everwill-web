@@ -123,8 +123,20 @@ const ASSET_DOC_TYPES = [
   { value: "insurance_policy",      label: "보험증권" },
   { value: "pension_statement",     label: "연금 수급 확인서" },
   { value: "vehicle_registration",  label: "자동차 등록증" },
-  { value: "business_registration", label: "사업자등록증" },
   { value: "other",                 label: "기타 자산 서류" },
+];
+
+// ─── 기타 자산 서류 예시 안내 ───
+const OTHER_DOC_EXAMPLES = [
+  "사업자등록증 (법인/개인사업체 지분)",
+  "예·적금 증서",
+  "채권·펀드 보유 확인서",
+  "암호화폐(가상자산) 보유 내역",
+  "골프·콘도 회원권 증서",
+  "귀금속·미술품 감정서",
+  "대여금·차용증 (빌려준 돈)",
+  "지식재산권 (특허·상표) 등록증",
+  "기타 재산적 가치가 있는 모든 서류",
 ];
 
 // 스캔 결과 → 자산 유형 매핑
@@ -400,13 +412,37 @@ export default function AssetsPage() {
                   </div>
                 </div>
 
+                {/* 기타 자산 서류 선택 시 예시 안내 */}
+                {scanDocType === "other" && (
+                  <div className="mb-4 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                    <p className="text-sm font-bold text-blue-800 mb-2">📌 업로드 가능한 서류 예시</p>
+                    <ul className="grid sm:grid-cols-2 gap-1">
+                      {OTHER_DOC_EXAMPLES.map((ex, i) => (
+                        <li key={i} className="flex items-start gap-1.5 text-xs text-blue-700">
+                          <span className="text-blue-400 mt-0.5">•</span>
+                          {ex}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="text-xs text-blue-500 mt-2">※ 위 예시 외에도 재산적 가치가 있는 모든 서류를 업로드할 수 있습니다.</p>
+                    <p className="text-xs text-blue-500 mt-1">📂 여러 장을 한번에 선택하거나, 추가로 계속 업로드할 수 있습니다. (제한 없음)</p>
+                  </div>
+                )}
+
                 {/* 업로드 영역 */}
                 <input
                   ref={scanFileInputRef}
                   type="file"
                   accept="image/*"
+                  multiple
                   className="hidden"
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleScanImageSelect(f); e.target.value = ""; }}
+                  onChange={(e) => {
+                    const files = e.target.files;
+                    if (files) {
+                      Array.from(files).forEach((f) => handleScanImageSelect(f));
+                    }
+                    e.target.value = "";
+                  }}
                 />
 
                 {scanPreview ? (
@@ -438,7 +474,7 @@ export default function AssetsPage() {
                     </div>
                     <div className="text-center">
                       <p className="text-sm font-semibold text-[#1F3864]">서류 이미지 업로드</p>
-                      <p className="text-xs text-gray-400 mt-1">JPG, PNG, HEIC · 최대 20MB</p>
+                      <p className="text-xs text-gray-400 mt-1">JPG, PNG, HEIC · 최대 20MB / 여러 장 선택 가능</p>
                     </div>
                     <div className="flex gap-2">
                       <button
