@@ -759,8 +759,8 @@ export default function HeirServiceSection() {
           </p>
         </motion.div>
 
-        {/* ── 2단 레이아웃: 가입 절차 + 수수료 계산기 ── */}
-        <div className="grid lg:grid-cols-2 gap-10 items-stretch">
+        {/* ── 가입 절차 안내 ── */}
+        <div className="max-w-2xl mx-auto">
 
           {/* 왼쪽: 가입 절차 */}
           <motion.div
@@ -813,123 +813,6 @@ export default function HeirServiceSection() {
                 </div>
               ))}
             </div>
-          </motion.div>
-
-          {/* 오른쪽: 수수료 계산기 */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 flex flex-col"
-          >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-[#C9A961]/15 flex items-center justify-center">
-                <Calculator className="w-5 h-5 text-[#C9A961]" />
-              </div>
-              <div>
-                <h3 className="font-bold text-[#1F3864] text-lg">{t.calcTitle}</h3>
-                <p className="text-gray-500 text-xs">{t.calcSub}</p>
-              </div>
-            </div>
-
-            {/* 수수료 구조 안내 (3단계) */}
-            <div className="bg-[#F5F3EE] rounded-2xl p-4 mb-4 space-y-2">
-              {/* 단계 0: 1억 이하 무료 */}
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600 font-medium">{t.tier0Label}</span>
-                <span className="font-bold text-green-600">{tier0Value}</span>
-              </div>
-              <div className="h-px bg-gray-200" />
-              {/* 단계 1: 2억 이하 */}
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600 font-medium">{t.tier1Label}</span>
-                <span className="font-bold text-[#1F3864]">{tier1Value}</span>
-              </div>
-              <div className="h-px bg-gray-200" />
-              {/* 단계 2: 2억 초과분 */}
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600 font-medium">{t.tier2Label}</span>
-                <span className="font-bold text-[#1F3864]">{tier2Value}</span>
-              </div>
-            </div>
-            {/* 자산 평가 기준 안내 */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6">
-              <p className="text-amber-700 text-xs leading-relaxed">{t.assetBasisNote}</p>
-            </div>
-
-            {/* 입력 */}
-            <div className="mb-4">
-              <label className="block text-sm font-bold text-[#1F3864] mb-2">
-                {t.inputLabel}
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">
-                  {symbol}
-                </span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder={t.inputPlaceholder}
-                  value={assetAmount}
-                  onChange={(e) => {
-                    const formatted = formatInput(e.target.value);
-                    setAssetAmount(formatted);
-                    calculateFee(e.target.value);
-                  }}
-                  className="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl text-[#1F3864] font-semibold focus:border-[#C9A961] focus:outline-none transition-colors"
-                />
-              </div>
-            </div>
-
-            {/* 결과 */}
-            {fee !== null ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className={`rounded-2xl p-5 text-white ${
-                  fee === 0
-                    ? "bg-gradient-to-br from-green-600 to-green-700"
-                    : "bg-gradient-to-br from-[#1F3864] to-[#2a4a7f]"
-                }`}
-              >
-                <div className="text-sm font-medium text-white/70 mb-1">{t.feeLabel}</div>
-                <div className="text-3xl font-extrabold mb-2">
-                  {fee === 0 ? (isKo ? "무료" : "Free") : formatAmount(fee)}
-                </div>
-                {fee === 0 && (
-                  <div className="text-xs text-white/80">{freeDesc}</div>
-                )}
-                {fee > 0 && fee <= BASE_FEE && (
-                  <div className="text-xs text-white/60">{fixedDesc}</div>
-                )}
-                {fee > BASE_FEE && (
-                  <div className="text-xs text-white/60">
-                    {excessDesc} ({formatAmount(fee - BASE_FEE)})
-                  </div>
-                )}
-                <div className="mt-3 pt-3 border-t border-white/20 text-xs text-white/60">
-                  {t.feeNote}
-                </div>
-              </motion.div>
-            ) : (
-              <div className="bg-gray-50 rounded-2xl p-5 text-center text-gray-400 text-sm border-2 border-dashed border-gray-200">
-                {t.emptyCalc}
-              </div>
-            )}
-
-            {/* CTA */}
-            <div className="flex-1" />
-            <button
-              onClick={() => {
-                const el = document.getElementById("heir-register");
-                if (el) el.scrollIntoView({ behavior: "smooth" });
-                else alert(isKo ? "서비스 준비 중입니다. 곧 오픈합니다!" : "Coming soon!");
-              }}
-              className="mt-5 w-full py-3 rounded-xl bg-[#C9A961] hover:bg-[#d4b870] text-[#1F3864] font-bold text-sm transition-all flex items-center justify-center gap-2"
-            >
-              {t.cta}
-              <ArrowRight className="w-4 h-4" />
-            </button>
           </motion.div>
         </div>
 
