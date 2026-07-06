@@ -1,26 +1,17 @@
 /**
  * EverWill 사회기부 섹션 - 노인복지 전용
- * "세계의 모든 빈곤노인들과 독거노인, 어렵고 힘든 상황에 놓인 노인분들께
- *  사랑과 희망을 드립니다. 에버윌이 함께 합니다."
+ * 분야 선택 없이, 에버윌이 지원하는 분야를 이미지로 안내
+ * 금액 입력 + 즉시/사후 기부 선택만 유지
  */
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Heart, ChevronRight, Check, HandHeart, Home, Stethoscope, Briefcase, Music } from "lucide-react";
-import { Link } from "wouter";
+import { Heart, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 
 const BANNER_IMG = "/manus-storage/elderly-welfare-2_8647a9e2.webp";
 const CARE_IMG = "/manus-storage/elderly-welfare-1_fb890531.jpg";
-
-// ─── 노인복지 5개 분야 ────────────────────────────────────────────
-const ELDERLY_CAUSES = [
-  { id: "poverty", emoji: "🤝", icon: HandHeart, label: "빈곤 해결", desc: "기초생활 지원, 식사 배달, 난방비 지원" },
-  { id: "business", emoji: "💼", icon: Briefcase, label: "사업 지원", desc: "노인 일자리 창출, 창업 지원, 직업 훈련" },
-  { id: "care", emoji: "🏠", icon: Home, label: "돌봄 서비스", desc: "독거노인 방문 돌봄, 생활 도우미, 안부 확인" },
-  { id: "medical", emoji: "🏥", icon: Stethoscope, label: "의료·건강", desc: "의료비 지원, 건강검진, 재활 치료" },
-  { id: "culture", emoji: "🎵", icon: Music, label: "문화·여가", desc: "여가 프로그램, 여행 지원, 평생교육" },
-];
+const SUPPORT_AREAS_IMG = "https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/elderly-welfare-support-areas-65KjjE5ALCWx99ndFtPtJc.webp";
 
 // ─── 통화 매핑 ────────────────────────────────────────────────────
 const QUICK_AMOUNTS_KRW = [
@@ -34,16 +25,9 @@ export default function CharityStatsSection() {
   const { language } = useLanguage();
 
   // ── 기부 폼 상태 ──
-  const [selectedCauses, setSelectedCauses] = useState<string[]>([]);
   const [amount, setAmount] = useState("");
   const [displayAmount, setDisplayAmount] = useState("");
   const [donationType, setDonationType] = useState<"now" | "posthumous">("posthumous");
-
-  const toggleCause = (id: string) => {
-    setSelectedCauses((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
-    );
-  };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/[^0-9]/g, "");
@@ -57,10 +41,6 @@ export default function CharityStatsSection() {
   };
 
   const handleDonate = () => {
-    if (selectedCauses.length === 0) {
-      toast.error("기부 분야를 하나 이상 선택해주세요.");
-      return;
-    }
     if (!amount || Number(amount) <= 0) {
       toast.error("기부 금액을 입력해주세요.");
       return;
@@ -131,6 +111,22 @@ export default function CharityStatsSection() {
         </motion.div>
       </div>
 
+      {/* ── 지원 분야 이미지 ── */}
+      <div className="max-w-3xl mx-auto px-4 pb-10">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <img
+            src={SUPPORT_AREAS_IMG}
+            alt="에버윌이 지원하는 노인복지 분야 - 빈곤해결, 사업지원, 돌봄서비스, 의료건강, 문화여가"
+            className="w-full rounded-2xl shadow-2xl"
+          />
+        </motion.div>
+      </div>
+
       {/* ── 노인 빈곤 현실 안내 ── */}
       <div className="max-w-3xl mx-auto px-4 pb-8">
         <motion.div
@@ -157,7 +153,7 @@ export default function CharityStatsSection() {
         </motion.div>
       </div>
 
-      {/* ── 기부 폼 ── */}
+      {/* ── 기부 폼 (금액 + 방식만) ── */}
       <div className="relative max-w-4xl mx-auto px-4 pb-16">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -166,49 +162,13 @@ export default function CharityStatsSection() {
           transition={{ duration: 0.7, delay: 0.1 }}
           className="bg-white/8 border border-white/15 rounded-3xl p-6 md:p-10"
         >
-          {/* Step 1: 노인복지 분야 선택 */}
+          {/* 금액 입력 */}
           <div className="mb-8">
             <h3 className="text-white font-bold text-lg mb-1">
-              ① 기부 분야를 선택하세요
-            </h3>
-            <p className="text-white/50 text-sm mb-5">
-              노인복지를 위한 분야를 선택해주세요. 여러 분야 동시 선택 가능합니다.
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-              {ELDERLY_CAUSES.map((cause) => {
-                const selected = selectedCauses.includes(cause.id);
-                const Icon = cause.icon;
-                return (
-                  <button
-                    key={cause.id}
-                    onClick={() => toggleCause(cause.id)}
-                    className={`relative flex flex-col items-center gap-2 px-3 py-4 rounded-xl border text-xs font-semibold transition-all duration-200 ${
-                      selected
-                        ? "bg-[#C9A961]/25 border-[#C9A961] text-[#C9A961] shadow-lg scale-105"
-                        : "bg-white/5 border-white/15 text-white/70 hover:bg-white/10 hover:border-white/30"
-                    }`}
-                  >
-                    {selected && (
-                      <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#C9A961] rounded-full flex items-center justify-center">
-                        <Check className="w-2.5 h-2.5 text-white" />
-                      </div>
-                    )}
-                    <Icon className={`w-6 h-6 ${selected ? "text-[#C9A961]" : "text-white/60"}`} />
-                    <span className="text-center leading-tight font-bold">{cause.label}</span>
-                    <span className="text-[10px] text-white/40 text-center leading-tight hidden sm:block">{cause.desc}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Step 2: 금액 입력 */}
-          <div className="mb-8">
-            <h3 className="text-white font-bold text-lg mb-1">
-              ② 기부 금액을 입력하세요
+              기부 금액을 입력하세요
             </h3>
             <p className="text-white/50 text-sm mb-4">
-              직접 입력하거나 빠른 선택 버튼을 클릭하세요.
+              노인복지를 위한 기부 금액을 입력해주세요.
             </p>
             {/* 빠른 선택 */}
             <div className="flex flex-wrap gap-2 mb-4">
@@ -247,10 +207,10 @@ export default function CharityStatsSection() {
             </div>
           </div>
 
-          {/* Step 3: 즉시 결제 / 사후 기부 선택 */}
+          {/* 기부 방식 선택 */}
           <div className="mb-8">
             <h3 className="text-white font-bold text-lg mb-4">
-              ③ 기부 방식을 선택하세요
+              기부 방식을 선택하세요
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* 즉시 결제 */}
@@ -299,35 +259,21 @@ export default function CharityStatsSection() {
             </div>
           </div>
 
-          {/* 선택 요약 + 기부 버튼 */}
-          {(selectedCauses.length > 0 || amount) && (
+          {/* 요약 + 기부 버튼 */}
+          {amount && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               className="bg-white/5 border border-white/10 rounded-xl p-4 mb-6"
             >
-              <p className="text-white/60 text-xs mb-2">선택 요약</p>
-              {selectedCauses.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mb-2">
-                  {selectedCauses.map((id) => {
-                    const cause = ELDERLY_CAUSES.find((c) => c.id === id);
-                    return (
-                      <span key={id} className="bg-[#C9A961]/20 text-[#C9A961] text-xs px-2 py-0.5 rounded-full font-medium">
-                        {cause?.emoji} {cause?.label}
-                      </span>
-                    );
-                  })}
-                </div>
-              )}
-              {amount && (
-                <p className="text-white font-bold text-sm">
-                  ₩{Number(amount).toLocaleString()}원
-                  {" · "}
-                  <span className="text-[#C9A961]">
-                    {donationType === "now" ? "즉시 결제" : "사후 기부"}
-                  </span>
-                </p>
-              )}
+              <p className="text-white/60 text-xs mb-1">선택 요약</p>
+              <p className="text-white font-bold text-sm">
+                ₩{Number(amount).toLocaleString()}원 · 노인복지 기부
+                {" · "}
+                <span className="text-[#C9A961]">
+                  {donationType === "now" ? "즉시 결제" : "사후 기부"}
+                </span>
+              </p>
             </motion.div>
           )}
 
