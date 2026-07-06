@@ -467,7 +467,7 @@ export async function sendWelcomeEmail(params: {
                       <tr>
                         <td style="padding:12px 16px;background:#F8FAFC;border-radius:8px;border-left:3px solid #C9A961;">
                           <div style="font-size:14px;font-weight:600;color:#1A1A1A;">2단계: 전자 인증</div>
-                          <div style="font-size:13px;color:#6B7280;margin-top:4px;">₩49,000 · 법적 효력 보장</div>
+                          <div style="font-size:13px;color:#6B7280;margin-top:4px;">₩168,000 · 법적 효력 보장</div>
                         </td>
                       </tr>
                       <tr><td style="height:8px;"></td></tr>

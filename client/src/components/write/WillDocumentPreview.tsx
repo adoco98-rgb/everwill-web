@@ -314,7 +314,7 @@ export default function WillDocumentPreview({ will }: Props) {
         <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mt-4">
           <p className="text-xs text-blue-700 leading-relaxed">
             <strong>법적 안내:</strong> 자필증서 유언(민법 제1066조)은 전문·날짜·주소·성명을 자필로 작성하고 날인해야 효력이 있습니다.
-            EverWill 전자인증(₩99,000)을 완료하면 블록체인 타임스탬프와 함께 법적 효력이 부여됩니다.
+            EverWill 전자인증(₩168,000)을 완료하면 블록체인 타임스탬프와 함께 법적 효력이 부여됩니다.
           </p>
         </div>
       </div>

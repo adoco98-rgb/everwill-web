@@ -5,7 +5,7 @@
  * 기준 환율: 1 USD = 1,400 KRW
  *
  * [새 가격 정책 2026.07]
- * - 전자 인증 ₩99,000 (모든 기능 포함, 수정 5회 무료, 카드 포함)
+ * - 전자 인증 ₩168,000 (모든 기능 포함, 수정 5회 무료, 카드 포함)
  * - 인증서 발급: ₩5,000
  * - 증인 선정: +₩30,000 (헬퍼 2명 화상 증인, 옵션)
  * - 수정 6회부터: ₩15,000/회
@@ -15,7 +15,7 @@ import { Language } from "@/i18n";
 
 // 한국 원화 기준 단품 가격
 export const KRW_PRICES = {
-  certification: 99000,       // 전자 인증 (모든 기능 포함)
+  certification: 168000,       // 전자 인증 (모든 기능 포함)
   certificateIssue: 5000,     // 인증서 발급
   witnessService: 30000,      // 증인 선정 (헬퍼 2명)
   modifyAfter5: 15000,        // 수정 6회부터
@@ -26,15 +26,15 @@ export const KRW_PRICES = {
 } as const;
 
 // 플랜별 원화 가격
-// cert: 전자인증 ₩99,000 (모든 기능 포함, 카드 포함)
-// plan3y: 3년 보관 ₩129,000 (골드 카드)
-// plan5y: 5년 보관 ₩159,000 (플래티넘 카드)
-// planLife: 영구 플랜 ₩199,000 (VIP)
+// cert: 전자인증 ₩168,000 (모든 기능 포함, 카드 포함)
+// plan3y: 3년 보관 ₩198,000 (골드 카드)
+// plan5y: 5년 보관 ₩228,000 (플래티넘 카드)
+// planLife: 영구 플랜 ₩268,000 (VIP)
 export const PLAN_KRW_PRICES = {
-  cert:     { baseFee: 99000, storageFee: 0, discount: 0, total: 99000  },
-  plan3y:   { baseFee: 99000, storageFee: 30000, discount: 0,     total: 129000  },
-  plan5y:   { baseFee: 99000, storageFee: 60000, discount: 0,     total: 159000  },
-  planLife: { baseFee: 99000, storageFee: 100000, discount: 0,    total: 199000 },
+  cert:     { baseFee: 168000, storageFee: 0, discount: 0, total: 168000  },
+  plan3y:   { baseFee: 168000, storageFee: 30000, discount: 0,     total: 198000  },
+  plan5y:   { baseFee: 168000, storageFee: 60000, discount: 0,     total: 228000  },
+  planLife: { baseFee: 168000, storageFee: 100000, discount: 0,    total: 268000 },
 } as const;
 
 // 기준 환율 (1 USD = KRW)

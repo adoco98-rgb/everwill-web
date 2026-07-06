@@ -252,7 +252,7 @@ export default function HeirsPage() {
                   {/* 요금 배지 */}
                   <Badge className="bg-[#C9A961]/10 text-[#C9A961] border border-[#C9A961]/30 text-xs">
                     <Banknote className="w-3 h-3 mr-1" />
-                    {heir.isExecutor === 1 ? "₩149,000" : heir.priority === 1 ? "₩99,000" : "₩99,000"}
+                    {heir.isExecutor === 1 ? "₩149,000" : heir.priority === 1 ? "₩168,000" : "₩168,000"}
                   </Badge>
                   {/* 열람 권한 배지 */}
                   <Badge variant="outline" className={`text-xs ${heir.accessLevel === "full" ? "border-green-400 text-green-600" : "border-gray-300 text-gray-500"}`}>

@@ -385,12 +385,12 @@ export default function DashboardHome() {
               icon: Shield,
               label: "인증 상태",
               value: certifiedWill ? "인증 완료" : assetVerifyStatus === "approved" ? "자산 인증 완료" : assetVerifyStatus === "submitted" ? "검토 중" : "미인증",
-              sub: certifiedWill ? `인증번호: ${certifiedWill.certNumber ?? "-"}` : assetVerifyStatus === "approved" ? "자산 인증이 완료되었습니다" : assetVerifyStatus === "submitted" ? "관리자 검토 중입니다" : "전자인증 ₩99,000",
+              sub: certifiedWill ? `인증번호: ${certifiedWill.certNumber ?? "-"}` : assetVerifyStatus === "approved" ? "자산 인증이 완료되었습니다" : assetVerifyStatus === "submitted" ? "관리자 검토 중입니다" : "전자인증 ₩168,000",
               status: certifiedWill || assetVerifyStatus === "approved" ? "done" : assetVerifyStatus === "submitted" ? "draft" : "pending",
               href: certifiedWill ? "/dashboard/wills" : "/dashboard/asset-verify",
             },
             { icon: CreditCard, label: "결제 내역", value: "0건", sub: "결제 내역 없음", status: "none", href: "/dashboard/payments" },
-            { icon: Award, label: "EverWill 카드", value: "미신청", sub: "실버 ₩99,000~", status: "none", href: "/payment" },
+            { icon: Award, label: "EverWill 카드", value: "미신청", sub: "실버 ₩168,000~", status: "none", href: "/payment" },
           ].map((card, i) => (
             <motion.div
               key={card.label}

@@ -265,7 +265,7 @@ const T: Record<Lang, TranslationData> = {
     revenue_title: "수익 모델",
     revenue_sub: "다층 수익 구조로 안정적인 성장",
     rev_pie_title: "수익 구성 비율",
-    rev_1: "전자 인증", rev_1_val: "₩99,000 / 건",
+    rev_1: "전자 인증", rev_1_val: "₩168,000 / 건",
     rev_2: "연 멤버십", rev_2_val: "₩29,000 / 년",
     rev_3: "카드 판매", rev_3_val: "전자인증 포함 ~ ₩199,000",
     rev_4: "변호사 수수료", rev_4_val: "보수의 15~25%",

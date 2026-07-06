@@ -17,7 +17,7 @@ const CARD_LINEUP = [
     id: "essential",
     tier: "Essential",
     tierKo: "에센셜",
-    price: 49000,
+    price: 168000,
     priceUsd: 49,
     material: "스테인레스 스틸",
     materialEn: "Stainless Steel",
@@ -32,7 +32,7 @@ const CARD_LINEUP = [
       "유언 인증 번호",
       "응급 의료 정보",
       "1년 보관 포함",
-      "전자인증(₩99,000)에 무료 포함",
+      "전자인증(₩168,000)에 무료 포함",
     ],
     desc: "처음 시작하는 분께 추천. 전자인증 구매 시 무료 제공.",
   },
@@ -40,7 +40,7 @@ const CARD_LINEUP = [
     id: "gold",
     tier: "Gold",
     tierKo: "골드",
-    price: 99000,
+    price: 168000,
     priceUsd: 99,
     material: "골드 코팅 스테인레스",
     materialEn: "Gold-Coated Stainless",
@@ -371,7 +371,7 @@ export default function NFCCardPage() {
               <div>
                 <p className="font-semibold text-[#1F3864] mb-1 text-sm">주문 방법 안내</p>
                 <ul className="text-xs text-gray-600 space-y-1">
-                  <li>• <strong>Essential 카드</strong>는 전자인증(₩99,000) 구매 시 <strong>무료 제공</strong>됩니다.</li>
+                  <li>• <strong>Essential 카드</strong>는 전자인증(₩168,000) 구매 시 <strong>무료 제공</strong>됩니다.</li>
                   <li>• Gold·Platinum·VIP 카드는 회원 가입 후 대시보드 → NFC 인증 카드 메뉴에서 주문 가능합니다.</li>
                   <li>• 카드 제작 후 배송까지 약 7~14 영업일 소요됩니다.</li>
                   <li>• 전 세계 배송 가능 (해외 배송비 별도)</li>

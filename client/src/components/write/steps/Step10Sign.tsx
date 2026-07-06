@@ -292,7 +292,7 @@ export default function Step10Sign({ will }: StepProps) {
   const isPremiumPlan = will.hasVideoWill && will.hasHandwrittenScan;
   const totalPrice = isPremiumPlan
     ? 69000
-    : 49000 + (will.hasVideoWill ? 29000 : 0) + (will.hasHandwrittenScan ? 19000 : 0);
+    : 168000 + (will.hasVideoWill ? 29000 : 0) + (will.hasHandwrittenScan ? 19000 : 0);
 
   // ── tRPC 뮤테이션 ──
   const idScanMutation = trpc.idScan.scanId.useMutation({
@@ -1429,7 +1429,7 @@ export default function Step10Sign({ will }: StepProps) {
                     <>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500">전자 인증 (최초)</span>
-                        <span className="font-semibold">₩99,000</span>
+                        <span className="font-semibold">₩168,000</span>
                       </div>
                       {will.hasVideoWill && (
                         <div className="flex justify-between text-sm">

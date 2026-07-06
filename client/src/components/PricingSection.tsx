@@ -1,5 +1,5 @@
 /**
- * EverWill 가격 섹션 - 단일 박스 통합 가격 (₩99,000)
+ * EverWill 가격 섹션 - 단일 박스 통합 가격 (₩168,000)
  * 모든 기능을 하나의 박스에 표시
  */
 import { motion } from "framer-motion";
@@ -112,7 +112,7 @@ export default function PricingSection() {
           <div className="text-center mb-8 pt-4">
             <div className="flex items-baseline justify-center gap-2 mb-2">
               <span className="text-5xl lg:text-6xl font-bold text-[#C9A961]">
-                {isKo ? "₩99,000" : "$79"}
+                {isKo ? "₩168,000" : "$79"}
               </span>
               <span className="text-white/50 text-lg">
                 {isKo ? "/ 1회" : "/ once"}
@@ -129,7 +129,7 @@ export default function PricingSection() {
           {/* 포함 기능 그리드 */}
           <div className="mb-8">
             <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4 text-center">
-              {isKo ? "₩99,000에 포함된 기능" : "Included Features"}
+              {isKo ? "₩168,000에 포함된 기능" : "Included Features"}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {includedFeatures.map((feat, i) => (

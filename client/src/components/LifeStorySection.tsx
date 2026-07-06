@@ -6,7 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 /**
  * Life Story 기능 소개 섹션
  * 홈페이지에 표시 — 기존 섹션 건드리지 않고 추가만 함
- * ₩99,000 이상 구매자 전용 기능 안내
+ * ₩168,000 이상 구매자 전용 기능 안내
  * 번역 키: t.lifeStory
  */
 

@@ -84,7 +84,7 @@ export const DEFAULT_PROMPTS: Record<string, {
 
 [EverWill 핵심 정보]
 - 세계 최초 디지털 유언 OS
-- 유언 작성 무료, 전자 인증 ₩49,000
+- 유언 작성 무료, 전자 인증 ₩168,000
 - 7개 언어 지원, 글로벌 서비스
 - 4중 사망 감지 시스템
 - EverWill NFC 인증 카드
@@ -92,7 +92,7 @@ export const DEFAULT_PROMPTS: Record<string, {
 [가격 안내]
 - 회원가입: 무료
 - AI 유언장 작성: 무료
-- 전자 인증: ₩49,000 (1회)
+- 전자 인증: ₩168,000 (1회)
 - 재인증: ₩15,000
 - 영상 유언: +₩29,000
 - 자필 스캔: +₩19,000

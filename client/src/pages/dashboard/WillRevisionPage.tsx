@@ -190,7 +190,7 @@ export default function WillRevisionPage() {
       <div className="mt-6 p-4 bg-[#1F3864]/5 rounded-xl border border-[#1F3864]/10">
         <p className="text-xs text-[#1F3864]/70 leading-relaxed">
           <strong>안내:</strong> 수정 후 유언장은 <strong>초안 상태</strong>로 변경됩니다.
-          법적 효력을 유지하려면 수정 완료 후 재인증(₩99,000)이 필요합니다.
+          법적 효력을 유지하려면 수정 완료 후 재인증(₩168,000)이 필요합니다.
         </p>
       </div>
     </div>

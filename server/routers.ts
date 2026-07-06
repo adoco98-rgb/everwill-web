@@ -102,7 +102,7 @@ export const appRouter = router({
   verification: verificationRouter,
   // 사이트 설정 (소셜 링크 등) 라우터
   siteSettings: siteSettingsRouter,
-  // Life Story (AI 일기·편지·인물앨범) — ₩99,000 이상 전용
+  // Life Story (AI 일기·편지·인물앨범) — ₩168,000 이상 전용
   lifeStory: lifeStoryRouter,
   // 음성 인식 (Whisper API)
   voice: voiceRouter,

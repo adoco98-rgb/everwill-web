@@ -9,7 +9,7 @@ export default function Step8Addons({ will, update }: StepProps) {
 
   // 현재 선택된 플랜 계산
   const isPremiumPlan = will.hasVideoWill && will.hasHandwrittenScan;
-  const totalPrice = 49000 + (will.hasVideoWill ? 29000 : 0) + (will.hasHandwrittenScan ? 19000 : 0);
+  const totalPrice = 168000 + (will.hasVideoWill ? 29000 : 0) + (will.hasHandwrittenScan ? 19000 : 0);
 
   return (
     <div className="space-y-5">
@@ -54,7 +54,7 @@ export default function Step8Addons({ will, update }: StepProps) {
             </div>
           </div>
           <div className="text-2xl font-bold text-[#1F3864] mb-3">
-            {isKo ? "₩99,000" : "$39"}
+            {isKo ? "₩168,000" : "$39"}
           </div>
           <ul className="space-y-1.5">
             {(isKo

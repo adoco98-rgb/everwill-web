@@ -228,7 +228,7 @@ function FeaturesSection({ data }: { data: CountryPageData }) {
 // ─── 가격 섹션 ───────────────────────────────────────────────────────────────
 // 국가별 통화에 따른 4개 플랜 가격 매핑
 const CURRENCY_PRICE_MAP: Record<string, { silver: string; gold: string; platinum: string; vip: string }> = {
-  KRW:     { silver: "₩99,000",    gold: "₩129,000",    platinum: "₩159,000",    vip: "₩199,000" },
+  KRW:     { silver: "₩168,000",    gold: "₩129,000",    platinum: "₩159,000",    vip: "₩199,000" },
   USD:     { silver: "$49",        gold: "$79",        platinum: "$99",        vip: "$199" },
   JPY:     { silver: "¥7,595",     gold: "¥12,245",    platinum: "¥15,345",    vip: "¥30,845" },
   EUR:     { silver: "€49",        gold: "€79",        platinum: "€99",        vip: "€199" },
@@ -329,7 +329,7 @@ function PricingSection({ data }: { data: CountryPageData }) {
             }
           </p>
           <p className="text-[#C9A961]/80 text-sm mt-2">
-            {data.currency === "KRW" ? "유언장 작성 무료 · 인증 ₩99,000 (모든 기능 포함)" : "Free to write · Certification from " + prices.silver + " (all features included)"}
+            {data.currency === "KRW" ? "유언장 작성 무료 · 인증 ₩168,000 (모든 기능 포함)" : "Free to write · Certification from " + prices.silver + " (all features included)"}
           </p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -411,7 +411,7 @@ function BadgeSection({ data }: { data: CountryPageData }) {
 
   // 국가별 Badge 가격 매핑
   const badgePriceMap: Record<string, { e: string; w: string; n: string; p: string }> = {
-    KRW:     { e: "₩59,000",  w: "₩99,000",  n: "₩129,000", p: "₩399,000" },
+    KRW:     { e: "₩59,000",  w: "₩168,000",  n: "₩129,000", p: "₩399,000" },
     USD:     { e: "$49",      w: "$79",      n: "$99",      p: "$299" },
     JPY:     { e: "¥7,800",   w: "¥12,500",  n: "¥15,800",  p: "¥47,500" },
     "HKD/TWD": { e: "HK$379",  w: "HK$609",  n: "HK$769",  p: "HK$2,299" },

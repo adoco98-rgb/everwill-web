@@ -3,9 +3,9 @@
  *
  * 등급 체계:
  * - general : 무료 (유언장 초안 작성, 기본 메뉴 탐색)
- * - silver  : ₩49,000 (전자 인증, 자산 등록, 상속인 등록, 건강증명서 업로드, 1년 보관)
+ * - silver  : ₩168,000 (전자 인증, 자산 등록, 상속인 등록, 건강증명서 업로드, 1년 보관)
  * - gold    : ₩79,000 (Silver + 영상 유언, 자필 스캔, 일기/편지, 3년 보관)
- * - platinum: ₩99,000 (Gold + 5년 보관, 수정 5회)
+ * - platinum: ₩168,000 (Gold + 5년 보관, 수정 5회)
  * - vip     : ₩199,000 (전체 + 영구 보관 + 무제한 수정)
  *
  * 업그레이드: 차액 + ₩5,000 수수료
@@ -14,9 +14,9 @@
 export type MemberGrade = "general" | "silver" | "gold" | "platinum" | "vip";
 
 export const GRADE_PRICES: Record<Exclude<MemberGrade, "general">, number> = {
-  silver: 49000,
+  silver: 168000,
   gold: 79000,
-  platinum: 99000,
+  platinum: 168000,
   vip: 199000,
 };
 
@@ -133,7 +133,7 @@ export const SARAM_PRODUCTS = {
   MEMBERSHIP_SILVER: {
     name: "EverWill 실버 멤버십",
     description: "전자 인증 · 자산 등록 · 상속인 등록 · 1년 보관",
-    amount: 49000,
+    amount: 168000,
     currency: "krw",
     key: "membership_silver",
     grade: "silver" as MemberGrade,
@@ -149,7 +149,7 @@ export const SARAM_PRODUCTS = {
   MEMBERSHIP_PLATINUM: {
     name: "EverWill 플래티넘 멤버십",
     description: "골드 전체 + 5년 보관 · 수정 5회",
-    amount: 99000,
+    amount: 168000,
     currency: "krw",
     key: "membership_platinum",
     grade: "platinum" as MemberGrade,

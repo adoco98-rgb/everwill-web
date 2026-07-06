@@ -61,11 +61,11 @@ const FORMATS = [
     ],
     cons: [
       "전자서명 인증 필요",
-      "최초 인증 비용 ₩99,000",
+      "최초 인증 비용 ₩168,000",
       "인터넷 환경 필요",
     ],
     everwillSolution: "EverWill 핵심 서비스. 10단계 마법사로 17분 만에 완성. PASS·카카오·네이버 인증서 지원.",
-    price: "₩99,000",
+    price: "₩168,000",
     priceNote: "전자 인증 (최초 1회)",
     recommended: true,
   },

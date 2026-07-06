@@ -10,7 +10,7 @@ const PLANS = [
   {
     name: "기본 플랜",
     badge: null,
-    price: "₩99,000",
+    price: "₩168,000",
     priceNote: "최초 1회",
     subPrice: "+ 재인증 ₩15,000",
     color: "border-gray-200",
@@ -55,19 +55,19 @@ const ADDONS = [
 ];
 
 const BADGES = [
-  { name: "Essential", material: "스테인레스 카드", price: "₩99,000", features: ["QR 코드", "NFC 내장", "응급 정보"] },
+  { name: "Essential", material: "스테인레스 카드", price: "₩168,000", features: ["QR 코드", "NFC 내장", "응급 정보"] },
   { name: "Wearable", material: "실리콘·티타늄 팔찌", price: "₩79,000", features: ["QR 코드", "NFC 내장", "방수"] },
-  { name: "Necklace", material: "스테인레스·로즈골드", price: "₩99,000", features: ["QR 코드", "NFC 내장", "고급 마감"] },
+  { name: "Necklace", material: "스테인레스·로즈골드", price: "₩168,000", features: ["QR 코드", "NFC 내장", "고급 마감"] },
   { name: "Premium", material: "티타늄·플래티넘", price: "₩299,000", features: ["QR 코드", "NFC 내장", "VIP 서비스"] },
 ];
 
 const COMPARE = [
   { feature: "유언장 작성", everwill: "무료", trustwill: "$199/년", farewill: "£90" },
-  { feature: "전자 인증", everwill: "₩99,000 (1회)", trustwill: "포함", farewill: "포함" },
+  { feature: "전자 인증", everwill: "₩168,000 (1회)", trustwill: "포함", farewill: "포함" },
   { feature: "재인증", everwill: "₩15,000", trustwill: "연 $299 멤버십", farewill: "연 £90" },
   { feature: "영상 유언", everwill: "+₩29,000", trustwill: "없음", farewill: "없음" },
   { feature: "자필 스캔 인증", everwill: "+₩19,000", trustwill: "없음", farewill: "없음" },
-  { feature: "NFC 인증 카드", everwill: "₩99,000~", trustwill: "없음", farewill: "없음" },
+  { feature: "NFC 인증 카드", everwill: "₩168,000~", trustwill: "없음", farewill: "없음" },
   { feature: "4중 사망 감지", everwill: "포함", trustwill: "없음", farewill: "없음" },
   { feature: "다국어 지원", everwill: "11개 언어 지원", trustwill: "영어만", farewill: "영어만" },
 ];
@@ -84,7 +84,7 @@ export default function PricingPage() {
           </div>
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
             유언 작성은 <span className="text-[#C9A961]">무료</span>,<br />
-            인증만 ₩99,000
+            인증만 ₩168,000
           </h1>
           <p className="text-white/70 text-lg">
             진입 장벽 없이 시작하고, 필요한 것만 선택하세요.

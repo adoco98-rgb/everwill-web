@@ -43,7 +43,7 @@ async function checkLifeStoryAccess(userId: number): Promise<boolean> {
 export const lifeStoryRouter = router({
   /**
    * 접근 권한 확인
-   * 로그인 여부 + ₩99,000 이상 구매 여부 반환
+   * 로그인 여부 + ₩168,000 이상 구매 여부 반환
    */
   checkAccess: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();
@@ -76,7 +76,7 @@ export const lifeStoryRouter = router({
     const userId = userRows[0].id;
 
     if (!(await checkLifeStoryAccess(userId))) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Badge Necklace (₩99,000) 이상 구매 시 이용 가능합니다." });
+      throw new TRPCError({ code: "FORBIDDEN", message: "Badge Necklace (₩168,000) 이상 구매 시 이용 가능합니다." });
     }
 
     return db.select().from(personProfiles).where(and(eq(personProfiles.userId, userId), eq(personProfiles.isActive, 1))).orderBy(desc(personProfiles.createdAt));
@@ -99,7 +99,7 @@ export const lifeStoryRouter = router({
       const userId = userRows[0].id;
 
       if (!(await checkLifeStoryAccess(userId))) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Badge Necklace (₩99,000) 이상 구매 시 이용 가능합니다." });
+        throw new TRPCError({ code: "FORBIDDEN", message: "Badge Necklace (₩168,000) 이상 구매 시 이용 가능합니다." });
       }
 
       // GPT-4 Vision으로 얼굴 특징 프롬프트 생성 (사진이 있을 경우)
@@ -167,7 +167,7 @@ export const lifeStoryRouter = router({
       const userId = userRows[0].id;
 
       if (!(await checkLifeStoryAccess(userId))) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Badge Necklace (₩99,000) 이상 구매 시 이용 가능합니다." });
+        throw new TRPCError({ code: "FORBIDDEN", message: "Badge Necklace (₩168,000) 이상 구매 시 이용 가능합니다." });
       }
 
       return db.select().from(lifeJournals).where(eq(lifeJournals.userId, userId)).orderBy(desc(lifeJournals.journalDate)).limit(input.limit).offset(input.offset);
@@ -190,7 +190,7 @@ export const lifeStoryRouter = router({
       const userId = userRows[0].id;
 
       if (!(await checkLifeStoryAccess(userId))) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Badge Necklace (₩99,000) 이상 구매 시 이용 가능합니다." });
+        throw new TRPCError({ code: "FORBIDDEN", message: "Badge Necklace (₩168,000) 이상 구매 시 이용 가능합니다." });
       }
 
       // 1. 등장 인물 얼굴 프롬프트 수집
@@ -288,7 +288,7 @@ export const lifeStoryRouter = router({
     const userId = userRows[0].id;
 
     if (!(await checkLifeStoryAccess(userId))) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Badge Necklace (₩99,000) 이상 구매 시 이용 가능합니다." });
+      throw new TRPCError({ code: "FORBIDDEN", message: "Badge Necklace (₩168,000) 이상 구매 시 이용 가능합니다." });
     }
 
     return db.select().from(legacyLetters).where(eq(legacyLetters.userId, userId)).orderBy(desc(legacyLetters.createdAt));
@@ -316,7 +316,7 @@ export const lifeStoryRouter = router({
       const userId = userRows[0].id;
 
       if (!(await checkLifeStoryAccess(userId))) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Badge Necklace (₩99,000) 이상 구매 시 이용 가능합니다." });
+        throw new TRPCError({ code: "FORBIDDEN", message: "Badge Necklace (₩168,000) 이상 구매 시 이용 가능합니다." });
       }
 
       await db.insert(legacyLetters).values({

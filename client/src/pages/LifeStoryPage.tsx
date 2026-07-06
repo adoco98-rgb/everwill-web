@@ -38,7 +38,7 @@ function VoiceInputWrapper({ onAppend, disabled }: { onAppend: (text: string) =>
 /**
  * Life Story 페이지
  * - 비로그인: 로그인 유도
- * - 로그인 + ₩99,000 구매자: 잠금 화면 + 업그레이드 유도
+ * - 로그인 + ₩168,000 구매자: 잠금 화면 + 업그레이드 유도
  * - 로그인 + ₩129,000 이상 구매자: 전체 기능 이용
  */
 

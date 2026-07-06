@@ -61,12 +61,12 @@ export const heirsRouter = router({
         .where(eq(heirs.userId, ctx.user.id));
       const priority = existingHeirs.length + 1;
 
-      // 요금 계산: 제1상속인 ₩99,000 / 집행자 ₩149,000 / 제2~N ₩49,000
-      let heirFee = 49000;
+      // 요금 계산: 제1상속인 ₩168,000 / 집행자 ₩149,000 / 제2~N ₩168,000
+      let heirFee = 168000;
       if (input.isExecutor === 1) {
         heirFee = 149000;
       } else if (priority === 1) {
-        heirFee = 99000;
+        heirFee = 168000;
       }
 
       // 집행자는 전체 열람 권한 자동 부여
@@ -333,8 +333,8 @@ export const heirsRouter = router({
           feeLabel: heir.isExecutor
             ? "₩149,000"
             : heir.priority === 1
-            ? "₩99,000"
-            : "₩49,000",
+            ? "₩168,000"
+            : "₩168,000",
         },
       };
     }),
