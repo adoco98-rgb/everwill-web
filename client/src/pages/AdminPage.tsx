@@ -2641,8 +2641,8 @@ function CountryPricingTab() {
 
   const fields = [
     { key: "certificationPrice", label: "최초 전자 인증 (Silver)" },
-    { key: "goldPrice", label: "Gold 카드 (3년 보관)" },
-    { key: "platinumPrice", label: "Platinum 카드 (5년 보관)" },
+    { key: "goldPrice", label: "Gold 카드 (영구 보관)" },
+    { key: "platinumPrice", label: "Platinum 카드 (영구 보관)" },
     { key: "vipPrice", label: "VIP 카드 (영구 보관)" },
     { key: "recertificationPrice", label: "재인증 (수정)" },
     { key: "videoWillPrice", label: "영상 유언" },

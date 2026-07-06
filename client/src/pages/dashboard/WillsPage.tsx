@@ -346,8 +346,8 @@ export default function WillsPage() {
       <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
         <p className="text-xs text-blue-700 leading-relaxed">
           <strong>수정 정책:</strong> 인증 완료된 유언장은 수정 시 재인증이 필요합니다.
-          • 전자 인증 기본: 무료 수정 1회 포함 • 전자 인증 프리미엄: 무료 수정 2회 포함 • 영구 보관: 무제한 무료 수정
-          무료 횟수 초과 시 수정 1회당 ₩5,000이 결제됩니다. 유언장은 EverWill 분산 암호화 보관 시스템에 안전하게 저장됩니다.
+          • 전자 인증 기본: 무료 수정 10회 포함 • 전자 인증 프리미엄: 무료 수정 10회 포함 • 영구 보관: 무제한 무료 수정
+          무료 횟수 초과 시 수정 1회당 ₩15,000이 결제됩니다. 유언장은 EverWill 분산 암호화 보관 시스템에 안전하게 저장됩니다.
         </p>
       </div>
 

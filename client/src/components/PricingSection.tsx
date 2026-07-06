@@ -44,7 +44,7 @@ export default function PricingSection() {
     { icon: FileCheck, label: "eKYC 본인인증 + 전자서명" },
     { icon: Lock, label: "블록체인 해시 + RFC 3161 타임스탬프" },
     { icon: Clock, label: "유언장 보관 (1년 포함)" },
-    { icon: RefreshCw, label: "수정 5회 무료" },
+    { icon: RefreshCw, label: "수정 10회 무료" },
     { icon: Shield, label: "NFC 인증 카드 발급" },
     { icon: Globe, label: "QR 신원 인증 + 사망 트리거" },
     { icon: Video, label: "영상 유언 녹화 지원" },

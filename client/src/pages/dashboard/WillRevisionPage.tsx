@@ -1,7 +1,7 @@
 /**
  * 유언장 수정 게이트 페이지 (/dashboard/wills/:willId/revise)
  * - 인증 완료된 유언장 수정 시 진입
- * - 무료 수정 횟수 확인 → 무료면 바로 수정, 유료면 ₩5,000 결제 후 수정
+ * - 무료 수정 횟수 확인 → 무료면 바로 수정, 유료면 ₩15,000 결제 후 수정
  */
 import { useState } from "react";
 import { useRoute, useLocation } from "wouter";
@@ -138,7 +138,7 @@ export default function WillRevisionPage() {
             <div>
               <p className="text-sm font-semibold text-amber-800">무료 수정 횟수를 모두 사용하셨습니다.</p>
               <p className="text-xs text-amber-700 mt-1">
-                이번 수정은 <strong>₩5,000</strong>이 결제됩니다.
+                이번 수정은 <strong>₩15,000</strong>이 결제됩니다.
                 결제 완료 후 수정 페이지로 이동합니다.
               </p>
             </div>
@@ -152,7 +152,7 @@ export default function WillRevisionPage() {
             {isCheckingOut ? (
               <><Loader2 className="w-4 h-4 animate-spin" />결제 중...</>
             ) : (
-              <><CreditCard className="w-4 h-4" />₩5,000 결제 후 수정하기</>
+              <><CreditCard className="w-4 h-4" />₩15,000 결제 후 수정하기</>
             )}
           </Button>
 

@@ -3,9 +3,9 @@
  *
  * 등급 체계:
  * - general : 무료 (유언장 초안 작성, 기본 메뉴 탐색)
- * - silver  : ₩168,000 (전자 인증, 자산 등록, 상속인 등록, 건강증명서 업로드, 1년 보관)
- * - gold    : ₩79,000 (Silver + 영상 유언, 자필 스캔, 일기/편지, 3년 보관)
- * - platinum: ₩168,000 (Gold + 5년 보관, 수정 5회)
+ * - silver  : ₩168,000 (전자 인증, 자산 등록, 상속인 등록, 건강증명서 업로드, 영구 보관)
+ * - gold    : ₩79,000 (Silver + 영상 유언, 자필 스캔, 일기/편지, 영구 보관)
+ * - platinum: ₩168,000 (Gold + 영구 보관, 수정 10회)
  * - vip     : ₩199,000 (전체 + 영구 보관 + 무제한 수정)
  *
  * 업그레이드: 차액 + ₩5,000 수수료
@@ -33,8 +33,8 @@ export const GRADE_FEATURES: Record<MemberGrade, string[]> = {
     "자산 등록 (부동산·금융·기타)",
     "상속인 등록 및 저장",
     "건강증명서 업로드",
-    "유언장 수정 2회 무료",
-    "1년 보관",
+    "유언장 수정 10회 무료",
+    "영구 보관",
   ],
   gold: [
     "Silver 전체 포함",
@@ -42,13 +42,13 @@ export const GRADE_FEATURES: Record<MemberGrade, string[]> = {
     "자필 유언장 스캔 인증",
     "AI 일기 (Life Story)",
     "가족 편지 서비스",
-    "유언장 수정 3회 무료",
-    "3년 보관",
+    "유언장 수정 10회 무료",
+    "영구 보관",
   ],
   platinum: [
     "Gold 전체 포함",
-    "유언장 수정 5회 무료",
-    "5년 보관",
+    "유언장 수정 10회 무료",
+    "영구 보관",
     "공식 인증 통합 문서 발급 1회 무료",
   ],
   vip: [
@@ -125,14 +125,14 @@ export function calcUpgradeCost(
       : (GRADE_PRICES[currentGrade as Exclude<MemberGrade, "general">] ?? 0);
   const targetPrice = GRADE_PRICES[targetGrade];
   const diff = Math.max(0, targetPrice - currentPrice);
-  return diff + 5000;
+  return diff + 15000;
 }
 
 /** Stripe 결제 상품 정의 */
 export const SARAM_PRODUCTS = {
   MEMBERSHIP_SILVER: {
     name: "EverWill 실버 멤버십",
-    description: "전자 인증 · 자산 등록 · 상속인 등록 · 1년 보관",
+    description: "전자 인증 · 자산 등록 · 상속인 등록 · 영구 보관",
     amount: 168000,
     currency: "krw",
     key: "membership_silver",
@@ -140,7 +140,7 @@ export const SARAM_PRODUCTS = {
   },
   MEMBERSHIP_GOLD: {
     name: "EverWill 골드 멤버십",
-    description: "실버 전체 + 영상 유언 · 자필 스캔 · 일기/편지 · 3년 보관",
+    description: "실버 전체 + 영상 유언 · 자필 스캔 · 일기/편지 · 영구 보관",
     amount: 79000,
     currency: "krw",
     key: "membership_gold",
@@ -148,7 +148,7 @@ export const SARAM_PRODUCTS = {
   },
   MEMBERSHIP_PLATINUM: {
     name: "EverWill 플래티넘 멤버십",
-    description: "골드 전체 + 5년 보관 · 수정 5회",
+    description: "골드 전체 + 영구 보관 · 수정 10회",
     amount: 168000,
     currency: "krw",
     key: "membership_platinum",

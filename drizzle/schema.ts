@@ -237,8 +237,8 @@ export const wills = mysqlTable("wills", {
   blockchainHash: varchar("blockchainHash", { length: 128 }),
   /** 유언장 고유 인증 번호 (EW-YYYYMMDD-XXXXXX) */
   certNumber: varchar("certNumber", { length: 32 }).unique(),
-  /** 플랜별 무료 수정 가능 횟수 (1=기본, 2=프리미엄, -1=영구보관 무제한) */
-  freeRevisionCount: int("freeRevisionCount").default(1).notNull(),
+  /** 플랜별 무료 수정 가능 횟수 (10=기본, -1=무제한) */
+  freeRevisionCount: int("freeRevisionCount").default(10).notNull(),
   /** 사용한 무료 수정 횟수 */
   usedFreeRevisions: int("usedFreeRevisions").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

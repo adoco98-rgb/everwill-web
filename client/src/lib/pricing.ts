@@ -5,10 +5,10 @@
  * 기준 환율: 1 USD = 1,400 KRW
  *
  * [새 가격 정책 2026.07]
- * - 전자 인증 ₩168,000 (모든 기능 포함, 수정 5회 무료, 카드 포함)
+ * - 전자 인증 ₩168,000 (모든 기능 포함, 수정 10회 무료, 카드 포함, 영구 보관)
  * - 인증서 발급: ₩5,000
  * - 증인 선정: +₩30,000 (헬퍼 2명 화상 증인, 옵션)
- * - 수정 6회부터: ₩15,000/회
+ * - 수정 11회부터: ₩15,000/회
  */
 
 import { Language } from "@/i18n";
@@ -18,8 +18,8 @@ export const KRW_PRICES = {
   certification: 168000,       // 전자 인증 (모든 기능 포함)
   certificateIssue: 5000,     // 인증서 발급
   witnessService: 30000,      // 증인 선정 (헬퍼 2명)
-  modifyAfter5: 15000,        // 수정 6회부터
-  storageAnnual: 15000,       // 1년 연장 보관료 (1년 후 매년)
+  modifyAfter10: 15000,       // 수정 11회부터
+  // storageAnnual 삭제 — 영구 보관으로 변경
   handwrittenScan: 15000,     // 자필 유언서 스캔 인증 (별도 옵션)
   videoWill: 19000,           // 영상 유언 (별도 옵션)
   lawyerConsult: 30000,       // 변호사 생전 자문 (최소)
@@ -153,13 +153,13 @@ export function formatPriceFromDB(
 export function getPrices(lang: Language) {
   return {
     certification: formatPrice(KRW_PRICES.certification, lang),
-    storageAnnual: formatPrice(KRW_PRICES.storageAnnual, lang),
+    storageAnnual: isKorean(lang) ? "영구 보관 (무료)" : "Lifetime (Free)",
     handwrittenScan: formatPrice(KRW_PRICES.handwrittenScan, lang),
     videoWill: formatPrice(KRW_PRICES.videoWill, lang),
     lawyerConsult: formatPrice(KRW_PRICES.lawyerConsult, lang),
     // 숫자만 (UI 표시용)
     certificationNum: getPriceNumber(KRW_PRICES.certification, lang),
-    storageAnnualNum: getPriceNumber(KRW_PRICES.storageAnnual, lang),
+    storageAnnualNum: 0,
     symbol: getCurrencySymbol(lang),
     currency: getCurrencyName(lang),
   };

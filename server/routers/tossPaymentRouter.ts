@@ -24,9 +24,9 @@ function getTossAuthHeader() {
 
 /** 상품 코드 → 금액 매핑 */
 const PRODUCT_PRICES: Record<string, { amount: number; name: string }> = {
-  cert_basic: { amount: 168000, name: "EverWill 전자인증 (1년 보관)" },
-  cert_gold: { amount: 79000, name: "EverWill 전자인증 Gold (3년 보관)" },
-  cert_platinum: { amount: 168000, name: "EverWill 전자인증 Platinum (5년 보관)" },
+  cert_basic: { amount: 168000, name: "EverWill 전자인증 (영구 보관)" },
+  cert_gold: { amount: 79000, name: "EverWill 전자인증 Gold (영구 보관)" },
+  cert_platinum: { amount: 168000, name: "EverWill 전자인증 Platinum (영구 보관)" },
   cert_vip: { amount: 199000, name: "EverWill 전자인증 VIP (영구 보관)" },
   cert_renewal: { amount: 15000, name: "EverWill 유언장 재인증" },
   video_will: { amount: 29000, name: "EverWill 영상 유언장" },

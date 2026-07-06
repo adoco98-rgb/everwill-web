@@ -508,7 +508,7 @@ ${input.currentData ? JSON.stringify(input.currentData, null, 2) : "없음"}
         remainingFree,
         isUnlimited,
         needsPayment,
-        planLabel: freeCount === -1 ? "영구보관 (무제한)" : freeCount === 2 ? "프리미엄 (2회)" : "기본 (1회)",
+        planLabel: freeCount === -1 ? "영구보관 (무제한)" : `기본 (${freeCount}회)`,
       };
     }),
 
@@ -541,7 +541,7 @@ ${input.currentData ? JSON.stringify(input.currentData, null, 2) : "없음"}
       const needsPayment = !isUnlimited && remainingFree === 0;
 
       if (needsPayment && !input.stripeSessionId) {
-        throw new Error("무료 수정 횟수를 모두 사용하셨습니다. 수정하려면 ₩5,000이 결제됩니다.");
+        throw new Error("무료 수정 횟수를 모두 사용하셨습니다. 수정하려면 ₩15,000이 결제됩니다.");
       }
 
       const title = input.title || w.title || `유언장 ${new Date().toLocaleDateString("ko-KR")}`;
@@ -552,7 +552,7 @@ ${input.currentData ? JSON.stringify(input.currentData, null, 2) : "없음"}
           willId: input.willId,
           userId: ctx.user.id,
           stripeSessionId: input.stripeSessionId,
-          amount: 5000,
+          amount: 15000,
           status: "completed",
         });
       }
