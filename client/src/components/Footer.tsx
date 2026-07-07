@@ -29,27 +29,15 @@ export default function Footer() {
     footer_company_name_visible: "true",
   };
 
-  const serviceLinks = [
-    t.services.s1Title,
-    t.services.s8Title,
-    t.services.s2Title,
-    t.services.s3Title,
-    t.badge.title,
-  ];
 
   const companyLinks = [
     t.footer.company,
-    "Blog",
-    t.footer.services,
     "Partnership",
-    "Press",
   ];
 
   const legalLinks = [
     t.footer.terms,
     t.footer.privacy,
-    t.footer.legal,
-    t.footer.disclaimer,
   ];
 
   return (
@@ -57,7 +45,7 @@ export default function Footer() {
       {/* Footer */}
       <footer className="bg-[#0f1e36] text-white/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
             {/* 브랜드 - 모바일에서 전체 너비 */}
             <div className="col-span-1 sm:col-span-2">
               <div className="flex items-center gap-2 mb-4">
@@ -98,22 +86,7 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* 서비스 */}
-            <div>
-              <h4 className="text-white font-semibold mb-4 text-sm">{t.footer.services}</h4>
-              <ul className="space-y-2 text-sm">
-                {serviceLinks.map((item) => (
-                  <li key={item}>
-                    <button
-                      onClick={() => toast.info("준비 중입니다")}
-                      className="hover:text-[#C9A961] transition-colors text-left"
-                    >
-                      {item}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+
 
             {/* 회사 */}
             <div>
