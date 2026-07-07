@@ -188,6 +188,15 @@ export default function Navbar() {
 
   const handleNavClick = (href: string) => {
     setMobileOpen(false);
+    // 현재 홈 페이지가 아니면 홈으로 이동 후 스크롤
+    if (location !== "/") {
+      navigate("/");
+      setTimeout(() => {
+        const el = document.querySelector(href);
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }, 300);
+      return;
+    }
     const el = document.querySelector(href);
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
@@ -201,9 +210,9 @@ export default function Navbar() {
   const navLinks = [
     { label: t.nav.services, href: "#services" },
     { label: t.nav.global, href: "#global" },
-    { label: t.nav.lawyers, href: "#lawyers" },
+    { label: t.nav.lawyers, href: "#heir-service" },
     { label: t.nav.pricing, href: "#pricing" },
-    { label: t.nav.badge, href: "/card" },
+    { label: t.nav.badge, href: "/card", isPage: true },
     { label: t.nav.taxCalc, href: "/tax", isPage: true },
     { label: t.nav.letter ?? "사회기부", href: "/charity", isPage: true },
     { label: "Life Story", href: "/life-story", isPage: true, isPremium: true },
