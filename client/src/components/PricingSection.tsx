@@ -51,12 +51,7 @@ export default function PricingSection() {
     { icon: Award, label: "사후 집행 지원 (상속자 자동 알림)" },
   ];
 
-  /* 추가 옵션 */
-  const addOns = [
-    { label: "인증서 발급", price: "₩5,000", desc: "PDF/출력용 공식 인증서" },
-    { label: "증인 선정", price: "+₩39,000", desc: "헬퍼 증인 2명 화상 확인 (옵션)" },
-    { label: "수정 (11회~)", price: "₩15,000/회", desc: "11회째 수정부터 유료" },
-  ];
+
 
   return (
     <section id="pricing" className="py-20 lg:py-28 navy-gradient relative overflow-hidden" ref={ref}>
