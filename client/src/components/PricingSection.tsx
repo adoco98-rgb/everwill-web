@@ -43,7 +43,7 @@ export default function PricingSection() {
   const includedFeatures = [
     { icon: FileCheck, label: "eKYC 본인인증 + 전자서명" },
     { icon: Lock, label: "블록체인 해시 + RFC 3161 타임스탬프" },
-    { icon: Clock, label: "유언장 보관 (1년 포함)" },
+    { icon: Clock, label: "유언장 영구 보관" },
     { icon: RefreshCw, label: "수정 10회 무료" },
     { icon: Shield, label: "NFC 인증 카드 발급" },
     { icon: Globe, label: "QR 신원 인증 + 사망 트리거" },
@@ -54,8 +54,8 @@ export default function PricingSection() {
   /* 추가 옵션 */
   const addOns = [
     { label: "인증서 발급", price: "₩5,000", desc: "PDF/출력용 공식 인증서" },
-    { label: "증인 선정", price: "+₩30,000", desc: "헬퍼 증인 2명 화상 확인 (옵션)" },
-    { label: "수정 (6회~)", price: "₩15,000/회", desc: "6회째 수정부터 유료" },
+    { label: "증인 선정", price: "+₩39,000", desc: "헬퍼 증인 2명 화상 확인 (옵션)" },
+    { label: "수정 (11회~)", price: "₩15,000/회", desc: "11회째 수정부터 유료" },
   ];
 
   return (
