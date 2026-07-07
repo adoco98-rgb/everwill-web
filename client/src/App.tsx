@@ -75,6 +75,8 @@ import TossPaymentSuccess from "./pages/TossPaymentSuccess";
 import TossPaymentFail from "./pages/TossPaymentFail";
 import VideoWillPage from "./pages/VideoWillPage";
 import MyAIPage from "./pages/MyAIPage";
+import ReserveShareExclusionPage from "./pages/dashboard/ReserveShareExclusionPage";
+import ReserveShareVideoPage from "./pages/dashboard/ReserveShareVideoPage";
 import { ChatbotWidget } from "./components/ChatbotWidget";
 import { LanguageProvider } from "./contexts/LanguageContext";
 
@@ -127,6 +129,10 @@ function Router() {
       <Route path={"/dashboard/will-wizard"} component={() => <SaramDashboardLayout><WillWizardPage /></SaramDashboardLayout>} />
       {/* 유언인증서 신청·발급 */}
       <Route path={"/dashboard/will-certificate"} component={() => <SaramDashboardLayout><WillCertificatePage /></SaramDashboardLayout>} />
+      {/* 유류분 배제 문서 */}
+      <Route path={"/dashboard/reserve-share-exclusion"} component={() => <SaramDashboardLayout><ReserveShareExclusionPage /></SaramDashboardLayout>} />
+      {/* 유류분 영상 증언 */}
+      <Route path={"/dashboard/reserve-share-video"} component={() => <SaramDashboardLayout><ReserveShareVideoPage /></SaramDashboardLayout>} />
       {/* 휴대폰 인증 */}
       <Route path={"/dashboard/phone-verify"} component={() => <SaramDashboardLayout><PhoneVerifyPage /></SaramDashboardLayout>} />
       {/* 상속세 계산기 (대시보드 전용) */}

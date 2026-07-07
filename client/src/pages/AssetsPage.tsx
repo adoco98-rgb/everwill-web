@@ -2,7 +2,7 @@
  * 재산 등록 관리 페이지 (/assets)
  * 회원가입 후 자산과 상속자를 등록하면 유언장 작성 시 자동으로 불러와짐
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
@@ -164,7 +164,33 @@ export default function AssetsPage() {
   const [scanPreview, setScanPreview] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<any | null>(null);
   const [showScanPanel, setShowScanPanel] = useState(false);
-  const scanFileInputRef = useRef<HTMLInputElement>(null);
+    const scanFileInputRef = useRef<HTMLInputElement>(null);
+
+  // ── 임시저장: 자산 폼 상태 복원 ──
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("everwill_asset_form_draft");
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data.assetForm) setAssetForm(data.assetForm);
+        if (data.scanDocType) setScanDocType(data.scanDocType);
+        if (data.showAssetForm) setShowAssetForm(true);
+      }
+    } catch { /* 무시 */ }
+  }, []);
+
+  // 임시저장: 자산 폼 변경 시 자동 저장
+  useEffect(() => {
+    if (assetForm.name || assetForm.estimatedValueRaw) {
+      try {
+        localStorage.setItem("everwill_asset_form_draft", JSON.stringify({
+          assetForm,
+          scanDocType,
+          showAssetForm,
+        }));
+      } catch { /* 무시 */ }
+    }
+  }, [assetForm, scanDocType, showAssetForm]);
 
   const utils = trpc.useUtils();
 

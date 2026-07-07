@@ -29,7 +29,7 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import {
@@ -121,9 +121,21 @@ export default function WillCertificatePage() {
   const [previewZoom, setPreviewZoom] = useState(100);
 
   // 첨부파일 업로드 상태
-  const [uploadCategory, setUploadCategory] = useState("real_estate");
-  const [uploadDescription, setUploadDescription] = useState("");
+  const [uploadCategory, setUploadCategory] = useState(() => {
+    try { return localStorage.getItem("everwill_cert_upload_category") || "real_estate"; } catch { return "real_estate"; }
+  });
+  const [uploadDescription, setUploadDescription] = useState(() => {
+    try { return localStorage.getItem("everwill_cert_upload_desc") || ""; } catch { return ""; }
+  });
   const [isUploading, setIsUploading] = useState(false);
+
+  // 임시저장 (카테고리/설명 변경 시 자동)
+  useEffect(() => {
+    try {
+      localStorage.setItem("everwill_cert_upload_category", uploadCategory);
+      localStorage.setItem("everwill_cert_upload_desc", uploadDescription);
+    } catch { /* 무시 */ }
+  }, [uploadCategory, uploadDescription]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 인증 완료된 유언장 목록

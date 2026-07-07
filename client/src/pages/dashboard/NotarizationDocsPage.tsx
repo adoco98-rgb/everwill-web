@@ -143,9 +143,42 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
+const NOTARIZE_DRAFT_KEY = "everwill_notarization_docs_draft";
+
 export default function NotarizationDocsPage() {
   const [uploadedDocs, setUploadedDocs] = useState<Record<string, UploadedDoc>>({});
   const [expandedSection, setExpandedSection] = useState<string | null>("testator");
+
+  // 임시저장 불러오기
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(NOTARIZE_DRAFT_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (data.uploadedDocs && Object.keys(data.uploadedDocs).length > 0) {
+          // previewUrl은 blob URL이므로 복원 불가 → 제거
+          const cleaned: Record<string, UploadedDoc> = {};
+          for (const [k, v] of Object.entries(data.uploadedDocs)) {
+            cleaned[k] = { ...(v as UploadedDoc), previewUrl: undefined };
+          }
+          setUploadedDocs(cleaned);
+        }
+      }
+    } catch { /* 무시 */ }
+  }, []);
+
+  // 임시저장 (업로드 상태 변경 시 자동)
+  useEffect(() => {
+    if (Object.keys(uploadedDocs).length === 0) return;
+    try {
+      const toSave: Record<string, any> = {};
+      for (const [k, v] of Object.entries(uploadedDocs)) {
+        // blob URL은 저장 불가
+        toSave[k] = { ...v, previewUrl: undefined };
+      }
+      localStorage.setItem(NOTARIZE_DRAFT_KEY, JSON.stringify({ uploadedDocs: toSave, savedAt: new Date().toISOString() }));
+    } catch { /* 무시 */ }
+  }, [uploadedDocs]);
   // 미리보기 모달 상태
   const [previewModal, setPreviewModal] = useState<{ docId: string; url: string; name: string } | null>(null);
   // 제출 전 미리보기 상태 (이미지 파일 선택 직후)

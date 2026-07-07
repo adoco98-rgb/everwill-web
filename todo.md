@@ -918,3 +918,10 @@
 - [x] DB 스키마에 elderly_poverty/elderly_biz/elderly_care/elderly_health/elderly_culture enum 추가
 - [x] charityRouter.ts 카테고리 목록 업데이트
 - [x] DB 마이그레이션 적용 완료
+
+## 유류분 배제 문서 + 영상 증언 메뉴 추가
+- [ ] 대시보드 메뉴에 "유류분 배제 문서" 메뉴 추가
+- [ ] 유류분 배제 문서 페이지 생성 (기본 양식 + 자동 채움 + 빈칸 입력)
+- [ ] 대시보드 메뉴에 "유류분 영상 증언" 메뉴 추가
+- [ ] 유류분 영상 증언 페이지 생성
+- [ ] 모든 서류 업로드 시 임시저장 기능 추가
