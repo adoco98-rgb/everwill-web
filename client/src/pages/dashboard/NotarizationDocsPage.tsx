@@ -24,6 +24,8 @@ import {
   ShieldAlert,
   ShieldX,
   AlertTriangle,
+  Users,
+  Briefcase,
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -128,6 +130,54 @@ const SECTIONS: DocumentSection[] = [
         description: "인감증명서에 등록된 인감도장 날인 이미지",
         required: false,
         needsPreview: true,
+      },
+    ],
+  },
+  {
+    id: "beneficiary",
+    title: "수증자 (상속받는 자)",
+    subtitle: "상속인 본인 확인용",
+    icon: Users,
+    color: "text-green-700",
+    bgColor: "bg-green-50",
+    documents: [
+      {
+        id: "beneficiary_resident",
+        name: "주민등록등본",
+        description: "상속인의 현재 주소지 확인 (1통)",
+        required: true,
+        helpLink: { label: "정부24에서 발급", url: "https://www.gov.kr/mw/SS/PUBR/insertPublicForm.do?formId=CERT_RESIDENT" },
+      },
+    ],
+  },
+  {
+    id: "executor",
+    title: "유언집행자",
+    subtitle: "수증자 겸 가능",
+    icon: Briefcase,
+    color: "text-purple-700",
+    bgColor: "bg-purple-50",
+    documents: [
+      {
+        id: "executor_family_cert",
+        name: "가족관계증명서",
+        description: "유언집행자의 가족관계 확인 (1통)",
+        required: true,
+        helpLink: { label: "정부24에서 발급", url: "https://www.gov.kr/mw/SS/PUBR/insertPublicForm.do?formId=CERT_FAMILY" },
+      },
+      {
+        id: "executor_basic_cert",
+        name: "기본증명서",
+        description: "유언집행자의 기본 신분사항 확인 (1통)",
+        required: true,
+        helpLink: { label: "정부24에서 발급", url: "https://www.gov.kr/mw/SS/PUBR/insertPublicForm.do?formId=CERT_BASIC" },
+      },
+      {
+        id: "executor_resident",
+        name: "주민등록등본",
+        description: "유언집행자의 현재 주소지 확인 (1통)",
+        required: true,
+        helpLink: { label: "정부24에서 발급", url: "https://www.gov.kr/mw/SS/PUBR/insertPublicForm.do?formId=CERT_RESIDENT" },
       },
     ],
   },
@@ -639,8 +689,19 @@ export default function NotarizationDocsPage() {
             <li>인감증명서는 발급일로부터 3개월 이내 것만 유효합니다.</li>
             <li>가족관계증명서·기본증명서는 "상세" 버전으로 발급해주세요.</li>
             <li>신분증 사본은 글자와 사진이 선명하게 보여야 합니다.</li>
+            <li>주민등록번호 듷자리까지 모두 나오도록 발급해주세요. (등기사항전부증명서 제외)</li>
+            <li>모든 서류는 반드시 <strong>원본</strong>을 스캔해야 합니다. (열람용 불가)</li>
+            <li>전자인감증명서 제출 시: 공증 + 법무법인한미 제출용 + 자필서명 기재 필수</li>
             <li>업로드된 서류는 암호화되어 안전하게 보관됩니다.</li>
           </ul>
+          <div className="mt-3 pt-3 border-t border-amber-200">
+            <p className="font-semibold text-xs text-amber-800 mb-1">증인 및 유언집행자 자격 제한</p>
+            <ul className="text-xs text-amber-700 space-y-1 list-disc list-inside">
+              <li>미성년자는 증인 및 유언집행자가 될 수 없습니다.</li>
+              <li>증인은 친인체 불가 (이해관계 없어야 함)</li>
+              <li>금치산자, 한정치산자, 한정후견인, 성년후견인은 불가</li>
+            </ul>
+          </div>
         </div>
       </div>
 
