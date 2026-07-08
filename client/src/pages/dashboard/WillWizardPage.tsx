@@ -461,7 +461,7 @@ export default function WillWizardPage() {
             <div className="bg-amber-50 border-t border-amber-100 px-6 py-3">
               <p className="text-xs text-amber-700 leading-relaxed">
                 <strong>유의사항:</strong> 현재 유언장은 초안 상태입니다.
-                전자유언인증을 완료해야 안전하게 보관되며 진정성이 증명됩니다.
+                전자유언인증을 완료해야 효력이 강화됩니다.
               </p>
             </div>
           </div>
@@ -473,10 +473,10 @@ export default function WillWizardPage() {
                 <ShieldCheck className="w-6 h-6 text-[#C9A961]" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-lg mb-2">전자유언인증으로 안전하게 보관</h3>
+                <h3 className="font-bold text-lg mb-2">전자유언인증으로 효력이 강화됩니다</h3>
                 <p className="text-white/70 text-sm leading-relaxed mb-4">
                   EverWill 전자유언인증을 완료하면 블록체인 타임스탬프와 함께 유언장이 안전하게 보관되며,
-                  사후 집행 시 유언장의 진정성을 증명하는 중요한 근거 자료로 활용됩니다.
+                  사후 집행 시 유언장의 효력이 강화됩니다.
                 </p>
 
                 {/* 인증 절차 안내 */}
