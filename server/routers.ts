@@ -40,6 +40,7 @@ import { consultationRouter } from "./routers/consultationRouter";
 import { attachmentRouter } from "./routers/attachmentRouter";
 import { countryPricingRouter } from "./routers/countryPricingRouter";
 import { docAnalyzeRouter } from "./routers/docAnalyzeRouter";
+import { profileRouter } from "./routers/profileRouter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -132,6 +133,8 @@ export const appRouter = router({
   countryPricing: countryPricingRouter,
   // 공증서류 AI 분석 (선명도·서류종류·유효기간·필수항목)
   docAnalyze: docAnalyzeRouter,
+  // 프로필 기본정보 저장 (유언 작성 1단계)
+  profile: profileRouter,
 });
 
 export type AppRouter = typeof appRouter;

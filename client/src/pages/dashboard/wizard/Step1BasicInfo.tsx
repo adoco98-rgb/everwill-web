@@ -1,7 +1,7 @@
 /**
  * 1단계: 기본정보 확인
  * 소셜 로그인 / 회원가입 시 입력된 정보를 자동으로 보여주고
- * 부족한 정보만 추가 입력하도록 함
+ * 부족한 정보만 추가 입력 → DB에 영구 저장
  */
 import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -17,6 +17,7 @@ import {
   AlertCircle,
   Edit3,
   Search,
+  Loader2,
 } from "lucide-react";
 
 interface Props {
@@ -24,7 +25,7 @@ interface Props {
 }
 
 export default function Step1BasicInfo({ onComplete }: Props) {
-  const { user } = useAuth();
+  const { user, refresh } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -35,9 +36,33 @@ export default function Step1BasicInfo({ onComplete }: Props) {
     email: "",
   });
 
-  // 사용자 정보 자동 채움
+  // DB에서 기본정보 조회
+  const { data: profileData, isLoading: profileLoading } = trpc.profile.getBasicInfo.useQuery();
+
+  // 저장 mutation
+  const saveMutation = trpc.profile.saveBasicInfo.useMutation({
+    onSuccess: () => {
+      toast.success("기본정보가 저장되었습니다.");
+      setIsEditing(false);
+      refresh(); // auth 상태 갱신
+    },
+    onError: (err) => {
+      toast.error(err.message || "저장에 실패했습니다.");
+    },
+  });
+
+  // DB 데이터 또는 auth user 데이터로 폼 초기화
   useEffect(() => {
-    if (user) {
+    if (profileData) {
+      setForm({
+        name: profileData.name || "",
+        phone: profileData.phone || "",
+        address: profileData.address || "",
+        addressDetail: profileData.addressDetail || "",
+        birthDate: profileData.birthDate || "",
+        email: profileData.email || "",
+      });
+    } else if (user) {
       setForm({
         name: (user as any).name || "",
         phone: (user as any).phone || "",
@@ -47,7 +72,7 @@ export default function Step1BasicInfo({ onComplete }: Props) {
         email: (user as any).email || "",
       });
     }
-  }, [user]);
+  }, [profileData, user]);
 
   // 필수 항목 체크
   const isNameFilled = form.name.trim().length > 0;
@@ -82,16 +107,55 @@ export default function Step1BasicInfo({ onComplete }: Props) {
     }).open();
   }
 
-  // 정보 확인 완료
+  // 정보 저장 (DB에 영구 저장)
+  const handleSave = () => {
+    if (!allRequired) {
+      toast.error("필수 항목을 모두 입력해주세요.");
+      return;
+    }
+    saveMutation.mutate({
+      name: form.name.trim(),
+      phone: form.phone.trim(),
+      address: form.address.trim(),
+      addressDetail: form.addressDetail.trim(),
+      birthDate: form.birthDate.trim(),
+    });
+  };
+
+  // 정보 확인 완료 (저장 후 다음 단계)
   const handleConfirm = () => {
     if (!allRequired) {
       toast.error("필수 항목을 모두 입력해주세요.");
       setIsEditing(true);
       return;
     }
-    toast.success("기본정보 확인 완료!");
-    onComplete();
+    // 먼저 DB에 저장
+    saveMutation.mutate(
+      {
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        address: form.address.trim(),
+        addressDetail: form.addressDetail.trim(),
+        birthDate: form.birthDate.trim(),
+      },
+      {
+        onSuccess: () => {
+          toast.success("기본정보 확인 완료!");
+          onComplete();
+        },
+      }
+    );
   };
+
+  // 로딩 상태
+  if (profileLoading) {
+    return (
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 flex flex-col items-center justify-center gap-3">
+        <Loader2 className="w-8 h-8 text-[#1F3864] animate-spin" />
+        <p className="text-sm text-gray-500">정보를 불러오는 중...</p>
+      </div>
+    );
+  }
 
   // 정보 항목 표시 컴포넌트
   const InfoRow = ({
@@ -187,10 +251,14 @@ export default function Step1BasicInfo({ onComplete }: Props) {
               </button>
               <button
                 onClick={handleConfirm}
-                disabled={!allRequired}
+                disabled={!allRequired || saveMutation.isPending}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#1F3864] text-white text-sm font-bold hover:bg-[#162d52] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
-                <CheckCircle2 className="w-4 h-4" />
+                {saveMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="w-4 h-4" />
+                )}
                 정보 확인 완료
               </button>
             </div>
@@ -289,16 +357,15 @@ export default function Step1BasicInfo({ onComplete }: Props) {
                 취소
               </button>
               <button
-                onClick={() => {
-                  if (!allRequired) {
-                    toast.error("필수 항목을 모두 입력해주세요.");
-                    return;
-                  }
-                  setIsEditing(false);
-                  toast.success("정보가 수정되었습니다.");
-                }}
-                className="flex-1 px-4 py-3 rounded-xl bg-[#1F3864] text-white text-sm font-bold hover:bg-[#162d52] transition-all"
+                onClick={handleSave}
+                disabled={!allRequired || saveMutation.isPending}
+                className="flex-1 px-4 py-3 rounded-xl bg-[#1F3864] text-white text-sm font-bold hover:bg-[#162d52] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
               >
+                {saveMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="w-4 h-4" />
+                )}
                 저장
               </button>
             </div>
@@ -308,7 +375,7 @@ export default function Step1BasicInfo({ onComplete }: Props) {
         {/* 하단 안내 */}
         <div className="mt-6 pt-4 border-t border-gray-100">
           <p className="text-xs text-gray-400 leading-relaxed">
-            💡 유언장 작성은 <strong>무료</strong>입니다. 기본정보를 확인한 후 자산 등록, 상속자 등록,
+            유언장 작성은 <strong>무료</strong>입니다. 기본정보를 확인한 후 자산 등록, 상속자 등록,
             유언장 작성까지 자유롭게 진행하세요.
             <br />
             전자유언 인증(₩168,000)은 결제 및 카드 구매 완료 후 별도로 진행됩니다.
