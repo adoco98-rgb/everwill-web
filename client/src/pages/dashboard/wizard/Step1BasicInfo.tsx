@@ -329,12 +329,48 @@ export default function Step1BasicInfo({ onComplete }: Props) {
               <label className="text-sm font-semibold text-gray-700 mb-1.5 block">
                 생년월일 <span className="text-red-400">*</span>
               </label>
-              <input
-                type="date"
-                value={form.birthDate}
-                onChange={(e) => setForm((f) => ({ ...f, birthDate: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864] outline-none transition-all"
-              />
+              <div className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={form.birthDate}
+                  onChange={(e) => {
+                    // 숫자만 추출
+                    const raw = e.target.value.replace(/[^0-9]/g, "");
+                    // 8자리 입력 시 자동 포맷: 19690812 → 1969-08-12
+                    if (raw.length <= 8) {
+                      let formatted = raw;
+                      if (raw.length >= 5) {
+                        formatted = raw.slice(0, 4) + "-" + raw.slice(4);
+                      }
+                      if (raw.length >= 7) {
+                        formatted = raw.slice(0, 4) + "-" + raw.slice(4, 6) + "-" + raw.slice(6);
+                      }
+                      setForm((f) => ({ ...f, birthDate: formatted }));
+                    }
+                  }}
+                  placeholder="연도-월-일"
+                  maxLength={10}
+                  className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864] outline-none transition-all"
+                />
+                <div className="relative">
+                  <input
+                    type="date"
+                    value={form.birthDate}
+                    onChange={(e) => setForm((f) => ({ ...f, birthDate: e.target.value }))}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <button
+                    type="button"
+                    className="w-12 h-12 flex items-center justify-center border border-gray-200 rounded-xl hover:bg-gray-50 transition-all"
+                  >
+                    <Calendar className="w-6 h-6 text-[#1F3864]" />
+                  </button>
+                </div>
+              </div>
+              <p className="text-xs text-gray-400 mt-1.5">
+                예시: 19690812 입력 → 자동으로 1969-08-12 변환됩니다. 또는 달력 아이콘을 눌러 선택하세요.
+              </p>
             </div>
 
             {/* 이메일 (자동) */}
