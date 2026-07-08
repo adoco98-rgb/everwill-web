@@ -31,6 +31,11 @@ import {
   Landmark,
   PenLine,
   BadgeCheck,
+  Eye,
+  Printer,
+  Download,
+  X,
+  Loader2,
 } from "lucide-react";
 import Step1BasicInfo from "./wizard/Step1BasicInfo";
 import Step2Assets from "./wizard/Step2Assets";
@@ -144,11 +149,60 @@ export default function WillWizardPage() {
   const [completedSteps, setCompletedSteps] = useState<number[]>(initial.completedSteps);
   const [showCertGuide, setShowCertGuide] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewBase64, setPreviewBase64] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   // DB 데이터 기반으로 완료 단계 자동 복원
   const { data: profileData } = trpc.profile.getBasicInfo.useQuery();
   const { data: willData } = trpc.asset.getWillData.useQuery();
   const { data: myWills } = trpc.will.getMyWills.useQuery();
+  const { data: attachments } = trpc.attachment.list.useQuery({});
+  const { data: verifyStatus } = trpc.assetVerify.getStatus.useQuery();
+
+  // 미리보기 PDF 생성
+  const previewPdfMutation = trpc.willCertificate.previewPdf.useMutation({
+    onSuccess: (data) => {
+      setPreviewBase64(data.base64);
+      setPreviewLoading(false);
+    },
+    onError: () => {
+      setPreviewLoading(false);
+    },
+  });
+
+  const handlePreview = () => {
+    setShowPreview(true);
+    setPreviewLoading(true);
+    previewPdfMutation.mutate({ isSample: true, country: "KR" });
+  };
+
+  const handlePrint = () => {
+    if (!previewBase64) return;
+    const byteChars = atob(previewBase64);
+    const byteArray = new Uint8Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) byteArray[i] = byteChars.charCodeAt(i);
+    const blob = new Blob([byteArray], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const printWin = window.open(url, "_blank");
+    if (printWin) {
+      printWin.addEventListener("load", () => printWin.print());
+    }
+  };
+
+  const handleDownload = () => {
+    if (!previewBase64) return;
+    const byteChars = atob(previewBase64);
+    const byteArray = new Uint8Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) byteArray[i] = byteChars.charCodeAt(i);
+    const blob = new Blob([byteArray], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `EverWill_간편유언서_${new Date().toISOString().slice(0, 10)}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   // DB 데이터 기반 자동 완료 상태 복원
   useEffect(() => {
@@ -343,8 +397,17 @@ export default function WillWizardPage() {
                   <p className="text-white/60 text-xs">작성 완료 · 전자인증 대기 중</p>
                 </div>
               </div>
-              <div className="bg-[#C9A961]/20 text-[#C9A961] px-3 py-1 rounded-lg text-xs font-bold">
-                초안 완성
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handlePreview}
+                  className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  미리보기
+                </button>
+                <div className="bg-[#C9A961]/20 text-[#C9A961] px-3 py-1 rounded-lg text-xs font-bold">
+                  초안 완성
+                </div>
               </div>
             </div>
 
@@ -596,6 +659,115 @@ export default function WillWizardPage() {
           <div className="w-[120px]" /> 
         )}
       </div>
+
+      {/* 미리보기 모달 */}
+      {showPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden">
+            {/* 모달 헤더 */}
+            <div className="bg-[#1F3864] text-white px-6 py-4 flex items-center justify-between shrink-0">
+              <div>
+                <h3 className="font-bold text-lg">간편 유언서 미리보기</h3>
+                <p className="text-white/60 text-xs mt-0.5">유언장 전문 · 등록 자산 · 상속자 · 첨부서류 포함</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handlePrint}
+                  disabled={!previewBase64}
+                  className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 disabled:opacity-30 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all"
+                >
+                  <Printer className="w-4 h-4" />
+                  인쇄
+                </button>
+                <button
+                  onClick={handleDownload}
+                  disabled={!previewBase64}
+                  className="flex items-center gap-1.5 bg-[#C9A961] hover:bg-[#b89a52] disabled:opacity-30 text-white px-3 py-2 rounded-lg text-xs font-medium transition-all"
+                >
+                  <Download className="w-4 h-4" />
+                  다운로드
+                </button>
+                <button
+                  onClick={() => { setShowPreview(false); setPreviewBase64(null); }}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* PDF 뷰어 */}
+            <div className="flex-1 overflow-auto bg-gray-100 p-4">
+              {previewLoading ? (
+                <div className="flex flex-col items-center justify-center h-full gap-3">
+                  <Loader2 className="w-8 h-8 text-[#1F3864] animate-spin" />
+                  <p className="text-sm text-gray-500">간편 유언서를 생성 중입니다...</p>
+                </div>
+              ) : previewBase64 ? (
+                <object
+                  data={`data:application/pdf;base64,${previewBase64}`}
+                  type="application/pdf"
+                  className="w-full h-full rounded-lg"
+                >
+                  <div className="flex flex-col items-center justify-center h-full gap-3">
+                    <p className="text-sm text-gray-500">PDF 미리보기를 지원하지 않는 브라우저입니다.</p>
+                    <button
+                      onClick={handleDownload}
+                      className="flex items-center gap-2 px-4 py-2 bg-[#1F3864] text-white rounded-lg text-sm"
+                    >
+                      <Download className="w-4 h-4" />
+                      PDF 다운로드
+                    </button>
+                  </div>
+                </object>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full gap-3">
+                  <p className="text-sm text-red-500">미리보기 생성에 실패했습니다.</p>
+                  <button
+                    onClick={handlePreview}
+                    className="px-4 py-2 bg-[#1F3864] text-white rounded-lg text-sm"
+                  >
+                    다시 시도
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 모달 하단: 업로드 서류 목록 */}
+            {((attachments && attachments.length > 0) || (verifyStatus?.documents && verifyStatus.documents.length > 0)) && (
+              <div className="border-t border-gray-200 px-6 py-3 bg-gray-50 shrink-0">
+                <p className="text-xs font-bold text-gray-600 mb-2">📎 첨부된 증빙서류</p>
+                <div className="flex flex-wrap gap-2">
+                  {attachments?.map((att: any) => (
+                    <a
+                      key={att.id}
+                      href={att.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg text-xs text-gray-700 hover:border-[#C9A961] transition-all"
+                    >
+                      <FileText className="w-3 h-3 text-[#1F3864]" />
+                      {att.fileName || att.description || '첨부파일'}
+                    </a>
+                  ))}
+                  {verifyStatus?.documents?.map((doc: any) => (
+                    <a
+                      key={doc.id}
+                      href={doc.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg text-xs text-gray-700 hover:border-[#C9A961] transition-all"
+                    >
+                      <FileText className="w-3 h-3 text-[#1F3864]" />
+                      {doc.fileName || doc.label || '증빙서류'}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
