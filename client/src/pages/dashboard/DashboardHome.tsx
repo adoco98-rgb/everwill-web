@@ -332,7 +332,7 @@ export default function DashboardHome() {
       {/* 빠른 실행 */}
       <div>
         <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">빠른 실행</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <Link href="/assets" className="block bg-white border-2 border-dashed border-[#1F3864]/20 hover:border-[#1F3864]/50 rounded-2xl p-5 hover:shadow-md transition-all group">
                 <Building2 className="w-6 h-6 text-[#1F3864]/50 mb-3" />
@@ -342,10 +342,10 @@ export default function DashboardHome() {
               </Link>
           </motion.div>
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
-            <Link href="/write" className="block bg-[#1F3864] rounded-2xl p-5 hover:shadow-md transition-all group">
+            <Link href={wills.length > 0 ? "/dashboard/wills" : "/write"} className="block bg-[#1F3864] rounded-2xl p-5 hover:shadow-md transition-all group">
                 <FileText className="w-6 h-6 text-white mb-3 opacity-80" />
-                <h3 className="font-bold text-white text-sm">유언장 작성</h3>
-                <p className="text-xs mt-0.5 text-white opacity-60">AI 가이드 또는 직접 작성</p>
+                <h3 className="font-bold text-white text-sm">{wills.length > 0 ? "유언장 보기" : "유언장 작성"}</h3>
+                <p className="text-xs mt-0.5 text-white opacity-60">{wills.length > 0 ? `작성 완료 · ${latestWill?.status === "certified" ? "인증 완료" : "초안 상태"}` : "AI 가이드 또는 직접 작성"}</p>
                 <ArrowRight className="w-4 h-4 text-white opacity-40 mt-3 group-hover:opacity-80 group-hover:translate-x-1 transition-all" />
               </Link>
           </motion.div>
@@ -357,14 +357,7 @@ export default function DashboardHome() {
                 <ArrowRight className="w-4 h-4 text-white opacity-40 mt-3 group-hover:opacity-80 group-hover:translate-x-1 transition-all" />
               </Link>
           </motion.div>
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}>
-            <Link href="/payment" className="block bg-white border-2 border-gray-100 rounded-2xl p-5 hover:shadow-md transition-all group">
-                <Award className="w-6 h-6 text-[#1F3864] mb-3 opacity-80" />
-                <h3 className="font-bold text-[#1F3864] text-sm">NFC 카드 주문</h3>
-                <p className="text-xs mt-0.5 text-gray-400">물리적 유언 인증 배지</p>
-                <ArrowRight className="w-4 h-4 text-[#1F3864]/30 mt-3 group-hover:opacity-80 group-hover:translate-x-1 transition-all" />
-              </Link>
-          </motion.div>
+
         </div>
       </div>
 
