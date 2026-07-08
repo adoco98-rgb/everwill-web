@@ -1,43 +1,43 @@
 /**
- * 유언 작성하기 - 6단계 위저드
- * 1단계: 개인 인증 (eKYC)
+ * 유언 작성하기 - 5단계 위저드 (무료)
+ * 1단계: 기본정보 확인 (소셜 로그인 정보 자동 채움)
  * 2단계: 자산 등록
  * 3단계: 상속자 등록
- * 4단계: 유언장 작성
- * 5단계: 상속 내용 입력
- * 6단계: 전자서명 + 인증 완료
+ * 4단계: 유언장 작성 (AI 자동 생성)
+ * 5단계: 상속 내용 입력 (분배 비율)
+ *
+ * ※ 전자유언인증(개인인증 + 전자서명)은 결제 + 카드 구매 완료 후 별도 절차
  */
 import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ShieldCheck,
+  User,
   ClipboardList,
   Users,
   FileText,
   Scale,
-  PenLine,
   CheckCircle2,
   ChevronRight,
   ChevronLeft,
   Lock,
-  AlertCircle,
+  ShieldCheck,
+  CreditCard,
 } from "lucide-react";
-import Step1Identity from "./wizard/Step1Identity";
+import Step1BasicInfo from "./wizard/Step1BasicInfo";
 import Step2Assets from "./wizard/Step2Assets";
 import Step3Heirs from "./wizard/Step3Heirs";
 import Step4Will from "./wizard/Step4Will";
 import Step5Distribution from "./wizard/Step5Distribution";
-import Step6Signature from "./wizard/Step6Signature";
 
-// 6단계 정의
+// 5단계 정의 (무료 유언 작성)
 const STEPS = [
   {
     id: 1,
-    icon: ShieldCheck,
-    title: "개인 인증",
-    subtitle: "본인 확인 및 신원 인증",
-    description: "유언장의 법적 효력을 위해 본인 인증이 필요합니다.",
+    icon: User,
+    title: "기본정보",
+    subtitle: "유언자 본인 정보 확인",
+    description: "소셜 로그인으로 자동 입력된 정보를 확인합니다.",
     color: "#3B82F6",
   },
   {
@@ -67,32 +67,30 @@ const STEPS = [
   {
     id: 5,
     icon: Scale,
-    title: "상속 내용 입력",
+    title: "상속 내용",
     subtitle: "자산별 분배 비율 설정",
     description: "각 상속인에게 자산을 어떻게 분배할지 설정하세요.",
-    color: "#EF4444",
-  },
-  {
-    id: 6,
-    icon: PenLine,
-    title: "전자서명",
-    subtitle: "서명 및 인증 완료",
-    description: "전자서명 후 유언장이 공식 인증됩니다. (₩168,000)",
     color: "#C9A961",
   },
 ];
+
+const TOTAL_STEPS = STEPS.length;
 
 export default function WillWizardPage() {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [showCertGuide, setShowCertGuide] = useState(false);
 
   const handleStepComplete = (step: number) => {
     if (!completedSteps.includes(step)) {
       setCompletedSteps((prev) => [...prev, step]);
     }
-    if (step < 6) {
+    if (step < TOTAL_STEPS) {
       setCurrentStep(step + 1);
+    } else {
+      // 마지막 단계 완료 → 인증 안내 표시
+      setShowCertGuide(true);
     }
   };
 
@@ -104,13 +102,16 @@ export default function WillWizardPage() {
   };
 
   const currentStepData = STEPS.find((s) => s.id === currentStep)!;
+  const allCompleted = completedSteps.length === TOTAL_STEPS;
 
   return (
     <div className="max-w-4xl mx-auto">
       {/* 헤더 */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[#1F3864] mb-1">유언 작성하기</h1>
-        <p className="text-gray-500 text-sm">6단계를 완료하면 민법 요건에 맞는 유언장이 완성됩니다.</p>
+        <p className="text-gray-500 text-sm">
+          5단계를 완료하면 유언장 초안이 완성됩니다. <span className="text-green-600 font-semibold">모두 무료</span>
+        </p>
       </div>
 
       {/* 진행 단계 표시 */}
@@ -120,7 +121,7 @@ export default function WillWizardPage() {
           <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-100 z-0" />
           <div
             className="absolute top-5 left-0 h-0.5 bg-[#C9A961] z-0 transition-all duration-500"
-            style={{ width: `${((currentStep - 1) / 5) * 100}%` }}
+            style={{ width: `${((currentStep - 1) / (TOTAL_STEPS - 1)) * 100}%` }}
           />
 
           {STEPS.map((step) => {
@@ -180,7 +181,9 @@ export default function WillWizardPage() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-400 font-medium">{currentStep}단계 / 6단계</span>
+              <span className="text-xs text-gray-400 font-medium">
+                {currentStep}단계 / {TOTAL_STEPS}단계
+              </span>
               <span
                 className="text-xs font-bold px-2 py-0.5 rounded-full"
                 style={{
@@ -195,12 +198,68 @@ export default function WillWizardPage() {
           </div>
           <div className="ml-auto text-right">
             <div className="text-2xl font-bold text-[#1F3864]">
-              {Math.round(((completedSteps.length) / 6) * 100)}%
+              {Math.round((completedSteps.length / TOTAL_STEPS) * 100)}%
             </div>
             <div className="text-xs text-gray-400">완료</div>
           </div>
         </div>
       </div>
+
+      {/* 전자유언인증 안내 (모든 단계 완료 시) */}
+      {showCertGuide && allCompleted && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-[#C9A961]/10 to-[#C9A961]/5 border border-[#C9A961]/30 rounded-2xl p-6 mb-6"
+        >
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-[#C9A961]/20 rounded-xl flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-6 h-6 text-[#C9A961]" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-[#1F3864] mb-1">
+                🎉 유언장 작성 완료!
+              </h3>
+              <p className="text-sm text-gray-600 mb-3">
+                유언장 초안이 완성되었습니다. 법적 효력을 갖추려면 <strong>전자유언인증</strong>을 진행하세요.
+              </p>
+              <div className="bg-white/80 rounded-xl p-4 mb-4">
+                <p className="text-xs font-semibold text-[#1F3864] mb-2">전자유언인증 절차 (결제 후 진행):</p>
+                <ol className="text-xs text-gray-600 space-y-1.5">
+                  <li className="flex items-center gap-2">
+                    <span className="w-5 h-5 bg-[#1F3864] text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">1</span>
+                    결제 완료 (₩168,000) + 인증 카드 구매
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-5 h-5 bg-[#1F3864] text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">2</span>
+                    개인 인증 (신분증 + 셀피 + 전자서명)
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-5 h-5 bg-[#1F3864] text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">3</span>
+                    등록 자산 확인 및 수정/추가
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-5 h-5 bg-[#1F3864] text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">4</span>
+                    공증서류 업로드
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-5 h-5 bg-[#1F3864] text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">5</span>
+                    전자서명 → 인증 완료
+                  </li>
+                </ol>
+              </div>
+              <a
+                href="/dashboard/payment"
+                className="inline-flex items-center gap-2 px-5 py-3 bg-[#C9A961] text-white rounded-xl text-sm font-bold hover:bg-[#b8963f] transition-all shadow-md"
+              >
+                <CreditCard className="w-4 h-4" />
+                결제하고 전자유언인증 시작하기
+                <ChevronRight className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* 단계별 콘텐츠 */}
       <AnimatePresence mode="wait">
@@ -212,7 +271,7 @@ export default function WillWizardPage() {
           transition={{ duration: 0.2 }}
         >
           {currentStep === 1 && (
-            <Step1Identity onComplete={() => handleStepComplete(1)} />
+            <Step1BasicInfo onComplete={() => handleStepComplete(1)} />
           )}
           {currentStep === 2 && (
             <Step2Assets onComplete={() => handleStepComplete(2)} />
@@ -225,9 +284,6 @@ export default function WillWizardPage() {
           )}
           {currentStep === 5 && (
             <Step5Distribution onComplete={() => handleStepComplete(5)} />
-          )}
-          {currentStep === 6 && (
-            <Step6Signature onComplete={() => handleStepComplete(6)} />
           )}
         </motion.div>
       </AnimatePresence>
@@ -258,11 +314,11 @@ export default function WillWizardPage() {
           ))}
         </div>
 
-        {currentStep < 6 && (
+        {currentStep < TOTAL_STEPS && (
           <button
             onClick={() => {
               if (completedSteps.includes(currentStep)) {
-                setCurrentStep((s) => Math.min(6, s + 1));
+                setCurrentStep((s) => Math.min(TOTAL_STEPS, s + 1));
               }
             }}
             disabled={!completedSteps.includes(currentStep)}
@@ -271,6 +327,9 @@ export default function WillWizardPage() {
             다음 단계
             <ChevronRight className="w-4 h-4" />
           </button>
+        )}
+        {currentStep === TOTAL_STEPS && !allCompleted && (
+          <div className="w-[120px]" /> 
         )}
       </div>
     </div>

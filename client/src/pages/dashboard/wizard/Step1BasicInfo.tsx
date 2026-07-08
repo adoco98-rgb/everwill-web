@@ -1,0 +1,320 @@
+/**
+ * 1단계: 기본정보 확인
+ * 소셜 로그인 / 회원가입 시 입력된 정보를 자동으로 보여주고
+ * 부족한 정보만 추가 입력하도록 함
+ */
+import { useState, useEffect } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
+import {
+  User,
+  Phone,
+  MapPin,
+  Calendar,
+  Mail,
+  CheckCircle2,
+  AlertCircle,
+  Edit3,
+  Search,
+} from "lucide-react";
+
+interface Props {
+  onComplete: () => void;
+}
+
+export default function Step1BasicInfo({ onComplete }: Props) {
+  const { user } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    address: "",
+    addressDetail: "",
+    birthDate: "",
+    email: "",
+  });
+
+  // 사용자 정보 자동 채움
+  useEffect(() => {
+    if (user) {
+      setForm({
+        name: (user as any).name || "",
+        phone: (user as any).phone || "",
+        address: (user as any).address || "",
+        addressDetail: (user as any).addressDetail || "",
+        birthDate: (user as any).birthDate || "",
+        email: (user as any).email || "",
+      });
+    }
+  }, [user]);
+
+  // 필수 항목 체크
+  const isNameFilled = form.name.trim().length > 0;
+  const isPhoneFilled = form.phone.trim().length > 0;
+  const isAddressFilled = form.address.trim().length > 0;
+  const isBirthFilled = form.birthDate.trim().length > 0;
+  const allRequired = isNameFilled && isPhoneFilled && isAddressFilled && isBirthFilled;
+
+  // 카카오 주소 검색
+  function openKakaoPostcode() {
+    if (typeof window === "undefined") return;
+    const daum = (window as any).daum;
+    if (!daum?.Postcode) {
+      const script = document.createElement("script");
+      script.src = "https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
+      script.onload = () => {
+        new (window as any).daum.Postcode({
+          oncomplete: (data: any) => {
+            const addr = data.roadAddress || data.jibunAddress;
+            setForm((f) => ({ ...f, address: addr, addressDetail: "" }));
+          },
+        }).open();
+      };
+      document.head.appendChild(script);
+      return;
+    }
+    new daum.Postcode({
+      oncomplete: (data: any) => {
+        const addr = data.roadAddress || data.jibunAddress;
+        setForm((f) => ({ ...f, address: addr, addressDetail: "" }));
+      },
+    }).open();
+  }
+
+  // 정보 확인 완료
+  const handleConfirm = () => {
+    if (!allRequired) {
+      toast.error("필수 항목을 모두 입력해주세요.");
+      setIsEditing(true);
+      return;
+    }
+    toast.success("기본정보 확인 완료!");
+    onComplete();
+  };
+
+  // 정보 항목 표시 컴포넌트
+  const InfoRow = ({
+    icon: Icon,
+    label,
+    value,
+    required,
+  }: {
+    icon: any;
+    label: string;
+    value: string;
+    required?: boolean;
+  }) => (
+    <div className="flex items-center gap-3 py-3 border-b border-gray-50 last:border-0">
+      <div className="w-9 h-9 rounded-lg bg-[#1F3864]/5 flex items-center justify-center shrink-0">
+        <Icon className="w-4 h-4 text-[#1F3864]" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-gray-400 font-medium">{label}</span>
+          {required && <span className="text-red-400 text-xs">*</span>}
+        </div>
+        {value ? (
+          <p className="text-sm font-semibold text-gray-800 truncate">{value}</p>
+        ) : (
+          <p className="text-sm text-red-400 italic">미입력</p>
+        )}
+      </div>
+      {value ? (
+        <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+      ) : (
+        <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+      )}
+    </div>
+  );
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* 헤더 */}
+      <div className="bg-gradient-to-r from-[#1F3864] to-[#2d4a7a] px-6 py-5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+            <User className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-white font-bold text-lg">1단계: 기본정보 확인</h3>
+            <p className="text-white/70 text-sm">
+              회원가입 시 입력한 정보가 자동으로 채워집니다
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-6">
+        {/* 안내 메시지 */}
+        <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6">
+          <div className="flex items-start gap-2">
+            <CheckCircle2 className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-blue-800">
+                소셜 로그인 정보가 자동으로 입력되었습니다
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                아래 정보를 확인하고, 수정이 필요하면 "수정하기" 버튼을 눌러주세요.
+                <br />
+                유언장에 기재될 유언자 본인 정보입니다.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* 정보 보기 모드 */}
+        {!isEditing ? (
+          <>
+            <div className="space-y-0">
+              <InfoRow icon={User} label="성명" value={form.name} required />
+              <InfoRow icon={Phone} label="연락처" value={form.phone} required />
+              <InfoRow icon={MapPin} label="주소" value={form.address} required />
+              {form.addressDetail && (
+                <InfoRow icon={MapPin} label="상세주소" value={form.addressDetail} />
+              )}
+              <InfoRow icon={Calendar} label="생년월일" value={form.birthDate} required />
+              <InfoRow icon={Mail} label="이메일" value={form.email} />
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setIsEditing(true)}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-all"
+              >
+                <Edit3 className="w-4 h-4" />
+                수정하기
+              </button>
+              <button
+                onClick={handleConfirm}
+                disabled={!allRequired}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#1F3864] text-white text-sm font-bold hover:bg-[#162d52] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                정보 확인 완료
+              </button>
+            </div>
+          </>
+        ) : (
+          /* 수정 모드 */
+          <div className="space-y-4">
+            {/* 성명 */}
+            <div>
+              <label className="text-sm font-semibold text-gray-700 mb-1.5 block">
+                성명 <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="홍길동"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864] outline-none transition-all"
+              />
+            </div>
+
+            {/* 연락처 */}
+            <div>
+              <label className="text-sm font-semibold text-gray-700 mb-1.5 block">
+                연락처 <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                placeholder="010-1234-5678"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864] outline-none transition-all"
+              />
+            </div>
+
+            {/* 주소 */}
+            <div>
+              <label className="text-sm font-semibold text-gray-700 mb-1.5 block">
+                주소 <span className="text-red-400">*</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={form.address}
+                  readOnly
+                  placeholder="주소 검색을 클릭하세요"
+                  className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm bg-gray-50 outline-none"
+                />
+                <button
+                  onClick={openKakaoPostcode}
+                  className="px-4 py-3 bg-[#1F3864] text-white rounded-xl text-sm font-medium hover:bg-[#162d52] transition-all flex items-center gap-1.5 shrink-0"
+                >
+                  <Search className="w-4 h-4" />
+                  검색
+                </button>
+              </div>
+              <input
+                type="text"
+                value={form.addressDetail}
+                onChange={(e) => setForm((f) => ({ ...f, addressDetail: e.target.value }))}
+                placeholder="상세주소 (동/호수)"
+                className="w-full mt-2 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864] outline-none transition-all"
+              />
+            </div>
+
+            {/* 생년월일 */}
+            <div>
+              <label className="text-sm font-semibold text-gray-700 mb-1.5 block">
+                생년월일 <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="date"
+                value={form.birthDate}
+                onChange={(e) => setForm((f) => ({ ...f, birthDate: e.target.value }))}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864] outline-none transition-all"
+              />
+            </div>
+
+            {/* 이메일 (자동) */}
+            <div>
+              <label className="text-sm font-semibold text-gray-700 mb-1.5 block">이메일</label>
+              <input
+                type="email"
+                value={form.email}
+                readOnly
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-500 outline-none"
+              />
+              <p className="text-xs text-gray-400 mt-1">소셜 로그인 이메일 (변경 불가)</p>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setIsEditing(false)}
+                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-all"
+              >
+                취소
+              </button>
+              <button
+                onClick={() => {
+                  if (!allRequired) {
+                    toast.error("필수 항목을 모두 입력해주세요.");
+                    return;
+                  }
+                  setIsEditing(false);
+                  toast.success("정보가 수정되었습니다.");
+                }}
+                className="flex-1 px-4 py-3 rounded-xl bg-[#1F3864] text-white text-sm font-bold hover:bg-[#162d52] transition-all"
+              >
+                저장
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 하단 안내 */}
+        <div className="mt-6 pt-4 border-t border-gray-100">
+          <p className="text-xs text-gray-400 leading-relaxed">
+            💡 유언장 작성은 <strong>무료</strong>입니다. 기본정보를 확인한 후 자산 등록, 상속자 등록,
+            유언장 작성까지 자유롭게 진행하세요.
+            <br />
+            전자유언 인증(₩168,000)은 결제 및 카드 구매 완료 후 별도로 진행됩니다.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
