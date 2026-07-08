@@ -26,7 +26,9 @@ interface Props {
 
 export default function Step1BasicInfo({ onComplete }: Props) {
   const { user, refresh } = useAuth();
+  const utils = trpc.useUtils();
   const [isEditing, setIsEditing] = useState(false);
+  const [formInitialized, setFormInitialized] = useState(false);
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -41,18 +43,30 @@ export default function Step1BasicInfo({ onComplete }: Props) {
 
   // 저장 mutation
   const saveMutation = trpc.profile.saveBasicInfo.useMutation({
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       toast.success("기본정보가 저장되었습니다.");
       setIsEditing(false);
-      refresh(); // auth 상태 갱신
+      // 저장한 값으로 폼 유지 (리셋 방지)
+      setForm({
+        name: variables.name,
+        phone: variables.phone || "",
+        address: variables.address || "",
+        addressDetail: variables.addressDetail || "",
+        birthDate: variables.birthDate || "",
+        email: form.email,
+      });
+      // 쿼리 무효화 (다음 새로고침 시 최신 데이터)
+      utils.profile.getBasicInfo.invalidate();
+      refresh();
     },
     onError: (err) => {
       toast.error(err.message || "저장에 실패했습니다.");
     },
   });
 
-  // DB 데이터 또는 auth user 데이터로 폼 초기화
+  // DB 데이터 또는 auth user 데이터로 폼 초기화 (최초 1회만)
   useEffect(() => {
+    if (formInitialized) return;
     if (profileData) {
       setForm({
         name: profileData.name || "",
@@ -62,7 +76,8 @@ export default function Step1BasicInfo({ onComplete }: Props) {
         birthDate: profileData.birthDate || "",
         email: profileData.email || "",
       });
-    } else if (user) {
+      setFormInitialized(true);
+    } else if (user && !profileLoading) {
       setForm({
         name: (user as any).name || "",
         phone: (user as any).phone || "",
@@ -71,8 +86,9 @@ export default function Step1BasicInfo({ onComplete }: Props) {
         birthDate: (user as any).birthDate || "",
         email: (user as any).email || "",
       });
+      setFormInitialized(true);
     }
-  }, [profileData, user]);
+  }, [profileData, user, profileLoading, formInitialized]);
 
   // 필수 항목 체크
   const isNameFilled = form.name.trim().length > 0;
