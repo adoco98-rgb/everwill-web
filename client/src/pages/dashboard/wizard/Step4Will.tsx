@@ -3,6 +3,7 @@
  * - 제목: 회원 이름 기반 자동 입력
  * - 유언집행자: 상속 지분 가장 많은 상속자 자동 반영
  * - 서명: 전자서명 패드 2개 (유언자 서명 + 확인 서명)
+ * - 새로고침 후에도 저장된 유언장 자동 불러오기
  */
 import { useState, useEffect, useRef } from "react";
 import { FileText, Wand2, CheckCircle2, Save, PenTool, RotateCcw } from "lucide-react";
@@ -33,14 +34,12 @@ function SignaturePad({
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    // 캔버스 초기화
     ctx.fillStyle = "#FAFAFA";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.strokeStyle = "#1F3864";
     ctx.lineWidth = 2.5;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    // 기존 서명 복원
     if (value) {
       const img = new Image();
       img.onload = () => { ctx.drawImage(img, 0, 0); setHasDrawn(true); };
@@ -146,31 +145,67 @@ export default function Step4Will({ onComplete }: Props) {
 
   const [willContent, setWillContent] = useState("");
   const [title, setTitle] = useState("");
+  const [willId, setWillId] = useState<number | null>(null);
   const [generating, setGenerating] = useState(false);
   const [saved, setSaved] = useState(false);
   const [signature1, setSignature1] = useState<string | null>(null);
   const [signature2, setSignature2] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   const { data: willData } = trpc.asset.getWillData.useQuery();
   const { data: profileData } = trpc.profile.getBasicInfo.useQuery();
+  const { data: myWills } = trpc.will.getMyWills.useQuery();
 
-  // 제목 자동 입력 (회원 이름 기반)
+  // ── 저장된 유언장 불러오기 (새로고침 후 복원) ──
   useEffect(() => {
+    if (loaded) return;
+    if (myWills && myWills.length > 0) {
+      // 가장 최근 draft 유언장 불러오기
+      const latestDraft = myWills.find((w: any) => w.status === "draft") || myWills[0];
+      if (latestDraft) {
+        setWillId(latestDraft.id);
+        setTitle(latestDraft.title || "");
+        // 상세 내용은 getWillById로 불러와야 함
+        setLoaded(true);
+      }
+    } else {
+      setLoaded(true);
+    }
+  }, [myWills]);
+
+  // 유언장 상세 내용 불러오기
+  const { data: willDetail } = trpc.will.getWillById.useQuery(
+    { willId: willId! },
+    { enabled: !!willId }
+  );
+
+  useEffect(() => {
+    if (willDetail && willDetail.data) {
+      setWillContent(willDetail.data);
+      setTitle(willDetail.title || title);
+      setSaved(true);
+    }
+  }, [willDetail]);
+
+  // 제목 자동 입력 (회원 이름 기반) - 저장된 것이 없을 때만
+  useEffect(() => {
+    if (title) return; // 이미 제목이 있으면 건드리지 않음
     const name = profileData?.name || userName;
-    if (name && !title) {
+    if (name) {
       setTitle(`${name} 유언장`);
     }
   }, [profileData, userName]);
 
   // 유언집행자 자동 선택 (상속 지분 가장 많은 상속자)
   const topHeir = willData?.heirs?.length
-    ? [...willData.heirs].sort((a, b) => (b.sharePercent || 0) - (a.sharePercent || 0))[0]
+    ? [...willData.heirs].sort((a: any, b: any) => (b.sharePercent || 0) - (a.sharePercent || 0))[0]
     : null;
 
   const saveMutation = trpc.will.saveWill.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("유언장이 저장되었습니다.");
       setSaved(true);
+      if (data.willId) setWillId(data.willId);
     },
     onError: (e) => toast.error(e.message),
   });
@@ -218,6 +253,7 @@ export default function Step4Will({ onComplete }: Props) {
   const handleSave = () => {
     if (!willContent.trim()) { toast.error("유언장 내용을 입력해주세요."); return; }
     saveMutation.mutate({
+      willId: willId || undefined,
       title,
       data: willContent,
       status: "draft",
@@ -230,7 +266,7 @@ export default function Step4Will({ onComplete }: Props) {
     if (!signature2) { toast.error("확인 서명을 해주세요."); return; }
     // 저장 후 다음 단계
     saveMutation.mutate(
-      { title, data: willContent, status: "draft" },
+      { willId: willId || undefined, title, data: willContent, status: "draft" },
       { onSuccess: () => onComplete() }
     );
   };
@@ -270,7 +306,7 @@ export default function Step4Will({ onComplete }: Props) {
             <p className="text-sm font-semibold text-blue-800 mb-1">유언집행자 자동 지정</p>
             <p className="text-xs text-blue-600">
               상속 지분이 가장 많은 <strong>{(topHeir as any).nameKo || (topHeir as any).name}</strong>
-              ({(topHeir as any).relationship || "관계 미입력"}, {topHeir.sharePercent || 0}%)이
+              ({(topHeir as any).relationship || "관계 미입력"}, {(topHeir as any).sharePercent || 0}%)이
               유언집행자로 자동 반영됩니다.
             </p>
           </div>

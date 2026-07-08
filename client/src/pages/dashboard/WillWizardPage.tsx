@@ -7,9 +7,11 @@
  * 5단계: 상속 내용 입력 (분배 비율)
  *
  * ※ 전자유언인증(개인인증 + 전자서명)은 결제 + 카드 구매 완료 후 별도 절차
+ * ※ 진행 상태는 localStorage + DB 데이터 기반으로 새로고침 후에도 유지됨
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
@@ -75,16 +77,98 @@ const STEPS = [
 ];
 
 const TOTAL_STEPS = STEPS.length;
+const STORAGE_KEY = "everwill_wizard_progress";
+
+// localStorage에서 진행 상태 읽기
+function loadProgress(): { currentStep: number; completedSteps: number[] } {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        currentStep: parsed.currentStep || 1,
+        completedSteps: parsed.completedSteps || [],
+      };
+    }
+  } catch {}
+  return { currentStep: 1, completedSteps: [] };
+}
+
+// localStorage에 진행 상태 저장
+function saveProgress(currentStep: number, completedSteps: number[]) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ currentStep, completedSteps }));
+  } catch {}
+}
 
 export default function WillWizardPage() {
   const { user } = useAuth();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const initial = loadProgress();
+  const [currentStep, setCurrentStep] = useState(initial.currentStep);
+  const [completedSteps, setCompletedSteps] = useState<number[]>(initial.completedSteps);
   const [showCertGuide, setShowCertGuide] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+
+  // DB 데이터 기반으로 완료 단계 자동 복원
+  const { data: profileData } = trpc.profile.getBasicInfo.useQuery();
+  const { data: willData } = trpc.asset.getWillData.useQuery();
+  const { data: myWills } = trpc.will.getMyWills.useQuery();
+
+  // DB 데이터 기반 자동 완료 상태 복원
+  useEffect(() => {
+    if (initialized) return;
+    const autoCompleted: number[] = [];
+
+    // Step1: 기본정보 - 이름과 전화번호가 있으면 완료
+    if (profileData?.name && profileData?.phone) {
+      autoCompleted.push(1);
+    }
+
+    // Step2: 자산 등록 - 1개 이상 자산이 있으면 완료
+    if (willData?.assets && willData.assets.length > 0) {
+      autoCompleted.push(2);
+    }
+
+    // Step3: 상속자 등록 - 1명 이상 상속자가 있으면 완료
+    if (willData?.heirs && willData.heirs.length > 0) {
+      autoCompleted.push(3);
+    }
+
+    // Step4: 유언장 작성 - 저장된 유언장이 있으면 완료
+    if (myWills && myWills.length > 0) {
+      autoCompleted.push(4);
+    }
+
+    // localStorage 상태와 병합 (DB에 있는 것은 무조건 완료 처리)
+    const merged = Array.from(new Set([...initial.completedSteps, ...autoCompleted])).sort((a, b) => a - b);
+    setCompletedSteps(merged);
+
+    // 현재 단계도 복원: 완료된 단계 다음으로 이동
+    if (merged.length > 0) {
+      const maxCompleted = Math.max(...merged);
+      const restoredStep = Math.min(maxCompleted + 1, TOTAL_STEPS);
+      // localStorage에 저장된 단계가 더 높으면 그것을 유지
+      const finalStep = Math.max(initial.currentStep, restoredStep);
+      setCurrentStep(Math.min(finalStep, TOTAL_STEPS));
+    }
+
+    setInitialized(true);
+  }, [profileData, willData, myWills]);
+
+  // 진행 상태 변경 시 localStorage에 저장
+  useEffect(() => {
+    if (initialized) {
+      saveProgress(currentStep, completedSteps);
+    }
+  }, [currentStep, completedSteps, initialized]);
 
   const handleStepComplete = (step: number) => {
     if (!completedSteps.includes(step)) {
-      setCompletedSteps((prev) => [...prev, step]);
+      setCompletedSteps((prev) => {
+        const next = [...prev, step];
+        saveProgress(step < TOTAL_STEPS ? step + 1 : step, next);
+        return next;
+      });
     }
     if (step < TOTAL_STEPS) {
       setCurrentStep(step + 1);
@@ -108,154 +192,114 @@ export default function WillWizardPage() {
     <div className="max-w-4xl mx-auto">
       {/* 헤더 */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#1F3864] mb-1">유언 작성하기</h1>
-        <p className="text-gray-500 text-sm">
-          5단계를 완료하면 유언장 초안이 완성됩니다. <span className="text-green-600 font-semibold">모두 무료</span>
+        <h1 className="text-2xl font-bold text-[#1F3864]">유언 작성하기</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          5단계를 완료하면 유언장 초안이 완성됩니다. <span className="text-[#C9A961] font-semibold">모두 무료</span>
         </p>
       </div>
 
-      {/* 진행 단계 표시 */}
+      {/* 진행 바 */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-        <div className="flex items-center justify-between relative">
-          {/* 연결선 */}
-          <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-100 z-0" />
-          <div
-            className="absolute top-5 left-0 h-0.5 bg-[#C9A961] z-0 transition-all duration-500"
-            style={{ width: `${((currentStep - 1) / (TOTAL_STEPS - 1)) * 100}%` }}
-          />
-
-          {STEPS.map((step) => {
+        <div className="flex items-center justify-between">
+          {STEPS.map((step, idx) => {
             const isCompleted = completedSteps.includes(step.id);
             const isCurrent = step.id === currentStep;
             const isLocked = step.id > currentStep && !completedSteps.includes(step.id - 1);
             const StepIcon = step.icon;
 
             return (
-              <button
-                key={step.id}
-                onClick={() => handleStepClick(step.id)}
-                disabled={isLocked}
-                className={`relative z-10 flex flex-col items-center gap-1.5 group ${
-                  isLocked ? "cursor-not-allowed opacity-40" : "cursor-pointer"
-                }`}
-              >
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                    isCompleted
-                      ? "bg-green-500 text-white shadow-md"
-                      : isCurrent
-                      ? "bg-[#1F3864] text-white shadow-lg scale-110"
-                      : "bg-gray-100 text-gray-400"
+              <div key={step.id} className="flex items-center">
+                <button
+                  onClick={() => handleStepClick(step.id)}
+                  disabled={isLocked}
+                  className={`flex flex-col items-center gap-1.5 transition-all ${
+                    isLocked ? "opacity-40 cursor-not-allowed" : "cursor-pointer"
                   }`}
                 >
-                  {isCompleted ? (
-                    <CheckCircle2 className="w-5 h-5" />
-                  ) : isLocked ? (
-                    <Lock className="w-4 h-4" />
-                  ) : (
-                    <StepIcon className="w-4 h-4" />
-                  )}
-                </div>
-                <span
-                  className={`text-xs font-medium hidden sm:block ${
-                    isCurrent ? "text-[#1F3864]" : isCompleted ? "text-green-600" : "text-gray-400"
-                  }`}
-                >
-                  {step.title}
-                </span>
-              </button>
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                      isCompleted
+                        ? "bg-green-500 text-white"
+                        : isCurrent
+                        ? "bg-[#1F3864] text-white ring-4 ring-[#1F3864]/20"
+                        : "bg-gray-100 text-gray-400"
+                    }`}
+                  >
+                    {isCompleted ? (
+                      <CheckCircle2 className="w-5 h-5" />
+                    ) : isLocked ? (
+                      <Lock className="w-4 h-4" />
+                    ) : (
+                      <StepIcon className="w-5 h-5" />
+                    )}
+                  </div>
+                  <span
+                    className={`text-xs font-medium hidden sm:block ${
+                      isCurrent ? "text-[#1F3864]" : isCompleted ? "text-green-600" : "text-gray-400"
+                    }`}
+                  >
+                    {step.title}
+                  </span>
+                </button>
+                {idx < STEPS.length - 1 && (
+                  <div
+                    className={`w-8 sm:w-12 h-0.5 mx-1 ${
+                      completedSteps.includes(step.id) ? "bg-green-400" : "bg-gray-200"
+                    }`}
+                  />
+                )}
+              </div>
             );
           })}
         </div>
 
         {/* 현재 단계 정보 */}
-        <div className="mt-6 pt-4 border-t border-gray-50 flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-            style={{ backgroundColor: `${currentStepData.color}15` }}
-          >
-            <currentStepData.icon
-              className="w-5 h-5"
-              style={{ color: currentStepData.color }}
-            />
+        <div className="mt-5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-green-500" />
+            <span className="text-sm text-gray-600">
+              {currentStep}단계 / {TOTAL_STEPS}단계
+            </span>
+            <span className="text-xs text-blue-600 font-medium ml-2">
+              {currentStepData.subtitle}
+            </span>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-400 font-medium">
-                {currentStep}단계 / {TOTAL_STEPS}단계
-              </span>
-              <span
-                className="text-xs font-bold px-2 py-0.5 rounded-full"
-                style={{
-                  backgroundColor: `${currentStepData.color}15`,
-                  color: currentStepData.color,
-                }}
-              >
-                {currentStepData.subtitle}
-              </span>
-            </div>
-            <h2 className="text-base font-bold text-[#1F3864]">{currentStepData.title}</h2>
-          </div>
-          <div className="ml-auto text-right">
-            <div className="text-2xl font-bold text-[#1F3864]">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl font-bold text-[#1F3864]">
               {Math.round((completedSteps.length / TOTAL_STEPS) * 100)}%
-            </div>
-            <div className="text-xs text-gray-400">완료</div>
+            </span>
+            <span className="text-xs text-gray-400">완료</span>
           </div>
         </div>
       </div>
 
       {/* 전자유언인증 안내 (모든 단계 완료 시) */}
-      {showCertGuide && allCompleted && (
+      {showCertGuide && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-[#C9A961]/10 to-[#C9A961]/5 border border-[#C9A961]/30 rounded-2xl p-6 mb-6"
+          className="bg-gradient-to-r from-[#1F3864] to-[#2d4a7a] rounded-2xl p-6 mb-6 text-white"
         >
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-[#C9A961]/20 rounded-xl flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-6 h-6 text-[#C9A961]" />
+            <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-6 h-6" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-bold text-[#1F3864] mb-1">
-                🎉 유언장 작성 완료!
-              </h3>
-              <p className="text-sm text-gray-600 mb-3">
-                유언장 초안이 완성되었습니다. 법적 효력을 갖추려면 <strong>전자유언인증</strong>을 진행하세요.
+              <h3 className="font-bold text-lg mb-1">유언장 초안 작성 완료!</h3>
+              <p className="text-white/70 text-sm leading-relaxed">
+                유언장 초안이 완성되었습니다. 법적 효력을 갖추려면 전자유언인증을 진행해주세요.
+                <br />결제 후 개인 인증 → 공증서류 업로드 → 전자서명 순서로 진행됩니다.
               </p>
-              <div className="bg-white/80 rounded-xl p-4 mb-4">
-                <p className="text-xs font-semibold text-[#1F3864] mb-2">전자유언인증 절차 (결제 후 진행):</p>
-                <ol className="text-xs text-gray-600 space-y-1.5">
-                  <li className="flex items-center gap-2">
-                    <span className="w-5 h-5 bg-[#1F3864] text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">1</span>
-                    결제 완료 (₩168,000) + 인증 카드 구매
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-5 h-5 bg-[#1F3864] text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">2</span>
-                    개인 인증 (신분증 + 셀피 + 전자서명)
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-5 h-5 bg-[#1F3864] text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">3</span>
-                    등록 자산 확인 및 수정/추가
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-5 h-5 bg-[#1F3864] text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">4</span>
-                    공증서류 업로드
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-5 h-5 bg-[#1F3864] text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">5</span>
-                    전자서명 → 인증 완료
-                  </li>
-                </ol>
+              <div className="flex items-center gap-3 mt-4">
+                <a
+                  href="/dashboard/payment"
+                  className="inline-flex items-center gap-2 bg-[#C9A961] text-[#1F3864] px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-[#d4b872] transition-all"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  결제하고 인증 시작
+                </a>
+                <span className="text-xs text-white/50">₩168,000</span>
               </div>
-              <a
-                href="/dashboard/payment"
-                className="inline-flex items-center gap-2 px-5 py-3 bg-[#C9A961] text-white rounded-xl text-sm font-bold hover:bg-[#b8963f] transition-all shadow-md"
-              >
-                <CreditCard className="w-4 h-4" />
-                결제하고 전자유언인증 시작하기
-                <ChevronRight className="w-4 h-4" />
-              </a>
             </div>
           </div>
         </motion.div>
