@@ -515,7 +515,7 @@ export default function WillWizardPage() {
                     결제하고 정식인증 시작
                   </a>
                   <div className="text-left">
-                    <p className="text-xs text-white/50">실버 멤버십 기준</p>
+                    <p className="text-xs text-white/50">모든 서비스 포함</p>
                     <p className="text-sm font-bold text-[#C9A961]">₩168,000</p>
                   </div>
                 </div>
