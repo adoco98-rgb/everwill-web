@@ -133,7 +133,7 @@ export default function PaymentsPage() {
           <h3 className="text-sm font-bold text-[#1F3864] mb-4">포함된 모든 서비스</h3>
           <div className="grid sm:grid-cols-2 gap-3">
             {[
-              { icon: FileText, text: "유언장 전자 인증 (법적 효력)", highlight: true },
+              { icon: FileText, text: "유언장 전자 인증 · 진정성 증명", highlight: true },
               { icon: Shield, text: "블록체인 해시 기록 · 타임스탬프" },
               { icon: Award, text: "공식 인증서 발급" },
               { icon: Video, text: "영상 유언장 녹화 · 보관", highlight: true },
