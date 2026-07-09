@@ -490,45 +490,7 @@ function HeirForm({
         </div>
       </div>
 
-      {/* SNS 연락처 */}
-      <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 space-y-2">
-        <Label className="text-xs font-semibold text-gray-700 block">SNS 연락처 (선택)</Label>
-        <p className="text-xs text-gray-500">사망 후 자동 알림 발송에 사용됩니다.</p>
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <Label className="text-xs text-gray-500 mb-1 block">KakaoTalk ID</Label>
-            <Input
-              placeholder="카카오톡 ID"
-              value={(form as any).kakaoId ?? ""}
-              onChange={(e) => update("kakaoId" as any, e.target.value)}
-            />
-          </div>
-          <div>
-            <Label className="text-xs text-gray-500 mb-1 block">LINE ID</Label>
-            <Input
-              placeholder="LINE ID"
-              value={(form as any).lineId ?? ""}
-              onChange={(e) => update("lineId" as any, e.target.value)}
-            />
-          </div>
-          <div>
-            <Label className="text-xs text-gray-500 mb-1 block">WhatsApp (+국가코드)</Label>
-            <Input
-              placeholder="+1 234 567 8900"
-              value={(form as any).whatsappId ?? ""}
-              onChange={(e) => update("whatsappId" as any, e.target.value)}
-            />
-          </div>
-          <div>
-            <Label className="text-xs text-gray-500 mb-1 block">WeChat ID</Label>
-            <Input
-              placeholder="WeChat ID"
-              value={(form as any).wechatId ?? ""}
-              onChange={(e) => update("wechatId" as any, e.target.value)}
-            />
-          </div>
-        </div>
-      </div>
+
 
       {/* 자산 분배 */}
       <div className="bg-gray-50 rounded-lg p-3 space-y-3">
