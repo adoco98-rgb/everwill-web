@@ -181,7 +181,7 @@ export default function Step1Testator({ will, update }: StepProps) {
 
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-[#1F3864] mb-1.5">연락싸</label>
+          <label className="block text-sm font-semibold text-[#1F3864] mb-1.5">연락처</label>
           <PhoneInput
             countryCode={phoneCode}
             phone={phoneNumberOnly}

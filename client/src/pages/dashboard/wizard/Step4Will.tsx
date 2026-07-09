@@ -190,7 +190,21 @@ export default function Step4Will({ onComplete }: Props) {
 
   useEffect(() => {
     if (willDetail && willDetail.data) {
-      setWillContent(willDetail.data);
+      // JSON 구조인 경우 willContent와 signature를 분리하여 로드
+      try {
+        const parsed = JSON.parse(willDetail.data);
+        if (parsed.willContent) {
+          setWillContent(parsed.willContent);
+          if (parsed.signature1) setSignature1(parsed.signature1);
+          if (parsed.signature2) setSignature2(parsed.signature2);
+        } else {
+          // JSON이지만 willContent 키가 없는 경우 (AIWizard에서 저장한 will 전체 객체)
+          setWillContent(willDetail.data);
+        }
+      } catch {
+        // JSON 파싱 실패 = plain text 유언장 내용
+        setWillContent(willDetail.data);
+      }
       setTitle(willDetail.title || title);
       setSaved(true);
     }
@@ -261,10 +275,21 @@ export default function Step4Will({ onComplete }: Props) {
 
   const handleSave = () => {
     if (!willContent.trim()) { toast.error("유언장 내용을 입력해주세요."); return; }
+    // 기존 data에서 다른 필드(testatorRRN 등)를 보존하고 willContent만 업데이트
+    let existingData: Record<string, any> = {};
+    try {
+      if (willDetail?.data) {
+        const parsed = JSON.parse(willDetail.data);
+        if (typeof parsed === 'object' && parsed !== null) {
+          existingData = parsed;
+        }
+      }
+    } catch { /* plain text였으면 무시 */ }
+    const mergedData = JSON.stringify({ ...existingData, willContent });
     saveMutation.mutate({
       willId: willId || undefined,
       title,
-      data: willContent,
+      data: mergedData,
       status: "draft",
     });
   };
@@ -273,8 +298,18 @@ export default function Step4Will({ onComplete }: Props) {
     if (!willContent.trim()) { toast.error("유언장 내용을 입력해주세요."); return; }
     if (!signature1) { toast.error("유언자 서명을 해주세요."); return; }
     if (!signature2) { toast.error("확인 서명을 해주세요."); return; }
-    // 서명 데이터를 JSON으로 포함하여 저장
+    // 기존 data에서 다른 필드(testatorRRN, testatorName 등)를 보존하고 서명+willContent만 merge
+    let existingData: Record<string, any> = {};
+    try {
+      if (willDetail?.data) {
+        const parsed = JSON.parse(willDetail.data);
+        if (typeof parsed === 'object' && parsed !== null) {
+          existingData = parsed;
+        }
+      }
+    } catch { /* plain text였으면 무시 */ }
     const dataWithSignature = JSON.stringify({
+      ...existingData,
       willContent,
       signature1,
       signature2,
