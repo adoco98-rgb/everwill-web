@@ -544,34 +544,37 @@ export default function WillWizardPage() {
         </motion.div>
       )}
 
-      {/* 단계별 콘텐츠 */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentStep}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.2 }}
-        >
-          {currentStep === 1 && (
-            <Step1BasicInfo onComplete={() => handleStepComplete(1)} />
-          )}
-          {currentStep === 2 && (
-            <Step2Assets onComplete={() => handleStepComplete(2)} />
-          )}
-          {currentStep === 3 && (
-            <Step3Heirs onComplete={() => handleStepComplete(3)} />
-          )}
-          {currentStep === 4 && (
-            <Step4Will onComplete={() => handleStepComplete(4)} />
-          )}
-          {currentStep === 5 && (
-            <Step5Distribution onComplete={() => handleStepComplete(5)} />
-          )}
-        </motion.div>
-      </AnimatePresence>
+      {/* 단계별 콘텐츠 - 5단계 모두 완료 시 숨김 */}
+      {!showCertGuide && (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2 }}
+          >
+            {currentStep === 1 && (
+              <Step1BasicInfo onComplete={() => handleStepComplete(1)} />
+            )}
+            {currentStep === 2 && (
+              <Step2Assets onComplete={() => handleStepComplete(2)} />
+            )}
+            {currentStep === 3 && (
+              <Step3Heirs onComplete={() => handleStepComplete(3)} />
+            )}
+            {currentStep === 4 && (
+              <Step4Will onComplete={() => handleStepComplete(4)} />
+            )}
+            {currentStep === 5 && (
+              <Step5Distribution onComplete={() => handleStepComplete(5)} />
+            )}
+          </motion.div>
+        </AnimatePresence>
+      )}
 
-      {/* 하단 네비게이션 */}
+      {/* 하단 네비게이션 - 완료 시 숨김 */}
+      {!showCertGuide && (
       <div className="flex items-center justify-between mt-6">
         <button
           onClick={() => setCurrentStep((s) => Math.max(1, s - 1))}
@@ -615,6 +618,7 @@ export default function WillWizardPage() {
           <div className="w-[120px]" /> 
         )}
       </div>
+      )}
 
       {/* 미리보기 모달 */}
       {showPreview && (
