@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Printer, FileText, AlertCircle, User, Users, Landmark, Award, Building2, Banknote, Car } from "lucide-react";
+import { Printer, FileText, AlertCircle, User, Users, Landmark, Award, Building2, Banknote, Car, Paperclip, ShieldCheck } from "lucide-react";
 import { Link } from "wouter";
 
 /**
@@ -28,6 +28,9 @@ export default function WillPreviewPage() {
   const { data: willData } = trpc.asset.getWillData.useQuery();
   const assetList = willData?.assets ?? [];
   const heirList = willData?.heirs ?? [];
+
+  // 업로드된 문서 목록 조회 (willAttachments 테이블)
+  const { data: attachments } = trpc.attachment.list.useQuery();
 
   // 출력 기능
   function handlePrint() {
@@ -166,6 +169,16 @@ export default function WillPreviewPage() {
               <div className="bg-[#FAFAF8] border border-gray-100 rounded-xl p-6 print:p-0 print:border-none print:bg-white">
                 <div className="prose prose-sm max-w-none text-gray-800 leading-relaxed whitespace-pre-wrap">
                   {willText.split("\n").map((line, idx) => {
+                    // 서명란에 서명 이미지 삽입
+                    if (line.includes("서명:") && line.includes("(인)") && signatureImage) {
+                      return (
+                        <div key={idx} className="flex items-center gap-2 my-2">
+                          <span className="text-sm">서명: </span>
+                          <img src={signatureImage} alt="유언자 서명" className="h-12 object-contain inline-block" />
+                          <span className="text-sm"> (인)</span>
+                        </div>
+                      );
+                    }
                     // 마크다운 볼드 처리
                     if (line.startsWith("**") && line.endsWith("**")) {
                       return <p key={idx} className="font-bold text-[#1F3864] text-base mt-4 mb-2">{line.replace(/\*\*/g, "")}</p>;
@@ -194,8 +207,8 @@ export default function WillPreviewPage() {
             </section>
           )}
 
-          {/* ─── JSON 데이터가 있는 경우 (Step10Sign에서 저장) ─── */}
-          {parsedJson && (
+          {/* ─── JSON 데이터가 있는 경우 (willText가 없을 때만 표시 - 본문에 이미 포함됨) ─── */}
+          {parsedJson && !willText && (
             <>
               {/* 유언자 정보 */}
               <section>
@@ -421,36 +434,7 @@ export default function WillPreviewPage() {
             </section>
           )}
 
-          {/* ─── 서명 ─── */}
-          {signatureImage && (
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <FileText className="w-4 h-4 text-[#1F3864]" />
-                <h3 className="font-bold text-[#1F3864]">전자 서명</h3>
-                {signedAt && (
-                  <span className="text-xs text-gray-500 ml-2">
-                    (서명일: {new Date(signedAt).toLocaleDateString("ko-KR")})
-                  </span>
-                )}
-              </div>
-              <div className="bg-gray-50 rounded-xl p-5 space-y-4">
-                <div>
-                  <p className="text-xs text-gray-500 mb-2">유언자 서명</p>
-                  <div className="bg-white border border-gray-200 rounded-lg p-3 inline-block">
-                    <img src={signatureImage} alt="유언자 서명" className="h-16 object-contain" />
-                  </div>
-                </div>
-                {signatureImage2 && (
-                  <div>
-                    <p className="text-xs text-gray-500 mb-2">확인 서명</p>
-                    <div className="bg-white border border-gray-200 rounded-lg p-3 inline-block">
-                      <img src={signatureImage2} alt="확인 서명" className="h-16 object-contain" />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </section>
-          )}
+
 
           {/* ─── 상태 안내 ─── */}
           {willDetail.status !== "certified" && (
@@ -476,6 +460,54 @@ export default function WillPreviewPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* ─── 업로드된 문서 목록 ─── */}
+      {attachments && attachments.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden mt-6 print:border-none print:shadow-none">
+          <div className="bg-[#1F3864] text-white px-6 py-4 flex items-center gap-3 print:bg-white print:text-[#1F3864] print:border-b-2 print:border-[#1F3864]">
+            <Paperclip className="w-5 h-5" />
+            <div>
+              <h2 className="font-bold text-lg">업로드된 증빙 서류</h2>
+              <p className="text-white/70 text-sm print:text-gray-500">침부된 서류 {attachments.length}건</p>
+            </div>
+          </div>
+          <div className="p-6 space-y-3">
+            {attachments.map((att: any) => (
+              <div key={att.id} className="flex items-center justify-between bg-gray-50 rounded-xl p-4">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <p className="font-medium text-gray-800 text-sm">{att.fileName}</p>
+                    <p className="text-xs text-gray-500">
+                      {att.category !== "other" ? att.category : ""}
+                      {att.description ? ` - ${att.description}` : ""}
+                      {att.createdAt ? ` · ${new Date(att.createdAt).toLocaleDateString("ko-KR")}` : ""}
+                    </p>
+                  </div>
+                </div>
+                <a
+                  href={att.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-[#1F3864] hover:underline font-medium"
+                >
+                  보기
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ─── 나의 유언 디지털 전자인증하기 버튼 ─── */}
+      <div className="mt-8 print:hidden">
+        <Link href="/dashboard/payments">
+          <Button className="w-full bg-gradient-to-r from-[#1F3864] to-[#2a4a7a] text-white py-6 text-lg font-bold rounded-2xl hover:opacity-90 transition-all flex items-center justify-center gap-3">
+            <ShieldCheck className="w-6 h-6" />
+            나의 유언 디지털 전자인증하기
+          </Button>
+        </Link>
       </div>
     </div>
   );
