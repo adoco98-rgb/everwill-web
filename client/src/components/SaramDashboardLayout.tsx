@@ -226,13 +226,12 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
 
         {/* 메뉴 */}
         <nav className="flex-1 p-4 overflow-y-auto space-y-1">
-          {/* 유언 작성 단계 */}
+          {/* 안내 텍스트 */}
           <div className="pt-1 mb-1">
-            <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3">메뉴 순서대로 작성합니다</span>
+            <span className="text-[10px] font-bold text-white/90 uppercase tracking-widest px-3">메뉴 순서대로 작성합니다</span>
           </div>
-          {renderMenuItems(mainMenuItems)}
 
-          {/* 유언 작성하기 - 핵심 CTA (자산·상속자 등록 후) */}
+          {/* 유언 작성하기 - 최상단 CTA */}
           {willFlowMenuItems.map((item) => {
             const isActive = location.startsWith(item.path);
             return (
@@ -240,7 +239,7 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
                 key={item.path}
                 href={item.path}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all my-2 ${
+                className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all mb-2 ${
                   isActive
                     ? "bg-[#C9A961] text-white"
                     : "bg-[#C9A961]/20 text-[#C9A961] hover:bg-[#C9A961]/30"
@@ -253,15 +252,18 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
             );
           })}
 
+          {/* 유언 작성 단계 */}
+          {renderMenuItems(mainMenuItems)}
+
           {/* 전자유언인증 (결제 후) */}
           <div className="pt-3 mt-2 border-t border-white/10">
-            <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3">전자유언인증</span>
+            <span className="text-[10px] font-bold text-white/90 uppercase tracking-widest px-3">전자유언인증</span>
             <div className="mt-1">{renderMenuItems(certMenuItems)}</div>
           </div>
 
           {/* 멤버십 / 부가 서비스 */}
           <div className="pt-3 mt-2 border-t border-white/10">
-            <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3">멤버십 · 서비스</span>
+            <span className="text-[10px] font-bold text-white/90 uppercase tracking-widest px-3">멤버십 · 서비스</span>
             <div className="mt-1">{renderMenuItems(membershipMenuItems)}</div>
           </div>
 
@@ -294,13 +296,13 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
 
           {/* 전문가 찾기 */}
           <div className="pt-3 mt-2 border-t border-white/10">
-            <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3">전문가 서비스</span>
+            <span className="text-[10px] font-bold text-white/90 uppercase tracking-widest px-3">전문가 서비스</span>
             <div className="mt-1">{renderMenuItems(expertMenuItems)}</div>
           </div>
 
           {/* 내 정보 관리 */}
           <div className="pt-3 mt-2 border-t border-white/10">
-            <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3">내 정보 관리</span>
+            <span className="text-[10px] font-bold text-white/90 uppercase tracking-widest px-3">내 정보 관리</span>
             <div className="mt-1">{renderMenuItems(myInfoMenuItems)}</div>
           </div>
 
