@@ -54,12 +54,7 @@ const willFlowMenuItems = [
 const mainMenuItems = [
   { icon: ClipboardList, label: "자산 등록", path: "/assets" },
   { icon: Users, label: "상속자 등록", path: "/dashboard/heirs" },
-  { icon: Video, label: "영상 유언 (선택)", path: "/video-will" },
-  { icon: ScanLine, label: "자필 유언장 (선택)", path: "/will/scan" },
-  { icon: Home, label: "유언진행 현황", path: "/dashboard" },
-  { icon: FileText, label: "유류분 배제 문서", path: "/dashboard/reserve-share-exclusion" },
-  { icon: Video, label: "유류분 영상 증언", path: "/dashboard/reserve-share-video" },
-  { icon: CreditCard, label: "결제하기", path: "/dashboard/payments" },
+  { icon: CreditCard, label: "전자인증·결제하기", path: "/dashboard/payments" },
 ];
 
 /** 전자유언인증 메뉴 (결제 + 카드 구매 완료 후) */
@@ -67,7 +62,12 @@ const certMenuItems = [
   { icon: User, label: "개인 인증", path: "/dashboard/profile" },
   { icon: FileText, label: "공증서류", path: "/dashboard/notarization-docs" },
   { icon: BadgeCheck, label: "서명 인증", path: "/dashboard/certification" },
+  { icon: Video, label: "영상 유언 (선택)", path: "/video-will" },
+  { icon: ScanLine, label: "자필 유언장 (선택)", path: "/will/scan" },
+  { icon: Home, label: "유언진행 현황", path: "/dashboard" },
   { icon: ScrollText, label: "유언 인증서 발급신청", path: "/dashboard/will-certificate" },
+  { icon: FileText, label: "유류분 배제 문서", path: "/dashboard/reserve-share-exclusion" },
+  { icon: Video, label: "유류분 영상 증언", path: "/dashboard/reserve-share-video" },
 ];
 
 /** 멤버십 / 카드 메뉴 */

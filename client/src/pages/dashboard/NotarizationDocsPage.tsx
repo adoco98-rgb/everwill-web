@@ -134,6 +134,37 @@ const SECTIONS: DocumentSection[] = [
     ],
   },
   {
+    id: "health",
+    title: "건강증명서",
+    subtitle: "유언 작성 당시 의사능력 증명용",
+    icon: ShieldCheck,
+    color: "text-rose-700",
+    bgColor: "bg-rose-50",
+    documents: [
+      {
+        id: "health_cert",
+        name: "건강진단서 (일반)",
+        description: "유언 작성 당시 정신적·신체적 건강 상태 증명. 유언의 효력 강화에 도움이 됩니다.",
+        required: false,
+        helpLink: { label: "국민건강보험공단 검진기관 찾기", url: "https://www.nhis.or.kr/nhis/healthin/retrieveExamOrgan.do" },
+      },
+      {
+        id: "mental_health_cert",
+        name: "정신건강의학과 진단서",
+        description: "의사능력(판단력) 증명용. 유언 무효 소송 방지에 가장 강력한 증거입니다.",
+        required: false,
+        helpLink: { label: "대한신경정신의학회 병원 찾기", url: "https://www.knpa.or.kr/" },
+      },
+      {
+        id: "dementia_test",
+        name: "치매 선별검사 결과서",
+        description: "65세 이상 권장. 보건소에서 무료 검사 가능합니다.",
+        required: false,
+        helpLink: { label: "치매안심센터 찾기", url: "https://www.nid.or.kr/info/center_list.aspx" },
+      },
+    ],
+  },
+  {
     id: "beneficiary",
     title: "수증자 (상속받는 자)",
     subtitle: "상속인 본인 확인용",
@@ -464,6 +495,40 @@ export default function NotarizationDocsPage() {
             업로드된 서류는 AI가 자동으로 <strong>선명도, 서류 종류, 유효기간, 필수 항목</strong>을 검증합니다. 
             문제가 발견되면 즉시 안내해드리니 안심하고 업로드하세요.
           </p>
+        </div>
+      </div>
+
+      {/* 건강증명서 발급 안내 */}
+      <div className="bg-rose-50 border border-rose-100 rounded-xl p-5">
+        <div className="flex items-start gap-3">
+          <ShieldCheck className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold text-rose-800 text-sm mb-2">건강증명서 발급 안내</p>
+            <p className="text-xs text-rose-700 mb-3">
+              유언 작성 당시 의사능력(판단력)을 증명하는 건강증명서를 제출하면 유언의 효력이 강화됩니다.
+              특히 65세 이상이거나 유언 무효 소송 위험이 있는 경우 강력히 권장드립니다.
+            </p>
+            <div className="bg-white rounded-lg p-3 space-y-2 text-xs text-gray-700">
+              <p className="font-semibold text-gray-900">발급 방법:</p>
+              <ul className="space-y-1.5 ml-1">
+                <li className="flex items-start gap-2">
+                  <span className="text-rose-500 font-bold">1.</span>
+                  <span><strong>일반 건강진단서</strong> — 가까운 병원·의원에서 발급 (비용: ₩20,000~50,000)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-rose-500 font-bold">2.</span>
+                  <span><strong>정신건강의학과 진단서</strong> — 정신건강의학과 전문의 진료 후 발급 (비용: ₩50,000~100,000)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-rose-500 font-bold">3.</span>
+                  <span><strong>치매 선별검사</strong> — 주소지 보건소 또는 치매안심센터에서 <strong>무료</strong> 검사</span>
+                </li>
+              </ul>
+              <p className="text-gray-500 mt-2 pt-2 border-t border-gray-100">
+                ※ 유언 작성일 기준 <strong>3개월 이내</strong> 발급된 서류를 제출해주세요.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
