@@ -254,14 +254,10 @@ export default function AIWizard({ onBack, existingWill }: Props) {
                   </div>
                 </div>
 
-                {/* 가격 */}
+                {/* 전자 인증 안내 */}
                 <div className="bg-gradient-to-r from-[#C9A961]/10 to-[#C9A961]/5 rounded-xl p-4 mb-4 text-center border border-[#C9A961]/20">
-                  <p className="text-gray-500 text-xs mb-1">전자 인증 1회</p>
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-3xl font-bold text-[#1F3864]">₩168,000</span>
-                    <span className="text-gray-400 text-sm">/ $39</span>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1">수정 시 재인증 ₩15,000 · 평생 보관</p>
+                  <p className="text-[#1F3864] font-bold text-sm mb-1">전자 인증으로 효력 강화</p>
+                  <p className="text-xs text-gray-500">블록체인 타임스탬프 · 평생 보관 · 수정 10회 무료</p>
                 </div>
 
                 {/* 혜택 아이콘 */}
@@ -404,7 +400,7 @@ export default function AIWizard({ onBack, existingWill }: Props) {
           <div>
             <p className="text-xs font-semibold text-amber-700">전자 인증 후 법적 효력이 부여됩니다</p>
             <p className="text-xs text-amber-600 mt-0.5">
-              작성하신 유언장은 72시간 임시 저장됩니다. 전자 인증(₩168,000)을 완료하면 법적 효력과 함께 평생 보관됩니다.
+              작성하신 유언장은 72시간 임시 저장됩니다. 전자 인증을 완료하면 효력이 강화되며 평생 보관됩니다.
             </p>
           </div>
         </div>

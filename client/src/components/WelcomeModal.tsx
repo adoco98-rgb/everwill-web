@@ -33,7 +33,7 @@ const STEPS = [
   {
     icon: <Shield className="w-10 h-10 text-[#C9A961]" />,
     bg: "from-[#243d72] to-[#1F3864]",
-    title: "전자 인증 (₩168,000)",
+    title: "전자 인증",
     subtitle: "법규정에 맞는 유언장으로",
     description: "eKYC 본인확인 + 얼굴 인식 + 음성 의사 확인으로 법적 효력을 부여합니다. 분산 암호화 보안에 해시를 기록해 위변조가 불가능합니다.",
     tip: "💡 영구 보관이 포함됩니다.",
@@ -56,7 +56,7 @@ const STEPS = [
     steps: [
       { num: "01", text: "유언장 작성 (무료)" },
       { num: "02", text: "상속자 등록" },
-      { num: "03", text: "전자 인증 (₩168,000)" },
+      { num: "03", text: "전자 인증 (\uacb0\uc81c \ud398\uc774\uc9c0\uc5d0\uc11c \ud655\uc778)" },
     ],
   },
 ];

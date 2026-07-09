@@ -53,8 +53,8 @@ export default function Step8Addons({ will, update }: StepProps) {
               <p className="text-xs text-gray-400">{isKo ? "전자 인증만" : "e-Certification only"}</p>
             </div>
           </div>
-          <div className="text-2xl font-bold text-[#1F3864] mb-3">
-            {isKo ? "₩168,000" : "$39"}
+          <div className="text-sm font-bold text-[#1F3864] mb-3">
+            {isKo ? "결제 페이지에서 확인" : "See pricing page"}
           </div>
           <ul className="space-y-1.5">
             {(isKo

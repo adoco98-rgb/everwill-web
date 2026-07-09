@@ -1429,7 +1429,7 @@ export default function Step10Sign({ will }: StepProps) {
                     <>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-500">전자 인증 (최초)</span>
-                        <span className="font-semibold">₩168,000</span>
+                        <span className="font-semibold text-[#1F3864]">결제 페이지 확인</span>
                       </div>
                       {will.hasVideoWill && (
                         <div className="flex justify-between text-sm">

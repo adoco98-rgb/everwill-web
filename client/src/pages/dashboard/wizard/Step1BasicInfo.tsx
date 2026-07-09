@@ -430,7 +430,7 @@ export default function Step1BasicInfo({ onComplete }: Props) {
             유언장 작성은 <strong>무료</strong>입니다. 기본정보를 확인한 후 자산 등록, 상속자 등록,
             유언장 작성까지 자유롭게 진행하세요.
             <br />
-            전자유언 인증(₩168,000)은 결제 및 카드 구매 완료 후 별도로 진행됩니다.
+            전자유언 인증은 결제 완료 후 별도로 진행됩니다.
           </p>
         </div>
       </div>

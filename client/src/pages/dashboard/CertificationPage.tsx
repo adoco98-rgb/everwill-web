@@ -143,7 +143,7 @@ export default function CertificationPage() {
             ) : (
               <div className="space-y-3">
                 <p className="text-sm text-gray-600">
-                  유언장 작성 후 전자 인증(₩168,000)을 완료하면 법적 효력이 강화됩니다.
+                  유언장 작성 후 전자 인증을 완료하면 효력이 강화됩니다.
                 </p>
                 <Link href="/write">
                   <Button variant="outline" size="sm" className="gap-2">
