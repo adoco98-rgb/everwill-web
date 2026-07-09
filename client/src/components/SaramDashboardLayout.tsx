@@ -41,6 +41,7 @@ import {
   Fingerprint,
   Gift,
   Scale,
+  Eye,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -50,15 +51,16 @@ const willFlowMenuItems = [
   { icon: Sparkles, label: "유언 작성하기", path: "/dashboard/will-wizard", highlight: true },
 ];
 
-/** 유언 작성 단계별 메뉴 (순서대로) */
+/** 유언 작성 단계별 메뉴 (무료) */
 const mainMenuItems = [
   { icon: ClipboardList, label: "자산 등록", path: "/assets" },
   { icon: Users, label: "상속자 등록", path: "/dashboard/heirs" },
-  { icon: CreditCard, label: "전자인증·결제하기", path: "/dashboard/payments" },
+  { icon: Eye, label: "기본유언장 확인", path: "/dashboard/will-preview" },
 ];
 
-/** 전자유언인증 메뉴 (결제 + 카드 구매 완료 후) */
+/** 전자유언인증 메뉴 (결제 후 진행) */
 const certMenuItems = [
+  { icon: CreditCard, label: "전자인증·결제하기", path: "/dashboard/payments" },
   { icon: User, label: "개인 인증", path: "/dashboard/profile" },
   { icon: FileText, label: "공증서류", path: "/dashboard/notarization-docs" },
   { icon: BadgeCheck, label: "서명 인증", path: "/dashboard/certification" },

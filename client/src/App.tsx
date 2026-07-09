@@ -77,6 +77,7 @@ import VideoWillPage from "./pages/VideoWillPage";
 import MyAIPage from "./pages/MyAIPage";
 import ReserveShareExclusionPage from "./pages/dashboard/ReserveShareExclusionPage";
 import ReserveShareVideoPage from "./pages/dashboard/ReserveShareVideoPage";
+import WillPreviewPage from "./pages/dashboard/WillPreviewPage";
 import { ChatbotWidget } from "./components/ChatbotWidget";
 import { LanguageProvider } from "./contexts/LanguageContext";
 
@@ -143,6 +144,8 @@ function Router() {
       <Route path={"/dashboard/my-consultations"} component={() => <SaramDashboardLayout><MyConsultationsPage /></SaramDashboardLayout>} />
       {/* 연명치료 거부·장기기증 */}
       <Route path={"/dashboard/medical-directive"} component={MedicalDirectivePage} />
+      {/* 기본유언장 확인 (무료) */}
+      <Route path={"/dashboard/will-preview"} component={() => <SaramDashboardLayout><WillPreviewPage /></SaramDashboardLayout>} />
       {/* 내 유언장 목록 */}
       <Route path={"/dashboard/wills"} component={() => <SaramDashboardLayout><WillsPage /></SaramDashboardLayout>} />
       {/* 유언장 수정 게이트 */}
