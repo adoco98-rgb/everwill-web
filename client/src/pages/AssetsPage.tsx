@@ -329,12 +329,7 @@ export default function AssetsPage() {
             <h1 className="font-bold text-[#1F3864] text-lg">내 재산 관리</h1>
             <p className="text-xs text-gray-400">유언장 작성 시 자동으로 불러와집니다</p>
           </div>
-          <Link href="/write">
-            <button className="btn-gold px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2">
-              유언장 작성하기
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </Link>
+
         </div>
       </header>
 
@@ -1044,13 +1039,13 @@ export default function AssetsPage() {
 
         {/* ── 하단 CTA ── */}
         <div className="mt-10 bg-[#1F3864] rounded-2xl p-6 text-center">
-          <h3 className="text-white font-bold text-lg mb-2">재산 등록 완료 후 유언장을 작성하세요</h3>
+          <h3 className="text-white font-bold text-lg mb-2">재산 등록이 완료되었나요?</h3>
           <p className="text-white/60 text-sm mb-4">
-            등록된 재산과 상속자가 유언장 작성 시 자동으로 불러와집니다.
+            다음 단계로 상속자를 등록해주세요.
           </p>
-          <Link href="/write">
+          <Link href="/dashboard/heirs">
             <button className="btn-gold px-8 py-3 rounded-full font-bold">
-              AI 유언장 작성 시작 →
+              상속자 등록하기 →
             </button>
           </Link>
         </div>
