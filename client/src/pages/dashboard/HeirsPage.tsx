@@ -350,6 +350,21 @@ export default function HeirsPage() {
         </Card>
       )}
 
+      {/* 상속자 1명 이상 등록 시 기본유언장 확인 CTA */}
+      {heirs.length > 0 && !showAddForm && (
+        <div className="mt-8 bg-[#1F3864] rounded-2xl p-6 text-center">
+          <h3 className="text-white font-bold text-lg mb-2">상속자 등록이 완료되었나요?</h3>
+          <p className="text-white/60 text-sm mb-4">
+            등록한 자산과 상속자 정보로 작성된 유언장을 확인해보세요.
+          </p>
+          <a href="/dashboard/will-preview">
+            <button className="bg-[#C9A961] hover:bg-[#b8963e] text-white px-8 py-3 rounded-full font-bold transition-colors">
+              기본유언장 확인하기 →
+            </button>
+          </a>
+        </div>
+      )}
+
     </div>
   );
 }
