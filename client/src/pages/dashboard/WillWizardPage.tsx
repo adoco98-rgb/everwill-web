@@ -160,6 +160,13 @@ export default function WillWizardPage() {
   const { data: attachments } = trpc.attachment.list.useQuery({});
   const { data: verifyStatus } = trpc.assetVerify.getStatus.useQuery();
 
+  // 유언장 상세 조회 (유언장 전문 + 서명 데이터 포함)
+  const latestWillId = myWills && myWills.length > 0 ? myWills[0].id : undefined;
+  const { data: willDetail } = trpc.will.getWillById.useQuery(
+    { willId: latestWillId! },
+    { enabled: !!latestWillId }
+  );
+
   // 미리보기 PDF 생성
   const previewPdfMutation = trpc.willCertificate.previewPdf.useMutation({
     onSuccess: (data) => {
@@ -518,6 +525,76 @@ export default function WillWizardPage() {
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* 유언장 전문 내용 */}
+            {willDetail?.data && (
+              <div className="px-6 pb-4">
+                <div className="border border-gray-200 rounded-xl p-4 bg-[#FAFAF8]">
+                  <p className="text-xs text-gray-500 mb-2 font-medium">유언장 전문</p>
+                  <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto">
+                    {(() => {
+                      try {
+                        const parsed = JSON.parse(willDetail.data || "");
+                        return parsed.willContent || willDetail.data;
+                      } catch {
+                        return willDetail.data;
+                      }
+                    })()}
+                  </div>
+                </div>
+                {/* 서명 이미지 */}
+                {(() => {
+                  try {
+                    const parsed = JSON.parse(willDetail.data || "");
+                    if (parsed.signature1) {
+                      return (
+                        <div className="mt-3 flex items-center gap-4">
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">유언자 서명</p>
+                            <div className="bg-white border border-gray-200 rounded-lg p-2 inline-block">
+                              <img src={parsed.signature1} alt="서명" className="h-12 object-contain" />
+                            </div>
+                          </div>
+                          {parsed.signature2 && (
+                            <div>
+                              <p className="text-xs text-gray-500 mb-1">확인 서명</p>
+                              <div className="bg-white border border-gray-200 rounded-lg p-2 inline-block">
+                                <img src={parsed.signature2} alt="확인 서명" className="h-12 object-contain" />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                    return null;
+                  } catch {
+                    return null;
+                  }
+                })()}
+              </div>
+            )}
+
+            {/* 수정하기 + 유언장 확인 버튼 */}
+            <div className="px-6 pb-4 flex gap-3">
+              <button
+                onClick={() => {
+                  setShowCertGuide(false);
+                  setCurrentStep(4);
+                  setCompletedSteps(prev => prev.filter(s => s !== 4 && s !== 5));
+                }}
+                className="flex-1 flex items-center justify-center gap-2 bg-white border border-[#1F3864] text-[#1F3864] hover:bg-[#1F3864]/5 px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
+              >
+                <PenLine className="w-4 h-4" />
+                수정하기
+              </button>
+              <a
+                href="/dashboard/will-preview"
+                className="flex-1 flex items-center justify-center gap-2 bg-[#1F3864] text-white hover:bg-[#1F3864]/90 px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
+              >
+                <Eye className="w-4 h-4" />
+                기본유언장 확인
+              </a>
             </div>
 
             {/* 카드 하단 안내 */}
