@@ -529,58 +529,15 @@ export default function WillWizardPage() {
             </div>
           </div>
 
-          {/* 결제 인증 안내 박스 */}
-          <div className="bg-gradient-to-r from-[#1F3864] to-[#2d4a7a] rounded-2xl p-6 text-white">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-6 h-6 text-[#C9A961]" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-lg mb-2">전자유언인증으로 효력이 강화됩니다</h3>
-                <p className="text-white/70 text-sm leading-relaxed mb-4">
-                  EverWill 전자유언인증을 완료하면 블록체인 타임스탬프와 함께 유언장이 안전하게 보관되며,
-                  사후 집행 시 유언장의 효력이 강화됩니다.
+          {/* 전자유언인증 안내 (결제 버튼 없음 - 전자인증 메뉴에서 진행) */}
+          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="w-5 h-5 text-[#1F3864] shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-[#1F3864] text-sm mb-1">전자유언인증으로 효력을 강화하세요</p>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  유언장 작성이 완료되었습니다. 전자유언인증을 원하시면 왼쪽 메뉴의 <strong>"전자인증·결제하기"</strong>를 클릭해주세요.
                 </p>
-
-                {/* 인증 절차 안내 */}
-                <div className="bg-white/5 rounded-xl p-4 mb-4">
-                  <p className="text-xs text-white/50 mb-3 font-medium">인증 절차 (결제 후 진행)</p>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-lg">
-                      <BadgeCheck className="w-3.5 h-3.5 text-[#C9A961]" />
-                      <span className="text-xs">개인 인증</span>
-                    </div>
-                    <ArrowRight className="w-3 h-3 text-white/30" />
-                    <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-lg">
-                      <FileText className="w-3.5 h-3.5 text-[#C9A961]" />
-                      <span className="text-xs">공증서류 업로드</span>
-                    </div>
-                    <ArrowRight className="w-3 h-3 text-white/30" />
-                    <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-lg">
-                      <PenLine className="w-3.5 h-3.5 text-[#C9A961]" />
-                      <span className="text-xs">전자서명</span>
-                    </div>
-                    <ArrowRight className="w-3 h-3 text-white/30" />
-                    <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-lg">
-                      <Award className="w-3.5 h-3.5 text-[#C9A961]" />
-                      <span className="text-xs">인증서 발급</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 결제 버튼 */}
-                <div className="flex items-center gap-3">
-                  <a
-                    href="/dashboard/payments"
-                    className="inline-flex items-center gap-2 bg-[#C9A961] text-[#1F3864] px-6 py-3 rounded-xl font-bold text-sm hover:bg-[#d4b872] transition-all shadow-lg shadow-[#C9A961]/20"
-                  >
-                    <CreditCard className="w-4 h-4" />
-                    결제하고 정식인증 시작
-                  </a>
-                  <div className="text-left">
-                    <p className="text-xs text-white/70">모든 서비스 포함</p>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

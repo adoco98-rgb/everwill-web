@@ -350,11 +350,11 @@ export default function DashboardHome() {
               </Link>
           </motion.div>
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}>
-            <Link href="/payment" className="block bg-[#C9A961] rounded-2xl p-5 hover:shadow-md transition-all group">
-                <CreditCard className="w-6 h-6 text-white mb-3 opacity-80" />
-                <h3 className="font-bold text-white text-sm">결제하기</h3>
-                <p className="text-xs mt-0.5 text-white opacity-60">전자인증 · Badge · 보관</p>
-                <ArrowRight className="w-4 h-4 text-white opacity-40 mt-3 group-hover:opacity-80 group-hover:translate-x-1 transition-all" />
+            <Link href="/dashboard/will-preview" className="block bg-white border-2 border-[#C9A961]/30 hover:border-[#C9A961] rounded-2xl p-5 hover:shadow-md transition-all group">
+                <FileText className="w-6 h-6 text-[#C9A961] mb-3" />
+                <h3 className="font-bold text-[#1F3864] text-sm">기본유언장 확인</h3>
+                <p className="text-xs mt-0.5 text-gray-400">작성한 유언장 확인 · 출력</p>
+                <ArrowRight className="w-4 h-4 text-[#C9A961]/50 mt-3 group-hover:opacity-80 group-hover:translate-x-1 transition-all" />
               </Link>
           </motion.div>
 
@@ -383,7 +383,7 @@ export default function DashboardHome() {
               href: certifiedWill ? "/dashboard/wills" : "/dashboard/asset-verify",
             },
             { icon: CreditCard, label: "결제 내역", value: "0건", sub: "결제 내역 없음", status: "none", href: "/dashboard/payments" },
-            { icon: Award, label: "EverWill 카드", value: "미신청", sub: "결제 후 발급", status: "none", href: "/payment" },
+            { icon: Award, label: "EverWill 카드", value: "미신청", sub: "전자인증 후 발급", status: "none", href: "/dashboard/cert-payment" },
           ].map((card, i) => (
             <motion.div
               key={card.label}
