@@ -84,6 +84,14 @@ export default function WillPreviewPage() {
     }
   }
 
+  // Step4Will에서 서명 포함 JSON으로 저장한 경우 willContent 추출
+  if (parsedJson?.willContent && !willText) {
+    willText = parsedJson.willContent;
+  }
+  const signatureImage = parsedJson?.signature1 || "";
+  const signatureImage2 = parsedJson?.signature2 || "";
+  const signedAt = parsedJson?.signedAt || "";
+
   // JSON 파싱된 경우에서 유언자 정보 추출
   const testatorName = parsedJson?.testatorName || user?.name || "-";
   const testatorAddress = parsedJson?.testatorAddress || "";
@@ -409,6 +417,37 @@ export default function WillPreviewPage() {
                     )}
                   </div>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {/* ─── 서명 ─── */}
+          {signatureImage && (
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <FileText className="w-4 h-4 text-[#1F3864]" />
+                <h3 className="font-bold text-[#1F3864]">전자 서명</h3>
+                {signedAt && (
+                  <span className="text-xs text-gray-500 ml-2">
+                    (서명일: {new Date(signedAt).toLocaleDateString("ko-KR")})
+                  </span>
+                )}
+              </div>
+              <div className="bg-gray-50 rounded-xl p-5 space-y-4">
+                <div>
+                  <p className="text-xs text-gray-500 mb-2">유언자 서명</p>
+                  <div className="bg-white border border-gray-200 rounded-lg p-3 inline-block">
+                    <img src={signatureImage} alt="유언자 서명" className="h-16 object-contain" />
+                  </div>
+                </div>
+                {signatureImage2 && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-2">확인 서명</p>
+                    <div className="bg-white border border-gray-200 rounded-lg p-3 inline-block">
+                      <img src={signatureImage2} alt="확인 서명" className="h-16 object-contain" />
+                    </div>
+                  </div>
+                )}
               </div>
             </section>
           )}

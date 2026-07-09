@@ -273,9 +273,15 @@ export default function Step4Will({ onComplete }: Props) {
     if (!willContent.trim()) { toast.error("유언장 내용을 입력해주세요."); return; }
     if (!signature1) { toast.error("유언자 서명을 해주세요."); return; }
     if (!signature2) { toast.error("확인 서명을 해주세요."); return; }
-    // 저장 후 다음 단계
+    // 서명 데이터를 JSON으로 포함하여 저장
+    const dataWithSignature = JSON.stringify({
+      willContent,
+      signature1,
+      signature2,
+      signedAt: new Date().toISOString(),
+    });
     saveMutation.mutate(
-      { willId: willId || undefined, title, data: willContent, status: "draft" },
+      { willId: willId || undefined, title, data: dataWithSignature, status: "draft" },
       { onSuccess: () => onComplete() }
     );
   };
