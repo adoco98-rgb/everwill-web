@@ -13,6 +13,7 @@ import {
   User, Crown, MessageSquare, ChevronDown, ChevronUp,
   Heart, Building2, ShieldCheck, Eye, EyeOff
 } from "lucide-react";
+import AddressSearch from "@/components/write/AddressSearch";
 
 /**
  * 상속자 등록 페이지
@@ -469,12 +470,23 @@ function HeirForm({
           </Select>
         </div>
         <div>
-          <Label className="text-xs font-medium text-gray-600 mb-1 block">주소</Label>
-          <Input
-            placeholder="서울시 강남구 테헤란로 123"
-            value={form.address}
-            onChange={(e) => update("address", e.target.value)}
-          />
+          {form.country === "KR" ? (
+            <AddressSearch
+              value={form.address}
+              onChange={(address: string) => update("address", address)}
+              label="주소"
+              placeholder="주소를 검색해 주세요"
+            />
+          ) : (
+            <>
+              <Label className="text-xs font-medium text-gray-600 mb-1 block">주소</Label>
+              <Input
+                placeholder="해외 주소 입력"
+                value={form.address}
+                onChange={(e) => update("address", e.target.value)}
+              />
+            </>
+          )}
         </div>
       </div>
 
