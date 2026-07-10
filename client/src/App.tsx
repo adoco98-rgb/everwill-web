@@ -160,7 +160,7 @@ function Router() {
       {/* 사업기획서 */}
       <Route path={"/pitch"} component={PitchPage} />
       {/* 재산 등록 관리 */}
-      <Route path={"/assets"} component={AssetsPage} />
+      <Route path={"/assets"} component={() => <SaramDashboardLayout><AssetsPage /></SaramDashboardLayout>} />
       {/* 투자유치 사업설명회 - 비공개 URL */}
       <Route path={"/investor"} component={InvestorPage} />
       {/* Life Story - AI 일기·편지·인물앨범 (₩79,000 이상 전용) */}
