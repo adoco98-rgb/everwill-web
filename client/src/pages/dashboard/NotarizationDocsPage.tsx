@@ -117,13 +117,7 @@ const SECTIONS: DocumentSection[] = [
         required: true,
         helpLink: { label: "정부24에서 발급", url: "https://www.gov.kr/mw/SS/PUBR/insertPublicForm.do?formId=CERT_SEAL" },
       },
-      {
-        id: "id_card",
-        name: "신분증 사본",
-        description: "주민등록증, 운전면허증, 여권 중 택1",
-        required: true,
-        needsPreview: true,
-      },
+
       {
         id: "seal_stamp",
         name: "인감도장 날인",
