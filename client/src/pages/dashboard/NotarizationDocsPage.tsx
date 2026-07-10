@@ -48,6 +48,7 @@ interface DocumentSection {
   color: string;
   bgColor: string;
   documents: DocumentItem[];
+  alwaysExpanded?: boolean;
 }
 
 interface AnalysisResult {
@@ -152,29 +153,13 @@ const SECTIONS: DocumentSection[] = [
     ],
   },
   {
-    id: "beneficiary",
-    title: "수증자 (상속받는 자)",
-    subtitle: "상속인 본인 확인용",
-    icon: Users,
-    color: "text-green-700",
-    bgColor: "bg-green-50",
-    documents: [
-      {
-        id: "beneficiary_resident",
-        name: "주민등록등본",
-        description: "상속인의 현재 주소지 확인 (1통)",
-        required: true,
-        helpLink: { label: "정부24에서 발급", url: "https://www.gov.kr/mw/SS/PUBR/insertPublicForm.do?formId=CERT_RESIDENT" },
-      },
-    ],
-  },
-  {
     id: "executor",
     title: "유언집행자",
-    subtitle: "수증자 겸 가능",
+    subtitle: "수증자 겨 가능",
     icon: Briefcase,
     color: "text-purple-700",
     bgColor: "bg-purple-50",
+    alwaysExpanded: true,
     documents: [
       {
         id: "executor_family_cert",
@@ -194,6 +179,24 @@ const SECTIONS: DocumentSection[] = [
         id: "executor_resident",
         name: "주민등록등본",
         description: "유언집행자의 현재 주소지 확인 (1통)",
+        required: true,
+        helpLink: { label: "정부24에서 발급", url: "https://www.gov.kr/mw/SS/PUBR/insertPublicForm.do?formId=CERT_RESIDENT" },
+      },
+    ],
+  },
+  {
+    id: "beneficiary",
+    title: "수증자 (상속받는 자)",
+    subtitle: "상속인 본인 확인용",
+    icon: Users,
+    color: "text-green-700",
+    bgColor: "bg-green-50",
+    alwaysExpanded: true,
+    documents: [
+      {
+        id: "beneficiary_resident",
+        name: "주민등록등본",
+        description: "상속인의 현재 주소지 확인 (1통)",
         required: true,
         helpLink: { label: "정부24에서 발급", url: "https://www.gov.kr/mw/SS/PUBR/insertPublicForm.do?formId=CERT_RESIDENT" },
       },
@@ -535,7 +538,7 @@ export default function NotarizationDocsPage() {
       <div className="space-y-4">
         {SECTIONS.map((section) => {
           const SectionIcon = section.icon;
-          const isExpanded = expandedSection === section.id;
+          const isExpanded = section.alwaysExpanded || expandedSection === section.id;
           const sectionUploaded = section.documents.filter((d) => uploadedDocs[d.id]).length;
           const sectionTotal = section.documents.length;
 
