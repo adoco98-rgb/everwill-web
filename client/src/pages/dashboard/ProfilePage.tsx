@@ -903,22 +903,6 @@ export default function ProfilePage() {
         )}
       </motion.div>
 
-      {/* 계정 관리 */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
-        className="bg-white rounded-2xl border border-gray-100 p-6"
-      >
-        <h3 className="font-bold text-[#1F3864] text-sm mb-4">계정 관리</h3>
-        <button
-          onClick={logout}
-          className="flex items-center gap-3 w-full px-4 py-3 rounded-xl border-2 border-red-100 text-red-500 hover:bg-red-50 text-sm font-semibold transition-all"
-        >
-          <LogOut className="w-4 h-4" />
-          로그아웃
-        </button>
-      </motion.div>
     </div>
   );
 }
