@@ -1409,3 +1409,28 @@ export const countryPricing = mysqlTable("countryPricing", {
 });
 export type CountryPricing = typeof countryPricing.$inferSelect;
 export type InsertCountryPricing = typeof countryPricing.$inferInsert;
+
+/** 공증서류 업로드 테이블 */
+export const notarizationDocs = mysqlTable("notarizationDocs", {
+  id: int("id").primaryKey().autoincrement(),
+  /** 사용자 ID */
+  userId: int("userId").notNull(),
+  /** 서류 ID (예: basic_cert, family_cert 등) */
+  docId: varchar("docId", { length: 100 }).notNull(),
+  /** 서류 이름 */
+  docName: varchar("docName", { length: 200 }).notNull(),
+  /** S3 파일 키 */
+  fileKey: text("fileKey").notNull(),
+  /** S3 파일 URL */
+  fileUrl: text("fileUrl").notNull(),
+  /** 원본 파일명 */
+  fileName: varchar("fileName", { length: 500 }).notNull(),
+  /** 파일 크기 (bytes) */
+  fileSize: int("fileSize").notNull().default(0),
+  /** AI 분석 결과 JSON */
+  analysisResult: text("analysisResult"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type NotarizationDoc = typeof notarizationDocs.$inferSelect;
+export type InsertNotarizationDoc = typeof notarizationDocs.$inferInsert;

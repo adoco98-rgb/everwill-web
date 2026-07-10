@@ -41,6 +41,7 @@ import { attachmentRouter } from "./routers/attachmentRouter";
 import { countryPricingRouter } from "./routers/countryPricingRouter";
 import { docAnalyzeRouter } from "./routers/docAnalyzeRouter";
 import { profileRouter } from "./routers/profileRouter";
+import { notarizationDocsRouter } from "./routers/notarizationDocsRouter";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -135,6 +136,8 @@ export const appRouter = router({
   docAnalyze: docAnalyzeRouter,
   // 프로필 기본정보 저장 (유언 작성 1단계)
   profile: profileRouter,
+  // 공증서류 업로드 (서버 저장)
+  notarizationDocs: notarizationDocsRouter,
 });
 
 export type AppRouter = typeof appRouter;

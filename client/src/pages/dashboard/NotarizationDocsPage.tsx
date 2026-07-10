@@ -79,6 +79,8 @@ interface UploadedDoc {
   analysisSkipped?: boolean;
   /** 수동 입력 데이터 */
   manualData?: ManualFormData;
+  /** 서버에 저장됨 */
+  savedToServer?: boolean;
 }
 
 const SECTIONS: DocumentSection[] = [
@@ -135,6 +137,7 @@ const SECTIONS: DocumentSection[] = [
     icon: ShieldCheck,
     color: "text-rose-700",
     bgColor: "bg-rose-50",
+    alwaysExpanded: true,
     documents: [
       {
         id: "health_cert",
@@ -262,6 +265,27 @@ export default function NotarizationDocsPage() {
 
   // AI 분석 mutation
   const analyzeMutation = trpc.docAnalyze.analyzeDocument.useMutation();
+  // 공증서류 서버 저장 mutation
+  const uploadToServerMutation = trpc.notarizationDocs.upload.useMutation();
+  const deleteFromServerMutation = trpc.notarizationDocs.delete.useMutation();
+  // 서버에서 저장된 서류 목록 조회
+  const { data: serverDocs, refetch: refetchServerDocs } = trpc.notarizationDocs.list.useQuery();
+  // 서버 서류를 uploadedDocs에 합치
+  useEffect(() => {
+    if (serverDocs && serverDocs.length > 0) {
+      const merged: Record<string, UploadedDoc> = {};
+      for (const doc of serverDocs) {
+        merged[doc.docId] = {
+          fileName: doc.fileName,
+          uploadedAt: new Date(doc.createdAt).toLocaleString("ko-KR"),
+          previewUrl: doc.fileUrl,
+          savedToServer: true,
+        };
+      }
+      setUploadedDocs((prev) => ({ ...merged, ...prev }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverDocs]);
 
   /** AI 서류 분석 실행 */
   const runAnalysis = async (docId: string, file: File) => {
@@ -383,10 +407,10 @@ export default function NotarizationDocsPage() {
     setPendingPreview({ docId, file, url, docName });
   };
 
-  /** 미리보기 확인 후 업로드 확정 + AI 분석 */
-  const handleConfirmUpload = () => {
+  /** 미리보기 확인 후 업로드 확정 + AI 분석 + 서버 저장 */
+  const handleConfirmUpload = async () => {
     if (!pendingPreview) return;
-    const { docId, file, url } = pendingPreview;
+    const { docId, file, url, docName } = pendingPreview;
     setUploadedDocs((prev) => ({
       ...prev,
       [docId]: {
@@ -397,6 +421,22 @@ export default function NotarizationDocsPage() {
     }));
     toast.success(`${file.name} 업로드 완료. AI 분석을 시작합니다...`);
     setPendingPreview(null);
+    // 서버에 저장
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      await uploadToServerMutation.mutateAsync({
+        docId,
+        docName,
+        fileName: file.name,
+        fileSize: file.size,
+        fileBase64: dataUrl,
+        mimeType: file.type,
+      });
+      setUploadedDocs((prev) => ({ ...prev, [docId]: { ...prev[docId], savedToServer: true } }));
+      refetchServerDocs();
+    } catch {
+      // 서버 저장 실패 시도 로컈 저장으로 대체
+    }
     // AI 분석 실행
     runAnalysis(docId, file);
   };
@@ -409,21 +449,37 @@ export default function NotarizationDocsPage() {
     setPendingPreview(null);
   };
 
-  /** 일반 파일 업로드 (미리보기 불필요 항목) + AI 분석 */
-  const handleFileUpload = (docId: string, file: File) => {
+  /** 일반 파일 업로드 (미리보기 불필요 항목) + AI 분석 + 서버 저장 */
+  const handleFileUpload = async (docId: string, file: File, docName?: string) => {
     const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined;
     setUploadedDocs((prev) => ({
       ...prev,
       [docId]: { fileName: file.name, uploadedAt: new Date().toLocaleString("ko-KR"), previewUrl },
     }));
     toast.success(`${file.name} 업로드 완료. AI 분석을 시작합니다...`);
+    // 서버에 저장
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      await uploadToServerMutation.mutateAsync({
+        docId,
+        docName: docName || docId,
+        fileName: file.name,
+        fileSize: file.size,
+        fileBase64: dataUrl,
+        mimeType: file.type,
+      });
+      setUploadedDocs((prev) => ({ ...prev, [docId]: { ...prev[docId], savedToServer: true } }));
+      refetchServerDocs();
+    } catch {
+      // 서버 저장 실패 시도 로컈 저장으로 대체
+    }
     // AI 분석 실행
     runAnalysis(docId, file);
   };
 
-  const handleRemoveDoc = (docId: string) => {
+  const handleRemoveDoc = async (docId: string) => {
     const doc = uploadedDocs[docId];
-    if (doc?.previewUrl) {
+    if (doc?.previewUrl && !doc.savedToServer) {
       URL.revokeObjectURL(doc.previewUrl);
     }
     setUploadedDocs((prev) => {
@@ -431,6 +487,11 @@ export default function NotarizationDocsPage() {
       delete next[docId];
       return next;
     });
+    // 서버에서도 삭제
+    try {
+      await deleteFromServerMutation.mutateAsync({ docId });
+      refetchServerDocs();
+    } catch { /* 무시 */ }
     toast.success("파일이 삭제되었습니다.");
   };
 
@@ -771,7 +832,21 @@ export default function NotarizationDocsPage() {
           </div>
         </div>
       </div>
-
+      {/* ===== 저장 완료 / 다음 단계 버튼 ===== */}
+      <div className="flex gap-3 justify-end mt-2">
+        <button
+          onClick={() => { refetchServerDocs(); toast.success("서류가 자동 저장되었습니다."); }}
+          className="px-5 py-2.5 rounded-xl border border-[#1F3864] text-[#1F3864] font-semibold text-sm hover:bg-[#1F3864]/5 transition"
+        >
+          임시저장
+        </button>
+        <button
+          onClick={() => window.location.href = '/dashboard/signature-cert'}
+          className="px-6 py-2.5 rounded-xl bg-[#C9A961] text-white font-bold text-sm hover:bg-[#b8944e] transition flex items-center gap-2"
+        >
+          저장완료 → 다음 단계 (서명 인증)
+        </button>
+      </div>
       {/* ===== 미리보기 확인 모달 (파일 선택 직후) ===== */}
       <AnimatePresence>
         {pendingPreview && (
