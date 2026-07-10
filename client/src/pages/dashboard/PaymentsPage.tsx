@@ -91,17 +91,35 @@ export default function PaymentsPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      {/* 헤더 */}
-      <div className="text-center">
-        <h1
-          className="text-3xl font-bold text-[#1F3864]"
-          style={{ fontFamily: "'Playfair Display', serif" }}
-        >
-          EverWill 전자유언인증
-        </h1>
-        <p className="text-gray-500 text-sm mt-2">
-          ₩168,000 한 번 결제로 모든 서비스를 이용하세요.
-        </p>
+      {/* 헤더 - 노인 이미지 배경 + 문구 오버레이 */}
+      <div className="relative rounded-2xl overflow-hidden shadow-lg" style={{ minHeight: '280px' }}>
+        {/* 배경 이미지 */}
+        <img
+          src="https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/hero-global-elders-v2-DB4mTEuKjbV7DYjdv5fYBA.webp"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
+        {/* 어두운 그라디언트 오버레이 */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1F3864]/70 via-[#1F3864]/60 to-[#1F3864]/80" />
+        {/* 문구 */}
+        <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 py-14">
+          <h1
+            className="text-3xl font-bold text-white mb-2"
+            style={{ fontFamily: "'Playfair Display', serif", textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
+          >
+            EverWill 전자유언인증
+          </h1>
+          <p className="text-[#C9A961] text-sm mb-6 font-medium">₩168,000 한 번 결제로 모든 서비스를 이용하세요.</p>
+          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-8 py-5 max-w-lg">
+            <p className="text-white font-semibold text-lg mb-2">
+              어렵고 복잡하고 많은 비용이 필요 없습니다
+            </p>
+            <p className="text-white/85 text-sm leading-relaxed">
+              <span className="text-[#C9A961] font-bold">EverWill</span>은 당신의 뜻, 당신의 사랑을 완벽하게 보안하여
+              <br /><span className="font-semibold text-white">100% 실현</span>하도록 도와 드립니다
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* ─── 메인 상품: ₩168,000 올인원 ─── */}
