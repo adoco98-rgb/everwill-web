@@ -80,6 +80,8 @@
     "passport-kakao": "^1.0.1",
     "passport-line-auth": "^0.2.9",
     "passport-naver-v2": "^2.0.8",
+    "pdf-to-img": "^6.2.0",
+    "pdfjs-dist": "^6.1.200",
     "pdfkit": "^0.19.1",
     "qrcode": "^1.5.4",
     "react": "^19.2.1",
