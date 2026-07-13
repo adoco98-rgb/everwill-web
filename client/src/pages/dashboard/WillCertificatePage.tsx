@@ -50,22 +50,9 @@ const CATEGORY_CONFIG: Record<string, { label: string; icon: React.ElementType; 
   other:       { label: "기타 증빙서류",      icon: Paperclip, color: "text-gray-600 bg-gray-50" },
 };
 
-/** 지원 국가 목록 */
+/** 지원 국가 목록 (현재: 한국만) */
 const SUPPORTED_COUNTRIES = [
   { code: "KR", flag: "🇰🇷", name: "한국 (Korea)" },
-  { code: "US", flag: "🇺🇸", name: "미국 (USA)" },
-  { code: "JP", flag: "🇯🇵", name: "일본 (Japan)" },
-  { code: "CN", flag: "🇨🇳", name: "중국 (China)" },
-  { code: "DE", flag: "🇩🇪", name: "독일 (Germany)" },
-  { code: "ES", flag: "🇪🇸", name: "스페인 (Spain)" },
-  { code: "SA", flag: "🇸🇦", name: "사우디아라비아 (Saudi Arabia)" },
-  { code: "FR", flag: "🇫🇷", name: "프랑스 (France)" },
-  { code: "IN", flag: "🇮🇳", name: "인도 (India)" },
-  { code: "BR", flag: "🇧🇷", name: "브라질 (Brazil)" },
-  { code: "AU", flag: "🇦🇺", name: "호주 (Australia)" },
-  { code: "GB", flag: "🇬🇧", name: "영국 (UK)" },
-  { code: "CA", flag: "🇨🇦", name: "캐나다 (Canada)" },
-  { code: "NZ", flag: "🇳🇿", name: "뉴질랜드 (New Zealand)" },
 ];
 
 /** 인증서 상태 라벨 */
@@ -375,7 +362,7 @@ export default function WillCertificatePage() {
         </div>
       </motion.div>
 
-      {/* 국가별 법적 양식 안내 배너 */}
+      {/* 한국 법적 양식 안내 배너 */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -384,34 +371,13 @@ export default function WillCertificatePage() {
         <div className="flex items-start gap-3">
           <Globe className="w-5 h-5 text-[#C9A961] shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold text-[#1F3864] text-sm mb-2">
-              14개국 법적 양식 지원 — 국가별 법률 기준 인증서
+            <p className="font-semibold text-[#1F3864] text-sm mb-1">
+              한국 민법 기준 공식 인증서
             </p>
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {SUPPORTED_COUNTRIES.map((c) => (
-                <span key={c.code} className="text-xs bg-white border border-gray-200 rounded-lg px-2 py-0.5 text-gray-600">
-                  {c.flag} {c.code}
-                </span>
-              ))}
-            </div>
-            <ul className="text-gray-600 text-xs space-y-1">
-              <li className="flex items-start gap-1.5">
-                <span className="text-[#C9A961] font-bold shrink-0">•</span>
-                한국: 민법 제1060조~제1072조 + 전자서명법 기준 양식
-              </li>
-              <li className="flex items-start gap-1.5">
-                <span className="text-[#C9A961] font-bold shrink-0">•</span>
-                미국: Uniform Electronic Wills Act (UEWA) 2019 기준 영문 양식
-              </li>
-              <li className="flex items-start gap-1.5">
-                <span className="text-[#C9A961] font-bold shrink-0">•</span>
-                일본: 民法第968条 + 2025년 공정증서 디지털화 기준 일문 양식
-              </li>
-              <li className="flex items-start gap-1.5">
-                <span className="text-[#C9A961] font-bold shrink-0">•</span>
-                사우디: 샤리아 상속법 + 이슬람 유언 규정 아랍어 양식
-              </li>
-            </ul>
+            <p className="text-gray-600 text-xs">
+              한국 민법 제1060조~제1072조 + 전자서명법 기준 양식으로 발급됩니다.
+              인증 완료된 유언장을 바탕으로 법원·은행 제출용 공식 인증서를 발급합니다.
+            </p>
           </div>
         </div>
       </motion.div>
@@ -609,7 +575,7 @@ export default function WillCertificatePage() {
                     {cert.status === "issued" && (
                       <div className="flex items-center gap-1.5">
                         <button
-                          onClick={() => handlePreview(cert.id, false, downloadCountry)}
+                          onClick={() => handlePreview(cert.id, false, "KR")}
                           disabled={isPreviewLoading}
                           className="flex items-center gap-1.5 text-xs border border-[#C9A961] text-[#C9A961] px-3 py-1.5 rounded-lg font-medium hover:bg-[#C9A961]/10 transition-colors disabled:opacity-50"
                         >
@@ -625,7 +591,7 @@ export default function WillCertificatePage() {
                           className="flex items-center gap-1.5 text-xs bg-[#1F3864] text-white px-3 py-1.5 rounded-lg font-medium hover:bg-[#162d52] transition-colors"
                         >
                           <Download className="w-3.5 h-3.5" />
-                          PDF
+                          파일 받기
                         </button>
                       </div>
                     )}
@@ -745,7 +711,7 @@ export default function WillCertificatePage() {
         </div>
       )}
 
-      {/* PDF 다운로드 국가 선택 모달 */}
+      {/* PDF 다운로드 모달 - 한국 고정 */}
       {showDownloadModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
           <motion.div
@@ -753,48 +719,18 @@ export default function WillCertificatePage() {
             animate={{ opacity: 1, scale: 1 }}
             className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl"
           >
-            <div className="flex items-center gap-2 mb-2">
-              <Globe className="w-5 h-5 text-[#C9A961]" />
-              <h3 className="font-bold text-[#1F3864] text-base">국가별 인증서 PDF 다운로드</h3>
-            </div>
-            <p className="text-xs text-gray-500 mb-5">
-              제출할 국가를 선택하면 해당 국가의 법적 기준에 맞는 양식으로 인증서가 생성됩니다.
-            </p>
-
-            {/* 국가 선택 그리드 */}
-            <div className="grid grid-cols-2 gap-2 mb-5 max-h-64 overflow-y-auto pr-1">
-              {SUPPORTED_COUNTRIES.map((c) => (
-                <button
-                  key={c.code}
-                  onClick={() => setDownloadCountry(c.code)}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${
-                    downloadCountry === c.code
-                      ? "border-[#1F3864] bg-[#1F3864]/5 text-[#1F3864]"
-                      : "border-gray-200 text-gray-600 hover:border-gray-300"
-                  }`}
-                >
-                  <span className="text-lg">{c.flag}</span>
-                  <span className="text-xs">{c.name}</span>
-                </button>
-              ))}
+            <div className="flex items-center gap-2 mb-4">
+              <Download className="w-5 h-5 text-[#1F3864]" />
+              <h3 className="font-bold text-[#1F3864] text-base">인증서 PDF 다운로드</h3>
             </div>
 
-            {/* 선택된 국가 법적 근거 안내 */}
-            <div className="bg-[#1F3864]/5 rounded-xl p-3 mb-5 text-xs text-gray-600">
-              {downloadCountry === "KR" && "📋 민법 제1060조~제1072조 + 전자서명법 기준 한국어 양식"}
-              {downloadCountry === "US" && "📋 Uniform Electronic Wills Act (UEWA) 2019 기준 영문 양식"}
-              {downloadCountry === "JP" && "📋 民法第968条 + 2025년 공정증서 디지털화 기준 일문 양식"}
-              {downloadCountry === "CN" && "📋 中华人民共和国民法典 第1133条 기준 중문 양식"}
-              {downloadCountry === "DE" && "📋 BGB §2247 + eIDAS 규정 기준 독일어 양식"}
-              {downloadCountry === "ES" && "📋 Código Civil Art.688 + 전자서명법 기준 스페인어 양식"}
-              {downloadCountry === "SA" && "📋 샤리아 상속법 + 이슬람 유언 규정 아랍어 양식 (RTL)"}
-              {downloadCountry === "FR" && "📋 Code Civil Art.970 + eIDAS 기준 프랑스어 양식"}
-              {downloadCountry === "IN" && "📋 Indian Succession Act 1925 §63 기준 영문 양식"}
-              {downloadCountry === "BR" && "📋 Código Civil Art.1876 + ICP-Brasil 기준 포르투갈어 양식"}
-              {downloadCountry === "AU" && "📋 Succession Act 2006 + Electronic Transactions Act 기준 영문 양식"}
-              {downloadCountry === "GB" && "📋 Wills Act 1837 + Electronic Communications Act 기준 영문 양식"}
-              {downloadCountry === "CA" && "📋 WESA (BC) / SLRA (ON) + Uniform Electronic Wills Act 기준 영문 양식"}
-              {downloadCountry === "NZ" && "📋 Wills Act 2007 + Electronic Transactions Act 2002 기준 영문 양식"}
+            {/* 한국 고정 */}
+            <div className="flex items-center gap-2 bg-[#1F3864]/5 rounded-xl px-4 py-3 mb-4">
+              <span className="text-xl">🇰🇷</span>
+              <div>
+                <p className="text-sm font-semibold text-[#1F3864]">한국 (Korea)</p>
+                <p className="text-xs text-gray-500">민법 제1060조~제1072조 + 전자서명법 기준 한국어 양식</p>
+              </div>
             </div>
 
             <div className="flex gap-3">
@@ -825,7 +761,7 @@ export default function WillCertificatePage() {
           </motion.div>
         </div>
       )}
-      {/* 샘플 PDF 미리보기 모달 */}
+      {/* 샘플 PDF 미리보기 모달 - 한국 고정 */}
       {showSampleModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
           <motion.div
@@ -835,34 +771,19 @@ export default function WillCertificatePage() {
           >
             <div className="flex items-center gap-2 mb-2">
               <FileText className="w-5 h-5 text-[#C9A961]" />
-              <h3 className="font-bold text-[#1F3864] text-base">샘플 인증서 PDF 미리보기</h3>
+              <h3 className="font-bold text-[#1F3864] text-base">샘플 인증서 미리보기</h3>
             </div>
-            <p className="text-xs text-gray-500 mb-5">
+            <p className="text-xs text-gray-500 mb-4">
               실제 등록된 자산정보와 상속자 데이터를 바탕으로 샘플 인증서를 생성합니다.
               데이터가 없으면 예시 데이터로 대체됩니다.
             </p>
 
-            {/* 국가 선택 */}
-            <div className="mb-5">
-              <label className="block text-sm font-semibold text-[#1F3864] mb-2">
-                <Globe className="w-3.5 h-3.5 inline mr-1" />
-                인증서 양식 국가
-              </label>
-              <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
-                {SUPPORTED_COUNTRIES.map((c) => (
-                  <button
-                    key={c.code}
-                    onClick={() => setSampleCountry(c.code)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition-all ${
-                      sampleCountry === c.code
-                        ? "border-[#C9A961] bg-[#C9A961]/10 text-[#1F3864]"
-                        : "border-gray-200 text-gray-600 hover:border-gray-300"
-                    }`}
-                  >
-                    <span className="text-base">{c.flag}</span>
-                    <span>{c.name}</span>
-                  </button>
-                ))}
+            {/* 한국 고정 표시 */}
+            <div className="flex items-center gap-2 bg-[#1F3864]/5 rounded-xl px-4 py-3 mb-4">
+              <span className="text-xl">🇰🇷</span>
+              <div>
+                <p className="text-sm font-semibold text-[#1F3864]">한국 (Korea)</p>
+                <p className="text-xs text-gray-500">민법 제1060조~제1072조 + 전자서명법 기준</p>
               </div>
             </div>
 
@@ -882,7 +803,7 @@ export default function WillCertificatePage() {
               <button
                 onClick={() => {
                   setShowSampleModal(false);
-                  handlePreview(null, true, sampleCountry);
+                  handlePreview(null, true, "KR");
                 }}
                 disabled={isPreviewLoading}
                 className="flex-1 py-3 border border-[#1F3864] text-[#1F3864] rounded-xl text-sm font-semibold hover:bg-[#1F3864]/5 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
@@ -896,7 +817,7 @@ export default function WillCertificatePage() {
               <button
                 onClick={() => {
                   setIsSampleGenerating(true);
-                  samplePdfMutation.mutate({ country: sampleCountry });
+                  samplePdfMutation.mutate({ country: "KR" });
                 }}
                 disabled={isSampleGenerating}
                 className="flex-1 py-3 bg-[#C9A961] text-white rounded-xl text-sm font-semibold hover:bg-[#b8944f] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
@@ -1033,11 +954,34 @@ export default function WillCertificatePage() {
                   닫기
                 </button>
                 <button
+                  onClick={() => {
+                    if (!previewBase64) return;
+                    const byteChars = atob(previewBase64);
+                    const byteNums = new Array(byteChars.length);
+                    for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+                    const blob = new Blob([new Uint8Array(byteNums)], { type: "application/pdf" });
+                    const url = URL.createObjectURL(blob);
+                    const iframe = document.createElement("iframe");
+                    iframe.style.display = "none";
+                    iframe.src = url;
+                    document.body.appendChild(iframe);
+                    iframe.onload = () => {
+                      iframe.contentWindow?.print();
+                      setTimeout(() => { document.body.removeChild(iframe); URL.revokeObjectURL(url); }, 1000);
+                    };
+                    if (previewCertId) recordPrintMutation.mutate({ certificateId: previewCertId });
+                  }}
+                  className="flex items-center gap-1.5 border border-[#1F3864] text-[#1F3864] px-4 py-2 rounded-xl text-xs font-semibold hover:bg-[#1F3864]/5 transition-colors"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  출력하기
+                </button>
+                <button
                   onClick={handleDownloadFromPreview}
                   className="flex items-center gap-1.5 bg-[#1F3864] text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-[#162d52] transition-colors"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  PDF 다운로드
+                  파일 받기
                 </button>
               </div>
             </div>
