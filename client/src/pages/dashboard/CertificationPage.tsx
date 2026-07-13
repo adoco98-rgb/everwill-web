@@ -61,9 +61,12 @@ export default function CertificationPage() {
     certifyWillMutation.mutate({ willId });
   };
 
-  // 자산 인증 상태
+  // 자산 인증 상태 - 자산이 1개 이상 등록되면 자동 완료
   const { data: assetVerifyData } = trpc.assetVerify.getStatus.useQuery();
-  const assetVerified = assetVerifyData?.status === "approved";
+  const { data: myAssets } = trpc.asset.listAssets.useQuery();
+  const hasAssets = (myAssets ?? []).length > 0;
+  // 자산 등록 완료 OR 기존 approved 상태면 완료
+  const assetVerified = hasAssets || assetVerifyData?.status === "approved";
 
   const allVerified = faceStatus?.faceVerified && hasCertifiedWill && assetVerified;
 
@@ -236,20 +239,17 @@ export default function CertificationPage() {
               </CardTitle>
               <StatusBadge
                 verified={assetVerified}
-                label={assetVerifyData?.status === "pending" ? "검토중" : assetVerified ? "완료" : "미완료"}
+                label={assetVerified ? "완료" : "미완료"}
               />
             </div>
           </CardHeader>
           <CardContent>
             {assetVerified ? (
-              <div className="flex items-center gap-2 text-green-700 text-sm">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>자산 서류 검토 완료</span>
-              </div>
-            ) : assetVerifyData?.status === "pending" ? (
-              <div className="flex items-center gap-2 text-amber-700 text-sm">
-                <Clock className="w-4 h-4" />
-                <span>자산 서류 검토 중입니다. 1-3 영업일 내 완료됩니다.</span>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-green-700 text-sm">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>자산 등록 완료 ({(myAssets ?? []).length}건)</span>
+                </div>
               </div>
             ) : (
               <div className="space-y-3">
