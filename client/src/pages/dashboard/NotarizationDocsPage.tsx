@@ -549,52 +549,6 @@ export default function NotarizationDocsPage() {
         </div>
       </div>
 
-      {/* 건강증명서 발급 안내 */}
-      <div className="bg-rose-50 border border-rose-200 rounded-xl p-5">
-        <div className="flex items-start gap-3">
-          <ShieldCheck className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-          <div className="w-full">
-            <p className="font-bold text-rose-800 text-base mb-2">건강증명서 발급 안내</p>
-            <p className="text-sm text-rose-700 mb-4">
-              유언 작성 당시 의사능력(판단력)을 증명하는 건강증명서를 제출하면 유언의 효력이 강화됩니다.
-            </p>
-
-            {/* 보건소 동시 발급 안내 - 강조 박스 */}
-            <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4 mb-4">
-              <p className="font-bold text-amber-900 text-sm flex items-center gap-2">
-                <span className="text-lg">💡</span> 보건소 한 곳에서 두 가지 모두 발급 가능!
-              </p>
-              <p className="text-amber-800 text-sm mt-1">
-                가까운 보건소 방문 시 <strong>건강진단서</strong>와 <strong>치매 선별검사</strong>를 한 번에 받을 수 있습니다.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg p-4 space-y-3 text-sm text-gray-700">
-              <p className="font-semibold text-gray-900">필요 서류 2가지:</p>
-              <ul className="space-y-2.5 ml-1">
-                <li className="flex items-start gap-2">
-                  <span className="bg-rose-100 text-rose-700 font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0 text-xs">1</span>
-                  <div>
-                    <strong>건강진단서</strong>
-                    <p className="text-gray-500 text-xs mt-0.5">보건소 또는 가까운 병원·의원에서 발급 (보건소 비용: ₩3,000~5,000)</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="bg-rose-100 text-rose-700 font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0 text-xs">2</span>
-                  <div>
-                    <strong>치매 선별검사 결과서</strong> <span className="text-xs text-gray-400">(65세 이상 권장)</span>
-                    <p className="text-gray-500 text-xs mt-0.5">보건소 치매안심센터에서 <strong className="text-green-700">무료</strong> 검사</p>
-                  </div>
-                </li>
-              </ul>
-              <p className="text-gray-500 mt-3 pt-3 border-t border-gray-100">
-                ※ 유언 작성일 기준 <strong>3개월 이내</strong> 발급된 서류를 제출해주세요.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* 섹션별 서류 목록 */}
       <div className="space-y-4">
         {SECTIONS.map((section) => {
@@ -801,6 +755,52 @@ export default function NotarizationDocsPage() {
                       </div>
                     );
                   })}
+                </div>
+              )}
+              {/* 건강증명서 섹션 바로 아래 발급 안내 박스 */}
+              {section.id === "health" && isExpanded && (
+                <div className="px-5 pb-5">
+                  <div className="bg-rose-50 border border-rose-200 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <ShieldCheck className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                      <div className="w-full">
+                        <p className="font-bold text-rose-800 text-sm mb-2">건강증명서 발급 안내</p>
+                        <p className="text-xs text-rose-700 mb-3">
+                          유언 작성 당시 의사능력(판단력)을 증명하는 건강증명서를 제출하면 유언의 효력이 강화됩니다.
+                        </p>
+                        <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-3 mb-3">
+                          <p className="font-bold text-amber-900 text-xs flex items-center gap-2">
+                            <span>💡</span> 보건소 한 곳에서 두 가지 모두 발급 가능!
+                          </p>
+                          <p className="text-amber-800 text-xs mt-1">
+                            가까운 보건소 방문 시 <strong>건강진단서</strong>와 <strong>치매 선별검사</strong>를 한 번에 받을 수 있습니다.
+                          </p>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 space-y-2 text-xs text-gray-700">
+                          <p className="font-semibold text-gray-900">필요 서류 2가지:</p>
+                          <ul className="space-y-2 ml-1">
+                            <li className="flex items-start gap-2">
+                              <span className="bg-rose-100 text-rose-700 font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0 text-xs">1</span>
+                              <div>
+                                <strong>건강진단서</strong>
+                                <p className="text-gray-500 mt-0.5">보건소 또는 가까운 병원·의원에서 발급 (보건소 비용: ₩3,000~5,000)</p>
+                              </div>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="bg-rose-100 text-rose-700 font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0 text-xs">2</span>
+                              <div>
+                                <strong>치매 선별검사 결과서</strong> <span className="text-gray-400">(65세 이상 권장)</span>
+                                <p className="text-gray-500 mt-0.5">보건소 치매안심센터에서 <strong className="text-green-700">무료</strong> 검사</p>
+                              </div>
+                            </li>
+                          </ul>
+                          <p className="text-gray-500 pt-2 border-t border-gray-100">
+                            ※ 유언 작성일 기준 <strong>3개월 이내</strong> 발급된 서류를 제출해주세요.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </motion.div>
