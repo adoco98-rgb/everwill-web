@@ -29,11 +29,14 @@ interface ExclusionTarget {
   name: string;
   relationship: string;
   birthDate: string;
+  address: string;
   reason: string;
   detailReason: string;
+  evidenceList: string;
+  legalBasis: string;
 }
 
-/** 배제 사유 예시 목록 */
+/** 배제 사유 예시 목록 (민법 제1004조 상속결격 사유 + 실무 사유) */
 const REASON_EXAMPLES = [
   "10년 이상 연락 두절 및 부양 의무 불이행",
   "유언자에 대한 폭행·학대·협박",
@@ -43,6 +46,15 @@ const REASON_EXAMPLES = [
   "중대한 범죄 행위 (형사 처벌)",
   "가족 간 심각한 불화 유발",
   "기타 (직접 입력)",
+];
+
+/** 적용 법조항 */
+const LEGAL_BASIS_OPTIONS = [
+  "민법 제1004조 (상속결격) 준용",
+  "민법 제1112조 (유류분의 권리자와 유류분)",
+  "민법 제1113조 (유류분의 산정)",
+  "민법 제1115조 (유류분의 보전)",
+  "민법 제1118조 (준용규정)",
 ];
 
 /** 임시저장 키 */
@@ -134,8 +146,11 @@ export default function ReserveShareExclusionPage() {
         name: "",
         relationship: "",
         birthDate: "",
+        address: "",
         reason: "",
         detailReason: "",
+        evidenceList: "",
+        legalBasis: "민법 제1004조 (상속결격) 준용",
       },
     ]);
     setIsDirty(true);
@@ -484,6 +499,39 @@ export default function ReserveShareExclusionPage() {
                             placeholder="예: 장남 ○○○는 2015년부터 현재까지 약 10년간 연락을 완전히 끊고, 유언자의 부양 요청을 거부하였으며, 유언자의 병원비 및 생활비를 일체 부담하지 않았습니다. 또한 2018년에는 유언자 명의의 부동산을 무단으로 담보 설정하여 재산상 손해를 입혔습니다."
                             rows={4}
                           />
+                        </div>
+                        {/* 증거 자료 목록 */}
+                        <div>
+                          <label className="text-xs text-gray-500 mb-1 block">
+                            증거 자료 목록 (보유 자료 기재)
+                          </label>
+                          <Textarea
+                            value={target.evidenceList}
+                            onChange={(e) =>
+                              updateTarget(target.id, "evidenceList", e.target.value)
+                            }
+                            placeholder="예:
+1. 카카오톡 대화 내역 (2015.03~2024.12)
+2. 병원 입원 기록 (2020.05, 서울아산병원)
+3. 부동산 무단 담보 설정 등기부등본
+4. 경찰 신고 접수증 (2022.12)"
+                            rows={3}
+                          />
+                        </div>
+                        {/* 적용 법조항 */}
+                        <div>
+                          <label className="text-xs text-gray-500 mb-1 block">
+                            적용 법조항
+                          </label>
+                          <select
+                            value={target.legalBasis}
+                            onChange={(e) => updateTarget(target.id, "legalBasis", e.target.value)}
+                            className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1F3864]/20"
+                          >
+                            {LEGAL_BASIS_OPTIONS.map((opt) => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </select>
                         </div>
                       </CardContent>
                     </Card>

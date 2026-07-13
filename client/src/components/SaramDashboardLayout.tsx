@@ -56,6 +56,7 @@ const willFlowMenuItems = [
 const mainMenuItems = [
   { icon: ClipboardList, label: "자산 등록", path: "/assets" },
   { icon: Users, label: "상속자 등록", path: "/dashboard/heirs" },
+  { icon: Scale, label: "유류분 배제 문서 (선택)", path: "/dashboard/reserve-share-exclusion" },
   { icon: Eye, label: "기본유언장 확인", path: "/dashboard/will-preview" },
 ];
 
@@ -69,8 +70,7 @@ const certMenuItems = [
   { icon: ScanLine, label: "자필 유언장 (선택)", path: "/will/scan" },
   { icon: Home, label: "유언진행 현황", path: "/dashboard" },
   { icon: ScrollText, label: "유언 인증서 발급신청", path: "/dashboard/will-certificate" },
-  { icon: FileText, label: "유류분 배제 문서", path: "/dashboard/reserve-share-exclusion" },
-  { icon: Video, label: "유류분 영상 증언", path: "/dashboard/reserve-share-video" },
+  { icon: Video, label: "유류분 영상 증언 (선택)", path: "/dashboard/reserve-share-video" },
 ];
 
 /** 멤버십 / 카드 메뉴 */
