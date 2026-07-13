@@ -106,6 +106,8 @@ export default function WillCertificatePage() {
   const [previewIsSample, setPreviewIsSample] = useState(false);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [previewZoom, setPreviewZoom] = useState(100);
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [isDownloadingFile, setIsDownloadingFile] = useState(false);
 
   // 첨부파일 업로드 상태
   const [uploadCategory, setUploadCategory] = useState(() => {
@@ -277,23 +279,28 @@ export default function WillCertificatePage() {
   // 미리보기 중 다운로드
   const handleDownloadFromPreview = useCallback(() => {
     if (!previewBase64 || !previewFilename) return;
-    const byteChars = atob(previewBase64);
-    const byteNums = new Array(byteChars.length);
-    for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
-    const blob = new Blob([new Uint8Array(byteNums)], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = previewFilename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success("미리보기에서 PDF 다운로드 완료");
-    // 출력 날짜/시간 저장
-    if (previewCertId) {
-      recordPrintMutation.mutate({ certificateId: previewCertId });
-    }
+    setIsDownloadingFile(true);
+    // 짧은 지연 후 다운로드 (로딩 애니메이션 표시를 위해)
+    setTimeout(() => {
+      const byteChars = atob(previewBase64);
+      const byteNums = new Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+      const blob = new Blob([new Uint8Array(byteNums)], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = previewFilename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("미리보기에서 PDF 다운로드 완료");
+      setIsDownloadingFile(false);
+      // 출력 날짜/시간 저장
+      if (previewCertId) {
+        recordPrintMutation.mutate({ certificateId: previewCertId });
+      }
+    }, 800);
   }, [previewBase64, previewFilename, previewCertId, recordPrintMutation]);
 
   const handleApply = () => {
@@ -834,39 +841,74 @@ export default function WillCertificatePage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => { setShowPreviewModal(false); setPreviewBase64(null); setPreviewZoom(100); }}
-                  className="px-4 py-2 border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                  disabled={isPrinting || isDownloadingFile}
+                  className="px-4 py-2 border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-40"
                 >
                   닫기
                 </button>
                 <button
+                  disabled={isPrinting || isDownloadingFile}
                   onClick={() => {
-                    if (!previewBase64) return;
-                    const byteChars = atob(previewBase64);
-                    const byteNums = new Array(byteChars.length);
-                    for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
-                    const blob = new Blob([new Uint8Array(byteNums)], { type: "application/pdf" });
-                    const url = URL.createObjectURL(blob);
-                    const iframe = document.createElement("iframe");
-                    iframe.style.display = "none";
-                    iframe.src = url;
-                    document.body.appendChild(iframe);
-                    iframe.onload = () => {
-                      iframe.contentWindow?.print();
-                      setTimeout(() => { document.body.removeChild(iframe); URL.revokeObjectURL(url); }, 1000);
-                    };
-                    if (previewCertId) recordPrintMutation.mutate({ certificateId: previewCertId });
+                    if (!previewBase64 || isPrinting) return;
+                    setIsPrinting(true);
+                    setTimeout(() => {
+                      const byteChars = atob(previewBase64);
+                      const byteNums = new Array(byteChars.length);
+                      for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+                      const blob = new Blob([new Uint8Array(byteNums)], { type: "application/pdf" });
+                      const url = URL.createObjectURL(blob);
+                      const iframe = document.createElement("iframe");
+                      iframe.style.display = "none";
+                      iframe.src = url;
+                      document.body.appendChild(iframe);
+                      iframe.onload = () => {
+                        iframe.contentWindow?.print();
+                        setTimeout(() => {
+                          document.body.removeChild(iframe);
+                          URL.revokeObjectURL(url);
+                          setIsPrinting(false);
+                          toast.success("출력 완료");
+                        }, 1000);
+                      };
+                      if (previewCertId) recordPrintMutation.mutate({ certificateId: previewCertId });
+                    }, 800);
                   }}
-                  className="flex items-center gap-1.5 border border-[#1F3864] text-[#1F3864] px-4 py-2 rounded-xl text-xs font-semibold hover:bg-[#1F3864]/5 transition-colors"
+                  className="flex items-center gap-1.5 border border-[#1F3864] text-[#1F3864] px-4 py-2 rounded-xl text-xs font-semibold hover:bg-[#1F3864]/5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed min-w-[90px] justify-center"
                 >
-                  <Printer className="w-3.5 h-3.5" />
-                  출력하기
+                  {isPrinting ? (
+                    <>
+                      <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                      </svg>
+                      문서 준비 중...
+                    </>
+                  ) : (
+                    <>
+                      <Printer className="w-3.5 h-3.5" />
+                      출력하기
+                    </>
+                  )}
                 </button>
                 <button
                   onClick={handleDownloadFromPreview}
-                  className="flex items-center gap-1.5 bg-[#1F3864] text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-[#162d52] transition-colors"
+                  disabled={isPrinting || isDownloadingFile}
+                  className="flex items-center gap-1.5 bg-[#1F3864] text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-[#162d52] transition-colors disabled:opacity-60 disabled:cursor-not-allowed min-w-[90px] justify-center"
                 >
-                  <Download className="w-3.5 h-3.5" />
-                  파일 받기
+                  {isDownloadingFile ? (
+                    <>
+                      <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                      </svg>
+                      저장 중...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-3.5 h-3.5" />
+                      파일 받기
+                    </>
+                  )}
                 </button>
               </div>
             </div>
