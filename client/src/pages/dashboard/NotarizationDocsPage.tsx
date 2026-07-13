@@ -51,6 +51,15 @@ interface DocumentSection {
   alwaysExpanded?: boolean;
 }
 
+interface ExtractedData {
+  name: string | null;
+  birthDate: string | null;
+  address: string | null;
+  issueDate: string | null;
+  registrationBase: string | null;
+  familyRelations: string | null;
+  extra: string | null;
+}
 interface AnalysisResult {
   clarity: { status: string; message: string };
   docTypeMatch: { status: string; detectedType: string; message: string };
@@ -59,6 +68,7 @@ interface AnalysisResult {
   overallStatus: string;
   overallMessage: string;
   confidence: string;
+  extractedData?: ExtractedData;
 }
 
 interface ManualFormData {
@@ -761,7 +771,24 @@ export default function NotarizationDocsPage() {
                               />
                             )}
                             {isUploaded && uploadedDoc?.analysis && !uploadedDoc?.analyzing && (
-                              <AnalysisResultCard analysis={uploadedDoc.analysis} />
+                              <AnalysisResultCard
+                                analysis={uploadedDoc.analysis}
+                                onExtractedDataChange={(key, value) => {
+                                  setUploadedDocs(prev => ({
+                                    ...prev,
+                                    [doc.id]: {
+                                      ...prev[doc.id],
+                                      analysis: prev[doc.id]?.analysis ? {
+                                        ...prev[doc.id].analysis!,
+                                        extractedData: {
+                                          ...prev[doc.id].analysis!.extractedData!,
+                                          [key]: value,
+                                        },
+                                      } : prev[doc.id]?.analysis,
+                                    },
+                                  }));
+                                }}
+                              />
                             )}
                             {/* 인감도장 교차검증 결과 */}
                             {doc.id === "seal_stamp" && uploadedDoc?.sealComparing && (
@@ -1343,8 +1370,43 @@ function AnalysisProgressAnimation({ step }: { step: number }) {
   );
 }
 
+/** AI 추출 데이터 편집 폼 */
+function ExtractedDataForm({ data, onChange }: { data: ExtractedData; onChange: (key: keyof ExtractedData, value: string) => void }) {
+  const fields: { key: keyof ExtractedData; label: string }[] = [
+    { key: "name", label: "성명" },
+    { key: "birthDate", label: "생년월일 (앞 6자리)" },
+    { key: "address", label: "주소" },
+    { key: "issueDate", label: "발급일" },
+    { key: "registrationBase", label: "등록기준지" },
+    { key: "familyRelations", label: "가족관계" },
+    { key: "extra", label: "기타" },
+  ];
+  const visibleFields = fields.filter(f => data[f.key] !== null && data[f.key] !== undefined);
+  if (visibleFields.length === 0) return null;
+  return (
+    <div className="mt-3 border border-blue-200 rounded-lg bg-blue-50 p-3">
+      <div className="flex items-center gap-1.5 mb-2">
+        <span className="text-[10px] font-bold text-blue-700">확인 및 수정 (오류 있으면 직접 수정하세요)</span>
+      </div>
+      <div className="grid grid-cols-1 gap-1.5">
+        {visibleFields.map(({ key, label }) => (
+          <div key={key} className="flex items-center gap-2">
+            <span className="text-[10px] text-blue-600 font-medium w-24 shrink-0">{label}</span>
+            <input
+              type="text"
+              value={data[key] ?? ""}
+              onChange={e => onChange(key, e.target.value)}
+              className="flex-1 text-[11px] border border-blue-200 rounded px-2 py-0.5 bg-white text-gray-800 focus:outline-none focus:border-blue-400"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** AI 분석 결과 카드 컴포넌트 */
-function AnalysisResultCard({ analysis }: { analysis: AnalysisResult }) {
+function AnalysisResultCard({ analysis, onExtractedDataChange }: { analysis: AnalysisResult; onExtractedDataChange?: (key: keyof ExtractedData, value: string) => void }) {
   const statusConfig = {
     pass: { bg: "bg-green-50", border: "border-green-200", icon: ShieldCheck, iconColor: "text-green-600", label: "검증 통과", labelColor: "text-green-700" },
     warning: { bg: "bg-amber-50", border: "border-amber-200", icon: ShieldAlert, iconColor: "text-amber-600", label: "주의사항 있음", labelColor: "text-amber-700" },
@@ -1378,6 +1440,10 @@ function AnalysisResultCard({ analysis }: { analysis: AnalysisResult }) {
           <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
           <span>누락 항목: {analysis.requiredElements.missing.join(", ")}</span>
         </div>
+      )}
+      {/* AI 추출 데이터 편집 폼 */}
+      {analysis.extractedData && onExtractedDataChange && (
+        <ExtractedDataForm data={analysis.extractedData} onChange={onExtractedDataChange} />
       )}
     </div>
   );

@@ -184,7 +184,16 @@ export const docAnalyzeRouter = router({
   },
   "overallStatus": "pass" | "fail" | "warning",
   "overallMessage": "전체 종합 판정 한국어 메시지 (2-3문장, 사용자에게 보여줄 안내)",
-  "confidence": "high" | "medium" | "low"
+  "confidence": "high" | "medium" | "low",
+  "extractedData": {
+    "name": "성명 (확인 불가 시 null)",
+    "birthDate": "생년월일 앞 6자리만 예: 650312 (확인 불가 시 null)",
+    "address": "주소 전체 (확인 불가 시 null)",
+    "issueDate": "발급일 YYYY-MM-DD (확인 불가 시 null)",
+    "registrationBase": "등록기준지 (가족관계·기본증명서만, 없으면 null)",
+    "familyRelations": "가족관계 요약 예: 배우자 홍길순, 자녀 홍철수 (없으면 null)",
+    "extra": "기타 중요 정보 (없으면 null)"
+  }
 }`,
                 },
               ],
@@ -241,8 +250,22 @@ export const docAnalyzeRouter = router({
                   overallStatus: { type: "string" },
                   overallMessage: { type: "string" },
                   confidence: { type: "string" },
+                  extractedData: {
+                    type: "object",
+                    properties: {
+                      name: { type: ["string", "null"] },
+                      birthDate: { type: ["string", "null"] },
+                      address: { type: ["string", "null"] },
+                      issueDate: { type: ["string", "null"] },
+                      registrationBase: { type: ["string", "null"] },
+                      familyRelations: { type: ["string", "null"] },
+                      extra: { type: ["string", "null"] },
+                    },
+                    required: ["name", "birthDate", "address", "issueDate", "registrationBase", "familyRelations", "extra"],
+                    additionalProperties: false,
+                  },
                 },
-                required: ["clarity", "docTypeMatch", "validity", "requiredElements", "overallStatus", "overallMessage", "confidence"],
+                required: ["clarity", "docTypeMatch", "validity", "requiredElements", "overallStatus", "overallMessage", "confidence", "extractedData"],
                 additionalProperties: false,
               },
             },
