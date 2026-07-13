@@ -468,16 +468,48 @@ export const willCertificateRouter = router({
         throw new Error("유언장을 찾을 수 없습니다");
       }
 
-      // 신청 등록
-      await db.insert(willCertificates).values({
+      // 신청 즉시 issued 처리 (무료 자동 발급)
+      const issueNumber = `EW-${new Date().getFullYear()}${String(new Date().getMonth()+1).padStart(2,'0')}${String(new Date().getDate()).padStart(2,'0')}-${String(userId).slice(-4)}${String(input.willId).padStart(4,'0')}`;
+
+      const [inserted] = await db.insert(willCertificates).values({
         userId,
         willId: input.willId,
         certDate: input.certDate,
         purpose: input.purpose,
-        status: "pending",
+        status: "issued",
+        issueNumber,
+        processedAt: new Date(),
         createdAt: new Date(),
       });
 
-      return { success: true };
+      return { success: true, issueNumber };
+    }),
+
+  /**
+   * 인증서 출력(다운로드) 일시 기록
+   */
+  recordPrint: protectedProcedure
+    .input(z.object({ certificateId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+
+      const [cert] = await db
+        .select({ id: willCertificates.id, userId: willCertificates.userId, printCount: willCertificates.printCount, printedAt: willCertificates.printedAt })
+        .from(willCertificates)
+        .where(and(eq(willCertificates.id, input.certificateId), eq(willCertificates.userId, ctx.user.id)))
+        .limit(1);
+
+      if (!cert) throw new TRPCError({ code: "NOT_FOUND", message: "인증서를 찾을 수 없습니다" });
+
+      const now = new Date();
+      await db.update(willCertificates)
+        .set({
+          printedAt: cert.printedAt ?? now, // 최초 출력 날짜만 저장
+          printCount: (cert.printCount ?? 0) + 1,
+        })
+        .where(eq(willCertificates.id, input.certificateId));
+
+      return { success: true, printedAt: now, printCount: (cert.printCount ?? 0) + 1 };
     }),
 });

@@ -1131,6 +1131,10 @@ export const willCertificates = mysqlTable("willCertificates", {
   fileKey: varchar("fileKey", { length: 500 }),
   /** 생성된 PDF 파일 URL */
   fileUrl: varchar("fileUrl", { length: 1000 }),
+  /** 인증서 출력(다운로드) 일시 - 최초 출력 시 기록 */
+  printedAt: timestamp("printedAt"),
+  /** 총 출력 횟수 */
+  printCount: int("printCount").default(0),
 });
 
 export type WillCertificate = typeof willCertificates.$inferSelect;

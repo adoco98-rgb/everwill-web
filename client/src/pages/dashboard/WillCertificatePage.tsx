@@ -213,6 +213,11 @@ export default function WillCertificatePage() {
     onError: (err) => toast.error(err.message || "신청에 실패했습니다."),
   });
 
+  // 인증서 출력 기록
+  const recordPrintMutation = trpc.willCertificate.recordPrint.useMutation({
+    onSuccess: () => refetch(),
+  });
+
   // PDF 다운로드
   const downloadPdfMutation = trpc.willCertificate.downloadPdf.useMutation({
     onSuccess: (data) => {
@@ -298,7 +303,11 @@ export default function WillCertificatePage() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast.success("미리보기에서 PDF 다운로드 완료");
-  }, [previewBase64, previewFilename]);
+    // 출력 날짜/시간 저장
+    if (previewCertId) {
+      recordPrintMutation.mutate({ certificateId: previewCertId });
+    }
+  }, [previewBase64, previewFilename, previewCertId, recordPrintMutation]);
 
   const handleApply = () => {
     if (!purpose.trim()) {
@@ -345,7 +354,7 @@ export default function WillCertificatePage() {
             <h1 className="text-xl font-bold text-[#1F3864]">유언인증서 신청 및 발급</h1>
           </div>
           <p className="text-gray-500 text-sm">
-            유언 인증 날짜를 기준으로 공식 인증서를 발급받으세요. 발급 수수료 ₩1,500/건
+            유언 인증 날짜를 기준으로 공식 인증서를 발급받으세요. 신청 즉시 무료 발급됩니다.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -566,19 +575,30 @@ export default function WillCertificatePage() {
                     </div>
                     <div>
                       <p className="font-semibold text-[#1F3864] text-sm">
-                        유언인증서 #{String(idx + 1).padStart(4, "0")}
+                        {cert.issueNumber ?? `유언인증서 #${String(idx + 1).padStart(4, "0")}`}
                       </p>
                       <div className="flex items-center gap-2 mt-0.5">
                         <Calendar className="w-3 h-3 text-gray-400" />
                         <span className="text-xs text-gray-500">
-                          {cert.certDate ?? cert.createdAt
-                            ? new Date(cert.certDate ?? cert.createdAt).toLocaleDateString("ko-KR")
-                            : "-"}
+                          신청: {cert.createdAt ? new Date(cert.createdAt).toLocaleString("ko-KR") : "-"}
                         </span>
-                        {cert.purpose && (
-                          <span className="text-xs text-gray-400">· {cert.purpose}</span>
-                        )}
                       </div>
+                      {cert.printedAt && (
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <Printer className="w-3 h-3 text-gray-400" />
+                          <span className="text-xs text-gray-500">
+                            최초 출력: {new Date(cert.printedAt).toLocaleString("ko-KR")}
+                          </span>
+                          {cert.printCount > 1 && (
+                            <span className="text-xs text-gray-400">· 총 {cert.printCount}회</span>
+                          )}
+                        </div>
+                      )}
+                      {cert.purpose && (
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <span className="text-xs text-gray-400">목적: {cert.purpose}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -686,16 +706,16 @@ export default function WillCertificatePage() {
               </select>
             </div>
 
-            {/* 수수료 안내 */}
-            <div className="bg-[#C9A961]/10 rounded-xl p-4 mb-5">
+            {/* 수수료 안내 - 무료 */}
+            <div className="bg-green-50 rounded-xl p-4 mb-5 border border-green-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-[#C9A961]" />
+                  <CheckCircle2 className="w-4 h-4 text-green-600" />
                   <span className="text-sm font-semibold text-[#1F3864]">발급 수수료</span>
                 </div>
-                <span className="text-lg font-bold text-[#C9A961]">₩1,500</span>
+                <span className="text-lg font-bold text-green-600">무료</span>
               </div>
-              <p className="text-xs text-gray-500 mt-1">결제 완료 후 영업일 기준 1일 이내 발급됩니다.</p>
+              <p className="text-xs text-gray-500 mt-1">신청 즉시 발급됩니다.</p>
             </div>
 
             {/* 버튼 */}
@@ -716,7 +736,7 @@ export default function WillCertificatePage() {
                 ) : (
                   <>
                     <Printer className="w-4 h-4" />
-                    결제 후 신청
+                    인증서 신청
                   </>
                 )}
               </button>
