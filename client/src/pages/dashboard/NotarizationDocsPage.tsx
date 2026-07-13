@@ -237,6 +237,26 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
+/** PDF 첫 페이지를 PNG blob URL로 변환 (미리보기용) */
+async function pdfToPreviewUrl(file: File): Promise<string | undefined> {
+  try {
+    const pdfjsLib = await import('pdfjs-dist');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const page = await pdf.getPage(1);
+    const viewport = page.getViewport({ scale: 1.5 });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d')!;
+    await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+    return new Promise(resolve => canvas.toBlob(blob => resolve(blob ? URL.createObjectURL(blob) : undefined), 'image/png'));
+  } catch {
+    return undefined;
+  }
+}
+
 const NOTARIZE_DRAFT_KEY = "everwill_notarization_docs_draft";
 
 export default function NotarizationDocsPage() {
@@ -473,7 +493,11 @@ export default function NotarizationDocsPage() {
 
   /** 일반 파일 업로드 (미리보기 불필요 항목) + AI 분석 + 서버 저장 */
   const handleFileUpload = async (docId: string, file: File, docName?: string) => {
-    const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined;
+    // 이미지는 blob URL, PDF는 첫 페이지를 이미지로 변환
+    let previewUrl: string | undefined = file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined;
+    if (!previewUrl && file.type === "application/pdf") {
+      previewUrl = await pdfToPreviewUrl(file);
+    }
     setUploadedDocs((prev) => ({
       ...prev,
       [docId]: { fileName: file.name, uploadedAt: new Date().toLocaleString("ko-KR"), previewUrl },
