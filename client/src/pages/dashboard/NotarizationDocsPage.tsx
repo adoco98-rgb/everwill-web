@@ -239,6 +239,52 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
+/** 인감도장 이미지 자동 보정 - 대비 강화, 배경 제거, 선명도 향상 */
+async function enhanceSealStampImage(file: File): Promise<{ enhancedDataUrl: string; enhancedBlob: Blob }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      // 대비 강화 + 빨간 인감 강조
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i], g = data[i + 1], b = data[i + 2];
+        // 빨간 인감 강조: 빨간 채널이 높고 나머지가 낮으면 더 진하게
+        const isRed = r > 120 && g < 100 && b < 100;
+        if (isRed) {
+          data[i] = Math.min(255, r * 1.3);
+          data[i + 1] = Math.max(0, g * 0.5);
+          data[i + 2] = Math.max(0, b * 0.5);
+        } else {
+          // 배경은 흰색으로 밝게
+          const brightness = (r + g + b) / 3;
+          const enhanced = brightness > 160 ? 255 : Math.min(255, brightness * 1.2);
+          data[i] = enhanced;
+          data[i + 1] = enhanced;
+          data[i + 2] = enhanced;
+        }
+      }
+      ctx.putImageData(imageData, 0, 0);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(blob => {
+        if (!blob) { reject(new Error('변환 실패')); return; }
+        const reader = new FileReader();
+        reader.onload = () => resolve({ enhancedDataUrl: reader.result as string, enhancedBlob: blob });
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      }, 'image/png', 0.95);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
 /** PDF 첫 페이지를 PNG blob URL로 변환 (미리보기용) */
 async function pdfToPreviewUrl(file: File): Promise<string | undefined> {
   try {
@@ -455,34 +501,56 @@ export default function NotarizationDocsPage() {
   const handleConfirmUpload = async () => {
     if (!pendingPreview) return;
     const { docId, file, url, docName } = pendingPreview;
+    setPendingPreview(null);
+
+    // 인감도장인 경우 자동 보정 적용 (원본 유지, 보정본으로 분석)
+    let finalFile = file;
+    let finalPreviewUrl = url;
+    let finalDataUrl: string | undefined;
+    if (docId === 'seal_stamp') {
+      try {
+        toast.info('인감도장 이미지를 자동 보정하는 중...');
+        const { enhancedDataUrl, enhancedBlob } = await enhanceSealStampImage(file);
+        // Blob을 File처럼 사용 (타입 호환)
+        finalFile = Object.assign(enhancedBlob, { name: file.name, lastModified: Date.now() }) as unknown as File;
+        finalPreviewUrl = URL.createObjectURL(enhancedBlob);
+        finalDataUrl = enhancedDataUrl;
+        toast.success('이미지 보정 완료. AI 분석을 시작합니다...');
+      } catch {
+        // 보정 실패 시 원본 사용
+        toast.success(`${file.name} 업로드 완료. AI 분석을 시작합니다...`);
+      }
+    } else {
+      toast.success(`${file.name} 업로드 완료. AI 분석을 시작합니다...`);
+    }
+
     setUploadedDocs((prev) => ({
       ...prev,
       [docId]: {
         fileName: file.name,
-        uploadedAt: new Date().toLocaleString("ko-KR"),
-        previewUrl: url,
+        uploadedAt: new Date().toLocaleString('ko-KR'),
+        previewUrl: finalPreviewUrl,
+        dataUrl: finalDataUrl,
       },
     }));
-    toast.success(`${file.name} 업로드 완료. AI 분석을 시작합니다...`);
-    setPendingPreview(null);
     // 서버에 저장
     try {
-      const dataUrl = await fileToDataUrl(file);
+      const dataUrl = finalDataUrl || await fileToDataUrl(finalFile);
       await uploadToServerMutation.mutateAsync({
         docId,
         docName,
         fileName: file.name,
         fileSize: file.size,
         fileBase64: dataUrl,
-        mimeType: file.type,
+        mimeType: finalFile.type,
       });
       setUploadedDocs((prev) => ({ ...prev, [docId]: { ...prev[docId], savedToServer: true } }));
       refetchServerDocs();
     } catch {
-      // 서버 저장 실패 시도 로컈 저장으로 대체
+      // 서버 저장 실패 시 로컬 저장으로 대체
     }
-    // AI 분석 실행
-    runAnalysis(docId, file);
+    // AI 분석 실행 (보정된 파일로)
+    runAnalysis(docId, finalFile);
   };
 
   /** 미리보기 취소 */
