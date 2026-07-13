@@ -1087,7 +1087,7 @@ export default function NotarizationDocsPage() {
           임시저장
         </button>
         <button
-          onClick={() => window.location.href = '/dashboard/signature-cert'}
+          onClick={() => window.location.href = '/dashboard/certification'}
           className="px-6 py-2.5 rounded-xl bg-[#C9A961] text-white font-bold text-sm hover:bg-[#b8944e] transition flex items-center gap-2"
         >
           저장완료 → 다음 단계 (서명 인증)
