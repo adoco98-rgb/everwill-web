@@ -309,6 +309,8 @@ const NOTARIZE_DRAFT_KEY = "everwill_notarization_docs_draft";
 
 export default function NotarizationDocsPage() {
   const [uploadedDocs, setUploadedDocs] = useState<Record<string, UploadedDoc>>({});
+  // 클로저 문제 해결용 - 항상 최신 uploadedDocs를 참조
+  const uploadedDocsRef = useRef(uploadedDocs);
   const [expandedSection, setExpandedSection] = useState<string | null>("testator");
 
   // 임시저장 불러오기
@@ -329,6 +331,8 @@ export default function NotarizationDocsPage() {
     } catch { /* 무시 */ }
   }, []);
 
+  // uploadedDocsRef 항상 최신 유지
+  useEffect(() => { uploadedDocsRef.current = uploadedDocs; }, [uploadedDocs]);
   // 임시저장 (업로드 상태 변경 시 자동)
   useEffect(() => {
     if (Object.keys(uploadedDocs).length === 0) return;
@@ -549,10 +553,14 @@ export default function NotarizationDocsPage() {
     } catch {
       // 서버 저장 실패 시 로컬 저장으로 대체
     }
-    // AI 분석 실행 (보정된 파일로)
+        // AI 분석 실행 (보정된 파일로)
     runAnalysis(docId, finalFile);
+    // 인감도장 날인 업로드 시 → 인감증명서와 교차검증 자동 실행
+    if (docId === 'seal_stamp') {
+      // AI 분석 완료 후 교차검증 실행 (약간 지연)
+      setTimeout(() => runSealCompare(finalFile), 500);
+    }
   };
-
   /** 미리보기 취소 */
   const handleCancelPreview = () => {
     if (pendingPreview) {
@@ -600,16 +608,18 @@ export default function NotarizationDocsPage() {
 
   /** 인감증명서 ↔ 인감도장 교차검증 */
   const runSealCompare = async (stampFile: File) => {
-    const sealCertDoc = uploadedDocs["seal_cert"];
-    if (!sealCertDoc?.previewUrl) return; // 인감증명서가 없으면 건너뜀
+    // 클로저 문제 해결: ref로 최신 state 참조
+    const sealCertDoc = uploadedDocsRef.current["seal_cert"];
+    // 인감증명서가 없으면 건너뜀
+    if (!sealCertDoc) return;
     setUploadedDocs((prev) => ({
       ...prev,
       seal_stamp: { ...prev["seal_stamp"], sealComparing: true },
     }));
     try {
       const stampDataUrl = await fileToDataUrl(stampFile);
-      // blob URL 대신 저장된 base64 dataUrl 사용 (서버에서 blob URL 접근 불가)
-      const certDataUrl = sealCertDoc.dataUrl;
+      // dataUrl이 있으면 사용, 없으면 previewUrl을 가져오거나 빈 문자열 사용
+      const certDataUrl = sealCertDoc.dataUrl || sealCertDoc.previewUrl || '';
       if (!certDataUrl) return;
       const result = await compareSealMutation.mutateAsync({
         sealCertImageUrl: certDataUrl,
