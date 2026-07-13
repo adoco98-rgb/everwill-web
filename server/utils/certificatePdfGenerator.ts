@@ -391,22 +391,43 @@ function drawPageStamp(
   const pageHeight = doc.page.height;
   const [pr, pg, pb] = config.primaryColor;
 
-  // 반투명 대각선 워터마크 텍스트
+  // 중앙 로고 워터마크 (이미지)
+  if (sealExists) {
+    try {
+      doc.save();
+      doc.opacity(0.09);
+      const logoSize = 180;
+      doc.image(SEAL_PATH, pageWidth / 2 - logoSize / 2, pageHeight / 2 - logoSize / 2, { width: logoSize });
+      doc.restore();
+    } catch { /* 무시 */ }
+  }
+
+  // 대각선 텍스트 워터마크
   doc.save();
-  doc.opacity(0.06);
+  doc.opacity(0.05);
   doc.rotate(-45, { origin: [pageWidth / 2, pageHeight / 2] });
   doc
     .font("Helvetica-Bold")
-    .fontSize(72)
+    .fontSize(60)
     .fillColor(`rgb(${pr},${pg},${pb})`)
-    .text("EverWill", pageWidth / 2 - 180, pageHeight / 2 - 40, { width: 360, align: "center" });
+    .text("EverWill CERTIFIED", pageWidth / 2 - 220, pageHeight / 2 - 30, { width: 440, align: "center" });
   doc.restore();
+
+  // 우상단 소형 로고
+  if (sealExists) {
+    try {
+      doc.save();
+      doc.opacity(0.22);
+      doc.image(SEAL_PATH, pageWidth - 85, 18, { width: 55 });
+      doc.restore();
+    } catch { /* 무시 */ }
+  }
 
   // 우측 하단 소형 스탬프 원
   const cx = pageWidth - 80;
   const cy = pageHeight - 80;
   doc.save();
-  doc.opacity(0.18);
+  doc.opacity(0.25);
   doc.circle(cx, cy, 38).stroke(`rgb(${pr},${pg},${pb})`).lineWidth(2);
   doc
     .font("Helvetica-Bold")
@@ -415,16 +436,6 @@ function drawPageStamp(
     .text("EverWill", cx - 22, cy - 10, { width: 44, align: "center" })
     .text("CERTIFIED", cx - 22, cy, { width: 44, align: "center" });
   doc.restore();
-
-  // 씰 이미지 (있을 때만)
-  if (sealExists) {
-    try {
-      doc.save();
-      doc.opacity(0.12);
-      doc.image(SEAL_PATH, pageWidth - 130, pageHeight - 130, { width: 70 });
-      doc.restore();
-    } catch { /* 씰 없으면 무시 */ }
-  }
 }
 
 // ─── 헬퍼: 섹션 헤더 그리기 ──────────────────────────────────────────────────
