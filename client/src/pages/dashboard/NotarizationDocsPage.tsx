@@ -65,6 +65,12 @@ interface ManualFormData {
   [key: string]: string;
 }
 
+interface SealCompareResult {
+  match: string; // "pass" | "fail" | "uncertain"
+  similarity: string; // "high" | "medium" | "low"
+  message: string;
+  details: { shapeMatch: boolean; patternMatch: boolean; notes: string };
+}
 interface UploadedDoc {
   fileName: string;
   uploadedAt: string;
@@ -81,6 +87,9 @@ interface UploadedDoc {
   manualData?: ManualFormData;
   /** 서버에 저장됨 */
   savedToServer?: boolean;
+  /** 인감도장 교차검증 결과 */
+  sealCompare?: SealCompareResult;
+  sealComparing?: boolean;
 }
 
 const SECTIONS: DocumentSection[] = [
@@ -265,6 +274,8 @@ export default function NotarizationDocsPage() {
 
   // AI 분석 mutation
   const analyzeMutation = trpc.docAnalyze.analyzeDocument.useMutation();
+  // 인감도장 교차검증 mutation
+  const compareSealMutation = trpc.docAnalyze.compareSealStamp.useMutation();
   // 공증서류 서버 저장 mutation
   const uploadToServerMutation = trpc.notarizationDocs.upload.useMutation();
   const deleteFromServerMutation = trpc.notarizationDocs.delete.useMutation();
@@ -473,8 +484,47 @@ export default function NotarizationDocsPage() {
     } catch {
       // 서버 저장 실패 시도 로컈 저장으로 대체
     }
-    // AI 분석 실행
+        // AI 분석 실행
     runAnalysis(docId, file);
+    // 인감도장 날인 업로드 시 → 인감증명서와 교차검증 자동 실행
+    if (docId === "seal_stamp") {
+      runSealCompare(file);
+    }
+  };
+
+  /** 인감증명서 ↔ 인감도장 교차검증 */
+  const runSealCompare = async (stampFile: File) => {
+    const sealCertDoc = uploadedDocs["seal_cert"];
+    if (!sealCertDoc?.previewUrl) return; // 인감증명서가 없으면 건너뜀
+    setUploadedDocs((prev) => ({
+      ...prev,
+      seal_stamp: { ...prev["seal_stamp"], sealComparing: true },
+    }));
+    try {
+      const stampDataUrl = await fileToDataUrl(stampFile);
+      const certUrl = sealCertDoc.previewUrl;
+      const result = await compareSealMutation.mutateAsync({
+        sealCertImageUrl: certUrl,
+        sealStampImageUrl: stampDataUrl,
+      });
+      setUploadedDocs((prev) => ({
+        ...prev,
+        seal_stamp: { ...prev["seal_stamp"], sealComparing: false, sealCompare: result.data as SealCompareResult },
+      }));
+      const match = (result.data as SealCompareResult).match;
+      if (match === "pass") {
+        toast.success("인감 교차검증 통과! 인감증명서와 도장 인영이 일치합니다.");
+      } else if (match === "uncertain") {
+        toast.warning("인감 교차검증 불확실 - 아래 결과를 확인해주세요.");
+      } else {
+        toast.error("인감 불일치! 인감증명서와 도장 인영이 다릅니다.");
+      }
+    } catch {
+      setUploadedDocs((prev) => ({
+        ...prev,
+        seal_stamp: { ...prev["seal_stamp"], sealComparing: false },
+      }));
+    }
   };
 
   const handleRemoveDoc = async (docId: string) => {
@@ -712,6 +762,39 @@ export default function NotarizationDocsPage() {
                             )}
                             {isUploaded && uploadedDoc?.analysis && !uploadedDoc?.analyzing && (
                               <AnalysisResultCard analysis={uploadedDoc.analysis} />
+                            )}
+                            {/* 인감도장 교차검증 결과 */}
+                            {doc.id === "seal_stamp" && uploadedDoc?.sealComparing && (
+                              <div className="mt-2 flex items-center gap-2 text-xs text-purple-700 bg-purple-50 border border-purple-200 rounded-lg px-3 py-2">
+                                <div className="w-3 h-3 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+                                인감증명서와 도장 인영 교차검증 중...
+                              </div>
+                            )}
+                            {doc.id === "seal_stamp" && uploadedDoc?.sealCompare && !uploadedDoc?.sealComparing && (
+                              <div className={`mt-2 rounded-lg border p-3 text-xs ${
+                                uploadedDoc.sealCompare.match === "pass"
+                                  ? "bg-green-50 border-green-200"
+                                  : uploadedDoc.sealCompare.match === "uncertain"
+                                  ? "bg-amber-50 border-amber-200"
+                                  : "bg-red-50 border-red-200"
+                              }`}>
+                                <div className="flex items-center gap-1.5 font-semibold mb-1">
+                                  {uploadedDoc.sealCompare.match === "pass" ? (
+                                    <><span className="text-green-600">✓</span><span className="text-green-800">인감 교차검증 통과</span></>
+                                  ) : uploadedDoc.sealCompare.match === "uncertain" ? (
+                                    <><span className="text-amber-600">⚠</span><span className="text-amber-800">인감 교차검증 불확실</span></>
+                                  ) : (
+                                    <><span className="text-red-600">✗</span><span className="text-red-800">인감 불일치</span></>
+                                  )}
+                                  <span className="ml-auto text-gray-400">유사도: {uploadedDoc.sealCompare.similarity}</span>
+                                </div>
+                                <p className={`${
+                                  uploadedDoc.sealCompare.match === "pass" ? "text-green-700"
+                                  : uploadedDoc.sealCompare.match === "uncertain" ? "text-amber-700"
+                                  : "text-red-700"
+                                }`}>{uploadedDoc.sealCompare.message}</p>
+                                <p className="text-gray-500 mt-1">{uploadedDoc.sealCompare.details.notes}</p>
+                              </div>
                             )}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">

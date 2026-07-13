@@ -272,4 +272,110 @@ export const docAnalyzeRouter = router({
         });
       }
     }),
+
+  /**
+   * 인감증명서 ↔ 인감도장 날인 교차 검증
+   * - 인감증명서에 찍힌 인영과 인감도장 날인 이미지가 동일한지 AI로 비교
+   */
+  compareSealStamp: protectedProcedure
+    .input(z.object({
+      sealCertImageUrl: z.string(), // 인감증명서 이미지 (data URL 또는 http)
+      sealStampImageUrl: z.string(), // 인감도장 날인 이미지 (data URL 또는 http)
+    }))
+    .mutation(async ({ input }) => {
+      try {
+        // PDF 변환 처리
+        let certUrl = input.sealCertImageUrl;
+        let stampUrl = input.sealStampImageUrl;
+        if (certUrl.startsWith("data:application/pdf")) {
+          certUrl = await pdfDataUrlToImageDataUrl(certUrl);
+        }
+        if (stampUrl.startsWith("data:application/pdf")) {
+          stampUrl = await pdfDataUrlToImageDataUrl(stampUrl);
+        }
+
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: `당신은 인감도장 전문 검증 AI입니다. 두 이미지를 비교하여 인감증명서에 등록된 인영과 인감도장 날인이 동일한지 판단합니다.
+
+판단 기준:
+- 도장의 전체적인 형태(원형/사각형)가 일치하는지
+- 도장 내부의 글자 배열·패턴이 유사한지
+- 크기 비율이 유사한지 (크기 자체는 달라도 됨)
+- 완전히 동일할 필요는 없음 (날인 압력·각도 차이 허용)
+- JSON만 반환하세요.`,
+            },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: "첫 번째 이미지는 인감증명서(인감증명서에 찍힌 인영 포함), 두 번째 이미지는 인감도장 날인입니다. 두 인영이 동일한 도장인지 비교해주세요.",
+                },
+                {
+                  type: "image_url",
+                  image_url: { url: certUrl, detail: "high" },
+                },
+                {
+                  type: "image_url",
+                  image_url: { url: stampUrl, detail: "high" },
+                },
+                {
+                  type: "text",
+                  text: `다음 JSON 형식으로만 응답하세요:
+{
+  "match": "pass" | "fail" | "uncertain",
+  "similarity": "high" | "medium" | "low",
+  "message": "비교 결과에 대한 한국어 설명 (2-3문장)",
+  "details": {
+    "shapeMatch": true | false,
+    "patternMatch": true | false,
+    "notes": "세부 관찰 사항 (1문장)"
+  }
+}`,
+                },
+              ],
+            },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "seal_compare_result",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  match: { type: "string" },
+                  similarity: { type: "string" },
+                  message: { type: "string" },
+                  details: {
+                    type: "object",
+                    properties: {
+                      shapeMatch: { type: "boolean" },
+                      patternMatch: { type: "boolean" },
+                      notes: { type: "string" },
+                    },
+                    required: ["shapeMatch", "patternMatch", "notes"],
+                    additionalProperties: false,
+                  },
+                },
+                required: ["match", "similarity", "message", "details"],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+
+        const content = response.choices?.[0]?.message?.content;
+        if (!content) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "인감 비교 분석에 실패했습니다." });
+        const result = typeof content === "string" ? JSON.parse(content) : content;
+        return { success: true, data: result };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        console.error("[docAnalyze] 인감 비교 오류:", error);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "인감 비교 중 오류가 발생했습니다." });
+      }
+    }),
 });
