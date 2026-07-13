@@ -97,14 +97,14 @@ const SECTIONS: DocumentSection[] = [
         name: "기본증명서 (상세)",
         description: "본인의 출생·사망·혼인 등 기본 신분사항",
         required: true,
-        helpLink: { label: "정부24에서 발급", url: "https://www.gov.kr/mw/SS/PUBR/insertPublicForm.do?formId=CERT_BASIC" },
+        helpLink: { label: "전자가족관계등록시스템", url: "https://efamily.scourt.go.kr" },
       },
       {
         id: "family_cert",
         name: "가족관계증명서 (상세)",
         description: "부모·배우자·자녀 등 가족관계 확인",
         required: true,
-        helpLink: { label: "정부24에서 발급", url: "https://www.gov.kr/mw/SS/PUBR/insertPublicForm.do?formId=CERT_FAMILY" },
+        helpLink: { label: "전자가족관계등록시스템", url: "https://efamily.scourt.go.kr" },
       },
       {
         id: "resident_reg",
@@ -169,14 +169,14 @@ const SECTIONS: DocumentSection[] = [
         name: "가족관계증명서",
         description: "유언집행자의 가족관계 확인 (1통)",
         required: true,
-        helpLink: { label: "정부24에서 발급", url: "https://www.gov.kr/mw/SS/PUBR/insertPublicForm.do?formId=CERT_FAMILY" },
+        helpLink: { label: "전자가족관계등록시스템", url: "https://efamily.scourt.go.kr" },
       },
       {
         id: "executor_basic_cert",
         name: "기본증명서",
         description: "유언집행자의 기본 신분사항 확인 (1통)",
         required: true,
-        helpLink: { label: "정부24에서 발급", url: "https://www.gov.kr/mw/SS/PUBR/insertPublicForm.do?formId=CERT_BASIC" },
+        helpLink: { label: "전자가족관계등록시스템", url: "https://efamily.scourt.go.kr" },
       },
       {
         id: "executor_resident",
