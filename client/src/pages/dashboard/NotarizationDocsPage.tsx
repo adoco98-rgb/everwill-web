@@ -137,6 +137,7 @@ const SECTIONS: DocumentSection[] = [
         name: "인감증명서",
         description: "본인 인감 확인용 (발급 3개월 이내)",
         required: true,
+        needsPreview: true,
         helpLink: { label: "정부24에서 발급", url: "https://www.gov.kr/mw/SS/PUBR/insertPublicForm.do?formId=CERT_SEAL" },
       },
 
@@ -805,15 +806,43 @@ export default function NotarizationDocsPage() {
                                   ? "bg-amber-50 border-amber-200"
                                   : "bg-red-50 border-red-200"
                               }`}>
-                                <div className="flex items-center gap-1.5 font-semibold mb-1">
+                                <div className="flex items-center gap-1.5 font-semibold mb-2">
                                   {uploadedDoc.sealCompare.match === "pass" ? (
-                                    <><span className="text-green-600">✓</span><span className="text-green-800">인감 교차검증 통과</span></>
+                                    <><span className="text-green-600">✓</span><span className="text-green-800">인감 교차검증 통과 — 도장 일치</span></>
                                   ) : uploadedDoc.sealCompare.match === "uncertain" ? (
                                     <><span className="text-amber-600">⚠</span><span className="text-amber-800">인감 교차검증 불확실</span></>
                                   ) : (
                                     <><span className="text-red-600">✗</span><span className="text-red-800">인감 불일치</span></>
                                   )}
                                   <span className="ml-auto text-gray-400">유사도: {uploadedDoc.sealCompare.similarity}</span>
+                                </div>
+                                {/* 인감증명서 도장 + 인감도장 날인 나란히 표시 */}
+                                <div className="flex gap-3 mb-2">
+                                  {uploadedDocs["seal_cert"]?.previewUrl && (
+                                    <div className="flex flex-col items-center gap-1">
+                                      <span className="text-[10px] text-gray-500 font-medium">인감증명서 도장</span>
+                                      <img
+                                        src={uploadedDocs["seal_cert"].previewUrl}
+                                        alt="인감증명서"
+                                        className="w-20 h-20 object-contain border border-gray-200 rounded bg-white"
+                                      />
+                                    </div>
+                                  )}
+                                  {uploadedDoc?.previewUrl && (
+                                    <div className="flex flex-col items-center gap-1">
+                                      <span className="text-[10px] text-gray-500 font-medium">제출한 도장</span>
+                                      <img
+                                        src={uploadedDoc.previewUrl}
+                                        alt="인감도장 날인"
+                                        className="w-20 h-20 object-contain border border-gray-200 rounded bg-white"
+                                      />
+                                    </div>
+                                  )}
+                                  {uploadedDoc.sealCompare.match === "pass" && (
+                                    <div className="flex items-center self-center">
+                                      <span className="text-2xl text-green-500">=</span>
+                                    </div>
+                                  )}
                                 </div>
                                 <p className={`${
                                   uploadedDoc.sealCompare.match === "pass" ? "text-green-700"
