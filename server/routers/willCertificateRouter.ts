@@ -336,6 +336,7 @@ export const willCertificateRouter = router({
     .input(
       z.object({
         certificateId: z.number().optional(),
+        willId: z.number().optional(),
         country: z.string().length(2).default("KR"),
         isSample: z.boolean().default(false),
       })
@@ -376,6 +377,22 @@ export const willCertificateRouter = router({
         willText = willData.draftText ?? willData.aiDraft ?? willData.willText ?? willRecord?.title ?? "유언 내용이 등록되어 있지 않습니다.";
         willTitle = willRecord?.title ?? "유언장";
         purpose = certRecord.purpose ?? "유언장 인증 확인용";
+      } else if (!input.isSample && input.willId) {
+        // 유언장 직접 기반 (인증서 없이 미리보기)
+        const willRows = await db
+          .select()
+          .from(wills)
+          .where(and(eq(wills.id, input.willId), eq(wills.userId, userId)))
+          .limit(1);
+        willRecord = willRows[0];
+        if (!willRecord) throw new TRPCError({ code: "NOT_FOUND", message: "유언장을 찾을 수 없습니다" });
+
+        certNumber = willRecord.certNumber ?? `EW-${new Date().getFullYear()}${String(new Date().getMonth()+1).padStart(2,'0')}${String(new Date().getDate()).padStart(2,'0')}-${String(userId).slice(-4)}${String(input.willId).padStart(4,'0')}`;
+        certifiedAt = willRecord.certifiedAt ?? new Date();
+        const willData = willRecord.data ? JSON.parse(willRecord.data) : {};
+        willText = willData.draftText ?? willData.aiDraft ?? willData.willText ?? willRecord.title ?? "유언 내용이 등록되어 있지 않습니다.";
+        willTitle = willRecord.title ?? "유언장";
+        purpose = "유언장 인증 확인용";
       } else {
         // 샘플 모드
         certNumber = `EW-PREVIEW-${userId}-${country}-${Date.now().toString(36).toUpperCase()}`;
