@@ -85,6 +85,8 @@ interface UploadedDoc {
   fileName: string;
   uploadedAt: string;
   previewUrl?: string;
+  /** 서버 전송용 base64 dataUrl (blob URL 대신 사용) */
+  dataUrl?: string;
   analysis?: AnalysisResult;
   analyzing?: boolean;
   /** AI 분석 진행 단계 (0~4) */
@@ -498,14 +500,15 @@ export default function NotarizationDocsPage() {
     if (!previewUrl && file.type === "application/pdf") {
       previewUrl = await pdfToPreviewUrl(file);
     }
+    // 서버 전송용 base64 dataUrl 미리 저장 (blob URL은 서버에서 접근 불가)
+    const dataUrl = await fileToDataUrl(file);
     setUploadedDocs((prev) => ({
       ...prev,
-      [docId]: { fileName: file.name, uploadedAt: new Date().toLocaleString("ko-KR"), previewUrl },
+      [docId]: { fileName: file.name, uploadedAt: new Date().toLocaleString("ko-KR"), previewUrl, dataUrl },
     }));
     toast.success(`${file.name} 업로드 완료. AI 분석을 시작합니다...`);
     // 서버에 저장
     try {
-      const dataUrl = await fileToDataUrl(file);
       await uploadToServerMutation.mutateAsync({
         docId,
         docName: docName || docId,
@@ -537,9 +540,11 @@ export default function NotarizationDocsPage() {
     }));
     try {
       const stampDataUrl = await fileToDataUrl(stampFile);
-      const certUrl = sealCertDoc.previewUrl;
+      // blob URL 대신 저장된 base64 dataUrl 사용 (서버에서 blob URL 접근 불가)
+      const certDataUrl = sealCertDoc.dataUrl;
+      if (!certDataUrl) return;
       const result = await compareSealMutation.mutateAsync({
-        sealCertImageUrl: certUrl,
+        sealCertImageUrl: certDataUrl,
         sealStampImageUrl: stampDataUrl,
       });
       setUploadedDocs((prev) => ({
