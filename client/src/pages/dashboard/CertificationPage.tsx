@@ -2,7 +2,9 @@
  * 인증 현황 페이지
  * 얼굴 인증(KYC), 유언장 전자 인증, 자산 인증 상태를 한눈에 확인
  */
-import { CheckCircle2, Clock, AlertCircle, Shield, FileText, Package } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, Shield, FileText, Package, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,10 +35,31 @@ export default function CertificationPage() {
   const { data: faceStatus, refetch: refetchFace } = trpc.verification.getStatus.useQuery();
 
   // 유언장 목록 (인증 완료 여부 확인용)
-  const { data: willsData } = trpc.will.getMyWills.useQuery();
+  const { data: willsData, refetch: refetchWills } = trpc.will.getMyWills.useQuery();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const certifiedWills = (willsData ?? []).filter((w: any) => w.isCertified === 1);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const uncertifiedWills = (willsData ?? []).filter((w: any) => w.isCertified !== 1);
   const hasCertifiedWill = certifiedWills.length > 0;
+
+  // 인증 연결 mutation
+  const [certifyingId, setCertifyingId] = useState<number | null>(null);
+  const certifyWillMutation = trpc.will.certifyWill.useMutation({
+    onSuccess: (data) => {
+      toast.success(`유언장 인증 완료! 인증번호: ${data.certNumber}`);
+      refetchWills();
+      setCertifyingId(null);
+    },
+    onError: (err) => {
+      toast.error(`인증 실패: ${err.message}`);
+      setCertifyingId(null);
+    },
+  });
+
+  const handleCertifyWill = (willId: number) => {
+    setCertifyingId(willId);
+    certifyWillMutation.mutate({ willId });
+  };
 
   // 자산 인증 상태
   const { data: assetVerifyData } = trpc.assetVerify.getStatus.useQuery();
@@ -139,6 +162,51 @@ export default function CertificationPage() {
                     <span>{w.certifiedAt ? new Date(w.certifiedAt).toLocaleDateString("ko-KR") : "-"}</span>
                   </div>
                 ))}
+              </div>
+            ) : uncertifiedWills.length > 0 ? (
+              <div className="space-y-3">
+                <p className="text-sm text-gray-600">
+                  작성된 유언장을 선택하여 전자 인증을 연결하세요.
+                </p>
+                <div className="space-y-2">
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  {uncertifiedWills.map((w: any) => (
+                    <div
+                      key={w.id}
+                      className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2.5 border border-gray-100"
+                    >
+                      <div className="flex items-center gap-2 text-sm text-gray-700">
+                        <FileText className="w-4 h-4 text-[#1F3864]" />
+                        <div>
+                          <p className="font-medium">{w.title || `유언장 #${w.id}`}</p>
+                          <p className="text-xs text-gray-400">
+                            작성일: {w.createdAt ? new Date(w.createdAt).toLocaleDateString("ko-KR") : "-"}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        className="bg-[#1F3864] hover:bg-[#162a4e] text-white text-xs px-3"
+                        disabled={certifyingId === w.id}
+                        onClick={() => handleCertifyWill(w.id)}
+                      >
+                        {certifyingId === w.id ? (
+                          <><Loader2 className="w-3 h-3 mr-1 animate-spin" />처리중...</>
+                        ) : (
+                          "인증 연결하기"
+                        )}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                <div className="pt-1">
+                  <Link href="/write">
+                    <Button variant="ghost" size="sm" className="text-xs text-gray-400 gap-1 px-0 hover:text-[#1F3864]">
+                      <FileText className="w-3 h-3" />
+                      새 유언장 작성하기
+                    </Button>
+                  </Link>
+                </div>
               </div>
             ) : (
               <div className="space-y-3">
