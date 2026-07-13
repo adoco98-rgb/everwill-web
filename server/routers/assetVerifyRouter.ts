@@ -261,13 +261,16 @@ export const assetVerifyRouter = router({
       const sigKey = `asset-verify/${ctx.user.id}/signature-${Date.now()}.png`;
       const { url: sigUrl } = await storagePut(sigKey, sigBuffer, "image/png");
 
+      // 서류 업로드 완료 시 자동 승인 처리 (관리자 수동 검토 불필요)
       await db.update(assetVerifications)
         .set({
-          status: "submitted",
+          status: "approved",
           signatureKey: sigKey,
           signatureUrl: sigUrl,
           consentAt: new Date(),
           submittedAt: new Date(),
+          reviewedAt: new Date(),
+          reviewNote: "자동 승인",
         })
         .where(eq(assetVerifications.userId, ctx.user.id));
 
