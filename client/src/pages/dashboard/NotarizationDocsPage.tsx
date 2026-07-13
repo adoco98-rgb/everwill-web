@@ -348,9 +348,9 @@ export default function NotarizationDocsPage() {
         await new Promise((r) => setTimeout(r, 600));
         setUploadedDocs((prev) => ({
           ...prev,
-          [docId]: { ...prev[docId], analysis: result.data as AnalysisResult, analyzing: false, analysisStep: undefined },
+                    [docId]: { ...prev[docId], analysis: result.data as AnalysisResult, analyzing: false, analysisStep: undefined },
         }));
-
+        console.log("[AI분석결과]", JSON.stringify((result.data as AnalysisResult).extractedData));
         const status = (result.data as AnalysisResult).overallStatus;
         if (status === "pass") {
           toast.success("AI 검증 통과! 서류가 정상입니다.");
@@ -1442,8 +1442,12 @@ function AnalysisResultCard({ analysis, onExtractedDataChange }: { analysis: Ana
         </div>
       )}
       {/* AI 추출 데이터 편집 폼 */}
-      {analysis.extractedData && onExtractedDataChange && (
+      {analysis.extractedData && onExtractedDataChange ? (
         <ExtractedDataForm data={analysis.extractedData} onChange={onExtractedDataChange} />
+      ) : onExtractedDataChange && (
+        <div className="mt-3 border border-amber-200 rounded-lg bg-amber-50 p-3">
+          <span className="text-[10px] text-amber-700 font-medium">서류를 재업로드하면 AI가 내용을 자동으로 추출하여 표시합니다.</span>
+        </div>
       )}
     </div>
   );

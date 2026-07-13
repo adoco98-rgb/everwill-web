@@ -280,8 +280,8 @@ export const docAnalyzeRouter = router({
           });
         }
 
-        const result = typeof content === "string" ? JSON.parse(content) : content;
-
+                const result = typeof content === "string" ? JSON.parse(content) : content;
+        console.log("[docAnalyze] extractedData:", JSON.stringify(result.extractedData));
         return {
           success: true,
           data: result,
