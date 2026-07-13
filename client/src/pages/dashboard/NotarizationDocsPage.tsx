@@ -898,12 +898,12 @@ export default function NotarizationDocsPage() {
                               {isUploaded ? "재업로드" : "업로드"}
                               <input
                                 type="file"
-                                accept={doc.needsPreview ? ".jpg,.jpeg,.png,.heic" : ".pdf,.jpg,.jpeg,.png,.heic"}
+                                accept={doc.id === "seal_stamp" ? ".jpg,.jpeg,.png,.heic" : ".pdf,.jpg,.jpeg,.png,.heic"}
                                 className="hidden"
                                 onChange={(e) => {
                                   const file = e.target.files?.[0];
                                   if (file) {
-                                    if (doc.needsPreview) {
+                                    if (doc.id === "seal_stamp") {
                                       handleImageSelect(doc.id, doc.name, file);
                                     } else {
                                       handleFileUpload(doc.id, file);
