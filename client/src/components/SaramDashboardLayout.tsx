@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
+import { trpc } from "@/lib/trpc";
 
 /** 유언 작성 플로우 메뉴 */
 const willFlowMenuItems = [
@@ -107,8 +108,11 @@ const myInfoMenuItems = [
 
 export default function SaramDashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, logout } = useAuth();
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  // 결제 여부 확인
+  const { data: paymentStatus } = trpc.tossPayment.hasPaid.useQuery(undefined, { enabled: !!user });
+  const hasPaid = paymentStatus?.hasPaid ?? false;
 
   if (loading) {
     return (
@@ -167,6 +171,45 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
       const isActive = item.path === "/dashboard"
         ? location === item.path
         : location.startsWith(item.path);
+      return (
+        <Link
+          key={item.path}
+          href={item.path}
+          onClick={() => setMobileOpen(false)}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+            isActive
+              ? "bg-white/15 text-white"
+              : "text-white/60 hover:text-white hover:bg-white/10"
+          }`}
+        >
+          <item.icon className="w-4 h-4 shrink-0" />
+          <span>{item.label}</span>
+          {isActive && <ChevronRight className="w-3.5 h-3.5 ml-auto" />}
+        </Link>
+      );
+    });
+  }
+
+  /** 결제 후 메뉴 렌더링 - 비결제 회원은 잠금 표시 */
+  function renderPaidMenuItems(items: typeof certMenuItems) {
+    return items.map((item) => {
+      const isActive = item.path === "/dashboard"
+        ? location === item.path
+        : location.startsWith(item.path);
+      if (!hasPaid) {
+        // 비결제 회원: 잠금 표시, 클릭 시 결제 페이지로 이동
+        return (
+          <button
+            key={item.path}
+            onClick={() => { navigate("/dashboard/payments"); setMobileOpen(false); }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/30 cursor-pointer hover:bg-white/5 transition-all"
+          >
+            <item.icon className="w-4 h-4 shrink-0 opacity-40" />
+            <span className="opacity-40">{item.label}</span>
+            <Lock className="w-3 h-3 ml-auto text-white/30 shrink-0" />
+          </button>
+        );
+      }
       return (
         <Link
           key={item.path}
@@ -259,8 +302,13 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
 
           {/* 전자유언인증 (결제 후) */}
           <div className="pt-3 mt-2 border-t border-white/10">
-            <span className="text-[10px] font-bold text-white/90 uppercase tracking-widest px-3">전자유언인증</span>
-            <div className="mt-1">{renderMenuItems(certMenuItems)}</div>
+            <div className="flex items-center gap-2 px-3 mb-1">
+              <span className="text-[10px] font-bold text-white/90 uppercase tracking-widest">전자유언인증</span>
+              {!hasPaid && (
+                <span className="text-[9px] bg-[#C9A961]/20 text-[#C9A961] px-1.5 py-0.5 rounded-full font-semibold">결제 후 이용</span>
+              )}
+            </div>
+            <div className="mt-1">{renderPaidMenuItems(certMenuItems)}</div>
           </div>
 
           {/* 멤버십 / 부가 서비스 */}

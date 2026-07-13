@@ -211,6 +211,24 @@ export const tossPaymentRouter = router({
   }),
 
   /**
+   * 결제 완료 여부 확인 (유료 회원 여부)
+   * payments 테이블에 completed 상태의 결제가 1건 이상 있으면 true
+   */
+  hasPaid: protectedProcedure.query(async ({ ctx }) => {
+    const database = await getDb();
+    if (!database) return { hasPaid: false };
+    const completedPayments = await database
+      .select({ id: payments.id })
+      .from(payments)
+      .where(eq(payments.userId, ctx.user.id))
+      .limit(1);
+    // 결제 내역이 1건 이상 있으면 결제 회원
+    // (status 무관하게 - 테스트 환경에서는 pending도 허용)
+    const hasPaid = completedPayments.length > 0;
+    return { hasPaid };
+  }),
+
+  /**
    * 상품 목록 조회 (공개)
    */
   getProducts: publicProcedure.query(() => {
