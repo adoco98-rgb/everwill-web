@@ -110,9 +110,9 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
   const { user, loading, logout } = useAuth();
   const [location, navigate] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  // 결제 여부 확인
+  // 결제 여부 확인 (관리자는 항상 true)
   const { data: paymentStatus } = trpc.tossPayment.hasPaid.useQuery(undefined, { enabled: !!user });
-  const hasPaid = paymentStatus?.hasPaid ?? false;
+  const hasPaid = user?.role === "admin" || (paymentStatus?.hasPaid ?? false);
 
   if (loading) {
     return (
