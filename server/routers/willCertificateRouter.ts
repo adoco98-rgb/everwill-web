@@ -19,7 +19,7 @@ import {
 import { eq, desc, and } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { generateWillCertificatePDF } from "../utils/certificatePdfGenerator";
-import { storagePut } from "../storage";
+import { storagePut, storageGetSignedUrl } from "../storage";
 
 export const willCertificateRouter = router({
   /** 내 발급 내역 조회 */
@@ -174,17 +174,33 @@ export const willCertificateRouter = router({
         .where(eq(willAttachments.userId, userId))
         .orderBy(willAttachments.createdAt);
 
-      const attachmentData = attachmentRows.map((att) => ({
-        fileName: att.fileName ?? "첨부파일",
-        fileType: att.fileType ?? "application/octet-stream",
-        category: att.category ?? "other",
-        description: att.description ?? undefined,
-        fileSize: att.fileSize ?? 0,
-        verified: att.verified ?? 0,
-        createdAt: att.createdAt ? new Date(att.createdAt) : undefined,
-        fileKey: att.fileKey ?? undefined,
-        fileUrl: att.fileUrl ?? undefined,   // 실제 파일 URL 전달
-      }));
+      // 첨부파일 이미지 bytes 미리 로드 (presigned URL 통해 S3에서 직접 fetch)
+      const attachmentData: any[] = [];
+      for (const att of attachmentRows) {
+        const isImage = att.fileType && att.fileType.startsWith("image/");
+        let fileBytes: Buffer | null = null;
+        if (isImage && att.fileKey) {
+          try {
+            const signedUrl = await storageGetSignedUrl(att.fileKey);
+            const res = await fetch(signedUrl);
+            if (res.ok) {
+              fileBytes = Buffer.from(await res.arrayBuffer());
+            }
+          } catch { /* 무시 */ }
+        }
+        attachmentData.push({
+          fileName: att.fileName ?? "첨부파일",
+          fileType: att.fileType ?? "application/octet-stream",
+          category: att.category ?? "other",
+          description: att.description ?? undefined,
+          fileSize: att.fileSize ?? 0,
+          verified: att.verified ?? 0,
+          createdAt: att.createdAt ? new Date(att.createdAt) : undefined,
+          fileKey: att.fileKey ?? undefined,
+          fileUrl: att.fileUrl ?? undefined,
+          fileBytes,
+        });
+      }
 
       // ── 유언 전문 추출 ────────────────────────────────────────────────────────
       const willText =
@@ -427,17 +443,33 @@ export const willCertificateRouter = router({
               { nameKo: "김순자 (예시)", relationship: "spouse", sharePercent: 20, shareType: "percentage", isExecutor: 0 },
             ];
 
-      const attachmentData = attachmentRows.map((att) => ({
-        fileName: att.fileName ?? "첨부파일",
-        fileType: att.fileType ?? "application/pdf",
-        category: att.category ?? "other",
-        description: att.description ?? undefined,
-        fileSize: att.fileSize ?? 0,
-        verified: att.verified ?? 0,
-        createdAt: att.createdAt ? new Date(att.createdAt) : undefined,
-        fileKey: att.fileKey ?? undefined,
-        fileUrl: att.fileUrl ?? undefined,
-      }));
+      // 첨부파일 이미지 bytes 미리 로드 (presigned URL 통해 S3에서 직접 fetch)
+      const attachmentData: any[] = [];
+      for (const att of attachmentRows) {
+        const isImage = att.fileType && att.fileType.startsWith("image/");
+        let fileBytes: Buffer | null = null;
+        if (isImage && att.fileKey) {
+          try {
+            const signedUrl = await storageGetSignedUrl(att.fileKey);
+            const res = await fetch(signedUrl);
+            if (res.ok) {
+              fileBytes = Buffer.from(await res.arrayBuffer());
+            }
+          } catch { /* 무시 */ }
+        }
+        attachmentData.push({
+          fileName: att.fileName ?? "첨부파일",
+          fileType: att.fileType ?? "application/pdf",
+          category: att.category ?? "other",
+          description: att.description ?? undefined,
+          fileSize: att.fileSize ?? 0,
+          verified: att.verified ?? 0,
+          createdAt: att.createdAt ? new Date(att.createdAt) : undefined,
+          fileKey: att.fileKey ?? undefined,
+          fileUrl: att.fileUrl ?? undefined,
+          fileBytes,
+        });
+      }
 
       // PDF 생성 (S3 저장 없이 buffer만 반환)
       const pdfBuffer = await generateWillCertificatePDF({
