@@ -10,6 +10,7 @@ import { Link, useSearch } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 
 type ProductKey =
+  | "certification_basic"
   | "certification"
   | "certification_premium"
   | "video_will"
@@ -31,7 +32,8 @@ interface CartItem {
   quantity: number;
 }
 
-const PRODUCTS: { key: ProductKey; name: string; desc: string; amount: number; category: string; recommended?: boolean; badge?: string; includes?: string[] }[] = [
+const PRODUCTS: { key: ProductKey; name: string; desc: string; amount: number; category: string; recommended?: boolean; badge?: string; includes?: string[]; excludes?: string[] }[] = [
+  { key: "certification_basic", name: "베이직 플랜", desc: "AI 유언장 작성 + 전자 인증 · 인증서 3회 · 1년 보관 (이후 ₩15,000/년)", amount: 79000, category: "인증", badge: "입문 추천", includes: ["인증서 발급 3회", "1년 보관", "수정 3회", "블록체인 해시"], excludes: ["영상 유언장 제한", "자필 스캔 제한", "AI 일기 제한", "자서전 제한"] },
   { key: "certification", name: "전자 인증 기본", desc: "유언장 전자 인증 · 블록체인 해시 기록 · 인증서 발급", amount: 168000, category: "인증", includes: ["무료 수정 10회", "추가 수정 ₩15,000/회"] },
   { key: "certification_premium", name: "전자 인증 프리미엄", desc: "전자 인증 + 영상 유언장 + 자필 유언장 스캔 인증 — 모든 인증 방식 포함", amount: 69000, category: "인증", recommended: true, badge: "할인 ₩29,000", includes: ["영상 유언장", "자필 유언장 스캔", "무료 수정 10회", "추가 수정 ₩15,000/회"] },
   { key: "video_will", name: "영상 유언장", desc: "법적 녹음 유언 + 가족 감성 메시지 · 평생 보관", amount: 29000, category: "부가서비스" },
@@ -203,6 +205,15 @@ export default function PaymentPage() {
                           {product.includes.map((item) => (
                             <span key={item} className="inline-flex items-center gap-1 text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">
                               <Check className="w-3 h-3" />{item}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {product.excludes && product.excludes.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {product.excludes.map((item) => (
+                            <span key={item} className="inline-flex items-center gap-1 text-xs bg-red-50 text-red-400 border border-red-100 px-2 py-0.5 rounded-full">
+                              ✕ {item}
                             </span>
                           ))}
                         </div>
