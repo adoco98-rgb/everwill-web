@@ -358,11 +358,15 @@ export interface HeirData {
 
 export interface AttachmentData {
   fileName: string;
+  fileType: string;
   category: string;
   description?: string | null;
   fileSize: number;
   verified?: number | null;
   createdAt?: Date | null;
+  fileKey?: string | null;   // S3 키 (실제 파일 삽입용)
+  fileUrl?: string | null;   // 직접 URL (있을 경우 우선)
+  fileBytes?: Buffer | null; // 미리 로드된 바이트 (선택)
 }
 
 export interface CertificateData {
@@ -514,8 +518,26 @@ function formatCurrency(value: number, currency: string): string {
 }
 
 // ─── 메인 PDF 생성 함수 ────────────────────────────────────────────────────────
-export function generateWillCertificatePDF(data: CertificateData): Promise<Buffer> {
+export async function generateWillCertificatePDF(data: CertificateData): Promise<Buffer> {
+  // 첨부파일 이미지 미리 fetch (async 컨텍스트에서 처리)
+  const attachWithBytes: (AttachmentData & { fileBytes?: Buffer | null })[] = [];
+  for (const att of data.attachments ?? []) {
+    const isImage = att.fileType && (att.fileType.startsWith("image/") || att.fileType === "image/jpeg" || att.fileType === "image/png" || att.fileType === "image/webp");
+    if (isImage && att.fileUrl && !att.fileBytes) {
+      try {
+        const res = await fetch(att.fileUrl);
+        if (res.ok) {
+          attachWithBytes.push({ ...att, fileBytes: Buffer.from(await res.arrayBuffer()) });
+          continue;
+        }
+      } catch { /* 무시 */ }
+    }
+    attachWithBytes.push(att);
+  }
+  const resolvedData: CertificateData = { ...data, attachments: attachWithBytes };
+
   return new Promise((resolve, reject) => {
+    const data = resolvedData;
     const config = COUNTRY_CONFIGS[data.country.toUpperCase()] ?? DEFAULT_CONFIG;
     const sealExists = fs.existsSync(SEAL_PATH);
 
@@ -924,6 +946,61 @@ export function generateWillCertificatePDF(data: CertificateData): Promise<Buffe
       const totalLabel = config.lang === "ko" ? `총 ${attachList.length}건의 증빙서류가 첨부되어 있습니다.` : `Total ${attachList.length} supporting document(s) attached.`;
       doc.font(fontBold).fontSize(9).fillColor("white").text(totalLabel, margin + 12, ya + 10, { width: contentWidth - 24 });
       ya += 42;
+
+      // ── 실제 첨부파일 내용 삽입 (이미지 파일) ──────────────────────────────
+      for (const att of attachList) {
+        const isImage = att.fileType && (att.fileType.startsWith("image/") || att.fileType === "image/jpeg" || att.fileType === "image/png" || att.fileType === "image/webp");
+        if (!isImage) continue;
+
+        // 미리 로드된 바이트만 사용 (async 컨텍스트에서 이미 fetch 완료)
+        const imgBytes: Buffer | null = att.fileBytes ?? null;
+        if (!imgBytes) continue;
+
+        // 새 페이지에 이미지 삽입
+        doc.addPage();
+        drawPageStamp(doc, config, sealExists);
+
+        // 페이지 헤더
+        doc.rect(0, 0, pageWidth, 50).fill(`rgb(${pr},${pg},${pb})`);
+        doc.rect(0, 50, pageWidth, 3).fill(`rgb(${ar},${ag},${ab})`);
+        doc.font(fontBold).fontSize(11).fillColor(`rgb(${ar},${ag},${ab})`).text("EverWill", margin, 16);
+        doc.font(fontRegular).fontSize(8).fillColor("rgba(255,255,255,0.6)").text(
+          `${data.certNumber}  |  ${attachCategoryLabel(att.category, config.lang)}`,
+          margin, 33, { width: contentWidth, align: "right" }
+        );
+
+        // 서류 제목
+        let yImg = 65;
+        doc.rect(margin, yImg, contentWidth, 28).fill(`rgb(${ar},${ag},${ab})`);
+        doc.font(fontBold).fontSize(10).fillColor("white").text(
+          attachCategoryLabel(att.category, config.lang),
+          margin + 12, yImg + 8, { width: contentWidth - 24 }
+        );
+        yImg += 36;
+
+        // 파일명 + 설명
+        if (att.description) {
+          doc.font(fontRegular).fontSize(8).fillColor("#555").text(att.description, margin, yImg, { width: contentWidth });
+          yImg += 18;
+        }
+
+        // 이미지 삽입 (페이지 여백 내 최대 크기)
+        const maxImgH = pageHeight - yImg - 80;
+        const maxImgW = contentWidth;
+        try {
+          doc.image(imgBytes, margin, yImg, { fit: [maxImgW, maxImgH], align: "center" });
+        } catch { /* 이미지 삽입 실패 시 무시 */ }
+
+        // EverWill 인증 스탬프 (우하단 불투명)
+        const sx = pageWidth - margin - 120;
+        const sy = pageHeight - 90;
+        doc.save();
+        doc.opacity(0.85);
+        doc.rect(sx, sy, 120, 40).fill(`rgb(${pr},${pg},${pb})`);
+        doc.font(fontBold).fontSize(9).fillColor(`rgb(${ar},${ag},${ab})`).text("EverWill 인증", sx + 8, sy + 6, { width: 104, align: "center" });
+        doc.font(fontRegular).fontSize(7).fillColor("white").text(data.certNumber, sx + 8, sy + 22, { width: 104, align: "center" });
+        doc.restore();
+      }
 
       // 하단 법적 고지
       doc.font(fontRegular).fontSize(7.5).fillColor("#888").text(

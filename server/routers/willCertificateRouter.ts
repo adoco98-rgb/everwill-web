@@ -182,6 +182,8 @@ export const willCertificateRouter = router({
         fileSize: att.fileSize ?? 0,
         verified: att.verified ?? 0,
         createdAt: att.createdAt ? new Date(att.createdAt) : undefined,
+        fileKey: att.fileKey ?? undefined,
+        fileUrl: att.fileUrl ?? undefined,   // 실제 파일 URL 전달
       }));
 
       // ── 유언 전문 추출 ────────────────────────────────────────────────────────
@@ -433,6 +435,8 @@ export const willCertificateRouter = router({
         fileSize: att.fileSize ?? 0,
         verified: att.verified ?? 0,
         createdAt: att.createdAt ? new Date(att.createdAt) : undefined,
+        fileKey: att.fileKey ?? undefined,
+        fileUrl: att.fileUrl ?? undefined,
       }));
 
       // PDF 생성 (S3 저장 없이 buffer만 반환)
