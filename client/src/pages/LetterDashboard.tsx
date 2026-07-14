@@ -16,6 +16,7 @@ import {
   Heart, Plus, FileText, Users, Printer, Mail, Lock,
   ChevronRight, Clock, CheckCircle, Loader2, Package
 } from "lucide-react";
+import SaramDashboardLayout from "@/components/SaramDashboardLayout";
 
 // 상태 레이블
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
@@ -88,6 +89,7 @@ export default function LetterDashboard() {
   };
 
   return (
+    <SaramDashboardLayout>
     <div className="min-h-screen bg-[#0a0f1e] text-white">
       {/* 헤더 */}
       <div className="sticky top-0 z-10 bg-[#0a0f1e]/95 backdrop-blur border-b border-white/10 px-4 py-4">
@@ -291,5 +293,6 @@ export default function LetterDashboard() {
         </DialogContent>
       </Dialog>
     </div>
+    </SaramDashboardLayout>
   );
 }

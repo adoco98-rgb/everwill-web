@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { GradeGate } from "@/components/GradeGate";
+import SaramDashboardLayout from "@/components/SaramDashboardLayout";
 
 type VideoType = "legal" | "emotional" | "future";
 type Step = "select" | "record" | "preview" | "upload" | "done";
@@ -251,6 +252,7 @@ export default function VideoWillPage() {
   }
 
   return (
+    <SaramDashboardLayout>
     <GradeGate requiredGrade="platinum" featureName="영상 유언장" description="영상 유언장은 플래티넷 이상 회원만 이용할 수 있습니다." mode="block">
     <div className="min-h-screen bg-[#FAFAFA]">
       {/* 헤더 */}
@@ -581,5 +583,6 @@ export default function VideoWillPage() {
       </div>
     </div>
     </GradeGate>
+    </SaramDashboardLayout>
   );
 }

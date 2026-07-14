@@ -12,6 +12,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { GradeGate } from "@/components/GradeGate";
+import SaramDashboardLayout from "@/components/SaramDashboardLayout";
 
 interface VerificationResult {
   isHandwritten: boolean;
@@ -102,6 +103,7 @@ export default function ScanVerifyPage() {
   );
 
   return (
+    <SaramDashboardLayout>
     <GradeGate requiredGrade="platinum" featureName="자필 유언 스캔" description="자필 유언장 스캔 인증은 플래티넷 이상 회원만 이용할 수 있습니다." mode="block">
     <div className="min-h-screen bg-[#FAFAFA]">
       {/* 헤더 */}
@@ -398,5 +400,6 @@ export default function ScanVerifyPage() {
       </div>
     </div>
     </GradeGate>
+    </SaramDashboardLayout>
   );
 }
