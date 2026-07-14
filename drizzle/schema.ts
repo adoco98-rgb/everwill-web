@@ -229,6 +229,10 @@ export const wills = mysqlTable("wills", {
   storageExpiresAt: timestamp("storageExpiresAt"),
   /** 결제 ID 참조 */
   paymentId: int("paymentId"),
+  /** 자필 유언장 스캔 이미지 S3 키 */
+  scannedWillKey: varchar("scannedWillKey", { length: 512 }),
+  /** 자필 유언장 스캔 이미지 URL */
+  scannedWillUrl: varchar("scannedWillUrl", { length: 1024 }),
   /** PDF 파일 S3 키 */
   pdfKey: varchar("pdfKey", { length: 512 }),
   /** PDF 파일 URL */

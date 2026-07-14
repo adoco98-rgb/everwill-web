@@ -64,6 +64,40 @@ export default function ScanVerifyPage() {
     { enabled: isAuthenticated }
   );
 
+  // 저장된 스캔 이미지 조회
+  const { data: savedScan, refetch: refetchScan } = trpc.will.getScannedWill.useQuery(
+    undefined,
+    { enabled: isAuthenticated }
+  );
+
+  const saveScannedWill = trpc.will.saveScannedWill.useMutation({
+    onSuccess: () => {
+      toast.success("자필 유언장이 저장되었습니다.");
+      refetchScan();
+    },
+    onError: () => toast.error("저장에 실패했습니다."),
+  });
+
+  const deleteScannedWill = trpc.will.deleteScannedWill.useMutation({
+    onSuccess: () => {
+      toast.success("삭제되었습니다.");
+      setSelectedFile(null);
+      setPreviewUrl("");
+      setResult(null);
+      refetchScan();
+    },
+    onError: () => toast.error("삭제에 실패했습니다."),
+  });
+
+  const handleSave = () => {
+    if (!selectedFile) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      saveScannedWill.mutate({ imageBase64: reader.result as string });
+    };
+    reader.readAsDataURL(selectedFile);
+  };
+
   const verifyScan = trpc.will.verifyScan.useMutation({
     onSuccess: (data) => {
       if (data.success && data.verification) {
@@ -302,25 +336,68 @@ export default function ScanVerifyPage() {
           )}
         </div>
 
-        {/* 검증 버튼 */}
+        {/* 기존 저장된 스캔 이미지 */}
+        {savedScan?.url && !selectedFile && (
+          <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
+            <p className="text-sm font-semibold text-[#1F3864] flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              저장된 자필 유언장
+            </p>
+            <img src={savedScan.url as string} alt="저장된 자필 유언장" className="max-h-60 mx-auto rounded-xl object-contain border" />
+            <div className="flex gap-2">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="flex-1 border border-[#1F3864] text-[#1F3864] font-medium py-2.5 rounded-xl text-sm hover:bg-[#1F3864]/5 transition-colors"
+              >
+                새 이미지로 변경
+              </button>
+              <button
+                onClick={() => deleteScannedWill.mutate()}
+                disabled={deleteScannedWill.isPending}
+                className="flex-1 border border-red-300 text-red-600 font-medium py-2.5 rounded-xl text-sm hover:bg-red-50 transition-colors disabled:opacity-50"
+              >
+                {deleteScannedWill.isPending ? "삭제 중..." : "삭제"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 검증 + 저장 버튼 */}
         {selectedFile && (
-          <button
-            onClick={handleVerify}
-            disabled={verifyScan.isPending}
-            className="w-full bg-[#1F3864] hover:bg-[#162d52] disabled:opacity-60 text-white font-semibold py-4 rounded-2xl transition-colors flex items-center justify-center gap-2 text-base"
-          >
-            {verifyScan.isPending ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                AI가 유언장을 분석 중입니다...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-5 h-5" />
-                AI 법적 요건 검증하기
-              </>
-            )}
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={handleVerify}
+              disabled={verifyScan.isPending}
+              className="w-full bg-[#1F3864] hover:bg-[#162d52] disabled:opacity-60 text-white font-semibold py-4 rounded-2xl transition-colors flex items-center justify-center gap-2 text-base"
+            >
+              {verifyScan.isPending ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  AI가 유언장을 분석 중입니다...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  AI 법적 요건 검증하기
+                </>
+              )}
+            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleSave}
+                disabled={saveScannedWill.isPending}
+                className="flex-1 bg-[#C9A961] hover:bg-[#b8954f] disabled:opacity-60 text-white font-semibold py-3 rounded-2xl transition-colors flex items-center justify-center gap-2"
+              >
+                {saveScannedWill.isPending ? "저장 중..." : "클라우드에 저장"}
+              </button>
+              <button
+                onClick={() => { setSelectedFile(null); setPreviewUrl(""); setResult(null); }}
+                className="flex-1 border border-gray-300 text-gray-600 font-medium py-3 rounded-2xl text-sm hover:bg-gray-50 transition-colors"
+              >
+                취소
+              </button>
+            </div>
+          </div>
         )}
 
         {/* 검증 결과 */}

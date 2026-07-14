@@ -6,6 +6,7 @@
  */
 import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { invokeLLM } from "../_core/llm";
 import { getDb } from "../db";
 import { wills, willRevisionPayments } from "../../drizzle/schema";
@@ -627,5 +628,60 @@ ${input.currentData ? JSON.stringify(input.currentData, null, 2) : "없음"}
         data: parsedData,
         updatedAt: will.updatedAt,
       };
+    }),
+
+  // 자필 유언장 스캔 이미지 저장
+  saveScannedWill: protectedProcedure
+    .input(z.object({ imageBase64: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      // 최신 유언장 조회
+      const [will] = await db.select({ id: wills.id }).from(wills)
+        .where(eq(wills.userId, ctx.user.id))
+        .orderBy(desc(wills.updatedAt))
+        .limit(1);
+      if (!will) throw new TRPCError({ code: "NOT_FOUND", message: "유언장이 없습니다" });
+      // base64 데이터 파싱
+      const matches = input.imageBase64.match(/^data:(.+);base64,(.+)$/);
+      if (!matches) throw new TRPCError({ code: "BAD_REQUEST", message: "잘못된 이미지 형식" });
+      const mimeType = matches[1];
+      const buffer = Buffer.from(matches[2], "base64");
+      const fileKey = `scanned-wills/${ctx.user.id}/${will.id}_${Date.now()}.jpg`;
+      const { url } = await storagePut(fileKey, buffer, mimeType);
+      // DB 저장
+      await db.update(wills)
+        .set({ scannedWillKey: fileKey, scannedWillUrl: url } as Record<string, unknown>)
+        .where(eq(wills.id, will.id));
+      return { success: true, url, key: fileKey };
+    }),
+
+  // 자필 유언장 스캔 이미지 조회
+  getScannedWill: protectedProcedure
+    .query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return { url: null };
+      const [will] = await db.select({ scannedWillUrl: wills.scannedWillUrl, scannedWillKey: wills.scannedWillKey })
+        .from(wills)
+        .where(eq(wills.userId, ctx.user.id))
+        .orderBy(desc(wills.updatedAt))
+        .limit(1);
+      return { url: (will as Record<string, unknown>)?.scannedWillUrl ?? null };
+    }),
+
+  // 자필 유언장 스캔 이미지 삭제
+  deleteScannedWill: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      const [will] = await db.select({ id: wills.id }).from(wills)
+        .where(eq(wills.userId, ctx.user.id))
+        .orderBy(desc(wills.updatedAt))
+        .limit(1);
+      if (!will) throw new TRPCError({ code: "NOT_FOUND", message: "유언장이 없습니다" });
+      await db.update(wills)
+        .set({ scannedWillKey: null, scannedWillUrl: null } as Record<string, unknown>)
+        .where(eq(wills.id, will.id));
+      return { success: true };
     }),
 });
