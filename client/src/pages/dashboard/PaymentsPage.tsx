@@ -1,6 +1,6 @@
 /**
  * EverWill 결제하기 페이지 (/dashboard/payments)
- * 단일 상품 ₩168,000 (모든 서비스 포함) + 노인복지후원 결제창
+ * 베이직 플랜(₩79,000) + 올인원(₩168,000) + 노인복지후원 결제창
  */
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -21,6 +21,7 @@ import {
   Award,
   Users,
   Wallet,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -30,19 +31,19 @@ const DONATION_AMOUNTS = [5000, 10000, 30000, 50000, 100000];
 export default function PaymentsPage() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingType, setLoadingType] = useState<"main" | "donation" | null>(null);
+  const [loadingType, setLoadingType] = useState<"basic" | "main" | "donation" | null>(null);
   const [donationAmount, setDonationAmount] = useState<number>(10000);
   const [customDonation, setCustomDonation] = useState("");
 
-  const handleMainCheckout = async () => {
+  const handleCheckout = async (productKey: string, type: "basic" | "main") => {
     setIsLoading(true);
-    setLoadingType("main");
+    setLoadingType(type);
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: [{ key: "membership_silver", quantity: 1 }],
+          items: [{ key: productKey, quantity: 1 }],
           customerName: user?.name || undefined,
         }),
       });
@@ -93,15 +94,12 @@ export default function PaymentsPage() {
     <div className="max-w-4xl mx-auto space-y-8">
       {/* 헤더 - 노인 이미지 배경 + 문구 오버레이 */}
       <div className="relative rounded-2xl overflow-hidden shadow-lg" style={{ minHeight: '280px' }}>
-        {/* 배경 이미지 */}
         <img
           src="https://d2xsxph8kpxj0f.cloudfront.net/310519663445965637/PhaVJexqfm3CAwoPdg4NhS/hero-global-elders-v2-DB4mTEuKjbV7DYjdv5fYBA.webp"
           alt=""
           className="absolute inset-0 w-full h-full object-cover object-center"
         />
-        {/* 어두운 그라디언트 오버레이 */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#1F3864]/70 via-[#1F3864]/60 to-[#1F3864]/80" />
-        {/* 문구 */}
         <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 py-14">
           <h1
             className="text-3xl font-bold text-white mb-2"
@@ -109,7 +107,7 @@ export default function PaymentsPage() {
           >
             EverWill 전자유언인증
           </h1>
-          <p className="text-[#C9A961] text-sm mb-6 font-medium">₩168,000 한 번 결제로 모든 서비스를 이용하세요.</p>
+          <p className="text-[#C9A961] text-sm mb-6 font-medium">나에게 맞는 플랜을 선택하세요.</p>
           <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-8 py-5 max-w-lg">
             <p className="text-white font-semibold text-lg mb-2">
               어렵고 복잡하고 많은 비용이 필요 없습니다
@@ -122,118 +120,188 @@ export default function PaymentsPage() {
         </div>
       </div>
 
-      {/* ─── 메인 상품: ₩168,000 올인원 ─── */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl border-2 border-[#C9A961] shadow-lg overflow-hidden"
-      >
-        {/* 상품 헤더 */}
-        <div className="bg-gradient-to-r from-[#1F3864] to-[#2d4a7a] text-white px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <BadgeCheck className="w-5 h-5 text-[#C9A961]" />
-                <span className="text-[#C9A961] text-xs font-bold tracking-wider">ALL-IN-ONE</span>
-              </div>
-              <h2 className="text-2xl font-bold">전자유언인증 올인원</h2>
-              <p className="text-white/60 text-sm mt-1">모든 서비스가 포함된 단일 상품</p>
-            </div>
-            <div className="text-right">
-              <p className="text-3xl font-bold text-[#C9A961]">₩168,000</p>
-              <p className="text-white/50 text-xs mt-1">1회 결제 · 구독 아님</p>
-            </div>
-          </div>
-        </div>
+      {/* ─── 플랜 비교 그리드 ─── */}
+      <div className="grid sm:grid-cols-2 gap-6">
 
-        {/* 포함 서비스 목록 */}
-        <div className="p-8">
-          <h3 className="text-sm font-bold text-[#1F3864] mb-4">포함된 모든 서비스</h3>
-          <div className="grid sm:grid-cols-2 gap-3">
-            {[
-              { icon: FileText, text: "유언장 전자 인증 · 진정성 증명", highlight: true },
-              { icon: Shield, text: "블록체인 해시 기록 · 타임스탬프" },
-              { icon: Award, text: "공식 인증서 발급" },
-              { icon: Video, text: "영상 유언장 녹화 · 보관", highlight: true },
-              { icon: ScanLine, text: "자필 유언장 스캔 인증" },
-              { icon: PenLine, text: "AI 유언장 작성 (무제한)" },
-              { icon: Users, text: "상속인 등록 · 자산 등록" },
-              { icon: FileText, text: "건강증명서 업로드" },
-              { icon: PenLine, text: "유언장 수정 10회 무료" },
-              { icon: HardDrive, text: "영구 보관 (평생)", highlight: true },
-              { icon: PenLine, text: "AI 일기 (Life Story)" },
-              { icon: Heart, text: "가족 편지 서비스" },
-            ].map((item, i) => {
-              const Icon = item.icon;
-              return (
-                <div
-                  key={i}
-                  className={`flex items-center gap-2.5 py-2 px-3 rounded-lg ${
-                    item.highlight ? "bg-[#1F3864]/5" : ""
-                  }`}
-                >
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-                    item.highlight ? "bg-[#C9A961]/20" : "bg-green-50"
-                  }`}>
-                    {item.highlight ? (
-                      <Icon className="w-3 h-3 text-[#C9A961]" />
-                    ) : (
-                      <Check className="w-3 h-3 text-green-500" />
-                    )}
-                  </div>
-                  <span className={`text-sm ${item.highlight ? "font-semibold text-[#1F3864]" : "text-gray-700"}`}>
-                    {item.text}
-                  </span>
+        {/* ── 베이직 플랜 ₩79,000 ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl border-2 border-gray-200 shadow-sm overflow-hidden flex flex-col"
+        >
+          {/* 상품 헤더 */}
+          <div className="bg-gradient-to-r from-[#2d4a7a] to-[#3a5a8a] text-white px-6 py-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="bg-[#C9A961]/20 text-[#C9A961] text-xs font-bold px-2 py-0.5 rounded-full border border-[#C9A961]/30">입문 추천</span>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* 결제 수단 안내 */}
-          <div className="mt-6 pt-5 border-t border-gray-100">
-            <p className="text-xs text-gray-400 mb-3 font-medium">지원 결제 수단</p>
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-1.5 bg-yellow-50 border border-yellow-200 px-3 py-1.5 rounded-lg">
-                <Wallet className="w-3.5 h-3.5 text-yellow-600" />
-                <span className="text-xs font-medium text-yellow-700">카카오페이</span>
+                <h2 className="text-xl font-bold">베이직 플랜</h2>
+                <p className="text-white/60 text-xs mt-1">처음 시작하는 분께 최적</p>
               </div>
-              <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg">
-                <CreditCard className="w-3.5 h-3.5 text-blue-600" />
-                <span className="text-xs font-medium text-blue-700">신용카드</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg">
-                <Globe className="w-3.5 h-3.5 text-green-600" />
-                <span className="text-xs font-medium text-green-700">계좌이체</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg">
-                <Shield className="w-3.5 h-3.5 text-gray-500" />
-                <span className="text-xs font-medium text-gray-600">Google Pay · Apple Pay</span>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-[#C9A961]">₩79,000</p>
+                <p className="text-white/50 text-xs mt-1">1회 결제</p>
               </div>
             </div>
           </div>
 
-          {/* 결제 버튼 */}
-          <button
-            onClick={handleMainCheckout}
-            disabled={isLoading}
-            className="w-full mt-6 py-4 rounded-xl bg-[#C9A961] hover:bg-[#b8944f] text-[#1F3864] font-bold text-base flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-wait"
-          >
-            {isLoading && loadingType === "main" ? (
-              <><Loader2 className="w-5 h-5 animate-spin" />결제 처리 중...</>
-            ) : (
-              <>
-                <CreditCard className="w-5 h-5" />
-                ₩168,000 결제하고 인증 시작
-                <ArrowRight className="w-5 h-5" />
-              </>
-            )}
-          </button>
+          {/* 포함 서비스 */}
+          <div className="p-6 flex-1 flex flex-col">
+            <h3 className="text-xs font-bold text-[#1F3864] mb-3 uppercase tracking-wider">포함 서비스</h3>
+            <div className="space-y-2 mb-4">
+              {[
+                { icon: FileText, text: "AI 유언장 작성 전체", highlight: true },
+                { icon: BadgeCheck, text: "전자 인증", highlight: true },
+                { icon: Award, text: "인증서 발급 3회" },
+                { icon: HardDrive, text: "1년 보관 (이후 ₩15,000/년)" },
+                { icon: PenLine, text: "수정 3회" },
+                { icon: Shield, text: "블록체인 해시 기록" },
+              ].map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${item.highlight ? "bg-[#C9A961]/20" : "bg-green-50"}`}>
+                      {item.highlight ? <Icon className="w-2.5 h-2.5 text-[#C9A961]" /> : <Check className="w-2.5 h-2.5 text-green-500" />}
+                    </div>
+                    <span className={`text-sm ${item.highlight ? "font-semibold text-[#1F3864]" : "text-gray-700"}`}>{item.text}</span>
+                  </div>
+                );
+              })}
+            </div>
 
-          <p className="text-center text-xs text-gray-400 mt-3">
-            Stripe 보안 결제 · SSL 암호화 · 195개국 지원
-          </p>
-        </div>
-      </motion.div>
+            {/* 제한 항목 */}
+            <h3 className="text-xs font-bold text-red-400 mb-2 uppercase tracking-wider">제한 항목</h3>
+            <div className="space-y-1.5 mb-5">
+              {["영상 유언장", "자필 유언장 스캔", "AI 일기 (Life Story)", "자서전 만들기"].map((item) => (
+                <div key={item} className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 bg-red-50">
+                    <X className="w-2.5 h-2.5 text-red-400" />
+                  </div>
+                  <span className="text-sm text-red-400">{item}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-auto">
+              <button
+                onClick={() => handleCheckout("certification_basic", "basic")}
+                disabled={isLoading}
+                className="w-full py-3.5 rounded-xl bg-[#1F3864] hover:bg-[#2d4a7a] text-white font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-wait"
+              >
+                {isLoading && loadingType === "basic" ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" />결제 처리 중...</>
+                ) : (
+                  <>
+                    <CreditCard className="w-4 h-4" />
+                    ₩79,000 베이직 시작
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+              <p className="text-center text-xs text-gray-400 mt-2">1년 후 ₩15,000/년 연장 결제</p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ── 올인원 ₩168,000 ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white rounded-2xl border-2 border-[#C9A961] shadow-lg overflow-hidden flex flex-col"
+        >
+          {/* 상품 헤더 */}
+          <div className="bg-gradient-to-r from-[#1F3864] to-[#2d4a7a] text-white px-6 py-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <BadgeCheck className="w-4 h-4 text-[#C9A961]" />
+                  <span className="text-[#C9A961] text-xs font-bold tracking-wider">ALL-IN-ONE</span>
+                </div>
+                <h2 className="text-xl font-bold">전자유언인증 올인원</h2>
+                <p className="text-white/60 text-xs mt-1">모든 서비스가 포함된 단일 상품</p>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-[#C9A961]">₩168,000</p>
+                <p className="text-white/50 text-xs mt-1">1회 결제 · 구독 아님</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 포함 서비스 목록 */}
+          <div className="p-6 flex-1 flex flex-col">
+            <h3 className="text-xs font-bold text-[#1F3864] mb-3 uppercase tracking-wider">포함된 모든 서비스</h3>
+            <div className="grid grid-cols-1 gap-2 mb-5 flex-1">
+              {[
+                { icon: FileText, text: "유언장 전자 인증 · 진정성 증명", highlight: true },
+                { icon: Shield, text: "블록체인 해시 기록 · 타임스탬프" },
+                { icon: Award, text: "공식 인증서 발급" },
+                { icon: Video, text: "영상 유언장 녹화 · 보관", highlight: true },
+                { icon: ScanLine, text: "자필 유언장 스캔 인증" },
+                { icon: PenLine, text: "AI 유언장 작성 (무제한)" },
+                { icon: Users, text: "상속인 등록 · 자산 등록" },
+                { icon: PenLine, text: "유언장 수정 10회 무료" },
+                { icon: HardDrive, text: "영구 보관 (평생)", highlight: true },
+                { icon: PenLine, text: "AI 일기 (Life Story)" },
+                { icon: Heart, text: "가족 편지 서비스" },
+              ].map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <div key={i} className={`flex items-center gap-2 py-1 px-2 rounded-lg ${item.highlight ? "bg-[#1F3864]/5" : ""}`}>
+                    <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${item.highlight ? "bg-[#C9A961]/20" : "bg-green-50"}`}>
+                      {item.highlight ? <Icon className="w-2.5 h-2.5 text-[#C9A961]" /> : <Check className="w-2.5 h-2.5 text-green-500" />}
+                    </div>
+                    <span className={`text-sm ${item.highlight ? "font-semibold text-[#1F3864]" : "text-gray-700"}`}>{item.text}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-auto">
+              {/* 결제 수단 안내 */}
+              <div className="pt-4 border-t border-gray-100 mb-4">
+                <p className="text-xs text-gray-400 mb-2 font-medium">지원 결제 수단</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-1 bg-yellow-50 border border-yellow-200 px-2.5 py-1 rounded-lg">
+                    <Wallet className="w-3 h-3 text-yellow-600" />
+                    <span className="text-xs font-medium text-yellow-700">카카오페이</span>
+                  </div>
+                  <div className="flex items-center gap-1 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-lg">
+                    <CreditCard className="w-3 h-3 text-blue-600" />
+                    <span className="text-xs font-medium text-blue-700">신용카드</span>
+                  </div>
+                  <div className="flex items-center gap-1 bg-green-50 border border-green-200 px-2.5 py-1 rounded-lg">
+                    <Globe className="w-3 h-3 text-green-600" />
+                    <span className="text-xs font-medium text-green-700">계좌이체</span>
+                  </div>
+                  <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-lg">
+                    <Shield className="w-3 h-3 text-gray-500" />
+                    <span className="text-xs font-medium text-gray-600">Google Pay · Apple Pay</span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => handleCheckout("membership_silver", "main")}
+                disabled={isLoading}
+                className="w-full py-3.5 rounded-xl bg-[#C9A961] hover:bg-[#b8944f] text-[#1F3864] font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-wait"
+              >
+                {isLoading && loadingType === "main" ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" />결제 처리 중...</>
+                ) : (
+                  <>
+                    <CreditCard className="w-4 h-4" />
+                    ₩168,000 결제하고 인증 시작
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+              <p className="text-center text-xs text-gray-400 mt-2">Stripe 보안 결제 · SSL 암호화 · 195개국 지원</p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
 
       {/* ─── 노인복지후원 결제창 ─── */}
       <motion.div
@@ -321,30 +389,20 @@ export default function PaymentsPage() {
             className="w-full py-3.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-wait"
           >
             {isLoading && loadingType === "donation" ? (
-              <><Loader2 className="w-4 h-4 animate-spin" />처리 중...</>
+              <><Loader2 className="w-4 h-4 animate-spin" />결제 처리 중...</>
             ) : (
               <>
                 <Heart className="w-4 h-4" />
-                ₩{(customDonation ? parseInt(customDonation) || 0 : donationAmount).toLocaleString()} 후원하기
+                ₩{(customDonation ? parseInt(customDonation) : donationAmount).toLocaleString()} 후원하기
+                <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
-
           <p className="text-center text-xs text-gray-400 mt-3">
-            후원금은 EverWill 노인복지후원 운영위원회를 통해 투명하게 집행됩니다.
+            후원금은 세금계산서 발행이 가능하며, 영수증은 이메일로 발송됩니다.
           </p>
         </div>
       </motion.div>
-
-      {/* 하단 안내 */}
-      <div className="bg-gray-50 rounded-2xl border border-gray-100 p-6 text-center space-y-2">
-        <p className="text-xs text-gray-500">
-          유언장 작성은 <strong className="text-[#1F3864]">무료</strong>입니다. 전자인증 결제 시 모든 서비스가 활성화됩니다.
-        </p>
-        <p className="text-xs text-gray-400">
-          테스트 카드: 4242 4242 4242 4242 · Stripe 보안 결제
-        </p>
-      </div>
     </div>
   );
 }
