@@ -164,7 +164,23 @@ export default function ScanVerifyPage() {
               내 유언장 — 자필 작성용 양식
             </span>
             <button
-              onClick={() => window.print()}
+              onClick={() => {
+                const content = (willForPrint?.data as Record<string, unknown>)?.willContent as string || "";
+                if (!content.trim()) return;
+                const printWin = window.open("", "_blank", "width=800,height=900");
+                if (!printWin) return;
+                printWin.document.write(`
+                  <html><head><title>유언장</title>
+                  <style>
+                    body { font-family: 'Malgun Gothic', serif; font-size: 14pt; line-height: 2.2; padding: 60px; white-space: pre-wrap; }
+                    @media print { body { padding: 40px; } }
+                  </style></head>
+                  <body>${content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body></html>
+                `);
+                printWin.document.close();
+                printWin.focus();
+                setTimeout(() => { printWin.print(); printWin.close(); }, 300);
+              }}
               className="text-xs px-3 py-1.5 bg-[#1F3864] text-white rounded-lg hover:bg-[#162d52] transition-colors flex items-center gap-1"
             >
               🖨️ 인쇄
