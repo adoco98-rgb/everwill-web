@@ -88,6 +88,8 @@ export default function ReserveShareExclusionPage() {
   const { user } = useAuth();
   // 상속자 목록 가져오기
   const heirsQuery = trpc.heirs.getMyHeirs.useQuery();
+  // 가족관계증명서 추출 가족 목록
+  const familyMembersQuery = trpc.familyMembers.getMyFamilyMembers.useQuery();
 
   // 유언자 기본정보 (자동 채움)
   const [testatorInfo, setTestatorInfo] = useState({
@@ -250,6 +252,28 @@ export default function ReserveShareExclusionPage() {
               name: heir.nameKo || "",
               relationship: relMap[heir.relationship] || heir.relationship,
               birthDate: heir.birthDate || "",
+              address: heir.address || "",
+            }
+          : t
+      )
+    );
+    setIsDirty(true);
+  };
+
+  // 가족관계증명서 추출 가족에서 자동 채움
+  const fillFromFamilyMember = (targetId: string, memberId: number) => {
+    const member = familyMembersQuery.data?.find((m: any) => m.id === memberId);
+    if (!member) return;
+    setExclusionTargets(
+      exclusionTargets.map((t) =>
+        t.id === targetId
+          ? {
+              ...t,
+              name: member.nameKo || "",
+              relationship: member.relationship || "",
+              birthDate: member.birthDate || "",
+              address: member.address || "",
+              idNumber: member.idFront ? `${member.idFront}-*******` : "",
             }
           : t
       )
@@ -615,28 +639,65 @@ export default function ReserveShareExclusionPage() {
                           </Button>
                         </div>
 
-                        {/* 등록된 상속자에서 선택 */}
-                        {heirsQuery.data && heirsQuery.data.length > 0 && (
-                          <div>
-                            <label className="text-xs text-gray-500 mb-1 block">
-                              등록된 상속자에서 선택 (선택사항)
-                            </label>
-                            <select
-                              className="w-full border rounded-md px-3 py-2 text-sm"
-                              onChange={(e) => {
-                                if (e.target.value) fillFromHeir(target.id, Number(e.target.value));
-                              }}
-                              defaultValue=""
-                            >
-                              <option value="">직접 입력</option>
-                              {heirsQuery.data.map((h: any) => (
-                                <option key={h.id} value={h.id}>
-                                  {h.nameKo} ({h.relationship})
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        )}
+                        {/* 불러오기 선택 영역 */}
+                        <div className="space-y-2">
+                          {/* 가족관계증명서 추출 가족 목록 */}
+                          {familyMembersQuery.data && familyMembersQuery.data.length > 0 && (
+                            <div>
+                              <label className="text-xs text-gray-500 mb-1 flex items-center gap-1">
+                                <span className="inline-block w-2 h-2 rounded-full bg-blue-500"></span>
+                                가족관계증명서에서 선택 (이름·관계·생년월일·주소 자동 입력)
+                              </label>
+                              <select
+                                className="w-full border border-blue-200 rounded-md px-3 py-2 text-sm bg-blue-50/30"
+                                onChange={(e) => {
+                                  if (e.target.value) fillFromFamilyMember(target.id, Number(e.target.value));
+                                }}
+                                defaultValue=""
+                              >
+                                <option value="">-- 가족관계증명서에서 선택 --</option>
+                                {familyMembersQuery.data.map((m: any) => (
+                                  <option key={m.id} value={m.id}>
+                                    {m.nameKo} ({m.relationship}){m.address ? " · 주소있음" : " · 주소없음"}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+
+                          {/* 등록된 상속자에서 선택 */}
+                          {heirsQuery.data && heirsQuery.data.length > 0 && (
+                            <div>
+                              <label className="text-xs text-gray-500 mb-1 flex items-center gap-1">
+                                <span className="inline-block w-2 h-2 rounded-full bg-green-500"></span>
+                                상속자 등록에서 선택 (선택사항)
+                              </label>
+                              <select
+                                className="w-full border rounded-md px-3 py-2 text-sm"
+                                onChange={(e) => {
+                                  if (e.target.value) fillFromHeir(target.id, Number(e.target.value));
+                                }}
+                                defaultValue=""
+                              >
+                                <option value="">-- 상속자 등록에서 선택 --</option>
+                                {heirsQuery.data.map((h: any) => (
+                                  <option key={h.id} value={h.id}>
+                                    {h.nameKo} ({h.relationship})
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+
+                          {/* 가족 정보 없을 때 안내 */}
+                          {(!familyMembersQuery.data || familyMembersQuery.data.length === 0) &&
+                           (!heirsQuery.data || heirsQuery.data.length === 0) && (
+                            <div className="text-xs text-gray-400 p-2 bg-gray-50 rounded border border-dashed">
+                              가족관계증명서를 업로드하면 가족 정보를 자동으로 불러올 수 있습니다.
+                              <a href="/dashboard/family-document" className="text-blue-500 underline ml-1">업로드 하기 →</a>
+                            </div>
+                          )}
+                        </div>
 
                         {/* 신원 정보 */}
                         <div>
@@ -681,11 +742,11 @@ export default function ReserveShareExclusionPage() {
                               />
                             </div>
                             <div className="md:col-span-2">
-                              <label className="text-xs text-gray-500 mb-1 block">주소</label>
+                              <label className="text-xs text-gray-500 mb-1 block">배제 대상인 주소 (현재 거주지)</label>
                               <Input
                                 value={target.address}
                                 onChange={(e) => updateTarget(target.id, "address", e.target.value)}
-                                placeholder="상속인 주소"
+                                placeholder="예: 서울시 강남구 테헤란로 123, 101동 201호"
                               />
                             </div>
                           </div>

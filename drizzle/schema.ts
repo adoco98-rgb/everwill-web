@@ -1438,3 +1438,35 @@ export const notarizationDocs = mysqlTable("notarizationDocs", {
 });
 export type NotarizationDoc = typeof notarizationDocs.$inferSelect;
 export type InsertNotarizationDoc = typeof notarizationDocs.$inferInsert;
+
+/**
+ * 가족관계증명서 추출 가족 구성원 테이블
+ * 가족관계증명서 업로드 시 AI OCR로 추출된 가족 정보 저장
+ * 유류분 배제 작성 시 자동 불러오기에 활용
+ */
+export const familyMembers = mysqlTable("family_members", {
+  id: int("id").autoincrement().primaryKey(),
+  /** 유언자 사용자 ID */
+  userId: int("userId").notNull(),
+  /** 이름 (한국어) */
+  nameKo: varchar("nameKo", { length: 64 }).notNull(),
+  /** 관계 (배우자, 자녀, 부모, 형제자매 등 원문 그대로) */
+  relationship: varchar("relationship", { length: 32 }).notNull(),
+  /** 생년월일 (YYYY-MM-DD 또는 원문) */
+  birthDate: varchar("birthDate", { length: 32 }),
+  /** 주민등록번호 앞자리 (6자리) */
+  idFront: varchar("idFront", { length: 6 }),
+  /** 주소 (주민등록등본에서 추출 또는 수동 입력) */
+  address: text("address"),
+  /** 출처: family_cert=가족관계증명서, resident_cert=주민등록등본, manual=수동입력 */
+  source: mysqlEnum("source", ["family_cert", "resident_cert", "manual"]).default("manual").notNull(),
+  /** 원본 문서 파일 키 (S3) */
+  sourceFileKey: text("sourceFileKey"),
+  /** 추출 원문 JSON (OCR 결과 보관) */
+  rawData: text("rawData"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type FamilyMember = typeof familyMembers.$inferSelect;
+export type InsertFamilyMember = typeof familyMembers.$inferInsert;

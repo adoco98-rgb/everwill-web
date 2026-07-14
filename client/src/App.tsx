@@ -76,6 +76,7 @@ import TossPaymentFail from "./pages/TossPaymentFail";
 import VideoWillPage from "./pages/VideoWillPage";
 import MyAIPage from "./pages/MyAIPage";
 import ReserveShareExclusionPage from "./pages/dashboard/ReserveShareExclusionPage";
+import FamilyDocumentPage from "./pages/dashboard/FamilyDocumentPage";
 import ReserveShareVideoPage from "./pages/dashboard/ReserveShareVideoPage";
 import WillPreviewPage from "./pages/dashboard/WillPreviewPage";
 import { ChatbotWidget } from "./components/ChatbotWidget";
@@ -132,6 +133,8 @@ function Router() {
       <Route path={"/dashboard/will-certificate"} component={() => <SaramDashboardLayout><WillCertificatePage /></SaramDashboardLayout>} />
       {/* 유류분 배제 문서 */}
       <Route path={"/dashboard/reserve-share-exclusion"} component={() => <SaramDashboardLayout><ReserveShareExclusionPage /></SaramDashboardLayout>} />
+      {/* 가족 구성원 관리 (가족관계증명서 OCR) */}
+      <Route path={"/dashboard/family-document"} component={() => <SaramDashboardLayout><FamilyDocumentPage /></SaramDashboardLayout>} />
       {/* 유류분 영상 증언 */}
       <Route path={"/dashboard/reserve-share-video"} component={() => <SaramDashboardLayout><ReserveShareVideoPage /></SaramDashboardLayout>} />
       {/* 휴대폰 인증 */}

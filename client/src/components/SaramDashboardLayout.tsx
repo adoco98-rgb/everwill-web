@@ -69,6 +69,7 @@ const certMenuItems = [
   { icon: ScanLine, label: "자필 유언장 (선택)", path: "/will/scan" },
   { icon: Home, label: "유언진행 현황", path: "/dashboard" },
   { icon: Scale, label: "유류분 배제 문서 (선택)", path: "/dashboard/reserve-share-exclusion" },
+  { icon: Users, label: "가족 구성원 관리", path: "/dashboard/family-document" },
   { icon: ScrollText, label: "유언 인증서 발급신청", path: "/dashboard/will-certificate" },
 ];
 
