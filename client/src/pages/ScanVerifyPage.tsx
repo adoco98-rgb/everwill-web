@@ -3,6 +3,7 @@
  * 경로: /will/scan
  */
 import { useState, useRef } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload, CheckCircle2, XCircle, AlertCircle,
@@ -28,14 +29,94 @@ interface VerificationResult {
   summary: string;
 }
 
+/**
+ * 유언장 data JSON을 자필 작성용 텍스트로 변환
+ */
+function WillPrintContent({ data }: { data: Record<string, unknown> }) {
+  const testatorName = (data.testatorName as string) || "";
+  const testatorAddress = (data.testatorAddress as string) || "";
+  const writtenDate = (data.writtenDate as string) || new Date().toLocaleDateString("ko-KR");
+  const heirs = (data.heirs as Array<{ name: string; relation: string; share: number }>) || [];
+  const realEstates = (data.realEstates as Array<{ type: string; address: string; heirId: string; sharePercent: number }>) || [];
+  const financialAssets = (data.financialAssets as Array<{ institution: string; type: string; heirId: string; sharePercent: number }>) || [];
+  const otherAssets = (data.otherAssets as Array<{ type: string; description: string; heirId: string }>) || [];
+  const executor = (data.executor as string) || "";
+  const funeralWish = (data.funeralWish as string) || "";
+  const specialInstructions = (data.specialInstructions as string) || "";
+
+  // heirId → 이름 매핑
+  const heirMap: Record<string, string> = {};
+  heirs.forEach((h: { id?: string; name: string }) => { if (h.id) heirMap[h.id] = h.name; });
+
+  let itemNo = 1;
+  const lines: string[] = [];
+
+  lines.push("유  　언  　장");
+  lines.push("");
+  lines.push(`본인 ${testatorName}은(는) 정신이 명료한 상태에서 다음과 같이 유언합니다.`);
+  lines.push("");
+
+  realEstates.forEach(r => {
+    const heirName = heirMap[r.heirId] || "미지정";
+    lines.push(`${itemNo++}. ${r.type} (${r.address})는`);
+    lines.push(`   ${heirName}에게 상속합니다. (지분 ${r.sharePercent}%)`);
+    lines.push("");
+  });
+
+  financialAssets.forEach(f => {
+    const heirName = heirMap[f.heirId] || "미지정";
+    lines.push(`${itemNo++}. ${f.institution} ${f.type}의 전액은`);
+    lines.push(`   ${heirName}에게 상속합니다. (지분 ${f.sharePercent}%)`);
+    lines.push("");
+  });
+
+  otherAssets.forEach(o => {
+    const heirName = heirMap[o.heirId] || "미지정";
+    lines.push(`${itemNo++}. ${o.type}: ${o.description}는`);
+    lines.push(`   ${heirName}에게 상속합니다.`);
+    lines.push("");
+  });
+
+  if (executor) {
+    lines.push(`${itemNo++}. 유언집행자는 ${executor}로 지정합니다.`);
+    lines.push("");
+  }
+  if (funeralWish) {
+    lines.push(`${itemNo++}. 장례: ${funeralWish}`);
+    lines.push("");
+  }
+  if (specialInstructions) {
+    lines.push(`${itemNo++}. 기타: ${specialInstructions}`);
+    lines.push("");
+  }
+
+  lines.push("위와 같이 유언합니다.");
+  lines.push("");
+  lines.push(`${writtenDate}`);
+  lines.push(`주소: ${testatorAddress}`);
+  lines.push(`성명: ${testatorName}  (인)`);
+
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 font-mono text-sm leading-8 text-gray-800 whitespace-pre-line select-all print:bg-white print:border-0">
+      {lines.join("\n")}
+    </div>
+  );
+}
+
 export default function ScanVerifyPage() {
   const [, navigate] = useLocation();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [result, setResult] = useState<VerificationResult | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [showGuide, setShowGuide] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { isAuthenticated } = useAuth();
+
+  // 최신 유언장 내용 불러오기 (자필 작성용)
+  const { data: willForPrint, isLoading: willLoading } = trpc.will.getLatestWillForPrint.useQuery(
+    undefined,
+    { enabled: isAuthenticated }
+  );
 
   const verifyScan = trpc.will.verifyScan.useMutation({
     onSuccess: (data) => {
@@ -129,100 +210,75 @@ export default function ScanVerifyPage() {
           </div>
         </div>
 
-        {/* 작성 가이드 + 예시 양식 */}
+        {/* 내 유언장 내용 — 자필 작성용 */}
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-          <button
-            onClick={() => setShowGuide(prev => !prev)}
-            className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors"
-          >
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
             <span className="font-semibold text-[#1F3864] flex items-center gap-2">
               <span className="text-lg">📝</span>
-              자필 유언장 작성법 + 예시 양식 보기
+              내 유언장 — 자필 작성용 양식
             </span>
-            <span className="text-gray-400 text-sm">{showGuide ? "접기 ▲" : "펼치기 ▼"}</span>
-          </button>
+            <button
+              onClick={() => window.print()}
+              className="text-xs px-3 py-1.5 bg-[#1F3864] text-white rounded-lg hover:bg-[#162d52] transition-colors flex items-center gap-1"
+            >
+              🖨️ 인쇄
+            </button>
+          </div>
 
-          {showGuide && (
-            <div className="px-5 pb-5 space-y-5 border-t border-gray-100">
-              {/* 5대 필수 요건 */}
-              <div className="pt-4">
-                <p className="text-sm font-bold text-[#1F3864] mb-3">✅ 민법 제1066조 — 5가지 필수 요건</p>
-                <div className="space-y-2">
-                  {[
-                    { no: "①", title: "전문 자필", desc: "유언 내용 전체를 반드시 손으로 직접 씁니다. 타이핑·프린트 불가." },
-                    { no: "②", title: "연월일 기재", desc: "작성 날짜를 정확히 씁니다. 예: 2026년 7월 14일 (연도·월·일 모두 필수)" },
-                    { no: "③", title: "주소 기재", desc: "유언자의 현재 주소를 씁니다. 예: 경기도 안성시 ○○로 123" },
-                    { no: "④", title: "성명 기재", desc: "유언자 본인의 이름을 씁니다." },
-                    { no: "⑤", title: "날인 (서명 또는 도장)", desc: "이름 옆에 도장을 찍거나 자필 서명을 합니다. 둘 다 해도 됩니다." },
-                  ].map(item => (
-                    <div key={item.no} className="flex gap-3 p-3 bg-blue-50 rounded-xl">
-                      <span className="font-bold text-[#1F3864] w-5 shrink-0">{item.no}</span>
-                      <div>
-                        <span className="font-semibold text-[#1F3864] text-sm">{item.title}</span>
-                        <p className="text-xs text-gray-600 mt-0.5">{item.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+          {willLoading ? (
+            <div className="px-5 py-8 text-center text-gray-400 text-sm">유언장 불러오는 중...</div>
+          ) : !willForPrint ? (
+            <div className="px-5 py-8 text-center">
+              <p className="text-gray-500 text-sm mb-3">작성된 유언장이 없습니다.</p>
+              <button
+                onClick={() => navigate("/write")}
+                className="text-sm px-4 py-2 bg-[#C9A961] text-white rounded-lg hover:bg-[#b8944d] transition-colors"
+              >
+                유언장 작성하러 가기 →
+              </button>
+            </div>
+          ) : (
+            <div className="px-5 pb-5 space-y-4">
+              {/* 유언장 제목 + 최종 수정일 */}
+              <div className="pt-4 flex items-center justify-between">
+                <p className="text-sm font-bold text-[#1F3864]">{willForPrint.title || "내 유언장"}</p>
+                <p className="text-xs text-gray-400">
+                  최종 수정: {willForPrint.updatedAt ? new Date(willForPrint.updatedAt).toLocaleDateString("ko-KR") : ""}
+                </p>
               </div>
 
-              {/* 예시 양식 */}
-              <div>
-                <p className="text-sm font-bold text-[#1F3864] mb-3">📄 예시 양식 (이대로 손으로 쓰세요)</p>
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 font-mono text-sm leading-8 text-gray-800 whitespace-pre-line select-all">
-{`유  언  장
+              {/* 자필 작성용 본문 — 유언장 data에서 생성 */}
+              <WillPrintContent data={willForPrint.data as Record<string, unknown>} />
 
-본인 홍길동(1950년 1월 1일생)은 정신이 명료한 상태에서
-다음과 같이 유언합니다.
-
-1. 서울시 강남구 ○○아파트 101동 201호(시가 약 5억원)는
-   장남 홍철수(1980년 3월 5일생)에게 상속합니다.
-
-2. 국민은행 계좌(계좌번호 000-00-000000)의
-   예금 전액은 배우자 김순이에게 상속합니다.
-
-3. 나머지 재산은 자녀들이 균등하게 나눕니다.
-
-위와 같이 유언합니다.
-
-2026년 7월 14일
-주소: 경기도 안성시 ○○로 123
-성명: 홍 길 동  (인)`}
-                </div>
-                <p className="text-xs text-amber-700 mt-2 flex items-start gap-1">
-                  <span>⚠️</span>
-                  <span>위 양식을 참고하여 <strong>A4 흰 종이에 볼펜으로 직접 손으로</strong> 작성하세요. 수정 시 두 줄 긋고 옆에 날인.</span>
+              {/* 안내 */}
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                <p className="text-xs text-amber-700">
+                  ⚠️ 위 내용을 <strong>A4 흰 종이에 볼펜으로 직접 손으로</strong> 옮겨 쓰세요.
+                  전문 자필 · 연월일 · 주소 · 성명 · 날인 5가지를 모두 포함해야 법적 효력이 발생합니다.
                 </p>
+              </div>
+
+              {/* 5대 필수 요건 간략 */}
+              <div className="grid grid-cols-5 gap-1.5">
+                {["전문자필","연월일","주소","성명","날인"].map((item, i) => (
+                  <div key={i} className="bg-blue-50 rounded-lg p-2 text-center">
+                    <p className="text-[10px] font-bold text-[#1F3864]">{'①②③④⑤'[i]}</p>
+                    <p className="text-[10px] text-gray-600 mt-0.5">{item}</p>
+                  </div>
+                ))}
               </div>
 
               {/* 자주 하는 실수 */}
               <div>
-                <p className="text-sm font-bold text-red-600 mb-2">❌ 자주 하는 실수 (무효 원인)</p>
-                <div className="space-y-1.5">
-                  {[
-                    "컴퓨터로 작성 후 서명만 손으로 → 무효",
-                    "날짜를 '2026년 7월'만 쓰고 일(日) 생략 → 무효",
-                    "주소 없이 이름과 도장만 → 무효",
-                    "대리인이 대신 써줌 → 무효",
-                    "연필로 작성 → 위조 위험, 법원에서 기피",
-                  ].map((item, i) => (
-                    <p key={i} className="text-xs text-red-600 flex gap-1.5">
-                      <span>•</span>{item}
-                    </p>
-                  ))}
-                </div>
-              </div>
-
-              {/* 팁 */}
-              <div className="p-3 bg-green-50 rounded-xl">
-                <p className="text-xs text-green-700">
-                  <strong>💡 팁:</strong> 작성 후 사진을 찍을 때 — 밝은 곳에서 정면으로, 그림자 없이 촬영하세요.
-                  글씨가 선명하게 보여야 AI가 정확히 검증할 수 있습니다.
-                </p>
+                <p className="text-xs font-bold text-red-600 mb-1.5">❌ 자주 하는 실수 (무효 원인)</p>
+                {["컴퓨터 작성 후 서명만 손으로 → 무효","날짜에서 일(日) 생략 → 무효","주소 없이 이름·도장만 → 무효","대리인이 대신 작성 → 무효"].map((item, i) => (
+                  <p key={i} className="text-[11px] text-red-600 flex gap-1"><span>•</span>{item}</p>
+                ))}
               </div>
             </div>
           )}
         </div>
+
 
         {/* 업로드 영역 */}
         <div

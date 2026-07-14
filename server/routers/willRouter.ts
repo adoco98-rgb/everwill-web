@@ -595,8 +595,37 @@ ${input.currentData ? JSON.stringify(input.currentData, null, 2) : "없음"}
       const buffer = Buffer.from(base64Data, "base64");
 
       const key = `will-docs/${ctx.user.id}/${input.fileName}`;
-      const { url } = await storagePut(key, buffer, input.mimeType);
-
+            const { url } = await storagePut(key, buffer, input.mimeType);
       return { url, key };
+    }),
+
+  /**
+   * 자필 작성용: 최신 유언장 내용을 텍스트로 변환해서 반환
+   */
+  getLatestWillForPrint: protectedProcedure
+    .query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return null;
+      const result = await db.select({
+        id: wills.id,
+        title: wills.title,
+        data: wills.data,
+        updatedAt: wills.updatedAt,
+      }).from(wills)
+        .where(eq(wills.userId, ctx.user.id))
+        .orderBy(desc(wills.updatedAt))
+        .limit(1);
+      if (!result.length) return null;
+      const will = result[0];
+      let parsedData: Record<string, unknown> = {};
+      try {
+        if (will.data) parsedData = JSON.parse(will.data);
+      } catch { /* 파싱 실패 시 빈 객체 */ }
+      return {
+        id: will.id,
+        title: will.title,
+        data: parsedData,
+        updatedAt: will.updatedAt,
+      };
     }),
 });
