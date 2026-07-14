@@ -153,15 +153,15 @@ export default function PricingSection() {
             transition={{ duration: 0.7, delay: 0.2 }}
             className="relative rounded-3xl border border-[#C9A961]/40 bg-gradient-to-br from-[#1a2f5a] to-[#0d1f3c] overflow-hidden shadow-2xl"
           >
-            {/* 추천 배지 */}
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+            {/* 추천 배지 - 박스 내부 상단 */}
+            <div className="flex justify-center pt-5 pb-0">
               <span className="bg-[#C9A961] text-white text-xs font-bold px-5 py-1.5 rounded-full shadow-lg flex items-center gap-1">
                 <Star className="w-3 h-3" />
                 {isKo ? "추천 · 2026 출시 특가" : "Recommended"}
               </span>
             </div>
 
-            <div className="p-8 pt-10">
+            <div className="p-8 pt-4">
               <div className="mb-6">
                 <span className="text-xs font-bold text-[#C9A961]/70 uppercase tracking-widest">올인원</span>
                 <div className="flex items-baseline gap-2 mt-2 mb-1">
