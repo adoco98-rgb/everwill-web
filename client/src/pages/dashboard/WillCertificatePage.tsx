@@ -94,24 +94,7 @@ export default function WillCertificatePage() {
     onError: (err) => toast.error(err.message || "신청에 실패했습니다."),
   });
 
-  // 페이지 진입 시 첫 번째 유언장 자동 미리보기
-  useEffect(() => {
-    if (!myWills || myWills.length === 0) return;
-    const firstWill = myWills[0];
-    if (!firstWill) return;
-
-    // 이미 로딩 중이면 스킵
-    if (isPreviewLoading) return;
-
-    setPreviewWillId(firstWill.id);
-    setIsPreviewLoading(true);
-    previewPdfMutation.mutate({
-      willId: firstWill.id,
-      country: "KR",
-      isSample: false,
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [myWills]);
+  // 자동 미리보기 제거 - 사용자가 직접 버튼 클릭 시에만 미리보기 실행
 
   // 미리보기 시작 핸들러 (발급 내역에서 클릭)
   const handlePreview = useCallback((certId: number | null, willId?: number) => {
