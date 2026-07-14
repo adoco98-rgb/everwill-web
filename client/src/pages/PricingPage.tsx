@@ -8,6 +8,28 @@ import { motion } from "framer-motion";
 
 const PLANS = [
   {
+    name: "베이직 플랜",
+    badge: null,
+    price: "₩79,000",
+    priceNote: "최초 1회 · 1년 보관",
+    subPrice: "1년 후 연장 ₩15,000/년",
+    color: "border-gray-200",
+    headerBg: "bg-white",
+    btnClass: "bg-[#1F3864] text-white hover:bg-[#2a4a7f]",
+    features: [
+      { text: "AI 유언장 작성 (무료)", ok: true },
+      { text: "전자 인증 3회 제한", ok: true },
+      { text: "블록체인 해시 기록", ok: true },
+      { text: "상속인 자동 알림", ok: true },
+      { text: "유류분 자동 계산", ok: true },
+      { text: "1년 보관 (이후 ₩15,000/년)", ok: true },
+      { text: "영상 유언장", ok: false },
+      { text: "자필 유언장 스캔 인증", ok: false },
+      { text: "일기 쓰기", ok: false },
+      { text: "자서전 만들기", ok: false },
+    ],
+  },
+  {
     name: "기본 플랜",
     badge: null,
     price: "₩168,000",
@@ -97,7 +119,7 @@ export default function PricingPage() {
         {/* 인증 플랜 비교 */}
         <section>
           <h2 className="text-2xl font-bold text-[#1F3864] text-center mb-8">전자 인증 플랜</h2>
-          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {PLANS.map((plan, idx) => (
               <motion.div
                 key={idx}
@@ -112,11 +134,11 @@ export default function PricingPage() {
                   </div>
                 )}
                 <div className={`${plan.headerBg} p-6`}>
-                  <h3 className={`text-lg font-bold mb-1 ${idx === 1 ? "text-white" : "text-[#1F3864]"}`}>{plan.name}</h3>
-                  <div className={`text-3xl font-bold ${idx === 1 ? "text-[#C9A961]" : "text-[#1F3864]"}`}>{plan.price}</div>
-                  <div className={`text-sm mt-1 ${idx === 1 ? "text-white/60" : "text-gray-500"}`}>{plan.priceNote}</div>
+                  <h3 className={`text-lg font-bold mb-1 ${idx === 2 ? "text-white" : "text-[#1F3864]"}`}>{plan.name}</h3>
+                  <div className={`text-3xl font-bold ${idx === 2 ? "text-[#C9A961]" : "text-[#1F3864]"}`}>{plan.price}</div>
+                  <div className={`text-sm mt-1 ${idx === 2 ? "text-white/60" : "text-gray-500"}`}>{plan.priceNote}</div>
                   {plan.subPrice && (
-                    <div className={`text-xs mt-1 ${idx === 1 ? "text-green-300" : "text-green-600"}`}>{plan.subPrice}</div>
+                    <div className={`text-xs mt-1 ${idx === 2 ? "text-green-300" : "text-green-600"}`}>{plan.subPrice}</div>
                   )}
                 </div>
                 <div className="bg-white p-6 space-y-3">
