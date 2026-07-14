@@ -688,7 +688,6 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     y += 22;
     doc.font(fontRegular).fontSize(7.5).fillColor("#444").text(config.legalNote, margin, y, { width: contentWidth, align: "justify", lineGap: 2 });
     y += 80;
-    doc.font(fontRegular).fontSize(7.5).fillColor("#888").text(config.validityNote, margin, y, { width: contentWidth });
 
     // 서명란
     const signY = pageHeight - 155;
