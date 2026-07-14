@@ -128,6 +128,13 @@ export default function ReserveShareExclusionPage() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
+  // 서명 캔버스
+  const signatureCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [hasSigned, setHasSigned] = useState(false);
+  const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null);
+  const lastPos = useRef<{ x: number; y: number } | null>(null);
+
   // 유언자 정보 자동 채움
   useEffect(() => {
     if (user) {
@@ -253,6 +260,62 @@ export default function ReserveShareExclusionPage() {
   // 인쇄
   const handlePrint = () => {
     window.print();
+  };
+
+  // 서명 캔버스 - 마우스/터치 시작
+  const getCanvasPos = (e: React.MouseEvent | React.TouchEvent, canvas: HTMLCanvasElement) => {
+    const rect = canvas.getBoundingClientRect();
+    if ('touches' in e) {
+      return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+    }
+    return { x: (e as React.MouseEvent).clientX - rect.left, y: (e as React.MouseEvent).clientY - rect.top };
+  };
+
+  const startSign = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    setIsDrawing(true);
+    lastPos.current = getCanvasPos(e, canvas);
+  };
+
+  const drawSign = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    if (!isDrawing) return;
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx || !lastPos.current) return;
+    const pos = getCanvasPos(e, canvas);
+    ctx.beginPath();
+    ctx.moveTo(lastPos.current.x, lastPos.current.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+    lastPos.current = pos;
+    setHasSigned(true);
+  };
+
+  const endSign = () => {
+    setIsDrawing(false);
+    lastPos.current = null;
+    const canvas = signatureCanvasRef.current;
+    if (canvas && hasSigned) {
+      setSignatureDataUrl(canvas.toDataURL('image/png'));
+    }
+  };
+
+  const clearSign = () => {
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setHasSigned(false);
+    setSignatureDataUrl(null);
   };
 
   // ── 영상 증언 관련 함수 ──
@@ -806,29 +869,80 @@ export default function ReserveShareExclusionPage() {
 
             {/* ⑤ 서명란 */}
             <div className="border-t pt-6 mt-6">
-              <div className="text-center space-y-4">
-                <p className="text-sm text-gray-600">
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600 text-center">
                   본인은 위 내용이 사실임을 확인하며, 자유로운 의사에 의하여
                   유류분 반환청구권 배제 의사를 표시합니다.
                 </p>
-                <div className="py-4">
-                  <p className="text-sm text-gray-500">
-                    {documentDate && new Date(documentDate).toLocaleDateString("ko-KR", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
+                <p className="text-sm text-gray-500 text-center">
+                  {documentDate && new Date(documentDate).toLocaleDateString("ko-KR", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </p>
+
+                {/* 서명 캔버스 */}
+                <div className="flex flex-col items-center gap-3">
+                  <p className="text-sm font-medium text-[#1F3864]">
+                    유언자 서명 — {testatorInfo.name || "(성명)"}
                   </p>
-                </div>
-                <div className="flex justify-center items-center gap-8 py-4">
-                  <div className="text-center">
-                    <p className="text-sm font-medium">유언자 (작성자)</p>
-                    <div className="mt-2 border-b-2 border-gray-400 w-40 mx-auto" />
-                    <p className="text-xs text-gray-500 mt-1">{testatorInfo.name || "(성명)"}</p>
+                  <div className="relative border-2 border-gray-300 rounded-lg bg-white cursor-crosshair"
+                    style={{ touchAction: 'none' }}
+                  >
+                    <canvas
+                      ref={signatureCanvasRef}
+                      width={400}
+                      height={140}
+                      className="block rounded-lg"
+                      onMouseDown={startSign}
+                      onMouseMove={drawSign}
+                      onMouseUp={endSign}
+                      onMouseLeave={endSign}
+                      onTouchStart={startSign}
+                      onTouchMove={drawSign}
+                      onTouchEnd={endSign}
+                    />
+                    {!hasSigned && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <p className="text-gray-300 text-sm select-none">
+                          이곳에 서명하세요
+                        </p>
+                      </div>
+                    )}
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm font-medium">(인)</p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearSign}
+                      className="gap-1 text-gray-500"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      서명 지우기
+                    </Button>
+                    {hasSigned && (
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          const canvas = signatureCanvasRef.current;
+                          if (!canvas) return;
+                          setSignatureDataUrl(canvas.toDataURL('image/png'));
+                          toast.success("서명이 저장되었습니다.");
+                        }}
+                        className="gap-1 bg-[#1F3864] hover:bg-[#162d52]"
+                      >
+                        <CheckCircle2 className="w-3 h-3" />
+                        서명 확정
+                      </Button>
+                    )}
                   </div>
+                  {signatureDataUrl && (
+                    <p className="text-xs text-green-600 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      서명이 확정되었습니다.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -985,9 +1099,55 @@ export default function ReserveShareExclusionPage() {
                 </div>
               )}
               {recordingState === "uploaded" && (
-                <div className="flex items-center gap-2 text-green-600">
-                  <CheckCircle2 className="w-5 h-5" />
-                  <span className="font-medium">영상 증언이 성공적으로 저장되었습니다.</span>
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span className="font-medium">영상 증언이 저장되었습니다.</span>
+                  </div>
+                  <div className="flex gap-2 flex-wrap justify-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (!recordedUrl) return;
+                        const a = document.createElement("a");
+                        a.href = recordedUrl;
+                        const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,"");
+                        a.download = `유류분배제영상증언_${dateStr}.webm`;
+                        a.click();
+                        toast.success("영상 파일 다운로드를 시작합니다.");
+                      }}
+                      className="gap-1 text-[#1F3864] border-[#1F3864]/30 hover:bg-[#1F3864]/5"
+                    >
+                      <Upload className="w-4 h-4" />
+                      파일 다운로드
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={resetRecording}
+                      className="gap-1 text-amber-600 border-amber-300 hover:bg-amber-50"
+                    >
+                      <Camera className="w-4 h-4" />
+                      다시 녹화 (변경)
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (recordedUrl) URL.revokeObjectURL(recordedUrl);
+                        setRecordedBlob(null);
+                        setRecordedUrl(null);
+                        setRecordingState("idle");
+                        setVideoDuration(0);
+                        toast.success("영상이 삭제되었습니다.");
+                      }}
+                      className="gap-1 text-red-600 border-red-300 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      영상 삭제
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
