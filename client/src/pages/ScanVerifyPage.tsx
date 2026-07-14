@@ -30,78 +30,24 @@ interface VerificationResult {
 }
 
 /**
- * 유언장 data JSON을 자필 작성용 텍스트로 변환
+ * 유언장 data JSON에서 willContent 텍스트를 추출해서 표시
  */
 function WillPrintContent({ data }: { data: Record<string, unknown> }) {
-  const testatorName = (data.testatorName as string) || "";
-  const testatorAddress = (data.testatorAddress as string) || "";
-  const writtenDate = (data.writtenDate as string) || new Date().toLocaleDateString("ko-KR");
-  const heirs = (data.heirs as Array<{ name: string; relation: string; share: number }>) || [];
-  const realEstates = (data.realEstates as Array<{ type: string; address: string; heirId: string; sharePercent: number }>) || [];
-  const financialAssets = (data.financialAssets as Array<{ institution: string; type: string; heirId: string; sharePercent: number }>) || [];
-  const otherAssets = (data.otherAssets as Array<{ type: string; description: string; heirId: string }>) || [];
-  const executor = (data.executor as string) || "";
-  const funeralWish = (data.funeralWish as string) || "";
-  const specialInstructions = (data.specialInstructions as string) || "";
-
-  // heirId → 이름 매핑
-  const heirMap: Record<string, string> = {};
-  heirs.forEach((h: { id?: string; name: string }) => { if (h.id) heirMap[h.id] = h.name; });
-
-  let itemNo = 1;
-  const lines: string[] = [];
-
-  lines.push("유  　언  　장");
-  lines.push("");
-  lines.push(`본인 ${testatorName}은(는) 정신이 명료한 상태에서 다음과 같이 유언합니다.`);
-  lines.push("");
-
-  realEstates.forEach(r => {
-    const heirName = heirMap[r.heirId] || "미지정";
-    lines.push(`${itemNo++}. ${r.type} (${r.address})는`);
-    lines.push(`   ${heirName}에게 상속합니다. (지분 ${r.sharePercent}%)`);
-    lines.push("");
-  });
-
-  financialAssets.forEach(f => {
-    const heirName = heirMap[f.heirId] || "미지정";
-    lines.push(`${itemNo++}. ${f.institution} ${f.type}의 전액은`);
-    lines.push(`   ${heirName}에게 상속합니다. (지분 ${f.sharePercent}%)`);
-    lines.push("");
-  });
-
-  otherAssets.forEach(o => {
-    const heirName = heirMap[o.heirId] || "미지정";
-    lines.push(`${itemNo++}. ${o.type}: ${o.description}는`);
-    lines.push(`   ${heirName}에게 상속합니다.`);
-    lines.push("");
-  });
-
-  if (executor) {
-    lines.push(`${itemNo++}. 유언집행자는 ${executor}로 지정합니다.`);
-    lines.push("");
+  const willContent = (data.willContent as string) || "";
+  if (!willContent.trim()) {
+    return (
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-700 text-center">
+        유언장 내용이 없습니다. 유언장 작성 4단계에서 내용을 작성·저장해주세요.
+      </div>
+    );
   }
-  if (funeralWish) {
-    lines.push(`${itemNo++}. 장례: ${funeralWish}`);
-    lines.push("");
-  }
-  if (specialInstructions) {
-    lines.push(`${itemNo++}. 기타: ${specialInstructions}`);
-    lines.push("");
-  }
-
-  lines.push("위와 같이 유언합니다.");
-  lines.push("");
-  lines.push(`${writtenDate}`);
-  lines.push(`주소: ${testatorAddress}`);
-  lines.push(`성명: ${testatorName}  (인)`);
-
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 font-mono text-sm leading-8 text-gray-800 whitespace-pre-line select-all print:bg-white print:border-0">
-      {lines.join("\n")}
+      {willContent}
     </div>
   );
 }
+
 
 export default function ScanVerifyPage() {
   const [, navigate] = useLocation();
