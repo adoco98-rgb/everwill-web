@@ -13,7 +13,26 @@ import { fileURLToPath } from "url";
 import fs from "fs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const FONTS_DIR = path.join(__dirname, "../fonts");
+
+// 개발환경: server/utils/ → server/fonts/
+// 배포환경: dist/ → dist/../fonts/ (프로젝트 루트 fonts/ 없음)
+// → 두 경로를 모두 시도하여 존재하는 경로 사용
+function resolveFontsDir(): string {
+  const candidates = [
+    path.join(__dirname, "../fonts"),          // 개발: server/utils/../fonts = server/fonts
+    path.join(__dirname, "fonts"),             // 배포: dist/fonts
+    path.join(process.cwd(), "server/fonts"),  // 프로세스 루트 기준
+    path.join(process.cwd(), "dist/fonts"),    // dist 기준
+  ];
+  for (const dir of candidates) {
+    if (fs.existsSync(path.join(dir, "NotoSansCJK-Regular.otf"))) {
+      return dir;
+    }
+  }
+  return candidates[0]; // fallback (Helvetica 사용됨)
+}
+
+const FONTS_DIR = resolveFontsDir();
 const SEAL_PATH = path.join(__dirname, "../../everwill_seal.png");
 
 // ─── 폰트 경로 ───────────────────────────────────────────────────────────────
