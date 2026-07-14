@@ -396,16 +396,7 @@ export default function ScanVerifyPage() {
                 </div>
               )}
 
-              {/* 다음 단계 */}
-              {result.overallValid && (
-                <button
-                  onClick={() => navigate("/payment")}
-                  className="w-full bg-[#C9A961] hover:bg-[#b8954f] text-white font-semibold py-4 rounded-2xl transition-colors flex items-center justify-center gap-2"
-                >
-                  <CheckCircle2 className="w-5 h-5" />
-                  인증 및 결제 진행하기 (₩168,000)
-                </button>
-              )}
+
             </motion.div>
           )}
         </AnimatePresence>
