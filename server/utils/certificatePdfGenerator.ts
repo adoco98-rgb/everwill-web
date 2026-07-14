@@ -530,16 +530,33 @@ export function generateWillCertificatePDF(data: CertificateData): Promise<Buffe
       },
     });
 
-    // 폰트 등록
+    // 폰트 등록 (파일 없으면 Helvetica fallback)
     const isBuiltIn = config.fontRegular === "Helvetica" || config.fontRegular === "Times-Roman";
+    let fontRegular: string;
+    let fontBold: string;
     if (!isBuiltIn) {
-      try {
-        doc.registerFont("Regular", config.fontRegular);
-        doc.registerFont("Bold", config.fontBold);
-      } catch { /* 폰트 로드 실패 시 기본 폰트 사용 */ }
+      const regularExists = fs.existsSync(config.fontRegular);
+      const boldExists    = fs.existsSync(config.fontBold);
+      if (regularExists && boldExists) {
+        try {
+          doc.registerFont("Regular", config.fontRegular);
+          doc.registerFont("Bold",    config.fontBold);
+          fontRegular = "Regular";
+          fontBold    = "Bold";
+        } catch {
+          // 폰트 로드 실패 → 내장 폰트 사용
+          fontRegular = "Helvetica";
+          fontBold    = "Helvetica-Bold";
+        }
+      } else {
+        // 폰트 파일 없음 (프로덕션 배포 환경) → 내장 폰트 사용
+        fontRegular = "Helvetica";
+        fontBold    = "Helvetica-Bold";
+      }
+    } else {
+      fontRegular = config.fontRegular;
+      fontBold    = config.fontBold;
     }
-    const fontRegular = isBuiltIn ? config.fontRegular : "Regular";
-    const fontBold    = isBuiltIn ? config.fontBold    : "Bold";
 
     const [pr, pg, pb] = config.primaryColor;
     const [ar, ag, ab] = config.accentColor;
