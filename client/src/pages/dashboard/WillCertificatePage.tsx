@@ -71,13 +71,13 @@ export default function WillCertificatePage() {
     onSuccess: () => refetch(),
   });
 
-  // PDF 미리보기 뮤테이션
+  // PDF 미리보기 뮤테이션 (팝업 없이 인라인 표시)
   const previewPdfMutation = trpc.willCertificate.previewPdf.useMutation({
     onSuccess: (data) => {
       setPreviewBase64(data.base64);
       setPreviewFilename(data.filename);
       setIsPreviewLoading(false);
-      setShowPreviewModal(true);
+      // 팝업 자동 오픈 제거 - 인라인 미리보기만 사용
     },
     onError: (err) => {
       toast.error(err.message || "PDF 미리보기에 실패했습니다.");
