@@ -225,14 +225,26 @@ export default function AssetsPage() {
     },
   });
 
-  // ── 스캔 이미지 처리 ──
+  // ── 스캔 파일 처리 (이미지·PDF·Word·Excel·HWP 모두) ──
   function handleScanImageSelect(file: File) {
-    if (!file.type.startsWith("image/")) { toast.error("이미지 파일만 업로드 가능합니다."); return; }
+    const allowedTypes = [
+      "image/", "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/haansofthwp", "application/x-hwp",
+      "text/plain",
+    ];
+    const isAllowed = allowedTypes.some((t) => file.type.startsWith(t)) || /\.(pdf|hwp|hwpx|doc|docx|xls|xlsx|txt)$/i.test(file.name);
+    if (!isAllowed) { toast.error("지원하지 않는 파일 형식입니다. (이미지·PDF·Word·Excel·HWP 가능)"); return; }
     if (file.size > 20 * 1024 * 1024) { toast.error("파일 크기는 20MB 이하여야 합니다."); return; }
+    const isImage = file.type.startsWith("image/");
     const reader = new FileReader();
     reader.onload = (e) => {
       const dataUrl = e.target?.result as string;
-      setScanPreview(dataUrl);
+      // 이미지가 아닌 문서는 파일아이콘 미리보기
+      setScanPreview(isImage ? dataUrl : `__file__:${file.name}`);
       setScanResult(null);
       assetScanMutation.mutate({ imageUrl: dataUrl, docTypeHint: scanDocType as any });
     };
@@ -450,11 +462,11 @@ export default function AssetsPage() {
                   </div>
                 )}
 
-                {/* 업로드 영역 */}
+                {/* 업로드 영역 - 이미지·PDF·Word·Excel·HWP 모두 허용 */}
                 <input
                   ref={scanFileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx,.hwp,.hwpx,.txt"
                   multiple
                   className="hidden"
                   onChange={(e) => {
@@ -468,7 +480,15 @@ export default function AssetsPage() {
 
                 {scanPreview ? (
                   <div className="relative">
-                    <img src={scanPreview} alt="스캔 미리보기" className="w-full max-h-48 object-contain rounded-xl border border-gray-100 bg-gray-50" />
+                    {scanPreview.startsWith("__file__:") ? (
+                      <div className="w-full h-36 bg-gray-50 rounded-xl border border-gray-100 flex flex-col items-center justify-center gap-2">
+                        <FileText className="w-10 h-10 text-[#1F3864]/50" />
+                        <p className="text-sm font-semibold text-gray-700 px-4 text-center break-all">{scanPreview.replace("__file__:", "")}</p>
+                        <p className="text-xs text-gray-400">문서 파일 업로드 완료</p>
+                      </div>
+                    ) : (
+                      <img src={scanPreview} alt="스캔 미리보기" className="w-full max-h-48 object-contain rounded-xl border border-gray-100 bg-gray-50" />
+                    )}
                     {assetScanMutation.isPending && (
                       <div className="absolute inset-0 bg-white/80 rounded-xl flex flex-col items-center justify-center gap-2">
                         <Loader2 className="w-8 h-8 text-[#1F3864] animate-spin" />
@@ -494,8 +514,8 @@ export default function AssetsPage() {
                       <Upload className="w-7 h-7 text-[#1F3864]" />
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-semibold text-[#1F3864]">서류 이미지 업로드</p>
-                      <p className="text-xs text-gray-400 mt-1">JPG, PNG, HEIC · 최대 20MB / 여러 장 선택 가능</p>
+                      <p className="text-sm font-semibold text-[#1F3864]">서류 파일 업로드</p>
+                      <p className="text-xs text-gray-400 mt-1">이미지·PDF·Word·Excel·HWP · 최대 20MB / 여러 장 선택 가능</p>
                     </div>
                     <div className="flex gap-2">
                       <button
@@ -510,7 +530,7 @@ export default function AssetsPage() {
                           e.stopPropagation();
                           const input = document.createElement("input");
                           input.type = "file";
-                          input.accept = "image/*";
+                          input.accept = "image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx,.hwp,.hwpx,.txt";
                           input.capture = "environment";
                           input.onchange = (ev) => {
                             const f = (ev.target as HTMLInputElement).files?.[0];

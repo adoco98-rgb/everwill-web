@@ -462,9 +462,12 @@ export default function Step10Sign({ will }: StepProps) {
     reader.readAsDataURL(file);
   }
 
-  // ── 자산증명서 이미지 처리 ──
+  // ── 자산증명서 파일 처리 (이미지·PDF·Word·Excel·HWP 모두) ──
   async function handleAssetDocImageSelect(file: File) {
-    if (!file.type.startsWith("image/")) { toast.error("이미지 파일만 업로드 가능합니다."); return; }
+    const allowed = file.type.startsWith("image/") || file.type === "application/pdf"
+      || file.type.startsWith("application/vnd") || file.type.startsWith("application/msword")
+      || /\.(pdf|doc|docx|xls|xlsx|hwp|hwpx|txt)$/i.test(file.name);
+    if (!allowed) { toast.error("지원하지 않는 파일 형식입니다. (이미지·PDF·Word·Excel·HWP 가능)"); return; }
     if (file.size > 20 * 1024 * 1024) { toast.error("파일 크기는 20MB 이하여야 합니다."); return; }
     const tempId = Date.now().toString();
     setScanningDocId(tempId);
@@ -849,14 +852,14 @@ export default function Step10Sign({ will }: StepProps) {
                 카메라 촬영
               </button>
             </div>
-            <input ref={assetDocFileInputRef} type="file" accept="image/*" multiple className="hidden"
+            <input ref={assetDocFileInputRef} type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.hwp,.hwpx,.txt" multiple className="hidden"
               onChange={(e) => {
                 if (e.target.files) {
                   Array.from(e.target.files).forEach(f => handleAssetDocImageSelect(f));
                   e.target.value = '';
                 }
               }} />
-            <input ref={assetDocCameraInputRef} type="file" accept="image/*" capture="environment" className="hidden"
+            <input ref={assetDocCameraInputRef} type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.hwp,.hwpx,.txt" capture="environment" className="hidden"
               onChange={(e) => e.target.files?.[0] && handleAssetDocImageSelect(e.target.files[0])} />
 
             {assetDocScanMutation.isPending && (

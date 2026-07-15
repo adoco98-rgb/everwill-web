@@ -454,7 +454,7 @@ export default function AssetVerifyPage() {
                 <p className="text-xs text-gray-400 mt-1">JPG, PNG, PDF · 최대 20MB</p>
               </div>
             )}
-            <input type="file" className="hidden" accept="image/*,application/pdf" onChange={handleDocUpload} />
+            <input type="file" className="hidden" accept="image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx,.hwp,.hwpx,.txt" onChange={handleDocUpload} />
           </label>
 
           {/* 업로드된 서류 목록 */}

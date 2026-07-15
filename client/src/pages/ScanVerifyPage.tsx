@@ -117,18 +117,18 @@ export default function ScanVerifyPage() {
   });
 
   const handleFileSelect = (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      toast.error("이미지 파일만 업로드 가능합니다.");
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("파일 크기는 10MB 이하여야 합니다.");
+    const allowed = file.type.startsWith("image/") || file.type === "application/pdf"
+      || file.type.startsWith("application/vnd") || file.type.startsWith("application/msword")
+      || /\.(pdf|doc|docx|xls|xlsx|hwp|hwpx|txt)$/i.test(file.name);
+    if (!allowed) { toast.error("지원하지 않는 파일 형식입니다. (이미지·PDF·Word·Excel·HWP 가능)"); return; }
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("파일 크기는 20MB 이하여야 합니다.");
       return;
     }
     setSelectedFile(file);
     setResult(null);
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
+    const url = file.type.startsWith("image/") ? URL.createObjectURL(file) : "";
+    setPreviewUrl(url || `__file__:${file.name}`);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -293,7 +293,7 @@ export default function ScanVerifyPage() {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.hwp,.hwpx,.txt"
             capture="environment"
             className="hidden"
             onChange={(e) => {

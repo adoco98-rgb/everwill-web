@@ -200,7 +200,7 @@ export default function FamilyDocumentPage() {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*,.pdf"
+            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.hwp,.hwpx,.txt"
             className="hidden"
             onChange={handleFileChange}
           />

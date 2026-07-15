@@ -491,14 +491,14 @@ export default function NotarizationDocsPage() {
     }
   };
 
-  /** 이미지 파일 선택 시 미리보기 표시 (제출 전 확인) */
+  /** 서류 파일 선택 시 미리보기 표시 (제출 전 확인) */
   const handleImageSelect = (docId: string, docName: string, file: File) => {
-    if (!file.type.startsWith("image/")) {
-      toast.error("이미지 파일만 업로드 가능합니다. (JPG, PNG, HEIC)");
-      return;
-    }
-    const url = URL.createObjectURL(file);
-    setPendingPreview({ docId, file, url, docName });
+    const allowed = /\.(jpg|jpeg|png|heic|gif|webp|pdf|doc|docx|xls|xlsx|hwp|hwpx|txt)$/i.test(file.name)
+      || file.type.startsWith("image/") || file.type === "application/pdf"
+      || file.type.startsWith("application/vnd") || file.type.startsWith("application/msword");
+    if (!allowed) { toast.error("지원하지 않는 파일 형식입니다. (이미지·PDF·Word·Excel·HWP 가능)"); return; }
+    const url = file.type.startsWith("image/") ? URL.createObjectURL(file) : "";
+    setPendingPreview({ docId, file, url: url || `__file__:${file.name}`, docName });
   };
 
   /** 미리보기 확인 후 업로드 확정 + AI 분석 + 서버 저장 */
@@ -983,7 +983,7 @@ export default function NotarizationDocsPage() {
                               {isUploaded ? "재업로드" : "업로드"}
                               <input
                                 type="file"
-                                accept={doc.id === "seal_stamp" ? ".jpg,.jpeg,.png,.heic" : ".pdf,.jpg,.jpeg,.png,.heic"}
+                                accept={doc.id === "seal_stamp" ? ".jpg,.jpeg,.png,.heic" : "image/*,.pdf,.doc,.docx,.xls,.xlsx,.hwp,.hwpx,.txt"}
                                 className="hidden"
                                 onChange={(e) => {
                                   const file = e.target.files?.[0];
