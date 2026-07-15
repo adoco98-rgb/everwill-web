@@ -406,97 +406,94 @@ export default function AssetsPage() {
                 </button>
               </div>
 
-              {/* 서류 유형 카드 그리드 */}
+              {/* 서류 유형 카드 그리드 - 클릭하면 즉시 파일 선택사다 열림 */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {ASSET_DOC_TYPES.map((dt) => {
-                  const isActive = scanDocType === dt.value && assetScanMutation.isPending;
                   const fileInputId = `scan-input-${dt.value}`;
+                  const isThisActive = scanDocType === dt.value;
+                  const isPending = isThisActive && assetScanMutation.isPending;
+                  const isDone = isThisActive && scanResult && !assetScanMutation.isPending;
                   return (
-                    <div key={dt.value} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                      scanDocType === dt.value && scanPreview
-                        ? "border-[#1F3864] bg-[#1F3864]/5"
-                        : "border-gray-100 bg-gray-50 hover:border-[#1F3864]/30"
-                    }`}>
-                      {/* 서류 유형 아이콘 */}
-                      <div className="w-9 h-9 rounded-lg bg-[#1F3864]/10 flex items-center justify-center flex-shrink-0">
-                        <FileText className="w-4 h-4 text-[#1F3864]" />
-                      </div>
-                      {/* 서류명 */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-800">{dt.label}</p>
-                        {scanDocType === dt.value && scanPreview && (
-                          <p className="text-xs text-[#1F3864] mt-0.5 truncate">
-                            {scanPreview.startsWith("__file__:") ? scanPreview.replace("__file__:", "") : "이미지 업로드됨"}
-                          </p>
+                    <div key={dt.value} className="flex flex-col">
+                      {/* 카드 전체를 클릭하면 파일 선택사다 열림 */}
+                      <label
+                        htmlFor={fileInputId}
+                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all select-none ${
+                          isPending ? "border-[#1F3864] bg-[#1F3864]/5 cursor-wait" :
+                          isDone ? "border-green-400 bg-green-50" :
+                          "border-gray-100 bg-gray-50 hover:border-[#1F3864]/50 hover:bg-[#1F3864]/5"
+                        }`}
+                      >
+                        {/* 아이콘 */}
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                          isDone ? "bg-green-100" : "bg-[#1F3864]/10"
+                        }`}>
+                          {isPending ? (
+                            <Loader2 className="w-4 h-4 text-[#1F3864] animate-spin" />
+                          ) : isDone ? (
+                            <CheckCircle2 className="w-4 h-4 text-green-600" />
+                          ) : (
+                            <FileText className="w-4 h-4 text-[#1F3864]" />
+                          )}
+                        </div>
+                        {/* 서류명 */}
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-semibold ${
+                            isDone ? "text-green-700" : "text-gray-800"
+                          }`}>{dt.label}</p>
+                          {isPending && <p className="text-xs text-[#1F3864] mt-0.5">AI 분석 중...</p>}
+                          {isDone && (
+                            <p className="text-xs text-green-600 mt-0.5">
+                              ✓ 인식 완료{scanResult.issuer ? ` — ${scanResult.issuer}` : ""}
+                            </p>
+                          )}
+                          {!isPending && !isDone && (
+                            <p className="text-xs text-gray-400 mt-0.5">클릭하여 업로드</p>
+                          )}
+                        </div>
+                        {/* 우측 화살표 */}
+                        {!isPending && !isDone && (
+                          <Upload className="w-4 h-4 text-gray-400 flex-shrink-0" />
                         )}
-                        {scanDocType === dt.value && scanResult && !assetScanMutation.isPending && (
-                          <p className="text-xs text-green-600 mt-0.5">✓ 인식 완료 — 아래 폼 확인</p>
-                        )}
-                      </div>
-                      {/* 업로드 버튼 */}
-                      <div className="flex-shrink-0">
-                        {scanDocType === dt.value && assetScanMutation.isPending ? (
-                          <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#1F3864]">
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            분석중
+                      </label>
+                      {/* 파일 입력 */}
+                      <input
+                        id={fileInputId}
+                        type="file"
+                        accept="image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx,.hwp,.hwpx,.txt"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => {
+                          const files = e.target.files;
+                          if (files && files.length > 0) {
+                            setScanDocType(dt.value);
+                            setScanPreview(null);
+                            setScanResult(null);
+                            Array.from(files).forEach((f) => handleScanImageSelect(f));
+                          }
+                          e.target.value = "";
+                        }}
+                      />
+                      {/* 인식 완료 결과 — 카드 바로 아래에 표시 */}
+                      {isDone && (
+                        <div className="mt-1 px-3 py-2 bg-green-50 border border-green-200 rounded-xl text-xs text-green-700">
+                          <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+                            {scanResult.docTypeLabel && <p>서류: <strong>{scanResult.docTypeLabel}</strong></p>}
+                            {scanResult.assetName && <p>자산명: <strong>{scanResult.assetName}</strong></p>}
+                            {scanResult.issuer && <p>발급기관: <strong>{scanResult.issuer}</strong></p>}
+                            {scanResult.amount && <p>금액: <strong>{Number(scanResult.amount.replace(/[^0-9]/g, "") || 0).toLocaleString()}원</strong></p>}
+                            {scanResult.location && <p>소재지: <strong>{scanResult.location}</strong></p>}
                           </div>
-                        ) : (
-                          <label
-                            htmlFor={fileInputId}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1F3864] text-white rounded-lg text-xs font-semibold cursor-pointer hover:bg-[#1F3864]/90 transition-all"
-                          >
-                            <Upload className="w-3.5 h-3.5" />
-                            업로드
-                          </label>
-                        )}
-                        <input
-                          id={fileInputId}
-                          type="file"
-                          accept="image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx,.hwp,.hwpx,.txt"
-                          multiple
-                          className="hidden"
-                          onChange={(e) => {
-                            const files = e.target.files;
-                            if (files && files.length > 0) {
-                              setScanDocType(dt.value);
-                              setScanPreview(null);
-                              setScanResult(null);
-                              Array.from(files).forEach((f) => handleScanImageSelect(f));
-                            }
-                            e.target.value = "";
-                          }}
-                        />
-                      </div>
+                          <p className={`mt-1 font-semibold ${
+                            scanResult.confidence === "high" ? "text-green-700" :
+                            scanResult.confidence === "medium" ? "text-yellow-600" : "text-red-600"
+                          }`}>신뢰도: {scanResult.confidence === "high" ? "높음" : scanResult.confidence === "medium" ? "보통" : "낙음"} — 아래 폼에 자동 채워졌습니다</p>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
               </div>
-
-              {/* 인식 완료 결과 */}
-              {scanResult && !assetScanMutation.isPending && (
-                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
-                  <div className="flex items-center gap-2 mb-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    <p className="text-sm font-bold text-green-800">인식 완료 — 아래 폼에 자동 채워졌습니다</p>
-                    <button onClick={() => { setScanPreview(null); setScanResult(null); }} className="ml-auto w-6 h-6 flex items-center justify-center text-gray-400 hover:text-red-500">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-green-700">
-                    {scanResult.docTypeLabel && <p>서류 유형: <strong>{scanResult.docTypeLabel}</strong></p>}
-                    {scanResult.assetName && <p>자산명: <strong>{scanResult.assetName}</strong></p>}
-                    {scanResult.issuer && <p>발급기관: <strong>{scanResult.issuer}</strong></p>}
-                      {scanResult.amount && <p>금액: <strong>{Number(scanResult.amount.replace(/[^0-9]/g, "") || 0).toLocaleString()}원</strong></p>}
-                      {scanResult.location && <p>소재지: <strong>{scanResult.location}</strong></p>}
-                      <p className={`font-semibold ${
-                        scanResult.confidence === "high" ? "text-green-700" :
-                        scanResult.confidence === "medium" ? "text-yellow-700" : "text-red-700"
-                      }`}>
-                        인식 신뢰도: {scanResult.confidence === "high" ? "높음" : scanResult.confidence === "medium" ? "보통" : "낮음"}
-                      </p>
-                    </div>
-                  </div>
-                )}
               </div>
 
             {/* 재산 추가 폼 */}
