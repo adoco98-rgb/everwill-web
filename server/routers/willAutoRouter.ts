@@ -50,8 +50,8 @@ export const willAutoRouter = router({
   scanAssetDocument: protectedProcedure
     .input(z.object({
       imageUrl: z.string().refine(
-        (v) => v.startsWith("http") || v.startsWith("data:image/"),
-        { message: "올바른 이미지 URL 또는 data URL을 입력해주세요" }
+        (v) => v.startsWith("http") || v.startsWith("data:"),
+        { message: "올바른 파일 URL 또는 data URL을 입력해주세요" }
       ),
       docTypeHint: z.enum(ASSET_DOC_TYPES).optional(),
     }))
@@ -81,12 +81,19 @@ export const willAutoRouter = router({
             },
             {
               role: "user",
-              content: [
-                {
-                  type: "image_url",
-                  image_url: { url: input.imageUrl, detail: "high" },
-                },
-                {
+              content: (() => {
+                const mimeMatch = input.imageUrl.match(/^data:([^;]+);base64,/);
+                const mime = mimeMatch ? mimeMatch[1] : "image/jpeg";
+                const isPdf = mime === "application/pdf";
+                const isImg = mime.startsWith("image/");
+                const fileContent = isPdf
+                  ? { type: "file_url" as const, file_url: { url: input.imageUrl, mime_type: "application/pdf" as const } }
+                  : isImg
+                  ? { type: "image_url" as const, image_url: { url: input.imageUrl, detail: "high" as const } }
+                  : null;
+                const parts: any[] = [];
+                if (fileContent) parts.push(fileContent);
+                parts.push({
                   type: "text",
                   text: `이 자산증명서를 분석하고 다음 JSON 형식으로만 반환하세요:
 {
@@ -106,8 +113,9 @@ export const willAutoRouter = router({
   "additionalInfo": "기타 중요 정보",
   "confidence": "high|medium|low"
 }`,
-                },
-              ],
+                });
+                return parts;
+              })()
             },
           ],
           response_format: {
