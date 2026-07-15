@@ -33,42 +33,47 @@ function resolveFontsDir(): string {
 }
 
 const FONTS_DIR = resolveFontsDir();
-const SEAL_PATH  = path.join(__dirname, "../../everwill_seal.png");
-const STAMP_PATH = path.join(__dirname, "../../everwill_stamp_red_v2.png");
-
-/** S3에서 이미지 버퍼 다운로드 */
-async function fetchImageBuffer(storageKey: string): Promise<Buffer | null> {
-  try {
-    const forgeBase = (process.env.BUILT_IN_FORGE_API_URL || '').replace(/\/+$/, '');
-    const forgeKey  = process.env.BUILT_IN_FORGE_API_KEY || '';
-    if (!forgeBase || !forgeKey) return null;
-    const presignRes = await fetch(`${forgeBase}/v1/storage/presign/get?path=${storageKey}`, {
-      headers: { Authorization: `Bearer ${forgeKey}` },
-    });
-    if (!presignRes.ok) return null;
-    const { url } = (await presignRes.json()) as { url: string };
-    if (!url) return null;
-    const imgRes = await fetch(url);
-    if (!imgRes.ok) return null;
-    return Buffer.from(await imgRes.arrayBuffer());
-  } catch { return null; }
+// 로컬 assets 경로 (배포 환경에서도 안정적으로 작동)
+function resolveAssetsDir(): string {
+  const candidates = [
+    path.join(__dirname, "../assets"),          // 개발: server/utils/../assets = server/assets
+    path.join(__dirname, "assets"),             // 배포: dist/assets
+    path.join(process.cwd(), "server/assets"),  // 프로세스 루트 기준
+    path.join(process.cwd(), "dist/assets"),    // dist 기준
+  ];
+  for (const dir of candidates) {
+    if (fs.existsSync(path.join(dir, "everwill_seal.png"))) {
+      return dir;
+    }
+  }
+  return candidates[0]; // fallback
 }
+
+const ASSETS_DIR = resolveAssetsDir();
+const SEAL_PATH  = path.join(ASSETS_DIR, "everwill_seal.png");
+const STAMP_PATH = path.join(ASSETS_DIR, "everwill_stamp.png");
 
 let _sealBuffer: Buffer | null | undefined = undefined;
 let _stampBuffer: Buffer | null | undefined = undefined;
 
 async function getSealBuffer(): Promise<Buffer | null> {
   if (_sealBuffer !== undefined) return _sealBuffer;
-  _sealBuffer = await fetchImageBuffer('everwill_seal_original_52cd1482.png');
-  if (!_sealBuffer && fs.existsSync(SEAL_PATH)) _sealBuffer = fs.readFileSync(SEAL_PATH);
-  return _sealBuffer ?? null;
+  if (fs.existsSync(SEAL_PATH)) {
+    _sealBuffer = fs.readFileSync(SEAL_PATH);
+  } else {
+    _sealBuffer = null;
+  }
+  return _sealBuffer;
 }
 
 async function getStampBuffer(): Promise<Buffer | null> {
   if (_stampBuffer !== undefined) return _stampBuffer;
-  _stampBuffer = await fetchImageBuffer('everwill_stamp_red_v2_643d7639.png');
-  if (!_stampBuffer && fs.existsSync(STAMP_PATH)) _stampBuffer = fs.readFileSync(STAMP_PATH);
-  return _stampBuffer ?? null;
+  if (fs.existsSync(STAMP_PATH)) {
+    _stampBuffer = fs.readFileSync(STAMP_PATH);
+  } else {
+    _stampBuffer = null;
+  }
+  return _stampBuffer;
 }
 
 // ─── 폰트 경로 ────────────────────────────────────────────────────────────────────────────
