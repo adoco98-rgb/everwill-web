@@ -71,19 +71,19 @@ const STEPS = [
   },
   {
     id: 4,
-    icon: FileText,
-    title: "유언장 작성",
-    subtitle: "AI 유언장 자동 생성",
-    description: "체크박스 선택으로 AI가 법적 유언장을 작성합니다.",
-    color: "#8B5CF6",
-  },
-  {
-    id: 5,
     icon: Scale,
     title: "상속 내용",
     subtitle: "자산별 분배 비율 설정",
     description: "각 상속인에게 자산을 어떻게 분배할지 설정하세요.",
     color: "#C9A961",
+  },
+  {
+    id: 5,
+    icon: FileText,
+    title: "유언장 작성",
+    subtitle: "AI 유언장 자동 생성",
+    description: "자산·상속자·분배 내용을 바탕으로 AI가 법적 유언장을 작성합니다.",
+    color: "#8B5CF6",
   },
 ];
 
@@ -231,9 +231,10 @@ export default function WillWizardPage() {
       autoCompleted.push(3);
     }
 
-    // Step4: 유언장 작성 - 저장된 유언장이 있으면 완료
+    // Step4: 상속 내용 - 상속자와 자산이 모두 있으면 완료 가능 상태로 처리 (localStorage로 관리)
+    // Step5: 유언장 작성 - 저장된 유언장이 있으면 완료
     if (myWills && myWills.length > 0) {
-      autoCompleted.push(4);
+      autoCompleted.push(5);
     }
 
     // localStorage 상태와 병합 (DB에 있는 것은 무조건 완료 처리)
@@ -641,10 +642,10 @@ export default function WillWizardPage() {
               <Step3Heirs onComplete={() => handleStepComplete(3)} />
             )}
             {currentStep === 4 && (
-              <Step4Will onComplete={() => handleStepComplete(4)} />
+              <Step5Distribution onComplete={() => handleStepComplete(4)} />
             )}
             {currentStep === 5 && (
-              <Step5Distribution onComplete={() => handleStepComplete(5)} />
+              <Step4Will onComplete={() => handleStepComplete(5)} />
             )}
           </motion.div>
         </AnimatePresence>
