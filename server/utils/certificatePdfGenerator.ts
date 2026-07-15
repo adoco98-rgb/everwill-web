@@ -59,7 +59,7 @@ let _stampBuffer: Buffer | null | undefined = undefined;
 
 async function getSealBuffer(): Promise<Buffer | null> {
   if (_sealBuffer !== undefined) return _sealBuffer;
-  _sealBuffer = await fetchImageBuffer('everwill_seal_1201eb2b.png');
+  _sealBuffer = await fetchImageBuffer('everwill_seal_original_52cd1482.png');
   if (!_sealBuffer && fs.existsSync(SEAL_PATH)) _sealBuffer = fs.readFileSync(SEAL_PATH);
   return _sealBuffer ?? null;
 }
