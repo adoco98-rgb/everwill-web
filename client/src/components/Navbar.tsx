@@ -244,12 +244,13 @@ export default function Navbar() {
           {/* 로고 - 좌측 (flex-1로 동일 너비 확보) */}
           <div className="flex-1 flex items-center">
           <a href="/" className="flex items-center shrink-0">
-            <img
-              src="/manus-storage/everwill_logo_white_4eb9b7a4.png"
-              alt="EverWill Logo"
-              className="object-contain drop-shadow-xl"
-              style={{ height: '72px', width: '72px' }}
-            />
+            <div className="rounded-full overflow-hidden drop-shadow-xl" style={{ height: '72px', width: '72px' }}>
+              <img
+                src="/manus-storage/everwill_logo_white_4eb9b7a4.png"
+                alt="EverWill Logo"
+                className="w-full h-full object-cover"
+              />
+            </div>
           </a>
           </div>
 
