@@ -52,10 +52,11 @@ const willFlowMenuItems = [
   { icon: Sparkles, label: "유언 작성하기", path: "/dashboard/will-wizard", highlight: true },
 ];
 
-/** 유언 작성 단계별 메뉴 (무료) */
+/** 유언 작성 단계별 메뉴 (무료) - 위자드 단계 순서와 동일 */
 const mainMenuItems = [
   { icon: ClipboardList, label: "자산 등록", path: "/assets" },
   { icon: Users, label: "상속자 등록", path: "/dashboard/heirs" },
+  { icon: Scale, label: "상속 내용", path: "/dashboard/will-wizard?step=4" },
   { icon: Eye, label: "기본유언장 확인", path: "/dashboard/will-preview" },
 ];
 

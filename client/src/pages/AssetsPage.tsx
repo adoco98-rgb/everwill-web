@@ -494,7 +494,7 @@ export default function AssetsPage() {
                   );
                 })}
               </div>
-              </div>
+            </div>
 
             {/* 재산 추가 폼 */}
             {showAssetForm && (
