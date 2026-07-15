@@ -434,7 +434,9 @@ export interface CertificateData {
   certifiedAt: Date;
   testatorName: string;
   testatorBirthDate?: string | null;
+  testatorRRN?: string | null;          // 주민등록번호
   testatorAddress?: string | null;
+  testatorPhone?: string | null;         // 연락처
   willTitle: string;
   willText?: string | null;
   purpose: string;
@@ -443,6 +445,7 @@ export interface CertificateData {
   assets?: AssetData[];
   heirs?: HeirData[];
   attachments?: AttachmentData[];
+  signatureImageBuffer?: Buffer | null;  // 서명 이미지 bytes
 }
 
 // ─── 헬퍼: 전 페이지 스탬프 그리기 ──────────────────────────────────────────
@@ -738,13 +741,14 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     });
 
     // 하단 회사명 + 웹사이트
-    // 겉표지 하단 텍스트: save/restore로 감싸 PDFKit 커서 이동 방지
-    doc.save();
+    // 겉표지 하단 텍스트: 절대 좌표로 그린 후 doc.y를 강제 복원
+    const _coverSavedY = (doc as any).y;
     doc.font(fontBold).fontSize(14).fillColor("#FFFFFF")
        .text(isKo ? "주식회사 사람" : "Saram Co., Ltd.", margin + 24, pageHeight - 62, { lineBreak: false });
     doc.font(fontRegular).fontSize(10).fillColor("#A09880")
        .text("www.everwill.co.kr", margin + 24, pageHeight - 40, { lineBreak: false });
-    doc.restore();
+    // 커서를 원래 위치로 강제 복원 (새 페이지 자동 생성 방지)
+    (doc as any).y = _coverSavedY;
 
     // ════════════════════════════════════════════════════════════════════
     // 페이지 1: 인증서 표지 + 제1조 유언자 정보
@@ -756,6 +760,11 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     doc.rect(0, pageHeight - 100, pageWidth, 100).fill(`rgb(${pr},${pg},${pb})`);
     doc.rect(0, 150, pageWidth, 4).fill(`rgb(${ar},${ag},${ab})`);
     doc.rect(0, pageHeight - 104, pageWidth, 4).fill(`rgb(${ar},${ag},${ab})`);
+
+    // 페이지 1 푸터: EverWill 로고만 (PDFKit 커서 이동 최소화)
+    // 주의: doc.text()로 pageHeight 근처 글자를 그리면 커서가 페이지 하단으로 이동해 새 페이지가 자동 생성됨
+    // 따라서 푸터 텍스트는 최소한으로 유지하고 커서를 헤더 영역(y=30)으로 복원
+    (doc as any).y = 30;
 
     // EverWill 로고
     doc.font(fontBold).fontSize(14).fillColor(`rgb(${ar},${ag},${ab})`).text("EverWill", margin, 30, { align: "left" });
@@ -790,13 +799,20 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     let y = certBoxY + 80;
     y = drawSectionHeader(doc, config.lang === "ko" ? "제1조 유언자 정보" : config.lang === "ja" ? "第1条 遺言者情報" : config.lang === "zh" ? "第一条 立遗嘱人信息" : "Article 1: Testator Information", y, margin, contentWidth, config, fontBold);
 
-    const info1Rows = [
+    // 주민등록번호 표시 (있을 때만)
+    const rrnDisplay = data.testatorRRN ?? data.testatorBirthDate ?? "-";
+    const info1Rows: string[][] = [
       [config.testatorLabel, data.testatorName],
-      [config.lang === "ko" ? "생년월일" : config.lang === "ja" ? "生年月日" : "Date of Birth", data.testatorBirthDate ?? "-"],
+      [config.lang === "ko" ? "주민등록번호" : config.lang === "ja" ? "住民登録番号" : "ID Number", rrnDisplay],
       [config.lang === "ko" ? "주소" : config.lang === "ja" ? "住所" : "Address", data.testatorAddress ?? "-"],
+    ];
+    if (data.testatorPhone) {
+      info1Rows.push([config.lang === "ko" ? "연락처" : config.lang === "ja" ? "連絡先" : "Phone", data.testatorPhone]);
+    }
+    info1Rows.push(
       [config.lang === "ko" ? "유언장 제목" : config.lang === "ja" ? "遺言書タイトル" : "Will Title", data.willTitle],
       [config.purposeLabel, data.purpose],
-    ];
+    );
 
     info1Rows.forEach((row, i) => {
       const ry = y + i * 32;
@@ -829,15 +845,6 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     doc.rect(margin + contentWidth - 200, signY, 200, 1).fill("#333");
     doc.font(fontBold).fontSize(9).fillColor("#333").text(config.signatureLabel, margin + contentWidth - 200, signY + 6, { width: 200, align: "center" });
     doc.font(fontRegular).fontSize(8).fillColor("#555").text(config.issuerName, margin + contentWidth - 200, signY + 20, { width: 200, align: "center" });
-
-    // 푸터: save/restore로 감싸 PDFKit 커서 이동 방지
-    doc.save();
-    doc.font(fontBold).fontSize(10).fillColor(`rgb(${ar},${ag},${ab})`).text("EverWill", margin, pageHeight - 80, { lineBreak: false });
-    doc.font(fontRegular).fontSize(7.5).fillColor("rgba(255,255,255,0.8)").text(config.issuerSubtitle, margin, pageHeight - 65, { width: contentWidth, lineBreak: false });
-    doc.font(fontRegular).fontSize(7).fillColor("rgba(255,255,255,0.6)").text(`https://everwill.co.kr  |  support@everwill.co.kr`, margin, pageHeight - 48, { width: contentWidth, align: "right", lineBreak: false });
-    const issuedAt = new Date().toLocaleString("en-US", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Seoul" });
-    doc.font(fontRegular).fontSize(7).fillColor("rgba(255,255,255,0.5)").text(`Issued: ${issuedAt} KST  |  Page 1`, margin, pageHeight - 30, { width: contentWidth, align: "right", lineBreak: false });
-    doc.restore();
 
     // 페이지 1 스탬프
     drawPageStamp(doc, config, sealExists);
@@ -985,9 +992,10 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
       let yw = 70;
       yw = drawSectionHeader(doc, config.willTextTitle, yw, margin, contentWidth, config, fontBold);
 
-      // 유언 전문 박스
-      doc.rect(margin, yw, contentWidth, pageHeight - yw - 120).fill("#FFFEF8");
-      doc.rect(margin, yw, contentWidth, pageHeight - yw - 120).stroke("#E0D5B0").lineWidth(1);
+      // 유언 전문 박스: 서명란 공간(160px) 확보를 위해 높이 제한
+      const willBoxH = pageHeight - yw - 170; // 하단 170px 여백 (서명란)
+      doc.rect(margin, yw, contentWidth, willBoxH).fill("#FFFEF8");
+      doc.rect(margin, yw, contentWidth, willBoxH).stroke("#E0D5B0").lineWidth(1);
 
       // 유언 전문 텍스트
       doc
@@ -996,9 +1004,12 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
         .fillColor("#1A1A1A")
         .text(data.willText, margin + 20, yw + 20, {
           width: contentWidth - 40,
+          height: willBoxH - 40, // 박스 내부에만 출력 (넘치면 잘라냄)
           lineGap: 4,
           align: "justify",
         });
+      // 텍스트 출력 후 커서를 박스 끝으로 이동
+      (doc as any).y = yw + willBoxH + 8;
 
       // ── 중앙 대형 인증 도장 ──────────────────────────────────────────
       const stampCX = pageWidth / 2;
@@ -1029,6 +1040,27 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
           doc.opacity(0.20);
           doc.image(sealBuffer ?? SEAL_PATH, stampCX - 55, stampCY - 55, { width: 110 });
           doc.restore();
+        } catch { /* 무시 */ }
+      }
+
+      // ── 유언자 서명란 (유언 전문 박스 아래, doc.y 기준 상대 좌표) ──────────
+      // 유언 전문 박스 아래 서명란만 배치 (날짜/유언자/주소는 willText 원문에 이미 포함됨)
+      // 박스 하단 고정 위치 사용 (doc.y 대신 yw + willBoxH 기준)
+      const wsY = yw + willBoxH + 8;
+      // 구분선
+      doc.moveTo(margin, wsY).lineTo(margin + contentWidth, wsY).strokeColor("#CCC").lineWidth(0.5).stroke();
+      // 서명란 (오른쪽 정렬)
+      const sigLineX = margin + contentWidth - 220;
+      const sigY = wsY + 10;
+      doc.font(fontRegular).fontSize(8).fillColor("#555")
+        .text(config.lang === "ko" ? "서명:" : "Signature:", sigLineX - 35, sigY, { lineBreak: false });
+      doc.moveTo(sigLineX, sigY + 14).lineTo(sigLineX + 160, sigY + 14).strokeColor("#333").lineWidth(0.7).stroke();
+      doc.font(fontRegular).fontSize(8).fillColor("#555")
+        .text("(인)", sigLineX + 165, sigY, { lineBreak: false });
+      // 서명 이미지 (있을 때)
+      if (data.signatureImageBuffer) {
+        try {
+          doc.image(data.signatureImageBuffer, sigLineX, sigY - 10, { width: 160, height: 40 });
         } catch { /* 무시 */ }
       }
     }

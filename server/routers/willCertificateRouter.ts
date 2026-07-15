@@ -263,12 +263,36 @@ export const willCertificateRouter = router({
         "유언 내용이 등록되어 있지 않습니다.";
 
       // ── PDF 생성 ─────────────────────────────────────────────────────────────
+      // 서명 이미지 로드 (assetVerifications 테이블에서)
+      let signatureImageBuffer: Buffer | null = null;
+      try {
+        const { assetVerifications } = await import("../../drizzle/schema");
+        const sigRows = await db
+          .select({ signatureUrl: assetVerifications.signatureUrl, signatureKey: assetVerifications.signatureKey })
+          .from(assetVerifications)
+          .where(eq(assetVerifications.userId, userId))
+          .orderBy(desc(assetVerifications.createdAt))
+          .limit(1);
+        const sigRow = sigRows[0];
+        if (sigRow?.signatureKey) {
+          const { storageGetSignedUrl } = await import("../storage");
+          const signedUrl = await storageGetSignedUrl(sigRow.signatureKey);
+          const sigRes = await fetch(signedUrl);
+          if (sigRes.ok) signatureImageBuffer = Buffer.from(await sigRes.arrayBuffer());
+        } else if (sigRow?.signatureUrl) {
+          const sigRes = await fetch(sigRow.signatureUrl);
+          if (sigRes.ok) signatureImageBuffer = Buffer.from(await sigRes.arrayBuffer());
+        }
+      } catch { /* 서명 이미지 로드 실패 시 무시 */ }
+
       const pdfBuffer = await generateWillCertificatePDF({
         certNumber,
         certifiedAt: new Date(certifiedAt),
         testatorName: user?.name ?? willData.testatorName ?? "유언자",
         testatorBirthDate: user?.birthDate ?? willData.testatorBirthDate ?? undefined,
+        testatorRRN: willData.testatorRRN ?? undefined,
         testatorAddress: user?.address ?? willData.testatorAddress ?? undefined,
+        testatorPhone: user?.phone ?? willData.testatorPhone ?? undefined,
         willTitle: willRecord?.title ?? "유언장",
         willText,
         purpose: certRecord?.purpose ?? "유언장 인증 확인용",
@@ -277,6 +301,7 @@ export const willCertificateRouter = router({
         assets: assetData,
         heirs: heirData,
         attachments: attachmentData,
+        signatureImageBuffer,
       });
 
       // ── S3 업로드 ────────────────────────────────────────────────────────────
@@ -562,13 +587,46 @@ export const willCertificateRouter = router({
         });
       }
 
+      // 서명 이미지 로드 (assetVerifications 테이블에서)
+      let signatureImageBufferPreview: Buffer | null = null;
+      try {
+        const { assetVerifications } = await import("../../drizzle/schema");
+        const sigRows = await db
+          .select({ signatureUrl: assetVerifications.signatureUrl, signatureKey: assetVerifications.signatureKey })
+          .from(assetVerifications)
+          .where(eq(assetVerifications.userId, userId))
+          .orderBy(desc(assetVerifications.createdAt))
+          .limit(1);
+        const sigRow = sigRows[0];
+        if (sigRow?.signatureKey) {
+          const { storageGetSignedUrl } = await import("../storage");
+          const signedUrl = await storageGetSignedUrl(sigRow.signatureKey);
+          const sigRes = await fetch(signedUrl);
+          if (sigRes.ok) signatureImageBufferPreview = Buffer.from(await sigRes.arrayBuffer());
+        } else if (sigRow?.signatureUrl) {
+          const sigRes = await fetch(sigRow.signatureUrl);
+          if (sigRes.ok) signatureImageBufferPreview = Buffer.from(await sigRes.arrayBuffer());
+        }
+      } catch { /* 서명 이미지 로드 실패 시 무시 */ }
+
+      // willData에서 testatorRRN, testatorPhone 추출
+      let previewRRN: string | undefined;
+      let previewPhone: string | undefined;
+      try {
+        const wd = willRecord?.data ? JSON.parse(willRecord.data) : {};
+        previewRRN = wd.testatorRRN ?? undefined;
+        previewPhone = wd.testatorPhone ?? undefined;
+      } catch { /* 무시 */ }
+
       // PDF 생성 (S3 저장 없이 buffer만 반환)
       const pdfBuffer = await generateWillCertificatePDF({
         certNumber,
         certifiedAt: new Date(certifiedAt),
         testatorName: user?.name ?? "유언자",
         testatorBirthDate: user?.birthDate ?? undefined,
+        testatorRRN: previewRRN,
         testatorAddress: user?.address ?? undefined,
+        testatorPhone: user?.phone ?? previewPhone ?? undefined,
         willTitle,
         willText,
         purpose,
@@ -576,6 +634,7 @@ export const willCertificateRouter = router({
         assets: assetData,
         heirs: heirData,
         attachments: attachmentData,
+        signatureImageBuffer: signatureImageBufferPreview,
       });
 
       // base64로 변환하여 반환 (브라우저 내 렌더링용)
