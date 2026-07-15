@@ -131,8 +131,39 @@ export default function Step2Assets({ onComplete }: Props) {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) { toast.error("이미지 파일만 업로드 가능합니다."); return; }
+    // 허용 파일 형식: 이미지, PDF, Word, Excel, HWP 등 모든 문서
+    const allowedTypes = [
+      "image/", "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/haansofthwp", "application/x-hwp",
+      "text/plain",
+    ];
+    const isAllowed = allowedTypes.some((t) => file.type.startsWith(t)) || file.name.match(/\.(pdf|hwp|hwpx|doc|docx|xls|xlsx|txt)$/i);
+    if (!isAllowed) { toast.error("지원하지 않는 파일 형식입니다. (이미지·PDF·Word·Excel·HWP 가능)"); return; }
     if (file.size > 20 * 1024 * 1024) { toast.error("파일 크기는 20MB 이하여야 합니다."); return; }
+
+    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    const isImage = file.type.startsWith("image/");
+
+    // PDF 또는 문서 파일: 파일 아이콘 미리보기 + 파일명 표시
+    if (!isImage) {
+      setScanPreview(`__file__:${file.name}`);
+      setScanResult(null);
+      // base64로 변환 후 서버 전송
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const dataUrl = ev.target?.result as string;
+        scanMutation.mutate({ imageUrl: dataUrl, docTypeHint: scanDocType as any });
+      };
+      reader.readAsDataURL(file);
+      e.target.value = "";
+      return;
+    }
+
+    // 이미지 파일: 기존 방식
     const reader = new FileReader();
     reader.onload = (ev) => {
       const dataUrl = ev.target?.result as string;
@@ -310,12 +341,11 @@ export default function Step2Assets({ onComplete }: Props) {
               </div>
             </div>
 
-            {/* 파일 입력 (숨김) */}
+            {/* 파일 입력 (숨김) - 이미지·PDF·Word·Excel·HWP 모두 허용 */}
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
-              capture="environment"
+              accept="image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx,.hwp,.hwpx,.txt"
               className="hidden"
               onChange={handleFileSelect}
             />
@@ -324,7 +354,15 @@ export default function Step2Assets({ onComplete }: Props) {
             {scanPreview ? (
               <div className="space-y-3">
                 <div className="relative rounded-xl overflow-hidden border border-gray-200">
-                  <img src={scanPreview} alt="업로드된 서류" className="w-full max-h-64 object-contain bg-gray-50" />
+                  {scanPreview.startsWith("__file__:") ? (
+                    <div className="w-full h-40 bg-gray-50 flex flex-col items-center justify-center gap-2">
+                      <FileText className="w-12 h-12 text-[#1F3864]/60" />
+                      <p className="text-sm font-semibold text-gray-700 px-4 text-center break-all">{scanPreview.replace("__file__:", "")}</p>
+                      <p className="text-xs text-gray-400">문서 파일 업로드 완료</p>
+                    </div>
+                  ) : (
+                    <img src={scanPreview} alt="업로드된 서류" className="w-full max-h-64 object-contain bg-gray-50" />
+                  )}
                   {scanMutation.isPending && (
                     <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center gap-3">
                       <Loader2 className="w-10 h-10 text-[#1F3864] animate-spin" />
@@ -354,23 +392,23 @@ export default function Step2Assets({ onComplete }: Props) {
               /* 업로드 영역 */
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-[#1F3864]/30 rounded-2xl p-10 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-[#1F3864]/60 hover:bg-[#1F3864]/3 transition-all"
+                className="border-2 border-dashed border-[#1F3864]/30 rounded-2xl p-8 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-[#1F3864]/60 hover:bg-[#1F3864]/3 transition-all"
               >
                 <div className="w-16 h-16 rounded-2xl bg-[#1F3864]/10 flex items-center justify-center">
-                  <Camera className="w-8 h-8 text-[#1F3864]" />
+                  <Upload className="w-8 h-8 text-[#1F3864]" />
                 </div>
                 <div className="text-center">
-                  <p className="text-base font-bold text-gray-700">서류 사진을 찍거나 선택하세요</p>
-                  <p className="text-sm text-gray-400 mt-1">카메라 촬영 또는 갤러리에서 선택</p>
+                  <p className="text-base font-bold text-gray-700">서류 파일을 업로드하세요</p>
+                  <p className="text-sm text-gray-400 mt-1">이미지·PDF·Word·Excel·HWP 모두 가능</p>
                 </div>
-                <div className="flex gap-3">
-                  <span className="px-4 py-2 bg-[#1F3864] text-white rounded-lg text-sm font-semibold flex items-center gap-1.5">
-                    <Camera className="w-4 h-4" /> 촬영
-                  </span>
-                  <span className="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-semibold flex items-center gap-1.5">
-                    <Upload className="w-4 h-4" /> 파일 선택
-                  </span>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <span className="px-3 py-1.5 bg-[#1F3864] text-white rounded-lg text-xs font-semibold">이미지 (JPG·PNG)</span>
+                  <span className="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-semibold">PDF</span>
+                  <span className="px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg text-xs font-semibold">Word</span>
+                  <span className="px-3 py-1.5 bg-green-50 text-green-600 border border-green-200 rounded-lg text-xs font-semibold">Excel</span>
+                  <span className="px-3 py-1.5 bg-sky-50 text-sky-600 border border-sky-200 rounded-lg text-xs font-semibold">HWP</span>
                 </div>
+                <p className="text-xs text-gray-400">등기부등본·잔액증명서·보험증권 등 최대 20MB</p>
               </div>
             )}
           </div>

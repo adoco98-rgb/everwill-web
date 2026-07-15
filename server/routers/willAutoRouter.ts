@@ -467,6 +467,21 @@ ${dateStr}
       const userId = userRows[0].id;
       const docTypeHint = input.docTypeHint || "other";
 
+      // ── 파일 유형 판단 ──
+      const rawDataUrl = input.imageUrl;
+      const mimeTypeMatch = rawDataUrl.match(/^data:([^;]+);base64,/);
+      const fileMimeType = mimeTypeMatch ? mimeTypeMatch[1] : "image/jpeg";
+      const isPdfFile = fileMimeType === "application/pdf";
+      const isDocFile = [
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/haansofthwp", "application/x-hwp",
+        "text/plain",
+      ].includes(fileMimeType);
+      const isImageFile = fileMimeType.startsWith("image/");
+
       // ── AI OCR 분석 ──
       let ocrResult: any = {
         detectedDocType: docTypeHint,
@@ -477,18 +492,34 @@ ${dateStr}
         confidence: "low", estimatedValue: null,
       };
       try {
+        // PDF는 file_url 타입으로 전송, 다른 문서는 텍스트 설명만 전송
+        let userContent: any[];
+        if (isPdfFile) {
+          userContent = [
+            { type: "text", text: `이 자산증명서 PDF(${DOC_TYPE_LABELS[docTypeHint]})를 분석해주세요.` },
+            { type: "file_url", file_url: { url: rawDataUrl, mime_type: "application/pdf" } },
+          ];
+        } else if (isImageFile) {
+          userContent = [
+            { type: "text", text: `이 자산증명서(${DOC_TYPE_LABELS[docTypeHint]})를 분석해주세요.` },
+            { type: "image_url", image_url: { url: rawDataUrl, detail: "high" } },
+          ];
+        } else {
+          // Word/Excel/HWP 등 기타 문서: 파일명에서 자산 유형 추정 후 텍스트만 전송
+          userContent = [
+            { type: "text", text: `다음 자산 서류(${DOC_TYPE_LABELS[docTypeHint]})에 대한 정보를 추출해주세요. 파일 형식: ${fileMimeType}. 서류 종류에 맞는 기본 정보를 JSON으로 반환하세요.` },
+          ];
+        }
+
         const response = await invokeLLM({
           messages: [
             {
               role: "system",
-              content: `당신은 한국 자산증명서 OCR 전문가입니다. 이미지에서 자산 정보를 추출하세요. 힌트: "${DOC_TYPE_LABELS[docTypeHint]}". 계좌번호/주민번호는 마지막 4자리만 표시. JSON만 반환.`,
+              content: `당신은 한국 자산증명서 OCR 전문가입니다. 파일에서 자산 정보를 추출하세요. 힌트: "${DOC_TYPE_LABELS[docTypeHint]}". 계좌번호/주민번호는 마지막 4자리만 표시. JSON만 반환.`,
             },
             {
               role: "user",
-              content: [
-                { type: "text", text: `이 자산증명서(${DOC_TYPE_LABELS[docTypeHint]})를 분석해주세요.` },
-                { type: "image_url", image_url: { url: input.imageUrl, detail: "high" } },
-              ],
+              content: userContent,
             },
           ],
           response_format: {
@@ -527,22 +558,34 @@ ${dateStr}
         console.error("[willAuto] OCR 실패:", e);
       }
 
-      // ── S3에 이미지 저장 ──
+      // ── S3에 파일 저장 (이미지·PDF·문서 모두) ──
       let savedImageKey: string | null = null;
       let savedImageUrl: string | null = null;
       try {
-        if (input.imageUrl.startsWith("data:")) {
-          const matches = input.imageUrl.match(/^data:([^;]+);base64,(.+)$/);
+        if (rawDataUrl.startsWith("data:")) {
+          const matches = rawDataUrl.match(/^data:([^;]+);base64,(.+)$/);
           if (matches) {
             const mimeType = matches[1];
             const buffer = Buffer.from(matches[2], "base64");
-            const ext = mimeType.split("/")[1] || "jpg";
-            const { key, url } = await storagePut(`asset-scans/${userId}/${Date.now()}.${ext}`, buffer, mimeType);
+            // MIME 타입별 확장자 매핑
+            const extMap: Record<string, string> = {
+              "application/pdf": "pdf",
+              "application/msword": "doc",
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+              "application/vnd.ms-excel": "xls",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+              "application/haansofthwp": "hwp",
+              "application/x-hwp": "hwp",
+              "text/plain": "txt",
+            };
+            const ext = extMap[mimeType] || mimeType.split("/")[1] || "bin";
+            const folder = isPdfFile || isDocFile ? "asset-docs" : "asset-scans";
+            const { key, url } = await storagePut(`${folder}/${userId}/${Date.now()}.${ext}`, buffer, mimeType);
             savedImageKey = key;
             savedImageUrl = url;
           }
-        } else if (input.imageUrl.startsWith("http")) {
-          savedImageUrl = input.imageUrl;
+        } else if (rawDataUrl.startsWith("http")) {
+          savedImageUrl = rawDataUrl;
         }
       } catch (e) {
         console.error("[willAuto] S3 저장 실패:", e);
