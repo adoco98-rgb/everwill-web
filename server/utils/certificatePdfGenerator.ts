@@ -738,10 +738,13 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     });
 
     // 하단 회사명 + 웹사이트
+    // 겉표지 하단 텍스트: save/restore로 감싸 PDFKit 커서 이동 방지
+    doc.save();
     doc.font(fontBold).fontSize(14).fillColor("#FFFFFF")
-       .text(isKo ? "주식회사 사람" : "Saram Co., Ltd.", margin + 24, pageHeight - 62);
+       .text(isKo ? "주식회사 사람" : "Saram Co., Ltd.", margin + 24, pageHeight - 62, { lineBreak: false });
     doc.font(fontRegular).fontSize(10).fillColor("#A09880")
-       .text("www.everwill.co.kr", margin + 24, pageHeight - 40);
+       .text("www.everwill.co.kr", margin + 24, pageHeight - 40, { lineBreak: false });
+    doc.restore();
 
     // ════════════════════════════════════════════════════════════════════
     // 페이지 1: 인증서 표지 + 제1조 유언자 정보
@@ -827,12 +830,14 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     doc.font(fontBold).fontSize(9).fillColor("#333").text(config.signatureLabel, margin + contentWidth - 200, signY + 6, { width: 200, align: "center" });
     doc.font(fontRegular).fontSize(8).fillColor("#555").text(config.issuerName, margin + contentWidth - 200, signY + 20, { width: 200, align: "center" });
 
-    // 푸터
-    doc.font(fontBold).fontSize(10).fillColor(`rgb(${ar},${ag},${ab})`).text("EverWill", margin, pageHeight - 80);
-    doc.font(fontRegular).fontSize(7.5).fillColor("rgba(255,255,255,0.8)").text(config.issuerSubtitle, margin, pageHeight - 65, { width: contentWidth });
-    doc.font(fontRegular).fontSize(7).fillColor("rgba(255,255,255,0.6)").text(`https://everwill.co.kr  |  support@everwill.co.kr`, margin, pageHeight - 48, { width: contentWidth, align: "right" });
+    // 푸터: save/restore로 감싸 PDFKit 커서 이동 방지
+    doc.save();
+    doc.font(fontBold).fontSize(10).fillColor(`rgb(${ar},${ag},${ab})`).text("EverWill", margin, pageHeight - 80, { lineBreak: false });
+    doc.font(fontRegular).fontSize(7.5).fillColor("rgba(255,255,255,0.8)").text(config.issuerSubtitle, margin, pageHeight - 65, { width: contentWidth, lineBreak: false });
+    doc.font(fontRegular).fontSize(7).fillColor("rgba(255,255,255,0.6)").text(`https://everwill.co.kr  |  support@everwill.co.kr`, margin, pageHeight - 48, { width: contentWidth, align: "right", lineBreak: false });
     const issuedAt = new Date().toLocaleString("en-US", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Seoul" });
-    doc.font(fontRegular).fontSize(7).fillColor("rgba(255,255,255,0.5)").text(`Issued: ${issuedAt} KST  |  Page 1`, margin, pageHeight - 30, { width: contentWidth, align: "right" });
+    doc.font(fontRegular).fontSize(7).fillColor("rgba(255,255,255,0.5)").text(`Issued: ${issuedAt} KST  |  Page 1`, margin, pageHeight - 30, { width: contentWidth, align: "right", lineBreak: false });
+    doc.restore();
 
     // 페이지 1 스탬프
     drawPageStamp(doc, config, sealExists);
@@ -1152,13 +1157,28 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
         doc.restore();
       }
 
-      // 하단 법적 고지
-      doc.font(fontRegular).fontSize(7.5).fillColor("#888").text(
-        config.lang === "ko"
-          ? "※ 본 첨부서류 목록은 유언자가 직접 업로드한 파일의 목록입니다. EverWill은 서류의 진위 여부를 보증하지 않으며, 최종 법적 효력은 관할 법원의 판단에 따릅니다."
-          : "* This attachment list records files directly uploaded by the testator. EverWill does not guarantee the authenticity of documents; final legal validity is subject to court determination.",
-        margin, ya, { width: contentWidth }
-      );
+      // 하단 법적 고지: 이미지 루프 이후 현재 페이지 좌표 기준으로 새 위치 계산
+      // (이미지 루프에서 addPage()가 여러 번 호출되어 ya는 이전 페이지 좌표일 수 있음)
+      const legalNoteText = config.lang === "ko"
+        ? "※ 본 첨부서류 목록은 유언자가 직접 업로드한 파일의 목록입니다. EverWill은 서류의 진위 여부를 보증하지 않으며, 최종 법적 효력은 관할 법원의 판단에 따릅니다."
+        : "* This attachment list records files directly uploaded by the testator. EverWill does not guarantee the authenticity of documents; final legal validity is subject to court determination.";
+      // 현재 페이지에서 ya가 유효한 범위인지 확인
+      const currentY = doc.y;
+      const legalY = Math.max(ya, currentY + 10);
+      if (legalY < pageHeight - 60) {
+        doc.font(fontRegular).fontSize(7.5).fillColor("#888").text(
+          legalNoteText,
+          margin, legalY, { width: contentWidth }
+        );
+      } else {
+        // 공간 부족 시 새 페이지에 출력
+        doc.addPage();
+        drawPageStamp(doc, config, sealExists);
+        doc.font(fontRegular).fontSize(7.5).fillColor("#888").text(
+          legalNoteText,
+          margin, 70, { width: contentWidth }
+        );
+      }
     }
 
     doc.end();

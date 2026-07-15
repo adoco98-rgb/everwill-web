@@ -210,20 +210,36 @@ export const willCertificateRouter = router({
       }
       // 공증서류도 첨부파일로 추가
       for (const doc of notarizationRows) {
-        const isImage = doc.fileKey && (doc.fileKey.endsWith('.jpg') || doc.fileKey.endsWith('.jpeg') || doc.fileKey.endsWith('.png'));
+        // 파일명으로 이미지 여부 판단 (fileType 커럼 없음)
+        const fname = (doc.fileName ?? doc.fileKey ?? "").toLowerCase();
+        const isImage = /\.(jpg|jpeg|png|webp|gif|bmp)$/.test(fname);
         let fileBytes: Buffer | null = null;
-        if (isImage && doc.fileKey) {
+        if (isImage) {
           try {
-            const signedUrl = await storageGetSignedUrl(doc.fileKey);
-            const res = await fetch(signedUrl);
-            if (res.ok) {
-              fileBytes = Buffer.from(await res.arrayBuffer());
+            // presigned URL 시도
+            if (doc.fileKey) {
+              const signedUrl = await storageGetSignedUrl(doc.fileKey);
+              const res = await fetch(signedUrl);
+              if (res.ok) {
+                fileBytes = Buffer.from(await res.arrayBuffer());
+              }
+            }
+            // presigned URL 실패 시 fileUrl 직접 fallback
+            if (!fileBytes && doc.fileUrl) {
+              const res2 = await fetch(doc.fileUrl);
+              if (res2.ok) {
+                fileBytes = Buffer.from(await res2.arrayBuffer());
+              }
             }
           } catch { /* 무시 */ }
         }
+        // 실제 fileType 추정
+        const detectedFileType = isImage
+          ? (fname.endsWith('.png') ? 'image/png' : fname.endsWith('.webp') ? 'image/webp' : 'image/jpeg')
+          : 'application/pdf';
         attachmentData.push({
           fileName: doc.fileName ?? doc.docName ?? "공증서류",
-          fileType: isImage ? "image/jpeg" : "application/pdf",
+          fileType: detectedFileType,
           category: "notarization",
           description: doc.docName ?? undefined,
           fileSize: doc.fileSize ?? 0,
@@ -236,7 +252,10 @@ export const willCertificateRouter = router({
       }
 
       // ── 유언 전문 추출 ────────────────────────────────────────────────────────
+      // willContent: 10단계 마법사 최종 생성 텍스트 (가장 우선)
+      // draftText/aiDraft/willText: 구버전 필드명
       const willText =
+        willData.willContent ??
         willData.draftText ??
         willData.aiDraft ??
         willData.willText ??
@@ -425,7 +444,7 @@ export const willCertificateRouter = router({
         certNumber = certRecord.issueNumber ?? willRecord?.certNumber ?? `EW-${new Date().getFullYear()}-${String(certRecord.id).padStart(6, "0")}`;
         certifiedAt = certRecord.processedAt ?? willRecord?.certifiedAt ?? new Date();
         const willData = willRecord?.data ? JSON.parse(willRecord.data) : {};
-        willText = willData.draftText ?? willData.aiDraft ?? willData.willText ?? willRecord?.title ?? "유언 내용이 등록되어 있지 않습니다.";
+        willText = willData.willContent ?? willData.draftText ?? willData.aiDraft ?? willData.willText ?? willRecord?.title ?? "유언 내용이 등록되어 있지 않습니다.";
         willTitle = willRecord?.title ?? "유언장";
         purpose = certRecord.purpose ?? "유언장 인증 확인용";
       } else if (!input.isSample && input.willId) {
@@ -441,7 +460,7 @@ export const willCertificateRouter = router({
         certNumber = willRecord.certNumber ?? `EW-${new Date().getFullYear()}${String(new Date().getMonth()+1).padStart(2,'0')}${String(new Date().getDate()).padStart(2,'0')}-${String(userId).slice(-4)}${String(input.willId).padStart(4,'0')}`;
         certifiedAt = willRecord.certifiedAt ?? new Date();
         const willData = willRecord.data ? JSON.parse(willRecord.data) : {};
-        willText = willData.draftText ?? willData.aiDraft ?? willData.willText ?? willRecord.title ?? "유언 내용이 등록되어 있지 않습니다.";
+        willText = willData.willContent ?? willData.draftText ?? willData.aiDraft ?? willData.willText ?? willRecord.title ?? "유언 내용이 등록되어 있지 않습니다.";
         willTitle = willRecord.title ?? "유언장";
         purpose = "유언장 인증 확인용";
       } else {
@@ -506,20 +525,32 @@ export const willCertificateRouter = router({
       }
       // 공증서류도 첨부파일로 추가
       for (const doc of notarizationRowsPreview) {
-        const isImage = doc.fileKey && (doc.fileKey.endsWith('.jpg') || doc.fileKey.endsWith('.jpeg') || doc.fileKey.endsWith('.png'));
+        const fname2 = (doc.fileName ?? doc.fileKey ?? "").toLowerCase();
+        const isImage2 = /\.(jpg|jpeg|png|webp|gif|bmp)$/.test(fname2);
         let fileBytes: Buffer | null = null;
-        if (isImage && doc.fileKey) {
+        if (isImage2) {
           try {
-            const signedUrl = await storageGetSignedUrl(doc.fileKey);
-            const res = await fetch(signedUrl);
-            if (res.ok) {
-              fileBytes = Buffer.from(await res.arrayBuffer());
+            if (doc.fileKey) {
+              const signedUrl = await storageGetSignedUrl(doc.fileKey);
+              const res = await fetch(signedUrl);
+              if (res.ok) {
+                fileBytes = Buffer.from(await res.arrayBuffer());
+              }
+            }
+            if (!fileBytes && doc.fileUrl) {
+              const res2 = await fetch(doc.fileUrl);
+              if (res2.ok) {
+                fileBytes = Buffer.from(await res2.arrayBuffer());
+              }
             }
           } catch { /* 무시 */ }
         }
+        const detectedFileType2 = isImage2
+          ? (fname2.endsWith('.png') ? 'image/png' : fname2.endsWith('.webp') ? 'image/webp' : 'image/jpeg')
+          : 'application/pdf';
         attachmentData.push({
           fileName: doc.fileName ?? doc.docName ?? "공증서류",
-          fileType: isImage ? "image/jpeg" : "application/pdf",
+          fileType: detectedFileType2,
           category: "notarization",
           description: doc.docName ?? undefined,
           fileSize: doc.fileSize ?? 0,
