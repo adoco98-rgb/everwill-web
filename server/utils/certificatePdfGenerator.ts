@@ -36,7 +36,42 @@ const FONTS_DIR = resolveFontsDir();
 const SEAL_PATH  = path.join(__dirname, "../../everwill_seal.png");
 const STAMP_PATH = path.join(__dirname, "../../everwill_stamp_red_v2.png");
 
-// ─── 폰트 경로 ───────────────────────────────────────────────────────────────
+/** S3에서 이미지 버퍼 다운로드 */
+async function fetchImageBuffer(storageKey: string): Promise<Buffer | null> {
+  try {
+    const forgeBase = (process.env.BUILT_IN_FORGE_API_URL || '').replace(/\/+$/, '');
+    const forgeKey  = process.env.BUILT_IN_FORGE_API_KEY || '';
+    if (!forgeBase || !forgeKey) return null;
+    const presignRes = await fetch(`${forgeBase}/v1/storage/presign/get?path=${storageKey}`, {
+      headers: { Authorization: `Bearer ${forgeKey}` },
+    });
+    if (!presignRes.ok) return null;
+    const { url } = (await presignRes.json()) as { url: string };
+    if (!url) return null;
+    const imgRes = await fetch(url);
+    if (!imgRes.ok) return null;
+    return Buffer.from(await imgRes.arrayBuffer());
+  } catch { return null; }
+}
+
+let _sealBuffer: Buffer | null | undefined = undefined;
+let _stampBuffer: Buffer | null | undefined = undefined;
+
+async function getSealBuffer(): Promise<Buffer | null> {
+  if (_sealBuffer !== undefined) return _sealBuffer;
+  _sealBuffer = await fetchImageBuffer('everwill_seal_1201eb2b.png');
+  if (!_sealBuffer && fs.existsSync(SEAL_PATH)) _sealBuffer = fs.readFileSync(SEAL_PATH);
+  return _sealBuffer ?? null;
+}
+
+async function getStampBuffer(): Promise<Buffer | null> {
+  if (_stampBuffer !== undefined) return _stampBuffer;
+  _stampBuffer = await fetchImageBuffer('everwill_stamp_red_v2_643d7639.png');
+  if (!_stampBuffer && fs.existsSync(STAMP_PATH)) _stampBuffer = fs.readFileSync(STAMP_PATH);
+  return _stampBuffer ?? null;
+}
+
+// ─── 폰트 경로 ────────────────────────────────────────────────────────────────────────────
 const FONT_CJK_REGULAR = path.join(FONTS_DIR, "NotoSansCJK-Regular.otf");
 const FONT_CJK_BOLD    = path.join(FONTS_DIR, "NotoSansCJK-Bold.otf");
 
@@ -409,24 +444,25 @@ export interface CertificateData {
 function drawPageStamp(
   doc: InstanceType<typeof PDFDocument>,
   config: CountryCertConfig,
-  sealExists: boolean
+  sealExists: boolean,
+  sealBuf?: Buffer | null
 ) {
   const pageWidth  = doc.page.width;
   const pageHeight = doc.page.height;
   const [pr, pg, pb] = config.primaryColor;
 
   // 중앙 로고 워터마크 (이미지)
-  if (sealExists) {
+  if (sealExists && sealBuf) {
     try {
       doc.save();
       doc.opacity(0.09);
       const logoSize = 180;
-      doc.image(SEAL_PATH, pageWidth / 2 - logoSize / 2, pageHeight / 2 - logoSize / 2, { width: logoSize });
+      doc.image(sealBuf, pageWidth / 2 - logoSize / 2, pageHeight / 2 - logoSize / 2, { width: logoSize });
       doc.restore();
     } catch { /* 무시 */ }
   }
 
-  // 씰 이미지만 흐릿하게 (투명도 5%) - 텍스트 워터마크 없음
+  // 씰 이미지만 흡릿하게 (투명도 5%) - 텍스트 워터마크 없음
 }
 
 // ─── 헬퍼: 섹션 헤더 그리기 ──────────────────────────────────────────────────
@@ -523,10 +559,14 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
   }
   const resolvedData: CertificateData = { ...data, attachments: attachWithBytes };
 
+  // S3에서 이미지 버퍼 미리 로드 (async 컨텍스트)
+  const sealBuffer  = await getSealBuffer();
+  const stampBuffer = await getStampBuffer();
+
   return new Promise((resolve, reject) => {
     const data = resolvedData;
     const config = COUNTRY_CONFIGS[data.country.toUpperCase()] ?? DEFAULT_CONFIG;
-    const sealExists = fs.existsSync(SEAL_PATH);
+    const sealExists = sealBuffer !== null;
 
     const doc = new PDFDocument({
       size: "A4",
@@ -583,7 +623,7 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     // ════════════════════════════════════════════════════════════════════
     // 겉표지 페이지 (Cover Page)
     // ════════════════════════════════════════════════════════════════════
-    const stampExists = fs.existsSync(STAMP_PATH);
+    const stampExists = stampBuffer !== null;
     const isKo = config.lang === "ko";
 
     // 흰 배경
@@ -612,8 +652,8 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     const sealSize = 170;
     const sealX = (pageWidth - sealSize) / 2;
     const sealY = 14 + 28; // 상단 골드 라인 아래 28pt
-    if (sealExists) {
-      try { doc.image(SEAL_PATH, sealX, sealY, { width: sealSize }); } catch { /* 무시 */ }
+    if (sealExists && sealBuffer) {
+      try { doc.image(sealBuffer, sealX, sealY, { width: sealSize }); } catch { /* 무시 */ }
     }
 
     // 제목
@@ -657,8 +697,8 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     const stampSizeCover = 45;
     const stampXCover = boxX + boxW - stampSizeCover - 6;
     const stampYCover = confirmY + confirmLineGap - stampSizeCover * 0.3;
-    if (stampExists) {
-      try { doc.image(STAMP_PATH, stampXCover, stampYCover, { width: stampSizeCover }); } catch { /* 무시 */ }
+    if (stampExists && stampBuffer) {
+      try { doc.image(stampBuffer, stampXCover, stampYCover, { width: stampSizeCover }); } catch { /* 무시 */ }
     }
 
     // 정보 박스 행 데이터
@@ -722,8 +762,8 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     doc.font(fontBold).fontSize(8).fillColor(`rgb(${ar},${ag},${ab})`).text("OFFICIAL AUTHENTICATION DOCUMENT", margin, 122, { width: contentWidth, align: "center" });
 
     // 씰 이미지 (헤더 우측)
-    if (sealExists) {
-      try { doc.image(SEAL_PATH, pageWidth - margin - 70, 30, { width: 60 }); } catch { /* 무시 */ }
+    if (sealExists && sealBuffer) {
+      try { doc.image(sealBuffer, pageWidth - margin - 70, 30, { width: 60 }); } catch { /* 무시 */ }
     }
 
     // 인증번호 박스
@@ -977,7 +1017,7 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
         try {
           doc.save();
           doc.opacity(0.20);
-          doc.image(SEAL_PATH, stampCX - 55, stampCY - 55, { width: 110 });
+          doc.image(sealBuffer ?? SEAL_PATH, stampCX - 55, stampCY - 55, { width: 110 });
           doc.restore();
         } catch { /* 무시 */ }
       }

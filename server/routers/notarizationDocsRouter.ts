@@ -36,6 +36,7 @@ export const notarizationDocsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      console.log('[notarizationDocs.upload] 요청 수신:', { userId: ctx.user.id, docId: input.docId, fileName: input.fileName, fileSize: input.fileSize, base64Length: input.fileBase64.length });
       const db = await getDb();
       if (!db) throw new Error("DB 연결 실패");
 

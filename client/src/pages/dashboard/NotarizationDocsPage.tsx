@@ -550,8 +550,9 @@ export default function NotarizationDocsPage() {
       });
       setUploadedDocs((prev) => ({ ...prev, [docId]: { ...prev[docId], savedToServer: true } }));
       refetchServerDocs();
-    } catch {
-      // 서버 저장 실패 시 로컬 저장으로 대체
+    } catch (err: any) {
+      console.error('[공증서류 업로드 실패]', err);
+      toast.error(`서버 저장 실패: ${err?.message ?? String(err)}`);
     }
         // AI 분석 실행 (보정된 파일로)
     runAnalysis(docId, finalFile);
@@ -595,8 +596,9 @@ export default function NotarizationDocsPage() {
       });
       setUploadedDocs((prev) => ({ ...prev, [docId]: { ...prev[docId], savedToServer: true } }));
       refetchServerDocs();
-    } catch {
-      // 서버 저장 실패 시도 로컈 저장으로 대체
+    } catch (err: any) {
+      console.error('[공증서류 업로드 실패]', err);
+      toast.error(`서버 저장 실패: ${err?.message ?? String(err)}`);
     }
         // AI 분석 실행
     runAnalysis(docId, file);
