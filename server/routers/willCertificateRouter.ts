@@ -290,7 +290,7 @@ export const willCertificateRouter = router({
         certifiedAt: new Date(certifiedAt),
         testatorName: user?.name ?? willData.testatorName ?? "유언자",
         testatorBirthDate: user?.birthDate ?? willData.testatorBirthDate ?? undefined,
-        testatorRRN: willData.testatorRRN ?? undefined,
+        testatorRRN: willData.testatorRRN ?? user?.residentNumberMasked ?? undefined,
         testatorAddress: user?.address ?? willData.testatorAddress ?? undefined,
         testatorPhone: user?.phone ?? willData.testatorPhone ?? undefined,
         willTitle: willRecord?.title ?? "유언장",
@@ -614,7 +614,7 @@ export const willCertificateRouter = router({
       let previewPhone: string | undefined;
       try {
         const wd = willRecord?.data ? JSON.parse(willRecord.data) : {};
-        previewRRN = wd.testatorRRN ?? undefined;
+        previewRRN = wd.testatorRRN ?? user?.residentNumberMasked ?? undefined;
         previewPhone = wd.testatorPhone ?? undefined;
       } catch { /* 무시 */ }
 

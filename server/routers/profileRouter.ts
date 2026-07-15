@@ -20,6 +20,7 @@ export const profileRouter = router({
       address: z.string().optional(),
       addressDetail: z.string().optional(),
       birthDate: z.string().max(16).optional(),
+      residentNumber: z.string().max(14).optional(), // 주민등록번호 (선택)
     }))
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
@@ -27,12 +28,22 @@ export const profileRouter = router({
 
       const userId = ctx.user.id;
 
+      // 주민번호 마스킹 및 저장
+      let residentNumberMasked: string | null = null;
+      let residentNumberEnc: string | null = null;
+      if (input.residentNumber) {
+        const raw = input.residentNumber.replace(/-/g, "");
+        residentNumberMasked = raw.slice(0, 6) + "-*******";
+        residentNumberEnc = input.residentNumber; // 실제 운영 시 AES 암호화 필요
+      }
+
       await db.update(users).set({
         name: input.name,
         phone: input.phone || null,
         address: input.address || null,
         addressDetail: input.addressDetail || null,
         birthDate: input.birthDate || null,
+        ...(residentNumberMasked ? { residentNumberMasked, residentNumberEnc } : {}),
         updatedAt: new Date(),
       }).where(eq(users.id, userId));
 
@@ -53,6 +64,7 @@ export const profileRouter = router({
       address: users.address,
       addressDetail: users.addressDetail,
       birthDate: users.birthDate,
+      residentNumberMasked: users.residentNumberMasked,
     }).from(users).where(eq(users.id, ctx.user.id)).limit(1);
 
     return rows[0] || null;

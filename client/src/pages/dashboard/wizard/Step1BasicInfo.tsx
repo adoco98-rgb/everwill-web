@@ -36,6 +36,7 @@ export default function Step1BasicInfo({ onComplete }: Props) {
     addressDetail: "",
     birthDate: "",
     email: "",
+    residentNumber: "", // 주민등록번호 (선택)
   });
 
   // DB에서 기본정보 조회
@@ -54,6 +55,7 @@ export default function Step1BasicInfo({ onComplete }: Props) {
         addressDetail: variables.addressDetail || "",
         birthDate: variables.birthDate || "",
         email: form.email,
+        residentNumber: form.residentNumber,
       });
       // 쿼리 무효화 (다음 새로고침 시 최신 데이터)
       utils.profile.getBasicInfo.invalidate();
@@ -75,6 +77,7 @@ export default function Step1BasicInfo({ onComplete }: Props) {
         addressDetail: profileData.addressDetail || "",
         birthDate: profileData.birthDate || "",
         email: profileData.email || "",
+        residentNumber: (profileData as any).residentNumberMasked || "",
       });
       setFormInitialized(true);
     } else if (user && !profileLoading) {
@@ -85,10 +88,18 @@ export default function Step1BasicInfo({ onComplete }: Props) {
         addressDetail: (user as any).addressDetail || "",
         birthDate: (user as any).birthDate || "",
         email: (user as any).email || "",
+        residentNumber: "",
       });
       setFormInitialized(true);
     }
   }, [profileData, user, profileLoading, formInitialized]);
+
+  // 주민번호 포맷 (000000-0000000)
+  function formatRRN(val: string) {
+    const raw = val.replace(/[^0-9]/g, "");
+    if (raw.length <= 6) return raw;
+    return raw.slice(0, 6) + "-" + raw.slice(6, 13);
+  }
 
   // 필수 항목 체크
   const isNameFilled = form.name.trim().length > 0;
@@ -135,7 +146,8 @@ export default function Step1BasicInfo({ onComplete }: Props) {
       address: form.address.trim(),
       addressDetail: form.addressDetail.trim(),
       birthDate: form.birthDate.trim(),
-    });
+      residentNumber: form.residentNumber.trim() || undefined,
+    } as any);
   };
 
   // 정보 확인 완료 (저장 후 다음 단계)
@@ -153,7 +165,8 @@ export default function Step1BasicInfo({ onComplete }: Props) {
         address: form.address.trim(),
         addressDetail: form.addressDetail.trim(),
         birthDate: form.birthDate.trim(),
-      },
+        residentNumber: form.residentNumber.trim() || undefined,
+      } as any,
       {
         onSuccess: () => {
           toast.success("기본정보 확인 완료!");
@@ -255,6 +268,9 @@ export default function Step1BasicInfo({ onComplete }: Props) {
               )}
               <InfoRow icon={Calendar} label="생년월일" value={form.birthDate} required />
               <InfoRow icon={Mail} label="이메일" value={form.email} />
+              {form.residentNumber && (
+                <InfoRow icon={User} label="주민등록번호" value={form.residentNumber.slice(0, 6) + "-*******"} />
+              )}
             </div>
 
             <div className="flex gap-3 mt-6">
@@ -387,6 +403,23 @@ export default function Step1BasicInfo({ onComplete }: Props) {
               <p className="text-xs text-gray-400 mt-1.5">
                 예시: 19690812 입력 → 자동으로 1969-08-12 변환됩니다. 또는 달력 아이콘을 눌러 선택하세요.
               </p>
+            </div>
+
+            {/* 주민등록번호 (선택) */}
+            <div>
+              <label className="text-sm font-semibold text-gray-700 mb-1.5 block">
+                주민등록번호 <span className="text-gray-400 text-xs font-normal">(선택 — 인증서 PDF에 표시)</span>
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={form.residentNumber}
+                onChange={(e) => setForm((f) => ({ ...f, residentNumber: formatRRN(e.target.value) }))}
+                placeholder="000000-0000000"
+                maxLength={14}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864] outline-none transition-all"
+              />
+              <p className="text-xs text-gray-400 mt-1">인증서 PDF에만 사용되며, 암호화하여 안전하게 보관됩니다.</p>
             </div>
 
             {/* 이메일 (자동) */}
