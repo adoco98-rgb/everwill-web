@@ -15,6 +15,7 @@ import {
   assets,
   heirs,
   willAttachments,
+  notarizationDocs,
 } from "../../drizzle/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
@@ -167,12 +168,18 @@ export const willCertificateRouter = router({
         isExecutor: h.isExecutor ?? 0,
       }));
 
-      // ── 실제 첨부파일 목록 조회 ──────────────────────────────────────────────
+      // ── 실제 첨부파일 목록 조회 (자산서류 + 공증서류) ────────────────────────
       const attachmentRows = await db
         .select()
         .from(willAttachments)
         .where(eq(willAttachments.userId, userId))
         .orderBy(willAttachments.createdAt);
+
+      // 공증서류 목록 조회
+      const notarizationRows = await db
+        .select()
+        .from(notarizationDocs)
+        .where(eq(notarizationDocs.userId, userId));
 
       // 첨부파일 이미지 bytes 미리 로드 (presigned URL 통해 S3에서 직접 fetch)
       const attachmentData: any[] = [];
@@ -198,6 +205,32 @@ export const willCertificateRouter = router({
           createdAt: att.createdAt ? new Date(att.createdAt) : undefined,
           fileKey: att.fileKey ?? undefined,
           fileUrl: att.fileUrl ?? undefined,
+          fileBytes,
+        });
+      }
+      // 공증서류도 첨부파일로 추가
+      for (const doc of notarizationRows) {
+        const isImage = doc.fileKey && (doc.fileKey.endsWith('.jpg') || doc.fileKey.endsWith('.jpeg') || doc.fileKey.endsWith('.png'));
+        let fileBytes: Buffer | null = null;
+        if (isImage && doc.fileKey) {
+          try {
+            const signedUrl = await storageGetSignedUrl(doc.fileKey);
+            const res = await fetch(signedUrl);
+            if (res.ok) {
+              fileBytes = Buffer.from(await res.arrayBuffer());
+            }
+          } catch { /* 무시 */ }
+        }
+        attachmentData.push({
+          fileName: doc.fileName ?? doc.docName ?? "공증서류",
+          fileType: isImage ? "image/jpeg" : "application/pdf",
+          category: "notarization",
+          description: doc.docName ?? undefined,
+          fileSize: doc.fileSize ?? 0,
+          verified: 1,
+          createdAt: doc.createdAt ? new Date(doc.createdAt) : undefined,
+          fileKey: doc.fileKey ?? undefined,
+          fileUrl: doc.fileUrl ?? undefined,
           fileBytes,
         });
       }
@@ -424,6 +457,7 @@ export const willCertificateRouter = router({
       const assetRows = await db.select().from(assets).where(eq(assets.userId, userId));
       const heirRows = await db.select().from(heirs).where(eq(heirs.userId, userId));
       const attachmentRows = await db.select().from(willAttachments).where(eq(willAttachments.userId, userId));
+      const notarizationRowsPreview = await db.select().from(notarizationDocs).where(eq(notarizationDocs.userId, userId));
 
       const assetData =
         assetRows.length > 0
@@ -467,6 +501,32 @@ export const willCertificateRouter = router({
           createdAt: att.createdAt ? new Date(att.createdAt) : undefined,
           fileKey: att.fileKey ?? undefined,
           fileUrl: att.fileUrl ?? undefined,
+          fileBytes,
+        });
+      }
+      // 공증서류도 첨부파일로 추가
+      for (const doc of notarizationRowsPreview) {
+        const isImage = doc.fileKey && (doc.fileKey.endsWith('.jpg') || doc.fileKey.endsWith('.jpeg') || doc.fileKey.endsWith('.png'));
+        let fileBytes: Buffer | null = null;
+        if (isImage && doc.fileKey) {
+          try {
+            const signedUrl = await storageGetSignedUrl(doc.fileKey);
+            const res = await fetch(signedUrl);
+            if (res.ok) {
+              fileBytes = Buffer.from(await res.arrayBuffer());
+            }
+          } catch { /* 무시 */ }
+        }
+        attachmentData.push({
+          fileName: doc.fileName ?? doc.docName ?? "공증서류",
+          fileType: isImage ? "image/jpeg" : "application/pdf",
+          category: "notarization",
+          description: doc.docName ?? undefined,
+          fileSize: doc.fileSize ?? 0,
+          verified: 1,
+          createdAt: doc.createdAt ? new Date(doc.createdAt) : undefined,
+          fileKey: doc.fileKey ?? undefined,
+          fileUrl: doc.fileUrl ?? undefined,
           fileBytes,
         });
       }
