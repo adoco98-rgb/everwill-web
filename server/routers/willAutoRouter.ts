@@ -13,6 +13,9 @@ import { getDb } from "../db";
 import { users, heirs, willAssetScans } from "../../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 import { storagePut } from "../storage";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const pdfParse = require("pdf-parse");
 
 // ─── 자산증명서 유형 ───────────────────────────────────────────
 const ASSET_DOC_TYPES = [
@@ -57,45 +60,45 @@ export const willAutoRouter = router({
     }))
     .mutation(async ({ input }) => {
       try {
-        const response = await invokeLLM({
-          messages: [
+        // PDF 여부 판단 및 텍스트 추출
+        const mimeMatch = input.imageUrl.match(/^data:([^;]+);base64,/);
+        const mime = mimeMatch ? mimeMatch[1] : "image/jpeg";
+        const isPdf = mime === "application/pdf" || input.imageUrl.startsWith("data:application/pdf");
+        const isImg = mime.startsWith("image/");
+
+        let userContent: any[];
+
+        if (isPdf) {
+          // PDF → pdf-parse로 텍스트 추출 후 AI에 텍스트로 전달
+          const base64Data = input.imageUrl.replace(/^data:[^;]+;base64,/, "");
+          const pdfBuffer = Buffer.from(base64Data, "base64");
+          let pdfText = "";
+          try {
+            const parsed = await pdfParse(pdfBuffer);
+            pdfText = parsed.text?.trim() || "";
+          } catch (parseErr) {
+            console.error("[willAuto] PDF 텍스트 추출 실패:", parseErr);
+          }
+
+          if (!pdfText) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "PDF에서 텍스트를 추출할 수 없습니다. 스캔 이미지 PDF인 경우 JPG/PNG로 변환 후 업로드해주세요.",
+            });
+          }
+
+          userContent = [
             {
-              role: "system",
-              content: `당신은 한국 금융·부동산·주식 관련 자산증명서 전문 OCR 시스템입니다.
-              제공된 이미지에서 자산 정보를 정확하게 추출하세요.
-              
-              지원 문서 유형:
-              - bank_balance: 은행 잔액증명서 (예금주, 은행명, 계좌번호, 잔액, 기준일)
-              - real_estate_registry: 부동산 등기부등본 (소재지, 면적, 소유자, 공시지가, 등기일)
-              - stock_certificate: 주식보유증명서 (종목명, 종목코드, 보유주수, 평가금액, 기준일)
-              - insurance_policy: 보험증권 (보험사, 상품명, 보험금액, 만기일, 수익자)
-              - bond_certificate: 채권증명서 (발행기관, 채권명, 액면금액, 만기일)
-              - other: 기타 자산 관련 서류
-              
-              규칙:
-              1. 명확하게 보이는 텍스트만 추출 (추측 금지)
-              2. 금액은 숫자만 (원화 기준, 단위 제거)
-              3. 날짜는 YYYY-MM-DD 형식
-              4. 불명확한 필드는 null 반환
-              5. JSON만 반환`,
-            },
-            {
-              role: "user",
-              content: (() => {
-                const mimeMatch = input.imageUrl.match(/^data:([^;]+);base64,/);
-                const mime = mimeMatch ? mimeMatch[1] : "image/jpeg";
-                const isPdf = mime === "application/pdf";
-                const isImg = mime.startsWith("image/");
-                const fileContent = isPdf
-                  ? { type: "file_url" as const, file_url: { url: input.imageUrl, mime_type: "application/pdf" as const } }
-                  : isImg
-                  ? { type: "image_url" as const, image_url: { url: input.imageUrl, detail: "high" as const } }
-                  : null;
-                const parts: any[] = [];
-                if (fileContent) parts.push(fileContent);
-                parts.push({
-                  type: "text",
-                  text: `이 자산증명서를 분석하고 다음 JSON 형식으로만 반환하세요:
+              type: "text",
+              text: `다음은 PDF에서 추출한 자산증명서 텍스트입니다. 분석하고 JSON 형식으로만 반환하세요.
+
+--- PDF 텍스트 시작 ---
+${pdfText.slice(0, 8000)}
+--- PDF 텍스트 끝 ---
+
+서류 유형 힌트: ${input.docTypeHint || "자동감지"}
+
+다음 JSON 형식으로만 반환하세요:
 {
   "docType": "${input.docTypeHint || "자동감지"}",
   "detectedDocType": "bank_balance|real_estate_registry|stock_certificate|insurance_policy|bond_certificate|other",
@@ -113,9 +116,63 @@ export const willAutoRouter = router({
   "additionalInfo": "기타 중요 정보",
   "confidence": "high|medium|low"
 }`,
-                });
-                return parts;
-              })()
+            },
+          ];
+        } else {
+          // 이미지 → image_url 타입으로 전달
+          const imageContent = isImg
+            ? { type: "image_url" as const, image_url: { url: input.imageUrl, detail: "high" as const } }
+            : null;
+          userContent = [];
+          if (imageContent) userContent.push(imageContent);
+          userContent.push({
+            type: "text",
+            text: `이 자산증명서를 분석하고 다음 JSON 형식으로만 반환하세요:
+{
+  "docType": "${input.docTypeHint || "자동감지"}",
+  "detectedDocType": "bank_balance|real_estate_registry|stock_certificate|insurance_policy|bond_certificate|other",
+  "issuer": "발급기관명 (은행명, 법원, 증권사 등)",
+  "ownerName": "소유자/예금주 이름",
+  "assetName": "자산명 (계좌번호, 소재지, 종목명 등)",
+  "assetCode": "고유코드 (계좌번호 뒷4자리, 종목코드 등)",
+  "amount": "금액 (숫자만, 원화 기준)",
+  "unit": "원|주|㎡|필지",
+  "referenceDate": "기준일 YYYY-MM-DD",
+  "expiryDate": "만기일 YYYY-MM-DD (해당시)",
+  "location": "소재지 (부동산인 경우)",
+  "area": "면적 (부동산인 경우, 숫자만)",
+  "beneficiary": "수익자/수혜자 (보험인 경우)",
+  "additionalInfo": "기타 중요 정보",
+  "confidence": "high|medium|low"
+}`,
+          });
+        }
+
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: `당신은 한국 금융·부동산·주식 관련 자산증명서 전문 OCR 시스템입니다.
+              제공된 문서에서 자산 정보를 정확하게 추출하세요.
+              
+              지원 문서 유형:
+              - bank_balance: 은행 잔액증명서 (예금주, 은행명, 계좌번호, 잔액, 기준일)
+              - real_estate_registry: 부동산 등기부등본 (소재지, 면적, 소유자, 공시지가, 등기일)
+              - stock_certificate: 주식보유증명서 (종목명, 종목코드, 보유주수, 평가금액, 기준일)
+              - insurance_policy: 보험증권 (보험사, 상품명, 보험금액, 만기일, 수익자)
+              - bond_certificate: 채권증명서 (발행기관, 채권명, 액면금액, 만기일)
+              - other: 기타 자산 관련 서류
+              
+              규칙:
+              1. 명확하게 확인되는 정보만 추출 (추측 금지)
+              2. 금액은 숫자만 (원화 기준, 단위 제거)
+              3. 날짜는 YYYY-MM-DD 형식
+              4. 불명확한 필드는 null 반환
+              5. JSON만 반환`,
+            },
+            {
+              role: "user",
+              content: userContent,
             },
           ],
           response_format: {
