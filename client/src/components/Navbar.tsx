@@ -246,7 +246,7 @@ export default function Navbar() {
           <a href="/" className="flex items-center shrink-0">
             <div className="rounded-full overflow-hidden drop-shadow-xl" style={{ height: '72px', width: '72px' }}>
               <img
-                src="/manus-storage/everwill_logo_white_4eb9b7a4.png"
+                src="/everwill-logo.png"
                 alt="EverWill Logo"
                 className="w-full h-full object-cover"
               />
