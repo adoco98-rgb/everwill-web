@@ -245,7 +245,7 @@ export default function Navbar() {
           <div className="flex-1 flex items-center">
           <a href="/" className="flex items-center shrink-0">
             <img
-              src="/manus-storage/everwill-seal_ff74fb83.png"
+              src="/manus-storage/everwill-logo_3507972f.png"
               alt="EverWill Logo"
               className="object-contain drop-shadow-xl"
               style={{ height: '72px', width: '72px' }}
