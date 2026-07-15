@@ -177,11 +177,13 @@ function DashboardLayoutContent({
               </button>
               {!isCollapsed ? (
                 <a href="/" className="flex items-center gap-2 min-w-0">
-                  <img
-                    src="/everwill-logo.png"
-                    alt="EverWill"
-                    className="h-9 w-9 object-contain shrink-0"
-                  />
+                  <div className="rounded-full overflow-hidden shrink-0 drop-shadow-md" style={{ height: '40px', width: '40px' }}>
+                    <img
+                      src="/everwill-logo.png"
+                      alt="EverWill"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
                   <div className="min-w-0">
                     <span className="font-bold text-[#1F3864] tracking-tight truncate block text-sm">EverWill</span>
                     <span className="text-[10px] text-[#C9A961] font-semibold tracking-widest uppercase">DIGITAL WILL OS</span>
@@ -189,11 +191,13 @@ function DashboardLayoutContent({
                 </a>
               ) : (
                 <a href="/">
-                  <img
-                    src="/everwill-logo.png"
-                    alt="EverWill"
-                    className="h-8 w-8 object-contain"
-                  />
+                  <div className="rounded-full overflow-hidden drop-shadow-md" style={{ height: '36px', width: '36px' }}>
+                    <img
+                      src="/everwill-logo.png"
+                      alt="EverWill"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
                 </a>
               )}
             </div>

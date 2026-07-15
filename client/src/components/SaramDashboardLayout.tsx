@@ -249,12 +249,13 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
         <div className="px-4 py-5 border-b border-white/10">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3 flex-1">
-                <img
-                  src="/everwill-logo.png"
-                  alt="EverWill"
-                  className="object-contain drop-shadow-xl brightness-110"
-                  style={{ height: '64px', width: '64px' }}
-                />
+                <div className="rounded-full overflow-hidden drop-shadow-xl shrink-0" style={{ height: '64px', width: '64px' }}>
+                  <img
+                    src="/everwill-logo.png"
+                    alt="EverWill"
+                    className="h-full w-full object-cover brightness-110"
+                  />
+                </div>
                 <div>
                   <div className="text-white font-bold text-base leading-tight">EverWill</div>
                   <div className="text-[#C9A961] text-[10px] font-medium tracking-wider">DIGITAL WILL OS</div>
@@ -413,12 +414,13 @@ export default function SaramDashboardLayout({ children }: { children: React.Rea
             <Menu className="w-5 h-5 text-[#1F3864]" />
           </button>
           <div className="flex items-center gap-2">
-            <img
-              src="/everwill-logo.png"
-              alt="EverWill"
-              className="object-contain drop-shadow-md brightness-110"
-              style={{ height: '48px', width: '48px' }}
-            />
+            <div className="rounded-full overflow-hidden drop-shadow-md shrink-0" style={{ height: '48px', width: '48px' }}>
+              <img
+                src="/everwill-logo.png"
+                alt="EverWill"
+                className="h-full w-full object-cover brightness-110"
+              />
+            </div>
             <div>
               <div className="text-[#1F3864] font-bold text-sm leading-tight">EverWill</div>
               <div className="text-[#C9A961] text-[9px] font-medium tracking-wider">DIGITAL WILL OS</div>
