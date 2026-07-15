@@ -389,175 +389,103 @@ export default function AssetsPage() {
         {/* ══════════════ 재산 탭 ══════════════ */}
         {tab === "assets" && (
           <div>
-            {/* 스캔 OCR 버튼 */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <button
-                onClick={() => { setShowScanPanel(!showScanPanel); setShowAssetForm(false); setScanPreview(null); setScanResult(null); }}
-                className="bg-gradient-to-r from-[#1F3864] to-[#243d72] rounded-2xl p-4 flex items-center justify-center gap-2 text-white font-semibold hover:opacity-90 transition-all"
-              >
-                <ScanLine className="w-5 h-5" />
-                서류 스캔으로 자동 등록
-              </button>
-              <button
-                onClick={() => { setShowAssetForm(!showAssetForm); setShowScanPanel(false); }}
-                className="bg-white border-2 border-dashed border-[#C9A961]/40 rounded-2xl p-4 flex items-center justify-center gap-2 text-[#C9A961] font-semibold hover:border-[#C9A961] hover:bg-[#C9A961]/5 transition-all"
-              >
-                <Plus className="w-5 h-5" />
-                직접 입력
-              </button>
-            </div>
-
-            {/* 자산 스캔 OCR 패널 */}
-            {showScanPanel && (
-              <div className="bg-white rounded-2xl border border-[#1F3864]/20 shadow-sm p-6 mb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-[#1F3864]" />
-                    <h3 className="font-bold text-[#1F3864]">AI 자산 서류 자동 인식</h3>
-                  </div>
-                  <button onClick={() => { setShowScanPanel(false); setScanPreview(null); setScanResult(null); }}
-                    className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100">
-                    <X className="w-4 h-4" />
-                  </button>
+            {/* ── 서류 등록 목록 (항상 표시) ── */}
+            <div className="bg-white rounded-2xl border border-[#1F3864]/10 shadow-sm p-5 mb-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#1F3864]" />
+                  <h3 className="font-bold text-[#1F3864] text-sm">서류 등록 목록</h3>
+                  <span className="text-xs text-gray-400">— 서류를 업로드하면 AI가 자동으로 자산 정보를 인식합니다</span>
                 </div>
-                <p className="text-xs text-gray-500 mb-4">
-                  은행 잔액증명서, 부동산 등기부등본, 보험증권 등을 촬영하거나 업로드하면
-                  AI가 자동으로 자산 정보를 인식해 등록 폼에 채워드립니다.
-                </p>
+                <button
+                  onClick={() => { setShowAssetForm(!showAssetForm); setScanPreview(null); setScanResult(null); }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#C9A961]/10 text-[#C9A961] border border-[#C9A961]/30 rounded-full text-xs font-semibold hover:bg-[#C9A961]/20 transition-all"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  직접 입력
+                </button>
+              </div>
 
-                {/* 서류 유형 선택 */}
-                <div className="mb-4">
-                  <label className="text-sm font-semibold text-gray-700 mb-2 block">서류 유형 선택</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {ASSET_DOC_TYPES.map((dt) => (
-                      <button
-                        key={dt.value}
-                        onClick={() => setScanDocType(dt.value)}
-                        className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${
-                          scanDocType === dt.value
-                            ? "bg-[#1F3864] text-white border-[#1F3864]"
-                            : "bg-white text-gray-600 border-gray-200 hover:border-[#1F3864]/30"
-                        }`}
-                      >
-                        {dt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 기타 자산 서류 선택 시 예시 안내 */}
-                {scanDocType === "other" && (
-                  <div className="mb-4 p-4 bg-blue-50 border border-blue-100 rounded-xl">
-                    <p className="text-sm font-bold text-blue-800 mb-2">📌 업로드 가능한 서류 예시</p>
-                    <ul className="grid sm:grid-cols-2 gap-1">
-                      {OTHER_DOC_EXAMPLES.map((ex, i) => (
-                        <li key={i} className="flex items-start gap-1.5 text-xs text-blue-700">
-                          <span className="text-blue-400 mt-0.5">•</span>
-                          {ex}
-                        </li>
-                      ))}
-                    </ul>
-                    <p className="text-xs text-blue-500 mt-2">※ 위 예시 외에도 재산적 가치가 있는 모든 서류를 업로드할 수 있습니다.</p>
-                    <p className="text-xs text-blue-500 mt-1">📂 여러 장을 한번에 선택하거나, 추가로 계속 업로드할 수 있습니다. (제한 없음)</p>
-                  </div>
-                )}
-
-                {/* 업로드 영역 - 이미지·PDF·Word·Excel·HWP 모두 허용 */}
-                <input
-                  ref={scanFileInputRef}
-                  type="file"
-                  accept="image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx,.hwp,.hwpx,.txt"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => {
-                    const files = e.target.files;
-                    if (files) {
-                      Array.from(files).forEach((f) => handleScanImageSelect(f));
-                    }
-                    e.target.value = "";
-                  }}
-                />
-
-                {scanPreview ? (
-                  <div className="relative">
-                    {scanPreview.startsWith("__file__:") ? (
-                      <div className="w-full h-36 bg-gray-50 rounded-xl border border-gray-100 flex flex-col items-center justify-center gap-2">
-                        <FileText className="w-10 h-10 text-[#1F3864]/50" />
-                        <p className="text-sm font-semibold text-gray-700 px-4 text-center break-all">{scanPreview.replace("__file__:", "")}</p>
-                        <p className="text-xs text-gray-400">문서 파일 업로드 완료</p>
+              {/* 서류 유형 카드 그리드 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {ASSET_DOC_TYPES.map((dt) => {
+                  const isActive = scanDocType === dt.value && assetScanMutation.isPending;
+                  const fileInputId = `scan-input-${dt.value}`;
+                  return (
+                    <div key={dt.value} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                      scanDocType === dt.value && scanPreview
+                        ? "border-[#1F3864] bg-[#1F3864]/5"
+                        : "border-gray-100 bg-gray-50 hover:border-[#1F3864]/30"
+                    }`}>
+                      {/* 서류 유형 아이콘 */}
+                      <div className="w-9 h-9 rounded-lg bg-[#1F3864]/10 flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-4 h-4 text-[#1F3864]" />
                       </div>
-                    ) : (
-                      <img src={scanPreview} alt="스캔 미리보기" className="w-full max-h-48 object-contain rounded-xl border border-gray-100 bg-gray-50" />
-                    )}
-                    {assetScanMutation.isPending && (
-                      <div className="absolute inset-0 bg-white/80 rounded-xl flex flex-col items-center justify-center gap-2">
-                        <Loader2 className="w-8 h-8 text-[#1F3864] animate-spin" />
-                        <p className="text-sm font-semibold text-[#1F3864]">AI 인식 중...</p>
-                        <p className="text-xs text-gray-400">서류 내용을 분석하고 있습니다</p>
+                      {/* 서류명 */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-800">{dt.label}</p>
+                        {scanDocType === dt.value && scanPreview && (
+                          <p className="text-xs text-[#1F3864] mt-0.5 truncate">
+                            {scanPreview.startsWith("__file__:") ? scanPreview.replace("__file__:", "") : "이미지 업로드됨"}
+                          </p>
+                        )}
+                        {scanDocType === dt.value && scanResult && !assetScanMutation.isPending && (
+                          <p className="text-xs text-green-600 mt-0.5">✓ 인식 완료 — 아래 폼 확인</p>
+                        )}
                       </div>
-                    )}
-                    {!assetScanMutation.isPending && (
-                      <button
-                        onClick={() => { setScanPreview(null); setScanResult(null); }}
-                        className="absolute top-2 right-2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center text-gray-500 hover:text-red-500 shadow"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => scanFileInputRef.current?.click()}
-                    className="border-2 border-dashed border-[#1F3864]/20 rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-[#1F3864]/40 hover:bg-[#1F3864]/3 transition-all"
-                  >
-                    <div className="w-14 h-14 rounded-2xl bg-[#1F3864]/10 flex items-center justify-center">
-                      <Upload className="w-7 h-7 text-[#1F3864]" />
+                      {/* 업로드 버튼 */}
+                      <div className="flex-shrink-0">
+                        {scanDocType === dt.value && assetScanMutation.isPending ? (
+                          <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#1F3864]">
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            분석중
+                          </div>
+                        ) : (
+                          <label
+                            htmlFor={fileInputId}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1F3864] text-white rounded-lg text-xs font-semibold cursor-pointer hover:bg-[#1F3864]/90 transition-all"
+                          >
+                            <Upload className="w-3.5 h-3.5" />
+                            업로드
+                          </label>
+                        )}
+                        <input
+                          id={fileInputId}
+                          type="file"
+                          accept="image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx,.hwp,.hwpx,.txt"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => {
+                            const files = e.target.files;
+                            if (files && files.length > 0) {
+                              setScanDocType(dt.value);
+                              setScanPreview(null);
+                              setScanResult(null);
+                              Array.from(files).forEach((f) => handleScanImageSelect(f));
+                            }
+                            e.target.value = "";
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div className="text-center">
-                      <p className="text-sm font-semibold text-[#1F3864]">서류 파일 업로드</p>
-                      <p className="text-xs text-gray-400 mt-1">이미지·PDF·Word·Excel·HWP · 최대 20MB / 여러 장 선택 가능</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); scanFileInputRef.current?.click(); }}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-[#1F3864] text-white rounded-full text-xs font-semibold"
-                      >
-                        <Upload className="w-3.5 h-3.5" />
-                        파일 선택
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const input = document.createElement("input");
-                          input.type = "file";
-                          input.accept = "image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx,.hwp,.hwpx,.txt";
-                          input.capture = "environment";
-                          input.onchange = (ev) => {
-                            const f = (ev.target as HTMLInputElement).files?.[0];
-                            if (f) handleScanImageSelect(f);
-                          };
-                          input.click();
-                        }}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-white border border-[#1F3864]/20 text-[#1F3864] rounded-full text-xs font-semibold"
-                      >
-                        <Camera className="w-3.5 h-3.5" />
-                        카메라 촬영
-                      </button>
-                    </div>
-                  </div>
-                )}
+                  );
+                })}
+              </div>
 
-                {/* 인식 완료 결과 미리보기 */}
-                {scanResult && !assetScanMutation.isPending && (
-                  <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
-                    <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle2 className="w-4 h-4 text-green-600" />
-                      <p className="text-sm font-bold text-green-800">인식 완료 — 아래 폼에 자동 채워졌습니다</p>
-                    </div>
-                    <div className="space-y-1 text-xs text-green-700">
-                      {scanResult.docTypeLabel && <p>서류 유형: <strong>{scanResult.docTypeLabel}</strong></p>}
-                      {scanResult.assetName && <p>자산명: <strong>{scanResult.assetName}</strong></p>}
-                      {scanResult.issuer && <p>발급기관: <strong>{scanResult.issuer}</strong></p>}
+              {/* 인식 완료 결과 */}
+              {scanResult && !assetScanMutation.isPending && (
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    <p className="text-sm font-bold text-green-800">인식 완료 — 아래 폼에 자동 채워졌습니다</p>
+                    <button onClick={() => { setScanPreview(null); setScanResult(null); }} className="ml-auto w-6 h-6 flex items-center justify-center text-gray-400 hover:text-red-500">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-green-700">
+                    {scanResult.docTypeLabel && <p>서류 유형: <strong>{scanResult.docTypeLabel}</strong></p>}
+                    {scanResult.assetName && <p>자산명: <strong>{scanResult.assetName}</strong></p>}
+                    {scanResult.issuer && <p>발급기관: <strong>{scanResult.issuer}</strong></p>}
                       {scanResult.amount && <p>금액: <strong>{Number(scanResult.amount.replace(/[^0-9]/g, "") || 0).toLocaleString()}원</strong></p>}
                       {scanResult.location && <p>소재지: <strong>{scanResult.location}</strong></p>}
                       <p className={`font-semibold ${
@@ -570,7 +498,6 @@ export default function AssetsPage() {
                   </div>
                 )}
               </div>
-            )}
 
             {/* 재산 추가 폼 */}
             {showAssetForm && (
