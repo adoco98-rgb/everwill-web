@@ -33,7 +33,8 @@ function resolveFontsDir(): string {
 }
 
 const FONTS_DIR = resolveFontsDir();
-const SEAL_PATH = path.join(__dirname, "../../everwill_seal.png");
+const SEAL_PATH  = path.join(__dirname, "../../everwill_seal.png");
+const STAMP_PATH = path.join(__dirname, "../../everwill_stamp_red_v2.png");
 
 // ─── 폰트 경로 ───────────────────────────────────────────────────────────────
 const FONT_CJK_REGULAR = path.join(FONTS_DIR, "NotoSansCJK-Regular.otf");
@@ -425,40 +426,7 @@ function drawPageStamp(
     } catch { /* 무시 */ }
   }
 
-  // 대각선 텍스트 워터마크
-  doc.save();
-  doc.opacity(0.05);
-  doc.rotate(-45, { origin: [pageWidth / 2, pageHeight / 2] });
-  doc
-    .font("Helvetica-Bold")
-    .fontSize(60)
-    .fillColor(`rgb(${pr},${pg},${pb})`)
-    .text("EverWill CERTIFIED", pageWidth / 2 - 220, pageHeight / 2 - 30, { width: 440, align: "center" });
-  doc.restore();
-
-  // 우상단 소형 로고
-  if (sealExists) {
-    try {
-      doc.save();
-      doc.opacity(0.22);
-      doc.image(SEAL_PATH, pageWidth - 85, 18, { width: 55 });
-      doc.restore();
-    } catch { /* 무시 */ }
-  }
-
-  // 우측 하단 소형 스탬프 원
-  const cx = pageWidth - 80;
-  const cy = pageHeight - 80;
-  doc.save();
-  doc.opacity(0.25);
-  doc.circle(cx, cy, 38).stroke(`rgb(${pr},${pg},${pb})`).lineWidth(2);
-  doc
-    .font("Helvetica-Bold")
-    .fontSize(7)
-    .fillColor(`rgb(${pr},${pg},${pb})`)
-    .text("EverWill", cx - 22, cy - 10, { width: 44, align: "center" })
-    .text("CERTIFIED", cx - 22, cy, { width: 44, align: "center" });
-  doc.restore();
+  // 씰 이미지만 흐릿하게 (투명도 5%) - 텍스트 워터마크 없음
 }
 
 // ─── 헬퍼: 섹션 헤더 그리기 ──────────────────────────────────────────────────
@@ -613,8 +581,127 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     const contentWidth = pageWidth - margin * 2;
 
     // ════════════════════════════════════════════════════════════════════
+    // 겉표지 페이지 (Cover Page)
+    // ════════════════════════════════════════════════════════════════════
+    const stampExists = fs.existsSync(STAMP_PATH);
+    const isKo = config.lang === "ko";
+
+    // 흰 배경
+    doc.rect(0, 0, pageWidth, pageHeight).fill("#FFFFFF");
+
+    // 상단 골드 라인 (14pt)
+    doc.rect(0, 0, pageWidth, 14).fill(`rgb(${ar},${ag},${ab})`);
+
+    // 하단 네이비 바 (79pt)
+    doc.rect(0, pageHeight - 79, pageWidth, 79).fill(`rgb(${pr},${pg},${pb})`);
+    // 하단 골드 구분선
+    doc.rect(0, pageHeight - 83, pageWidth, 4).fill(`rgb(${ar},${ag},${ab})`);
+
+    // 좌측 네이비 세로 바
+    doc.rect(0, pageHeight - 83, 20, pageHeight - 83 - 14).fill(`rgb(${pr},${pg},${pb})`);
+    doc.rect(20, pageHeight - 83, 4, pageHeight - 83 - 14).fill(`rgb(${ar},${ag},${ab})`);
+
+    // 좌측 세로 바 텍스트
+    doc.save();
+    doc.translate(12, pageHeight / 2);
+    doc.rotate(-90);
+    doc.font(fontBold).fontSize(7).fillColor("#FFFFFF").text("EverWill  Digital Will OS", -60, -3);
+    doc.restore();
+
+    // 씰 이미지 (중앙, 170pt)
+    const sealSize = 170;
+    const sealX = (pageWidth - sealSize) / 2;
+    const sealY = 14 + 28; // 상단 골드 라인 아래 28pt
+    if (sealExists) {
+      try { doc.image(SEAL_PATH, sealX, sealY, { width: sealSize }); } catch { /* 무시 */ }
+    }
+
+    // 제목
+    const titleY = sealY + sealSize + 10;
+    const coverTitle = isKo ? "전자인증 유언 문서" : "Digital Will Certification";
+    const coverSub   = "EVERWILL DIGITAL WILL AUTHENTICATION";
+    doc.font(fontBold).fontSize(22).fillColor(`rgb(${pr},${pg},${pb})`)
+       .text(coverTitle, margin, titleY, { width: contentWidth, align: "center" });
+    doc.font(fontRegular).fontSize(9).fillColor(`rgb(${ar},${ag},${ab})`)
+       .text(coverSub, margin, titleY + 32, { width: contentWidth, align: "center" });
+
+    // 골드 구분선
+    const divY = titleY + 54;
+    doc.moveTo(pageWidth / 2 - 142, divY).lineTo(pageWidth / 2 + 142, divY)
+       .strokeColor(`rgb(${ar},${ag},${ab})`).lineWidth(0.8).stroke();
+
+    // 확인 문구 (두 줄, 13pt)
+    const boxW = 369; // 130mm ≈ 369pt
+    const boxX = (pageWidth - boxW) / 2;
+    const confirmLine1 = isKo
+      ? "본 문서는 디지털 유언 전문 인증 에버윌에서"
+      : "This document is officially issued and";
+    const confirmLine2 = isKo
+      ? "발행한 공식문서임을 확인합니다."
+      : "authenticated by EverWill Digital Will Platform.";
+    const confirmY = divY + 16;
+    const confirmLineGap = 18;
+    doc.font(fontRegular).fontSize(13).fillColor("#555555")
+       .text(confirmLine1, boxX + 8, confirmY);
+    doc.font(fontRegular).fontSize(13).fillColor("#555555")
+       .text(confirmLine2, boxX + 8, confirmY + confirmLineGap);
+
+    // 정보 박스
+    const boxH = 193; // 68mm ≈ 193pt
+    const boxY = divY + 85;
+    doc.roundedRect(boxX, boxY, boxW, boxH, 7).fill("#F8F5ED");
+    doc.roundedRect(boxX, boxY, boxW, boxH, 7).strokeColor("#DDD5B0").lineWidth(0.7).stroke();
+    doc.roundedRect(boxX, boxY, 7, boxH, 4).fill(`rgb(${ar},${ag},${ab})`);
+
+    // 도장 (확인 문구 오른쪽, 박스 상단 근처)
+    const stampSizeCover = 45;
+    const stampXCover = boxX + boxW - stampSizeCover - 6;
+    const stampYCover = confirmY + confirmLineGap - stampSizeCover * 0.3;
+    if (stampExists) {
+      try { doc.image(STAMP_PATH, stampXCover, stampYCover, { width: stampSizeCover }); } catch { /* 무시 */ }
+    }
+
+    // 정보 박스 행 데이터
+    const certDateStrCover = new Date(data.certifiedAt).toLocaleDateString(
+      isKo ? "ko-KR" : "en-US",
+      { year: "numeric", month: "long", day: "numeric" }
+    );
+    const coverRows = isKo
+      ? [
+          ["발  급  일", certDateStrCover],
+          ["인 증 번 호", data.certNumber],
+          ["유  언  자", data.testatorName],
+          ["발 급 목 적", data.purpose],
+        ]
+      : [
+          ["Issued Date",    certDateStrCover],
+          ["Certificate No", data.certNumber],
+          ["Testator",       data.testatorName],
+          ["Purpose",        data.purpose],
+        ];
+    const rowH = boxH / coverRows.length;
+    coverRows.forEach(([label, value], i) => {
+      const ry = boxY + i * rowH;
+      if (i > 0) {
+        doc.moveTo(boxX + 11, ry).lineTo(boxX + boxW - 8, ry)
+           .strokeColor("#DDD5B0").lineWidth(0.4).stroke();
+      }
+      doc.font(fontBold).fontSize(8).fillColor(`rgb(${pr},${pg},${pb})`)
+         .text(label, boxX + 17, ry + rowH / 2 - 7);
+      doc.font(fontRegular).fontSize(9).fillColor("#1A1A1A")
+         .text(value, boxX + 113, ry + rowH / 2 - 7);
+    });
+
+    // 하단 회사명 + 웹사이트
+    doc.font(fontBold).fontSize(14).fillColor("#FFFFFF")
+       .text(isKo ? "주식회사 사람" : "Saram Co., Ltd.", margin + 24, pageHeight - 62);
+    doc.font(fontRegular).fontSize(10).fillColor("#A09880")
+       .text("www.everwill.co.kr", margin + 24, pageHeight - 40);
+
+    // ════════════════════════════════════════════════════════════════════
     // 페이지 1: 인증서 표지 + 제1조 유언자 정보
     // ════════════════════════════════════════════════════════════════════
+    doc.addPage();
 
     // 배경 헤더
     doc.rect(0, 0, pageWidth, 150).fill(`rgb(${pr},${pg},${pb})`);
