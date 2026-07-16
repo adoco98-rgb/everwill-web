@@ -679,7 +679,7 @@ ${dateStr}
         confidence: ocrResult.confidence || "medium",
         imageKey: savedImageKey,
         imageUrl: savedImageUrl,
-        estimatedValue: ocrResult.estimatedValue ? Number(ocrResult.estimatedValue) : null,
+        estimatedValue: (() => { const v = Number(String(ocrResult.estimatedValue || "").replace(/[^0-9.]/g, "")); return isNaN(v) || v === 0 ? null : v; })(),
         status: "done",
         sortOrder: 0,
       });
