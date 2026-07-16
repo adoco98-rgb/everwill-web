@@ -1,38 +1,64 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { Printer, FileText, AlertCircle, User, Users, Landmark, Award, Building2, Banknote, Car, Paperclip, ShieldCheck } from "lucide-react";
+import {
+  Printer, FileText, AlertCircle, User, Users, Landmark,
+  Building2, Banknote, Car, Paperclip, ShieldCheck, Crown,
+  Phone, MapPin, CalendarDays, Hash, Briefcase
+} from "lucide-react";
 import { Link } from "wouter";
 
 /**
  * 기본유언장 확인 페이지
- * 무료 회원이 자기가 작성한 유언장을 확인하고 출력할 수 있는 페이지
- * 페이지 진입 시 유언장 전체 내용이 바로 보임
+ * 유언자 전체 정보 + 상속자 전원 + 자산 목록 + 서명 통합 표시
  */
+
+const RELATIONSHIP_LABELS: Record<string, string> = {
+  spouse: "배우자",
+  child: "자녀",
+  parent: "부모",
+  sibling: "형제자매",
+  grandchild: "손자녀",
+  other: "기타",
+};
+
+const ASSET_TYPE_LABELS: Record<string, string> = {
+  real_estate: "부동산", apartment: "아파트", house: "단독주택", land: "토지",
+  financial: "금융자산", deposit: "예금", stock: "주식", insurance: "보험",
+  fund: "펀드", crypto: "가상자산", vehicle: "자동차", business: "사업체·지분",
+  pension: "연금", artwork: "예술품·귀금속", jewelry: "귀금속", art: "미술품",
+  other: "기타",
+};
+
+function getAssetIcon(type: string) {
+  if (["real_estate", "apartment", "house", "land"].includes(type)) return Building2;
+  if (["financial", "deposit", "stock", "insurance", "fund", "crypto"].includes(type)) return Banknote;
+  if (type === "vehicle") return Car;
+  if (type === "business") return Briefcase;
+  return Landmark;
+}
+
 export default function WillPreviewPage() {
   const { user } = useAuth();
 
   // 유언장 목록 조회
   const { data: wills, isLoading: isLoadingWills } = trpc.will.getMyWills.useQuery();
-
-  // 최신 유언장 ID
   const latestWillId = wills?.[0]?.id;
 
-  // 최신 유언장 상세 조회 (data 필드 포함)
+  // 최신 유언장 상세
   const { data: willDetail, isLoading: isLoadingDetail } = trpc.will.getWillById.useQuery(
     { willId: latestWillId! },
     { enabled: !!latestWillId }
   );
 
-  // 자산 + 상속자 데이터 조회 (별도 테이블)
+  // 별도 테이블 자산 + 상속자 (항상 조회)
   const { data: willData } = trpc.asset.getWillData.useQuery();
-  const assetList = willData?.assets ?? [];
-  const heirList = willData?.heirs ?? [];
+  const assetList = (willData?.assets ?? []) as any[];
+  const heirList = (willData?.heirs ?? []) as any[];
 
-  // 업로드된 문서 목록 조회 (willAttachments 테이블)
+  // 업로드된 증빙 서류
   const { data: attachments } = trpc.attachment.list.useQuery();
 
-  // 출력 기능
   function handlePrint() {
     window.print();
   }
@@ -56,51 +82,49 @@ export default function WillPreviewPage() {
       <div className="p-6 max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold text-[#1F3864] mb-2">기본유언장 확인</h1>
         <p className="text-gray-600 mb-8">작성한 유언장을 확인하고 출력할 수 있습니다.</p>
-
         <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center">
           <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h2 className="text-lg font-semibold text-gray-700 mb-2">아직 작성된 유언장이 없습니다</h2>
           <p className="text-gray-500 mb-6">유언 작성하기에서 간편하게 유언장을 작성해보세요.</p>
           <Link href="/dashboard/will-wizard">
-            <Button className="bg-[#1F3864] hover:bg-[#2a4a7a] text-white">
-              유언 작성하기
-            </Button>
+            <Button className="bg-[#1F3864] hover:bg-[#2a4a7a] text-white">유언 작성하기</Button>
           </Link>
         </div>
       </div>
     );
   }
 
-  // 유언장 data 필드 분석 - JSON이면 파싱, 텍스트면 그대로 표시
+  // 유언장 data 파싱
   let willText = "";
   let parsedJson: any = null;
-
   if (willDetail.data) {
     try {
       const parsed = JSON.parse(willDetail.data);
-      if (typeof parsed === "object" && parsed !== null) {
-        parsedJson = parsed;
-      }
+      if (typeof parsed === "object" && parsed !== null) parsedJson = parsed;
     } catch {
-      // JSON이 아닌 경우 → 유언장 전문 텍스트
       willText = willDetail.data;
     }
   }
+  if (parsedJson?.willContent && !willText) willText = parsedJson.willContent;
 
-  // Step4Will에서 서명 포함 JSON으로 저장한 경우 willContent 추출
-  if (parsedJson?.willContent && !willText) {
-    willText = parsedJson.willContent;
-  }
   const signatureImage = parsedJson?.signature1 || "";
-  const signatureImage2 = parsedJson?.signature2 || "";
   const signedAt = parsedJson?.signedAt || "";
 
-  // JSON 파싱된 경우에서 유언자 정보 추출
-  const testatorName = parsedJson?.testatorName || user?.name || "-";
-  const testatorAddress = parsedJson?.testatorAddress || "";
-  const testatorPhone = parsedJson?.testatorPhone || "";
-  const testatorRRN = parsedJson?.testatorRRN || "";
-  const testatorBirthDate = parsedJson?.testatorBirthDate || "";
+  // 유언자 정보 (parsedJson 우선, 없으면 user 프로필)
+  const testatorName = parsedJson?.testatorName || (user as any)?.name || "-";
+  const testatorRRN = parsedJson?.testatorRRN || (user as any)?.residentNumberMasked || "";
+  const testatorBirthDate = parsedJson?.testatorBirthDate || (user as any)?.birthDate || "";
+  const testatorPhone = parsedJson?.testatorPhone || (user as any)?.phone || "";
+  const testatorAddress = parsedJson?.testatorAddress ||
+    [((user as any)?.address || ""), ((user as any)?.addressDetail || "")].filter(Boolean).join(" ") || "";
+
+  // JSON 내부 상속자/자산 (Step10Sign에서 저장한 경우)
+  const jsonHeirs: any[] = parsedJson?.heirs || [];
+  const jsonRealEstates: any[] = parsedJson?.realEstates || [];
+  const jsonFinancialAssets: any[] = parsedJson?.financialAssets || [];
+  const jsonOtherAssets: any[] = parsedJson?.otherAssets || [];
+
+  // 집행자, 특별 지시사항
   const executor = parsedJson?.executor || parsedJson?.executorCustomName || "";
   const executorRelation = parsedJson?.executorCustomRelation || "";
   const guardian = parsedJson?.guardian || "";
@@ -108,29 +132,16 @@ export default function WillPreviewPage() {
   const specialInstructions = parsedJson?.specialInstructions || "";
   const donationDetails = parsedJson?.donationDetails || "";
 
-  // JSON 내부 상속자/자산 (Step10Sign에서 저장한 경우)
-  const jsonHeirs = parsedJson?.heirs || [];
-  const jsonRealEstates = parsedJson?.realEstates || [];
-  const jsonFinancialAssets = parsedJson?.financialAssets || [];
-  const jsonOtherAssets = parsedJson?.otherAssets || [];
+  // 표시할 상속자: JSON 내부 > 별도 테이블
+  const displayHeirs = jsonHeirs.length > 0 ? jsonHeirs : heirList;
+  // 표시할 자산: JSON 내부 > 별도 테이블
+  const displayAssets = (jsonRealEstates.length + jsonFinancialAssets.length + jsonOtherAssets.length) > 0
+    ? null // JSON 자산은 아래에서 섹션별 표시
+    : assetList;
 
-  // 자산 타입 아이콘 매핑
-  function getAssetIcon(type: string) {
-    if (type === "real_estate" || type === "부동산") return Building2;
-    if (type === "financial" || type === "금융") return Banknote;
-    if (type === "vehicle" || type === "자동차") return Car;
-    return Landmark;
-  }
-
-  // 자산 타입 한글 변환
-  function getAssetTypeLabel(type: string) {
-    const map: Record<string, string> = {
-      real_estate: "부동산", apartment: "아파트", house: "단독주택", land: "토지",
-      financial: "금융자산", deposit: "예금", stock: "주식", insurance: "보험", fund: "펀드",
-      crypto: "가상자산", vehicle: "자동차", jewelry: "귀금속", art: "미술품", other: "기타",
-    };
-    return map[type] || type;
-  }
+  // 오늘 날짜
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -140,17 +151,13 @@ export default function WillPreviewPage() {
           <h1 className="text-2xl font-bold text-[#1F3864]">기본유언장 확인</h1>
           <p className="text-gray-600 mt-1">작성한 유언장을 확인하고 출력할 수 있습니다. (무료)</p>
         </div>
-        <Button
-          variant="outline"
-          onClick={handlePrint}
-          className="gap-2"
-        >
+        <Button variant="outline" onClick={handlePrint} className="gap-2">
           <Printer className="w-4 h-4" />
           출력하기
         </Button>
       </div>
 
-      {/* 유언장 전체 내용 표시 */}
+      {/* ─── 유언장 본문 ─── */}
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden print:border-none print:shadow-none">
         {/* 카드 헤더 */}
         <div className="bg-[#1F3864] text-white px-6 py-4 flex items-center gap-3 print:bg-white print:text-[#1F3864] print:border-b-2 print:border-[#1F3864]">
@@ -158,20 +165,20 @@ export default function WillPreviewPage() {
           <div>
             <h2 className="font-bold text-lg">{willDetail.title || "나의 유언장"}</h2>
             <p className="text-white/70 text-sm print:text-gray-500">
-              작성일: {new Date(willDetail.createdAt).toLocaleDateString("ko-KR")} · 
+              작성일: {new Date(willDetail.createdAt).toLocaleDateString("ko-KR")} ·
               상태: {willDetail.status === "certified" ? "인증 완료 ✓" : "초안 (미인증)"}
             </p>
           </div>
         </div>
 
         <div className="p-6 space-y-8">
-          {/* ─── 유언장 전문 텍스트가 있는 경우 (Step4Will에서 저장) ─── */}
+
+          {/* ─── 유언장 전문 텍스트 (Step4Will에서 저장한 경우) ─── */}
           {willText && (
             <section>
               <div className="bg-[#FAFAF8] border border-gray-100 rounded-xl p-6 print:p-0 print:border-none print:bg-white">
                 <div className="prose prose-sm max-w-none text-gray-800 leading-relaxed whitespace-pre-wrap">
                   {willText.split("\n").map((line, idx) => {
-                    // 서명란에 서명 이미지 삽입
                     if (line.includes("서명:") && line.includes("(인)") && signatureImage) {
                       return (
                         <div key={idx} className="flex items-center gap-2 my-2">
@@ -181,26 +188,19 @@ export default function WillPreviewPage() {
                         </div>
                       );
                     }
-                    // 마크다운 볼드 처리
                     if (line.startsWith("**") && line.endsWith("**")) {
                       return <p key={idx} className="font-bold text-[#1F3864] text-base mt-4 mb-2">{line.replace(/\*\*/g, "")}</p>;
                     }
-                    if (line.startsWith("---")) {
-                      return <hr key={idx} className="my-4 border-gray-200" />;
-                    }
-                    if (line.trim() === "") {
-                      return <div key={idx} className="h-3" />;
-                    }
-                    // 일반 텍스트 (볼드 인라인 처리)
+                    if (line.startsWith("---")) return <hr key={idx} className="my-4 border-gray-200" />;
+                    if (line.trim() === "") return <div key={idx} className="h-3" />;
                     const parts = line.split(/(\*\*[^*]+\*\*)/g);
                     return (
                       <p key={idx} className="text-sm leading-7">
-                        {parts.map((part, pIdx) => {
-                          if (part.startsWith("**") && part.endsWith("**")) {
-                            return <strong key={pIdx} className="text-[#1F3864]">{part.replace(/\*\*/g, "")}</strong>;
-                          }
-                          return <span key={pIdx}>{part}</span>;
-                        })}
+                        {parts.map((part, pIdx) =>
+                          part.startsWith("**") && part.endsWith("**")
+                            ? <strong key={pIdx} className="text-[#1F3864]">{part.replace(/\*\*/g, "")}</strong>
+                            : <span key={pIdx}>{part}</span>
+                        )}
                       </p>
                     );
                   })}
@@ -209,188 +209,126 @@ export default function WillPreviewPage() {
             </section>
           )}
 
-          {/* ─── JSON 데이터가 있는 경우 (willText가 없을 때만 표시 - 본문에 이미 포함됨) ─── */}
-          {parsedJson && !willText && (
-            <>
-              {/* 유언자 정보 */}
-              <section>
-                <div className="flex items-center gap-2 mb-3">
-                  <User className="w-4 h-4 text-[#1F3864]" />
-                  <h3 className="font-bold text-[#1F3864]">유언자 정보</h3>
+          {/* ─── 유언자 정보 (항상 표시) ─── */}
+          <section>
+            <div className="flex items-center gap-2 mb-3">
+              <User className="w-4 h-4 text-[#1F3864]" />
+              <h3 className="font-bold text-[#1F3864] text-base">유언자 정보</h3>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-5 grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <p className="text-xs text-gray-500 mb-0.5">성명</p>
+                <p className="font-bold text-lg text-gray-900">{testatorName}</p>
+              </div>
+              {testatorRRN && (
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5 flex items-center gap-1">
+                    <Hash className="w-3 h-3" />주민등록번호
+                  </p>
+                  <p className="text-sm text-gray-800 font-mono">{testatorRRN}</p>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-5">
-                  <p className="font-bold text-lg text-gray-900">{testatorName}</p>
-                  {testatorRRN && <p className="text-gray-600 text-sm mt-1">주민등록번호: {testatorRRN.slice(0,6)}-*******</p>}
-                  {!testatorRRN && testatorBirthDate && <p className="text-gray-600 text-sm mt-1">생년월일: {testatorBirthDate}</p>}
-                  {testatorAddress && <p className="text-gray-600 text-sm mt-1">{testatorAddress}</p>}
-                  {testatorPhone && <p className="text-gray-600 text-sm">{testatorPhone}</p>}
-                </div>
-              </section>
-
-              {/* 상속자 정보 */}
-              {jsonHeirs.length > 0 && (
-                <section>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Users className="w-4 h-4 text-[#1F3864]" />
-                    <h3 className="font-bold text-[#1F3864]">상속자 ({jsonHeirs.length}명)</h3>
-                  </div>
-                  <div className="space-y-2">
-                    {jsonHeirs.map((heir: any, idx: number) => (
-                      <div key={idx} className="bg-gray-50 rounded-xl p-4 flex justify-between items-center">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-[#1F3864]/10 flex items-center justify-center">
-                            <span className="text-xs font-bold text-[#1F3864]">{(heir.name || "?").charAt(0)}</span>
-                          </div>
-                          <div>
-                            <span className="font-semibold text-gray-800">{heir.name}</span>
-                            <span className="text-gray-500 text-sm ml-2">({heir.relation || ""})</span>
-                            {heir.phone && <p className="text-xs text-gray-400">{heir.phone}</p>}
-                          </div>
-                        </div>
-                        {heir.share > 0 && (
-                          <span className="text-[#C9A961] font-bold text-lg">{heir.share}%</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </section>
               )}
+              {!testatorRRN && testatorBirthDate && (
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5 flex items-center gap-1">
+                    <CalendarDays className="w-3 h-3" />생년월일
+                  </p>
+                  <p className="text-sm text-gray-800">{testatorBirthDate}</p>
+                </div>
+              )}
+              {testatorPhone && (
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5 flex items-center gap-1">
+                    <Phone className="w-3 h-3" />연락처
+                  </p>
+                  <p className="text-sm text-gray-800">{testatorPhone}</p>
+                </div>
+              )}
+              {testatorAddress && (
+                <div className="col-span-2">
+                  <p className="text-xs text-gray-500 mb-0.5 flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />주소
+                  </p>
+                  <p className="text-sm text-gray-800">{testatorAddress}</p>
+                </div>
+              )}
+            </div>
+          </section>
 
-              {/* 부동산 자산 */}
-              {jsonRealEstates.length > 0 && (
-                <section>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Building2 className="w-4 h-4 text-[#1F3864]" />
-                    <h3 className="font-bold text-[#1F3864]">부동산 ({jsonRealEstates.length}건)</h3>
-                  </div>
-                  <div className="space-y-2">
-                    {jsonRealEstates.map((re: any, idx: number) => (
-                      <div key={idx} className="bg-gray-50 rounded-xl p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-semibold text-gray-800">{re.type} - {re.address}</p>
-                            {re.area && <p className="text-xs text-gray-500 mt-0.5">면적: {re.area}</p>}
+          {/* ─── 상속자 목록 (항상 표시) ─── */}
+          {displayHeirs.length > 0 && (
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <Users className="w-4 h-4 text-[#1F3864]" />
+                <h3 className="font-bold text-[#1F3864] text-base">상속자 ({displayHeirs.length}명)</h3>
+              </div>
+              <div className="space-y-2">
+                {displayHeirs
+                  .slice()
+                  .sort((a: any, b: any) => (a.priority ?? 99) - (b.priority ?? 99))
+                  .map((heir: any, idx: number) => {
+                    const isExecutor = heir.isExecutor === 1;
+                    const priority = heir.priority ?? idx + 1;
+                    const name = heir.nameKo || heir.name || "-";
+                    const relation = RELATIONSHIP_LABELS[heir.relationship] || heir.relationship || heir.relation || "";
+                    const share = heir.sharePercent ?? heir.share ?? 0;
+                    const shareType = heir.shareType || "percent";
+                    const shareAmount = heir.shareAmount ?? 0;
+                    return (
+                      <div key={heir.id ?? idx} className="bg-gray-50 rounded-xl p-4 flex items-center gap-4">
+                        {/* 순위 배지 */}
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          isExecutor ? "bg-purple-100" : priority === 1 ? "bg-[#C9A961]/20" : "bg-[#1F3864]/10"
+                        }`}>
+                          {isExecutor
+                            ? <ShieldCheck className="w-5 h-5 text-purple-600" />
+                            : priority === 1
+                            ? <Crown className="w-5 h-5 text-[#C9A961]" />
+                            : <span className="text-sm font-bold text-[#1F3864]">{priority}</span>
+                          }
+                        </div>
+                        {/* 이름 + 관계 */}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-semibold text-gray-900">{name}</span>
+                            {heir.nameEn && <span className="text-gray-400 text-sm">({heir.nameEn})</span>}
+                            {relation && (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-[#1F3864]/10 text-[#1F3864]">{relation}</span>
+                            )}
+                            {isExecutor && (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">집행자</span>
+                            )}
                           </div>
-                          {re.estimatedValue && (
-                            <span className="text-[#1F3864] font-bold">₩{Number(re.estimatedValue).toLocaleString()}</span>
+                          {heir.phone && <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1"><Phone className="w-3 h-3" />{heir.phone}</p>}
+                          {heir.address && <p className="text-xs text-gray-400 flex items-center gap-1"><MapPin className="w-3 h-3" />{heir.address}</p>}
+                          {heir.birthDate && <p className="text-xs text-gray-400 flex items-center gap-1"><CalendarDays className="w-3 h-3" />{heir.birthDate}</p>}
+                        </div>
+                        {/* 분배 비율/금액 */}
+                        <div className="text-right flex-shrink-0">
+                          {shareType === "amount" && shareAmount > 0 ? (
+                            <span className="text-[#1F3864] font-bold">₩{Number(shareAmount).toLocaleString()}</span>
+                          ) : share > 0 ? (
+                            <span className="text-[#C9A961] font-bold text-xl">{share}%</span>
+                          ) : (
+                            <span className="text-gray-300 text-sm">미정</span>
                           )}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {/* 금융 자산 */}
-              {jsonFinancialAssets.length > 0 && (
-                <section>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Banknote className="w-4 h-4 text-[#1F3864]" />
-                    <h3 className="font-bold text-[#1F3864]">금융자산 ({jsonFinancialAssets.length}건)</h3>
-                  </div>
-                  <div className="space-y-2">
-                    {jsonFinancialAssets.map((fa: any, idx: number) => (
-                      <div key={idx} className="bg-gray-50 rounded-xl p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-semibold text-gray-800">{fa.type} - {fa.institution}</p>
-                            {fa.accountNo && <p className="text-xs text-gray-500 mt-0.5">계좌: {fa.accountNo}</p>}
-                          </div>
-                          {fa.estimatedValue && (
-                            <span className="text-[#1F3864] font-bold">₩{Number(fa.estimatedValue).toLocaleString()}</span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {/* 기타 자산 */}
-              {jsonOtherAssets.length > 0 && (
-                <section>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Landmark className="w-4 h-4 text-[#1F3864]" />
-                    <h3 className="font-bold text-[#1F3864]">기타 자산 ({jsonOtherAssets.length}건)</h3>
-                  </div>
-                  <div className="space-y-2">
-                    {jsonOtherAssets.map((oa: any, idx: number) => (
-                      <div key={idx} className="bg-gray-50 rounded-xl p-4 flex justify-between items-center">
-                        <div>
-                          <p className="font-semibold text-gray-800">{oa.type}: {oa.description}</p>
-                        </div>
-                        {oa.estimatedValue && (
-                          <span className="text-[#1F3864] font-bold">₩{Number(oa.estimatedValue).toLocaleString()}</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {/* 유언집행자 */}
-              {executor && (
-                <section>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Award className="w-4 h-4 text-[#1F3864]" />
-                    <h3 className="font-bold text-[#1F3864]">유언집행자</h3>
-                  </div>
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="font-semibold text-gray-800">
-                      {executor}
-                      {executorRelation && <span className="text-gray-500 font-normal ml-2">({executorRelation})</span>}
-                    </p>
-                  </div>
-                </section>
-              )}
-
-              {/* 특별 지시사항 */}
-              {(funeralWish || guardian || donationDetails || specialInstructions) && (
-                <section>
-                  <div className="flex items-center gap-2 mb-3">
-                    <FileText className="w-4 h-4 text-[#1F3864]" />
-                    <h3 className="font-bold text-[#1F3864]">특별 지시사항</h3>
-                  </div>
-                  <div className="bg-gray-50 rounded-xl p-5 space-y-3">
-                    {funeralWish && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-0.5">장례 방식</p>
-                        <p className="text-sm text-gray-800">{funeralWish}</p>
-                      </div>
-                    )}
-                    {guardian && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-0.5">미성년 자녀 후견인</p>
-                        <p className="text-sm text-gray-800">{guardian}</p>
-                      </div>
-                    )}
-                    {donationDetails && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-0.5">기부 내역</p>
-                        <p className="text-sm text-gray-800">{donationDetails}</p>
-                      </div>
-                    )}
-                    {specialInstructions && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-0.5">기타 지시사항</p>
-                        <p className="text-sm text-gray-800">{specialInstructions}</p>
-                      </div>
-                    )}
-                  </div>
-                </section>
-              )}
-            </>
+                    );
+                  })}
+              </div>
+            </section>
           )}
 
-          {/* ─── 별도 테이블 자산/상속자 (JSON에 없는 경우 보충) ─── */}
-          {!parsedJson && !willText && assetList.length > 0 && (
+          {/* ─── 자산 목록 (별도 테이블) ─── */}
+          {displayAssets && displayAssets.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-3">
                 <Landmark className="w-4 h-4 text-[#1F3864]" />
-                <h3 className="font-bold text-[#1F3864]">등록 자산 ({assetList.length}건)</h3>
+                <h3 className="font-bold text-[#1F3864] text-base">등록 자산 ({displayAssets.length}건)</h3>
               </div>
               <div className="space-y-2">
-                {assetList.map((asset: any) => {
+                {displayAssets.map((asset: any) => {
                   const AssetIcon = getAssetIcon(asset.type);
                   return (
                     <div key={asset.id} className="bg-gray-50 rounded-xl p-4 flex justify-between items-center">
@@ -398,7 +336,8 @@ export default function WillPreviewPage() {
                         <AssetIcon className="w-4 h-4 text-gray-400" />
                         <div>
                           <span className="font-semibold text-gray-800">{asset.name}</span>
-                          <span className="text-gray-500 text-sm ml-2">{getAssetTypeLabel(asset.type)}</span>
+                          <span className="text-gray-500 text-sm ml-2">{ASSET_TYPE_LABELS[asset.type] || asset.type}</span>
+                          {asset.description && <p className="text-xs text-gray-400 mt-0.5">{asset.description}</p>}
                         </div>
                       </div>
                       {asset.estimatedValue > 0 && (
@@ -411,26 +350,22 @@ export default function WillPreviewPage() {
             </section>
           )}
 
-          {!parsedJson && !willText && heirList.length > 0 && (
+          {/* ─── JSON 자산 (parsedJson에서 온 경우) ─── */}
+          {jsonRealEstates.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-3">
-                <Users className="w-4 h-4 text-[#1F3864]" />
-                <h3 className="font-bold text-[#1F3864]">상속자 ({heirList.length}명)</h3>
+                <Building2 className="w-4 h-4 text-[#1F3864]" />
+                <h3 className="font-bold text-[#1F3864] text-base">부동산 ({jsonRealEstates.length}건)</h3>
               </div>
               <div className="space-y-2">
-                {heirList.map((heir: any) => (
-                  <div key={heir.id} className="bg-gray-50 rounded-xl p-4 flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#1F3864]/10 flex items-center justify-center">
-                        <span className="text-xs font-bold text-[#1F3864]">{(heir.nameKo || heir.name || "?").charAt(0)}</span>
-                      </div>
-                      <div>
-                        <span className="font-semibold text-gray-800">{heir.nameKo || heir.name}</span>
-                        <span className="text-gray-500 text-sm ml-2">({heir.relationship || ""})</span>
-                      </div>
+                {jsonRealEstates.map((re: any, idx: number) => (
+                  <div key={idx} className="bg-gray-50 rounded-xl p-4 flex justify-between items-start">
+                    <div>
+                      <p className="font-semibold text-gray-800">{re.type} - {re.address}</p>
+                      {re.area && <p className="text-xs text-gray-500 mt-0.5">면적: {re.area}</p>}
                     </div>
-                    {heir.sharePercent > 0 && (
-                      <span className="text-[#C9A961] font-bold text-lg">{heir.sharePercent}%</span>
+                    {re.estimatedValue && (
+                      <span className="text-[#1F3864] font-bold">₩{Number(re.estimatedValue).toLocaleString()}</span>
                     )}
                   </div>
                 ))}
@@ -438,7 +373,121 @@ export default function WillPreviewPage() {
             </section>
           )}
 
+          {jsonFinancialAssets.length > 0 && (
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <Banknote className="w-4 h-4 text-[#1F3864]" />
+                <h3 className="font-bold text-[#1F3864] text-base">금융자산 ({jsonFinancialAssets.length}건)</h3>
+              </div>
+              <div className="space-y-2">
+                {jsonFinancialAssets.map((fa: any, idx: number) => (
+                  <div key={idx} className="bg-gray-50 rounded-xl p-4 flex justify-between items-start">
+                    <div>
+                      <p className="font-semibold text-gray-800">{fa.type} - {fa.institution}</p>
+                      {fa.accountNo && <p className="text-xs text-gray-500 mt-0.5">계좌: {fa.accountNo}</p>}
+                    </div>
+                    {fa.estimatedValue && (
+                      <span className="text-[#1F3864] font-bold">₩{Number(fa.estimatedValue).toLocaleString()}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
+          {jsonOtherAssets.length > 0 && (
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <Landmark className="w-4 h-4 text-[#1F3864]" />
+                <h3 className="font-bold text-[#1F3864] text-base">기타 자산 ({jsonOtherAssets.length}건)</h3>
+              </div>
+              <div className="space-y-2">
+                {jsonOtherAssets.map((oa: any, idx: number) => (
+                  <div key={idx} className="bg-gray-50 rounded-xl p-4 flex justify-between items-center">
+                    <p className="font-semibold text-gray-800">{oa.type}: {oa.description}</p>
+                    {oa.estimatedValue && (
+                      <span className="text-[#1F3864] font-bold">₩{Number(oa.estimatedValue).toLocaleString()}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* ─── 유언집행자 ─── */}
+          {executor && (
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <ShieldCheck className="w-4 h-4 text-[#1F3864]" />
+                <h3 className="font-bold text-[#1F3864] text-base">유언집행자</h3>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-4">
+                <p className="font-semibold text-gray-800">
+                  {executor}
+                  {executorRelation && <span className="text-gray-500 font-normal ml-2">({executorRelation})</span>}
+                </p>
+              </div>
+            </section>
+          )}
+
+          {/* ─── 특별 지시사항 ─── */}
+          {(funeralWish || guardian || donationDetails || specialInstructions) && (
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <FileText className="w-4 h-4 text-[#1F3864]" />
+                <h3 className="font-bold text-[#1F3864] text-base">특별 지시사항</h3>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-5 space-y-3">
+                {funeralWish && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">장례 방식</p>
+                    <p className="text-sm text-gray-800">{funeralWish}</p>
+                  </div>
+                )}
+                {guardian && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">미성년 자녀 후견인</p>
+                    <p className="text-sm text-gray-800">{guardian}</p>
+                  </div>
+                )}
+                {donationDetails && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">기부 내역</p>
+                    <p className="text-sm text-gray-800">{donationDetails}</p>
+                  </div>
+                )}
+                {specialInstructions && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">기타 지시사항</p>
+                    <p className="text-sm text-gray-800">{specialInstructions}</p>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* ─── 서명란 ─── */}
+          <section className="border-t border-gray-200 pt-6">
+            <p className="text-sm text-gray-600 mb-4">
+              위 유언은 본인의 자유로운 의사에 따라 작성하였음을 확인한다.
+            </p>
+            <p className="text-sm text-gray-700 mb-6">{signedAt || todayStr}</p>
+            <div className="flex items-end gap-6">
+              <div>
+                <p className="text-sm text-gray-700">유언자: <strong>{testatorName}</strong></p>
+                {testatorAddress && <p className="text-xs text-gray-500 mt-1">주소: {testatorAddress}</p>}
+              </div>
+              <div className="flex items-center gap-3 ml-auto">
+                <span className="text-sm text-gray-600">서명:</span>
+                {signatureImage ? (
+                  <img src={signatureImage} alt="유언자 서명" className="h-14 object-contain border-b border-gray-400" />
+                ) : (
+                  <div className="w-32 h-14 border-b border-gray-400" />
+                )}
+                <span className="text-sm text-gray-600">(인)</span>
+              </div>
+            </div>
+          </section>
 
           {/* ─── 상태 안내 ─── */}
           {willDetail.status !== "certified" && (
@@ -457,7 +506,7 @@ export default function WillPreviewPage() {
               <div className="text-sm text-green-800">
                 <p className="font-semibold mb-1">인증 완료</p>
                 <p>
-                  인증번호: {willDetail.certNumber} · 
+                  인증번호: {willDetail.certNumber} ·
                   인증일: {willDetail.certifiedAt ? new Date(willDetail.certifiedAt).toLocaleDateString("ko-KR") : "-"}
                 </p>
               </div>
@@ -466,18 +515,18 @@ export default function WillPreviewPage() {
         </div>
       </div>
 
-      {/* ─── 업로드된 문서 목록 ─── */}
+      {/* ─── 업로드된 증빙 서류 ─── */}
       {attachments && attachments.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden mt-6 print:border-none print:shadow-none">
           <div className="bg-[#1F3864] text-white px-6 py-4 flex items-center gap-3 print:bg-white print:text-[#1F3864] print:border-b-2 print:border-[#1F3864]">
             <Paperclip className="w-5 h-5" />
             <div>
               <h2 className="font-bold text-lg">업로드된 증빙 서류</h2>
-              <p className="text-white/70 text-sm print:text-gray-500">침부된 서류 {attachments.length}건</p>
+              <p className="text-white/70 text-sm print:text-gray-500">첨부된 서류 {attachments.length}건</p>
             </div>
           </div>
           <div className="p-6 space-y-3">
-            {attachments.map((att: any) => (
+            {(attachments as any[]).map((att) => (
               <div key={att.id} className="flex items-center justify-between bg-gray-50 rounded-xl p-4">
                 <div className="flex items-center gap-3">
                   <FileText className="w-5 h-5 text-gray-400" />
@@ -503,16 +552,6 @@ export default function WillPreviewPage() {
           </div>
         </div>
       )}
-
-      {/* ─── 나의 유언 디지털 전자인증하기 버튼 ─── */}
-      <div className="mt-8 print:hidden">
-        <Link href="/dashboard/payments">
-          <Button className="w-full bg-gradient-to-r from-[#1F3864] to-[#2a4a7a] text-white py-6 text-lg font-bold rounded-2xl hover:opacity-90 transition-all flex items-center justify-center gap-3">
-            <ShieldCheck className="w-6 h-6" />
-            나의 유언 디지털 전자인증하기
-          </Button>
-        </Link>
-      </div>
     </div>
   );
 }
