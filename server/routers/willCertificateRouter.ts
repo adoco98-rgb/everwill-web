@@ -675,7 +675,7 @@ export const willCertificateRouter = router({
       // PDF 생성 (S3 저장 없이 buffer만 반환)
       const pdfBuffer = await generateWillCertificatePDF({
         certNumber,
-        certifiedAt: new Date(certifiedAt),
+        certifiedAt: new Date(), // 작성일 = 출력하는 오늘 날짜
         testatorName: user?.name ?? "유언자",
         testatorBirthDate: user?.birthDate ?? undefined,
         testatorRRN: previewRRN,

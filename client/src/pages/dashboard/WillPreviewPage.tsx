@@ -195,7 +195,7 @@ export default function WillPreviewPage() {
           <div>
             <h2 className="font-bold text-lg">{willDetail.title || "나의 유언장"}</h2>
             <p className="text-white/70 text-sm print:text-gray-500">
-              작성일: {createdAtStr} ·
+              작성일: {todayStr} ·
               상태: {willDetail.status === "certified" ? "인증 완료 ✓" : "초안 (미인증)"}
             </p>
           </div>
