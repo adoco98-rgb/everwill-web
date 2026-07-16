@@ -229,8 +229,15 @@ export default function HeirsPage() {
       .then((data) => {
         setFamilyUploadLoading(false);
         refetchFamily();
-        toast.success(`✅ ${data.count}명의 가족 정보를 추출했습니다. 아래에서 선택하여 추가하세요.`);
-        setShowFamilyUploadModal(false);
+        if (data.count > 0) {
+          toast.success(`✅ ${data.count}명의 가족 정보를 추출했습니다. 아래에서 선택하여 추가하세요.`);
+          // 업로드 모달 닫고 선택 모달로 돌아가기
+          setShowFamilyUploadModal(false);
+          setShowChoiceModal(true);
+        } else {
+          toast.error("가족 정보를 추출하지 못했습니다. 문서를 확인하고 다시 시도해주세요.");
+          setShowFamilyUploadModal(false);
+        }
       })
       .catch((err) => {
         setFamilyUploadLoading(false);
