@@ -183,43 +183,7 @@ export default function WillPreviewPage() {
 
         <div className="p-6 space-y-8">
 
-          {/* ─── 유언장 전문 텍스트 (Step4Will에서 저장한 경우) ─── */}
-          {willText && (
-            <section>
-              <div className="bg-[#FAFAF8] border border-gray-100 rounded-xl p-6 print:p-0 print:border-none print:bg-white">
-                <div className="prose prose-sm max-w-none text-gray-800 leading-relaxed whitespace-pre-wrap">
-                  {willText.split("\n").map((line, idx) => {
-                    if (line.includes("서명:") && line.includes("(인)") && signatureImage) {
-                      return (
-                        <div key={idx} className="flex items-center gap-2 my-2">
-                          <span className="text-sm">서명: </span>
-                          <img src={signatureImage} alt="유언자 서명" className="h-12 object-contain inline-block" />
-                          <span className="text-sm"> (인)</span>
-                        </div>
-                      );
-                    }
-                    if (line.startsWith("**") && line.endsWith("**")) {
-                      return <p key={idx} className="font-bold text-[#1F3864] text-base mt-4 mb-2">{line.replace(/\*\*/g, "")}</p>;
-                    }
-                    if (line.startsWith("---")) return <hr key={idx} className="my-4 border-gray-200" />;
-                    if (line.trim() === "") return <div key={idx} className="h-3" />;
-                    const parts = line.split(/(\*\*[^*]+\*\*)/g);
-                    return (
-                      <p key={idx} className="text-sm leading-7">
-                        {parts.map((part, pIdx) =>
-                          part.startsWith("**") && part.endsWith("**")
-                            ? <strong key={pIdx} className="text-[#1F3864]">{part.replace(/\*\*/g, "")}</strong>
-                            : <span key={pIdx}>{part}</span>
-                        )}
-                      </p>
-                    );
-                  })}
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* ─── 유언자 정보 (항상 표시) ─── */}
+          {/* ─── 유언자 정보 (문서 최상단 고정) ─── */}
           <section>
             <div className="flex items-center gap-2 mb-3">
               <User className="w-4 h-4 text-[#1F3864]" />
@@ -264,6 +228,42 @@ export default function WillPreviewPage() {
               )}
             </div>
           </section>
+
+          {/* ─── 유언장 전문 텍스트 (Step4Will에서 저장한 경우) ─── */}
+          {willText && (
+            <section>
+              <div className="bg-[#FAFAF8] border border-gray-100 rounded-xl p-6 print:p-0 print:border-none print:bg-white">
+                <div className="prose prose-sm max-w-none text-gray-800 leading-relaxed whitespace-pre-wrap">
+                  {willText.split("\n").map((line, idx) => {
+                    if (line.includes("서명:") && line.includes("(인)") && signatureImage) {
+                      return (
+                        <div key={idx} className="flex items-center gap-2 my-2">
+                          <span className="text-sm">서명: </span>
+                          <img src={signatureImage} alt="유언자 서명" className="h-12 object-contain inline-block" />
+                          <span className="text-sm"> (인)</span>
+                        </div>
+                      );
+                    }
+                    if (line.startsWith("**") && line.endsWith("**")) {
+                      return <p key={idx} className="font-bold text-[#1F3864] text-base mt-4 mb-2">{line.replace(/\*\*/g, "")}</p>;
+                    }
+                    if (line.startsWith("---")) return <hr key={idx} className="my-4 border-gray-200" />;
+                    if (line.trim() === "") return <div key={idx} className="h-3" />;
+                    const parts = line.split(/(\*\*[^*]+\*\*)/g);
+                    return (
+                      <p key={idx} className="text-sm leading-7">
+                        {parts.map((part, pIdx) =>
+                          part.startsWith("**") && part.endsWith("**")
+                            ? <strong key={pIdx} className="text-[#1F3864]">{part.replace(/\*\*/g, "")}</strong>
+                            : <span key={pIdx}>{part}</span>
+                        )}
+                      </p>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* ─── 상속자 목록 (항상 표시) ─── */}
           {displayHeirs.length > 0 && (
