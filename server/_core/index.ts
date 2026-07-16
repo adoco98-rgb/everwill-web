@@ -6,6 +6,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
 import { registerStripeRoutes } from "../stripe/stripeRoutes";
+import { familyDocUploadRouter } from "../familyDocUpload";
 import { registerSocialAuthRoutes } from "../socialAuth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
@@ -59,6 +60,8 @@ async function startServer() {
 
   registerStorageProxy(app);
   registerOAuthRoutes(app);
+  // 가족관계증명서 multipart 업로드 (base64 JSON 방식 대신 사용)
+  app.use(familyDocUploadRouter);
   registerSocialAuthRoutes(app);
   registerStripeRoutes(app);
   // tRPC API

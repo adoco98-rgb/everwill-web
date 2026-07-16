@@ -149,19 +149,24 @@ export default function HeirsPage() {
     onError: (err) => toast.error(err.message),
   });
 
-  // 가족관계증명서 AI 파싱 뮤테이션
-  const extractFamilyMutation = trpc.familyMembers.extractFromDocument.useMutation({
-    onSuccess: (data) => {
-      setFamilyUploadLoading(false);
-      refetchFamily();
-      toast.success(`✅ ${data.count}명의 가족 정보를 추출했습니다. 아래에서 선택하여 추가하세요.`);
-      setShowFamilyUploadModal(false);
-    },
-    onError: (err) => {
-      setFamilyUploadLoading(false);
-      toast.error(err.message || "가족 정보 추출에 실패했습니다.");
-    },
-  });
+  // 가족관계증명서 multipart 업로드 함수
+  async function uploadFamilyDocMultipart(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("docType", "family_cert");
+
+    const res = await fetch("/api/family-doc/upload", {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `업로드 실패 (${res.status})` }));
+      throw new Error(err.error || `업로드 실패 (${res.status})`);
+    }
+    return res.json() as Promise<{ success: boolean; count: number; members: any[] }>;
+  }
 
   const handleAdd = () => {
     if (!form.nameKo.trim()) return toast.error("이름을 입력해주세요");
@@ -214,20 +219,23 @@ export default function HeirsPage() {
       toast.error("파일 크기는 20MB 이하여야 합니다.");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
-      setFamilyUploadPreview(dataUrl);
-      setFamilyUploadLoading(true);
-      // base64 부분만 추출
-      const base64 = dataUrl.split(",")[1];
-      extractFamilyMutation.mutate({
-        imageBase64: base64,
-        fileName: file.name,
-        docType: "family_cert",
+    // 미리보기용 URL 생성
+    const previewUrl = URL.createObjectURL(file);
+    setFamilyUploadPreview(previewUrl);
+    setFamilyUploadLoading(true);
+
+    // multipart FormData로 업로드
+    uploadFamilyDocMultipart(file)
+      .then((data) => {
+        setFamilyUploadLoading(false);
+        refetchFamily();
+        toast.success(`✅ ${data.count}명의 가족 정보를 추출했습니다. 아래에서 선택하여 추가하세요.`);
+        setShowFamilyUploadModal(false);
+      })
+      .catch((err) => {
+        setFamilyUploadLoading(false);
+        toast.error(err.message || "가족 정보 추출에 실패했습니다.");
       });
-    };
-    reader.readAsDataURL(file);
   }
 
   // 가족 구성원 선택 → 상속자 폼에 자동 입력
