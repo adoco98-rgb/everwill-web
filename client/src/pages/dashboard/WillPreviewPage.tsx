@@ -1,3 +1,4 @@
+import React from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -79,6 +80,25 @@ export default function WillPreviewPage() {
 
   // 업로드된 증빙 서류
   const { data: attachments } = trpc.attachment.list.useQuery();
+
+  // DB 실시간 자산+상속자로 유언장 전문 자동 재생성
+  const utils = trpc.useUtils();
+  const regenerateMutation = trpc.will.regenerateFromDB.useMutation({
+    onSuccess: () => {
+      // 재생성 완료 후 유언장 상세 다시 불러오기
+      utils.will.getWillById.invalidate();
+      utils.will.getMyWills.invalidate();
+    },
+  });
+  const [hasRegenerated, setHasRegenerated] = React.useState(false);
+
+  // 페이지 로드 시 자동 재생성 (willData 로드 완료 후 1회)
+  React.useEffect(() => {
+    if (!hasRegenerated && willData && latestWillId) {
+      setHasRegenerated(true);
+      regenerateMutation.mutate();
+    }
+  }, [willData, latestWillId, hasRegenerated]);
 
   function handlePrint() {
     window.print();
@@ -173,14 +193,14 @@ export default function WillPreviewPage() {
   const specialInstructions = parsedJson?.specialInstructions || "";
   const donationDetails = parsedJson?.donationDetails || "";
 
-  // 표시할 상속자: JSON 내부 > 별도 테이블
-  const displayHeirs = jsonHeirs.length > 0 ? jsonHeirs : heirList;
-  // 표시할 자산: JSON 내부 > willAssetScans > assets 테이블 순서
-  const displayAssets = (jsonRealEstates.length + jsonFinancialAssets.length + jsonOtherAssets.length) > 0
-    ? null // JSON 자산은 아래에서 섹션별 표시
-    : assetScanList.length > 0
-      ? assetScanList // willAssetScans 우선
-      : assetList;
+  // 표시할 상속자: 항상 DB 실시간 데이터 우선 (JSON 저장 시점의 옵날 데이터 무시)
+  const displayHeirs = heirList.length > 0 ? heirList : jsonHeirs;
+  // 표시할 자산: 항상 DB 실시간 데이터 우선 (willAssetScans > assets 테이블)
+  const displayAssets = assetScanList.length > 0
+    ? assetScanList
+    : assetList.length > 0
+      ? assetList
+      : null;
 
   // 총 자산 합계 계산 (estimatedValue 우선, 없으면 amount 파싱)
   const totalAssetValue = (assetScanList.length > 0 ? assetScanList : assetList).reduce((sum: number, a: any) => {

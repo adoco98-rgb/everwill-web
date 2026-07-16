@@ -9,7 +9,7 @@ import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { invokeLLM } from "../_core/llm";
 import { getDb } from "../db";
-import { wills, willRevisionPayments } from "../../drizzle/schema";
+import { wills, willRevisionPayments, willAssetScans, heirs, users } from "../../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import crypto from "crypto";
 import { sendWillCertifiedEmail } from "../_core/email";
@@ -670,6 +670,174 @@ ${input.currentData ? JSON.stringify(input.currentData, null, 2) : "없음"}
         .orderBy(desc(wills.updatedAt))
         .limit(1);
       return { url: (will as Record<string, unknown>)?.scannedWillUrl ?? null };
+    }),
+
+  /**
+   * DB 실시간 자산 + 상속자 데이터로 유언장 전문 재생성
+   * WillPreviewPage에서 페이지 로드 시 자동 호출
+   */
+  regenerateFromDB: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+
+      // 1. 사용자 정보
+      const [userRow] = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+
+      // 2. 상속자 목록 (DB 실시간)
+      const heirList = await db.select().from(heirs).where(eq(heirs.userId, ctx.user.id));
+
+      // 3. 자산 서류 목록 (willAssetScans)
+      const assetScans = await db.select().from(willAssetScans)
+        .where(eq(willAssetScans.userId, ctx.user.id));
+
+      // 4. 유언장 최신본 조회
+      const [latestWill] = await db.select().from(wills)
+        .where(eq(wills.userId, ctx.user.id))
+        .orderBy(desc(wills.updatedAt))
+        .limit(1);
+
+      // 5. 유언자 정보 구성
+      let parsedJson: any = {};
+      if (latestWill?.data) {
+        try { parsedJson = JSON.parse(latestWill.data); } catch {}
+      }
+      const testatorName = parsedJson?.testatorName || userRow?.name || ctx.user.name || "유언자";
+      const testatorAddress = parsedJson?.testatorAddress ||
+        [(userRow as any)?.address || "", (userRow as any)?.addressDetail || ""].filter(Boolean).join(" ") || "";
+      const testatorRRN = parsedJson?.testatorRRN || "";
+      const executor = heirList.find((h: any) => Number(h.isExecutor) === 1);
+      const executorName = executor ? (executor.nameKo || executor.nameEn || "") : (parsedJson?.executor || "");
+      const funeralWish = parsedJson?.funeralWish || "";
+      const specialInstructions = parsedJson?.specialInstructions || "";
+      const donationDetails = parsedJson?.donationDetails || "";
+      const guardian = parsedJson?.guardian || "";
+
+      // 6. 상속자 텍스트 생성
+      const RELATIONSHIP_KO: Record<string, string> = {
+        spouse: "배우자", child: "자녀", parent: "부모",
+        sibling: "형제자매", grandchild: "손자녀", other: "기타",
+      };
+      const totalAssetValue = assetScans.reduce((sum: number, a: any) => {
+        const ev = a.estimatedValue ? Number(a.estimatedValue) : 0;
+        const amt = ev > 0 ? ev : (Number(String(a.amount || '0').replace(/[^0-9]/g, '')) || 0);
+        return sum + amt;
+      }, 0);
+
+      const heirsText = heirList.map((h: any, i: number) => {
+        const rel = RELATIONSHIP_KO[h.relationship] || h.relationship || "";
+        const share = h.shareType === 'amount'
+          ? `₩${Number(h.shareAmount).toLocaleString()}`
+          : `본인 소유의 모든 재산 중 ${h.sharePercent}%의 지분`;
+        const approxAmt = h.shareType !== 'amount' && totalAssetValue > 0
+          ? ` (약 ₩${Math.round(totalAssetValue * h.sharePercent / 100).toLocaleString()})`
+          : '';
+        return `${i + 1}. ${h.nameKo} (${rel}): ${share}${approxAmt}`;
+      }).join("\n");
+
+      // 7. 자산 목록 텍스트 생성
+      const DOC_TYPE_KO: Record<string, string> = {
+        bank_balance: "은행 잔액증명서",
+        real_estate_registry: "부동산 등기부등본",
+        stock_certificate: "주식보유증명서",
+        insurance_policy: "보험증권",
+        bond_certificate: "채권증명서",
+        pension_statement: "연금수급확인서",
+        vehicle_registration: "자동차등록증",
+        business_registration: "사업자등록증",
+        loan_statement: "대출잔액확인서",
+        other: "기타 자산 서류",
+      };
+      // pension 유형 제외 (pension은 상속 대상 아님)
+      const inheritableAssets = assetScans.filter((a: any) =>
+        a.docType !== 'pension' && a.docType !== 'pension_statement'
+      );
+      const assetsText = inheritableAssets.length > 0
+        ? inheritableAssets.map((a: any, i: number) => {
+            const docLabel = DOC_TYPE_KO[a.docType] || a.docTypeLabel || a.docType || "자산";
+            const assetName = a.assetName || "";
+            const issuer = a.issuer ? ` (발급: ${a.issuer})` : "";
+            const location = a.location ? ` [소재지: ${a.location}]` : "";
+            const ev = a.estimatedValue ? Number(a.estimatedValue) : 0;
+            const amt = Number(String(a.amount || '0').replace(/[^0-9]/g, '')) || 0;
+            const valueStr = ev > 0 ? ` ₩${ev.toLocaleString()}` : amt > 0 ? ` ${amt.toLocaleString()} ${a.unit || '원'}` : "";
+            return `${i + 1}. [${docLabel}] ${assetName}${issuer}${location}${valueStr}`;
+          }).join("\n")
+        : "등록된 상속 자산 없음";
+
+      // 8. 오늘 날짜
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
+
+      // 9. AI 프롬프트 생성
+      const prompt = `당신은 한국 민법 전문 유언장 작성 AI입니다.
+아래 정보를 바탕으로 한국 민법 제1066조(자필증서 유언) 요건에 맞는 유언장 전문을 작성해주세요.
+
+[유언자 정보]
+- 성명: ${testatorName}
+- 주민등록번호: ${testatorRRN || '미기재'}
+- 주소: ${testatorAddress || '미기재'}
+- 작성일: ${todayStr}
+
+[상속인 목록]
+${heirsText || '등록된 상속인 없음'}
+
+[상속 자산 목록]
+${assetsText}
+
+[특별 지시사항]
+- 유언집행자: ${executorName || '미지정'}
+- 미성년 후견인: ${guardian || '해당 없음'}
+- 장례 방식: ${funeralWish || '미지정'}
+- 기부 내역: ${donationDetails || '없음'}
+- 기타: ${specialInstructions || '없음'}
+
+[작성 규칙]
+1. 반드시 "유  언  장"이라는 제목으로 시작
+2. 전문(前文) 서두는 반드시 아래 문구를 그대로 사용할 것 (유언자 이름은 실제 이름으로 대체):
+
+   "본인 ${testatorName} 은(는) 평생 사랑하고 아끼던 나의 가족에게,
+   정신이 맑고 건강한 상태에서, 오로지 자유로운 의지와 진심어린 마음으로
+   다음과 같이 재산 상속에 관한 사항을 유언합니다.
+
+   이 유언은 어떠한 압력이나 강요 없이,
+   오로지 나의 자유로운 의지와 애정으로 작성하는
+   나의 마지막 유언입니다."
+3. 각 자산별 상속인과 지분을 명확히 기재
+4. 법적 요건(성명, 주소, 연월일, 날인란)을 포함
+5. 마지막에 "위 유언은 본인의 자유로운 의사에 따라 작성하였음을 확인한다." 결어 포함
+6. 날인란: "서명: ___________  (인)" 형식으로 마무리
+7. 한국어로 작성, 법률 문서 형식 유지
+8. 자필로 옵겨 쓸 수 있도록 명확하고 간결하게 작성
+
+유언장 전문만 출력하세요. 설명이나 주석은 포함하지 마세요.`;
+
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: "당신은 한국 민법 전문 유언장 작성 AI입니다. 법적으로 유효한 자필증서 유언장 초안을 작성합니다." },
+          { role: "user", content: prompt },
+        ],
+      });
+
+      const newWillText = response.choices?.[0]?.message?.content || "";
+
+      // 10. 유언장 DB 업데이트 (새 전문 저장)
+      if (latestWill && newWillText) {
+        const updatedJson = {
+          ...parsedJson,
+          willContent: newWillText,
+          lastRegeneratedAt: new Date().toISOString(),
+        };
+        await db.update(wills)
+          .set({ data: JSON.stringify(updatedJson) })
+          .where(eq(wills.id, latestWill.id));
+      }
+
+      return {
+        success: true,
+        willText: newWillText,
+        todayStr,
+      };
     }),
 
   // 자필 유언장 스캔 이미지 삭제
