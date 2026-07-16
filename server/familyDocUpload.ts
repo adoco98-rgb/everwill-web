@@ -53,11 +53,12 @@ router.post("/api/family-doc/upload", upload.single("file"), async (req, res) =>
 
     // base64 변환 (LLM 비전 API용)
     const base64 = req.file.buffer.toString("base64");
+    const isPdf = req.file.mimetype === "application/pdf";
     const mimeType = req.file.mimetype.startsWith("image/") ? req.file.mimetype : "image/jpeg";
 
     // AI OCR로 가족 정보 추출
     const systemPrompt = `당신은 한국 ${docLabel}에서 가족 구성원 정보를 추출하는 전문가입니다.
-문서 이미지를 분석하여 가족 구성원 정보를 JSON 배열로 반환하세요.
+문서를 분석하여 가족 구성원 정보를 JSON 배열로 반환하세요.
 각 구성원에 대해 다음 정보를 추출하세요:
 - nameKo: 이름 (한국어)
 - relationship: 관계 (예: 배우자, 자녀, 부모, 형제, 자매 등 원문 그대로)
@@ -67,18 +68,29 @@ router.post("/api/family-doc/upload", upload.single("file"), async (req, res) =>
 본인(신청인/기준자)은 제외하고 가족 구성원만 추출하세요.
 반드시 JSON 배열만 반환하세요. 다른 텍스트는 포함하지 마세요.`;
 
+    // PDF는 file_url 타입, 이미지는 image_url 타입으로 LLM에 전달
+    const fileContent = isPdf
+      ? {
+          type: "file_url" as const,
+          file_url: {
+            url: `data:application/pdf;base64,${base64}`,
+            mime_type: "application/pdf" as const,
+          },
+        }
+      : {
+          type: "image_url" as const,
+          image_url: {
+            url: `data:${mimeType};base64,${base64}`,
+            detail: "high" as const,
+          },
+        };
+
     const messages: Message[] = [
       { role: "system", content: systemPrompt },
       {
         role: "user",
         content: [
-          {
-            type: "image_url" as const,
-            image_url: {
-              url: `data:${mimeType};base64,${base64}`,
-              detail: "high" as const,
-            },
-          },
+          fileContent,
           {
             type: "text" as const,
             text: `이 ${docLabel}에서 가족 구성원 정보를 추출해주세요.`,

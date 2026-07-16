@@ -12,7 +12,8 @@ import { toast } from "sonner";
 import {
   Users, Plus, Trash2, Edit2, Save, X, Phone, MapPin,
   User, Crown, MessageSquare, ShieldCheck, Eye, EyeOff,
-  FileText, Upload, Loader2, CheckCircle2, UserPlus, ChevronRight
+  FileText, Upload, Loader2, CheckCircle2, UserPlus, ChevronRight,
+  RefreshCw, Check
 } from "lucide-react";
 import AddressSearch from "@/components/write/AddressSearch";
 
@@ -117,6 +118,10 @@ export default function HeirsPage() {
   const [familyUploadPreview, setFamilyUploadPreview] = useState<string | null>(null);
   const [familyUploadLoading, setFamilyUploadLoading] = useState(false);
   const familyFileInputRef = useRef<HTMLInputElement>(null);
+  // 체크박스 선택된 가족 ID 목록
+  const [selectedFamilyIds, setSelectedFamilyIds] = useState<Set<number>>(new Set());
+  // 삭제 중인 가족 ID
+  const [deletingFamilyId, setDeletingFamilyId] = useState<number | null>(null);
 
   const { data: heirs = [], refetch } = trpc.heirs.getMyHeirs.useQuery();
   // 저장된 가족 구성원 목록
@@ -147,6 +152,18 @@ export default function HeirsPage() {
       refetch();
     },
     onError: (err) => toast.error(err.message),
+  });
+
+  // 가족 구성원 삭제 mutation
+  const deleteFamilyMutation = trpc.familyMembers.deleteFamilyMember.useMutation({
+    onSuccess: () => {
+      refetchFamily();
+      setDeletingFamilyId(null);
+    },
+    onError: (err) => {
+      toast.error(err.message);
+      setDeletingFamilyId(null);
+    },
   });
 
   // 가족관계증명서 multipart 업로드 함수
@@ -245,7 +262,7 @@ export default function HeirsPage() {
       });
   }
 
-  // 가족 구성원 선택 → 상속자 폼에 자동 입력
+  // 가족 구성원 선택 → 상속자 폼에 자동 입력 (단일 선택)
   function fillFromFamilyMember(member: any) {
     setForm({
       ...defaultForm,
@@ -257,6 +274,55 @@ export default function HeirsPage() {
     setShowChoiceModal(false);
     setShowAddForm(true);
     toast.success(`${member.nameKo} 정보가 자동 입력되었습니다. 나머지 정보를 확인 후 등록하세요.`);
+  }
+
+  // 체크박스 토글
+  function toggleFamilySelect(id: number) {
+    setSelectedFamilyIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  // 선택된 가족 일괄 상속자 등록
+  async function addSelectedAsHeirs() {
+    const selected = (familyMembers as any[]).filter(m => selectedFamilyIds.has(m.id));
+    if (selected.length === 0) {
+      toast.error("상속자로 등록할 가족을 선택하세요.");
+      return;
+    }
+    let successCount = 0;
+    for (const member of selected) {
+      try {
+        await addMutation.mutateAsync({
+          nameKo: member.nameKo || "",
+          nameEn: "",
+          relationship: normalizeRelationship(member.relationship || "") as "spouse" | "child" | "parent" | "sibling" | "grandchild" | "other",
+          birthDate: member.birthDate || "",
+          phone: "",
+          email: "",
+          country: "KR",
+          address: member.address || "",
+          shareType: "percent",
+          sharePercent: 0,
+          shareAmount: 0,
+          smsConsent: 0,
+          isExecutor: 0,
+          accessLevel: "own_only",
+        });
+        successCount++;
+      } catch {
+        // 개별 실패 무시
+      }
+    }
+    if (successCount > 0) {
+      toast.success(`✅ ${successCount}명이 상속자로 등록되었습니다. 연락정보를 추가로 입력해주세요.`);
+      setShowChoiceModal(false);
+      setSelectedFamilyIds(new Set());
+      refetch();
+    }
   }
 
   // 총 분배 비율 계산
@@ -454,103 +520,174 @@ export default function HeirsPage() {
         </div>
       )}
 
-      {/* ── 상속자 추가 방법 선택 모달 ── */}
-      <Dialog open={showChoiceModal} onOpenChange={setShowChoiceModal}>
-        <DialogContent className="max-w-md">
+      {/* ── 상속자 추가 모달 ── */}
+      <Dialog open={showChoiceModal} onOpenChange={(open) => { setShowChoiceModal(open); if (!open) setSelectedFamilyIds(new Set()); }}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-[#1F3864] flex items-center gap-2">
               <UserPlus className="w-5 h-5" />
-              상속자 추가 방법 선택
+              상속자 추가
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-3 pt-2">
-            {/* 옵션 1: 가족관계증명서에서 불러오기 */}
+          <div className="space-y-4 pt-2">
+
+            {/* 가족관계증명서 업로드 버튼 */}
             <button
               onClick={() => {
                 setShowChoiceModal(false);
                 setShowFamilyUploadModal(true);
               }}
-              className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-[#1F3864]/20 hover:border-[#1F3864] hover:bg-[#1F3864]/5 transition-all text-left group"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed border-[#1F3864]/30 hover:border-[#1F3864] hover:bg-[#1F3864]/5 transition-all text-left"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#1F3864]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#1F3864]/20">
-                <FileText className="w-6 h-6 text-[#1F3864]" />
-              </div>
+              <Upload className="w-5 h-5 text-[#1F3864]/60" />
               <div className="flex-1">
-                <p className="font-semibold text-[#1F3864]">가족관계증명서에서 불러오기</p>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  가족관계증명서를 업로드하면 AI가 가족 정보를 자동으로 추출합니다
-                </p>
-                {familyMembers.length > 0 && (
-                  <p className="text-xs text-green-600 mt-1 font-medium">
-                    ✓ {familyMembers.length}명의 가족 정보가 저장되어 있습니다
-                  </p>
-                )}
+                <p className="text-sm font-semibold text-[#1F3864]">가족관계증명서 업로드하여 불러오기</p>
+                <p className="text-xs text-gray-400 mt-0.5">JPG, PNG, PDF • AI가 가족 정보 자동 추출</p>
               </div>
-              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#1F3864]" />
+              <ChevronRight className="w-4 h-4 text-gray-400" />
             </button>
 
-            {/* 저장된 가족 구성원이 있으면 바로 선택 가능 */}
-            {familyMembers.length > 0 && (
-              <div className="border border-green-200 bg-green-50 rounded-xl p-3">
-                <p className="text-xs font-semibold text-green-700 mb-2 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  저장된 가족 정보에서 바로 선택
-                </p>
-                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+            {/* 저장된 가족 목록 전체 표시 */}
+            {familyMembers.length > 0 ? (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-semibold text-[#1F3864] flex items-center gap-1">
+                    <Users className="w-4 h-4" />
+                    추출된 가족 목록 ({familyMembers.length}명)
+                  </p>
+                  <button
+                    onClick={() => {
+                      // 전체 선택 / 전체 해제 토글
+                      const unregistered = (familyMembers as any[]).filter(m => !(heirs as Heir[]).some(h => h.nameKo === m.nameKo));
+                      if (selectedFamilyIds.size === unregistered.length) {
+                        setSelectedFamilyIds(new Set());
+                      } else {
+                        setSelectedFamilyIds(new Set(unregistered.map((m: any) => m.id)));
+                      }
+                    }}
+                    className="text-xs text-[#1F3864] underline"
+                  >
+                    {selectedFamilyIds.size === (familyMembers as any[]).filter(m => !(heirs as Heir[]).some(h => h.nameKo === m.nameKo)).length
+                      ? "전체 해제" : "전체 선택"}
+                  </button>
+                </div>
+
+                <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                   {(familyMembers as any[]).map((member) => {
-                    // 이미 상속자로 등록된 경우 표시
-                    const alreadyAdded = (heirs as Heir[]).some(
-                      (h) => h.nameKo === member.nameKo
-                    );
+                    const alreadyAdded = (heirs as Heir[]).some(h => h.nameKo === member.nameKo);
+                    const isSelected = selectedFamilyIds.has(member.id);
+                    const isDeleting = deletingFamilyId === member.id;
                     return (
-                      <button
+                      <div
                         key={member.id}
-                        onClick={() => fillFromFamilyMember(member)}
-                        disabled={alreadyAdded}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${
                           alreadyAdded
-                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                            : "bg-white hover:bg-green-100 text-gray-700 border border-green-200"
+                            ? "bg-gray-50 border-gray-200 opacity-60"
+                            : isSelected
+                            ? "bg-[#1F3864]/5 border-[#1F3864] shadow-sm"
+                            : "bg-white border-gray-200 hover:border-[#1F3864]/40"
                         }`}
                       >
-                        <div className="flex items-center gap-2">
-                          <User className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
-                          <span className="font-medium">{member.nameKo}</span>
-                          <span className="text-gray-400 text-xs">{member.relationship}</span>
-                          {member.birthDate && <span className="text-gray-400 text-xs">({member.birthDate})</span>}
+                        {/* 체크박스 */}
+                        <button
+                          onClick={() => { if (!alreadyAdded) toggleFamilySelect(member.id); }}
+                          disabled={alreadyAdded}
+                          className={`w-5 h-5 rounded flex items-center justify-center border-2 flex-shrink-0 transition-all ${
+                            alreadyAdded
+                              ? "border-gray-300 bg-gray-100 cursor-not-allowed"
+                              : isSelected
+                              ? "border-[#1F3864] bg-[#1F3864]"
+                              : "border-gray-300 bg-white hover:border-[#1F3864]"
+                          }`}
+                        >
+                          {(isSelected || alreadyAdded) && (
+                            <Check className={`w-3 h-3 ${
+                              alreadyAdded ? "text-gray-400" : "text-white"
+                            }`} />
+                          )}
+                        </button>
+
+                        {/* 이름 + 관계 + 생년월일 */}
+                        <div
+                          className="flex-1 cursor-pointer"
+                          onClick={() => { if (!alreadyAdded) toggleFamilySelect(member.id); }}
+                        >
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-semibold text-sm text-[#1F3864]">{member.nameKo}</span>
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-[#1F3864]/10 text-[#1F3864]">{member.relationship}</span>
+                            {member.birthDate && (
+                              <span className="text-xs text-gray-400">{member.birthDate}</span>
+                            )}
+                          </div>
+                          {alreadyAdded && (
+                            <p className="text-xs text-green-600 mt-0.5 flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" />상속자 등록 완료
+                            </p>
+                          )}
                         </div>
-                        {alreadyAdded ? (
-                          <span className="text-xs text-gray-400">등록됨</span>
-                        ) : (
-                          <span className="text-xs text-green-600 font-medium">선택 →</span>
-                        )}
-                      </button>
+
+                        {/* 삭제 버튼 */}
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`${member.nameKo}를 목록에서 삭제하시겠습니까?`)) {
+                              setDeletingFamilyId(member.id);
+                              deleteFamilyMutation.mutate({ id: member.id });
+                            }
+                          }}
+                          disabled={isDeleting}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0"
+                          title="목록에서 삭제"
+                        >
+                          {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
                     );
                   })}
                 </div>
+
+                {/* 선택 상속자 등록 버튼 */}
+                {selectedFamilyIds.size > 0 && (
+                  <Button
+                    onClick={addSelectedAsHeirs}
+                    disabled={addMutation.isPending}
+                    className="w-full mt-3 bg-[#1F3864] hover:bg-[#162a4e] text-white gap-2"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    {addMutation.isPending ? "등록 중..." : `선택한 ${selectedFamilyIds.size}명 상속자로 등록`}
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-6 text-gray-400">
+                <FileText className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">저장된 가족 정보가 없습니다.</p>
+                <p className="text-xs mt-1">가족관계증명서를 업로드하여 가족 정보를 불러오세요.</p>
               </div>
             )}
 
-            {/* 옵션 2: 직접 입력 */}
+            {/* 구분선 */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-xs text-gray-400">또는</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            {/* 직접 입력 */}
             <button
               onClick={() => {
                 setShowChoiceModal(false);
                 setForm(defaultForm);
                 setShowAddForm(true);
               }}
-              className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 hover:border-[#1F3864] hover:bg-gray-50 transition-all text-left group"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-gray-200 hover:border-[#1F3864] hover:bg-gray-50 transition-all text-left"
             >
-              <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-[#1F3864]/10">
-                <UserPlus className="w-6 h-6 text-gray-500 group-hover:text-[#1F3864]" />
-              </div>
+              <UserPlus className="w-5 h-5 text-gray-400" />
               <div className="flex-1">
-                <p className="font-semibold text-gray-700 group-hover:text-[#1F3864]">직접 입력</p>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  이름, 관계, 연락처 등을 직접 입력합니다
-                </p>
+                <p className="text-sm font-semibold text-gray-700">직접 입력</p>
+                <p className="text-xs text-gray-400 mt-0.5">이름, 관계, 연락처 등을 직접 입력합니다</p>
               </div>
-              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#1F3864]" />
+              <ChevronRight className="w-4 h-4 text-gray-400" />
             </button>
           </div>
         </DialogContent>
