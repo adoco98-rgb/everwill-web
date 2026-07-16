@@ -321,3 +321,30 @@ header, nav, .fixed-top {
   .aspect-square { width: 100%; padding-top: 100%; position: relative; }
   .aspect-video { width: 100%; padding-top: 56.25%; position: relative; }
 }
+
+/* ─── 인쇄/PDF 출력 스타일 ─── */
+@media print {
+  /* 섹션 내부 잘림 방지 */
+  section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* 상속자 카드 잘림 방지 */
+  .heir-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* 자산 항목 잘림 방지 */
+  .asset-item {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* 배경색 강제 출력 */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

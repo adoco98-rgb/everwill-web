@@ -504,24 +504,24 @@ export default function WillPreviewPage() {
           )}
 
           {/* ─── 서명란 ─── */}
-          <section className="border-t border-gray-200 pt-6">
+          <section className="border-t border-gray-200 pt-8 mt-4" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
             <p className="text-sm text-gray-600 mb-4">
               위 유언은 본인의 자유로운 의사에 따라 작성하였음을 확인한다.
             </p>
-            <p className="text-sm text-gray-700 mb-6">{signedAt || todayStr}</p>
-            <div className="flex items-end gap-6">
+            <p className="text-base text-gray-700 mb-8 font-medium">{signedAt || todayStr}</p>
+            <div className="flex items-end justify-between gap-6">
               <div>
-                <p className="text-sm text-gray-700">유언자: <strong>{testatorName}</strong></p>
-                {testatorAddress && <p className="text-xs text-gray-500 mt-1">주소: {testatorAddress}</p>}
+                <p className="text-base text-gray-700">유언자: <strong>{testatorName}</strong></p>
+                {testatorAddress && <p className="text-sm text-gray-500 mt-1">주소: {testatorAddress}</p>}
               </div>
-              <div className="flex items-center gap-3 ml-auto">
-                <span className="text-sm text-gray-600">서명:</span>
+              <div className="flex items-center gap-4">
+                <span className="text-base text-gray-600">서명:</span>
                 {signatureImage ? (
-                  <img src={signatureImage} alt="유언자 서명" className="h-14 object-contain border-b border-gray-400" />
+                  <img src={signatureImage} alt="유언자 서명" className="h-24 w-48 object-contain border-b-2 border-gray-400" />
                 ) : (
-                  <div className="w-32 h-14 border-b border-gray-400" />
+                  <div className="w-48 h-24 border-b-2 border-gray-400" />
                 )}
-                <span className="text-sm text-gray-600">(인)</span>
+                <span className="text-base text-gray-600">(인)</span>
               </div>
             </div>
           </section>
