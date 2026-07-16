@@ -288,8 +288,8 @@ export default function AssetsPage() {
     onSuccess: () => { utils.asset.listHeirs.invalidate(); toast.success("삭제됐습니다"); },
   });
 
-  // ── 총 자산 합계 ──
-  const totalValue = assetList.reduce((sum, a) => sum + (a.estimatedValue ?? 0), 0);
+  // ── 총 자산 합계 (scanList 기준) ──
+  const totalValue = scanList.reduce((sum: number, s: any) => sum + (Number(String(s.amount || '0').replace(/[^0-9]/g, '')) || 0), 0);
   const shareTotal = heirList.reduce((sum, h) => sum + (h.sharePercent ?? 0), 0);
 
   // ── 로그인 필요 ──
@@ -333,8 +333,8 @@ export default function AssetsPage() {
         {/* ── 요약 카드 ── */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-            <div className="text-2xl font-bold text-[#1F3864]">{assetList.length}</div>
-            <div className="text-sm text-gray-400 mt-1">등록된 자산</div>
+            <div className="text-2xl font-bold text-[#1F3864]">{scanList.length}</div>
+            <div className="text-sm text-gray-400 mt-1">등록된 서류</div>
           </div>
           <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
             <div className="text-2xl font-bold text-[#C9A961]">
@@ -466,6 +466,30 @@ export default function AssetsPage() {
                           e.target.value = "";
                         }}
                       />
+                      {/* 업로드 중 미리보기 — AI 분석 중일 때 이미지 + 로딩 표시 */}
+                      {isPending && (
+                        <div className="mt-1 rounded-xl border border-[#1F3864]/30 bg-[#1F3864]/5 overflow-hidden">
+                          {scanPreview && !scanPreview.startsWith('__file__') ? (
+                            <div className="relative">
+                              <img src={scanPreview} alt="업로드 중" className="w-full max-h-48 object-contain bg-white" />
+                              <div className="absolute inset-0 bg-[#1F3864]/40 flex flex-col items-center justify-center gap-2">
+                                <Loader2 className="w-8 h-8 text-white animate-spin" />
+                                <p className="text-white text-xs font-semibold">AI가 서류를 분석하고 있습니다...</p>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-3 p-3">
+                              <Loader2 className="w-6 h-6 text-[#1F3864] animate-spin flex-shrink-0" />
+                              <div>
+                                <p className="text-sm font-semibold text-[#1F3864]">
+                                  {scanPreview?.startsWith('__file__') ? scanPreview.replace('__file__:', '') : '파일 분석 중...'}
+                                </p>
+                                <p className="text-xs text-[#1F3864]/70">AI가 서류 내용을 읽고 있습니다. 잠시만 기다려주세요.</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {/* DB 저장된 내역 — 카드 바로 아래에 항상 표시 */}
                       {hasSaved && savedScans.map((scan: any) => (
                         <div key={scan.id} className="mt-1 px-3 py-2 bg-green-50 border border-green-200 rounded-xl text-xs text-green-800">
