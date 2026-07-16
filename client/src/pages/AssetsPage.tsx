@@ -397,13 +397,7 @@ export default function AssetsPage() {
                   <h3 className="font-bold text-[#1F3864] text-sm">서류 등록 목록</h3>
                   <span className="text-xs text-gray-400">— 서류를 업로드하면 AI가 자동으로 자산 정보를 인식합니다</span>
                 </div>
-                <button
-                  onClick={() => { setShowAssetForm(!showAssetForm); setScanPreview(null); setScanResult(null); }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#C9A961]/10 text-[#C9A961] border border-[#C9A961]/30 rounded-full text-xs font-semibold hover:bg-[#C9A961]/20 transition-all"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  직접 입력
-                </button>
+
               </div>
 
               {/* PDF 업로드 안내 문구 */}
@@ -423,7 +417,9 @@ export default function AssetsPage() {
                   const fileInputId = `scan-input-${dt.value}`;
                   const isThisActive = scanDocType === dt.value;
                   const isPending = isThisActive && assetScanMutation.isPending;
-                  const isDone = isThisActive && scanResult && !assetScanMutation.isPending;
+                  // DB에 저장된 해당 서류 타입의 스캔 목록
+                  const savedScans = scanList.filter((s: any) => s.docType === dt.value);
+                  const hasSaved = savedScans.length > 0;
                   return (
                     <div key={dt.value} className="flex flex-col">
                       {/* 카드 전체를 클릭하면 파일 선택사다 열림 */}
@@ -431,17 +427,17 @@ export default function AssetsPage() {
                         htmlFor={fileInputId}
                         className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all select-none ${
                           isPending ? "border-[#1F3864] bg-[#1F3864]/5 cursor-wait" :
-                          isDone ? "border-green-400 bg-green-50" :
+                          hasSaved ? "border-green-400 bg-green-50" :
                           "border-gray-100 bg-gray-50 hover:border-[#1F3864]/50 hover:bg-[#1F3864]/5"
                         }`}
                       >
                         {/* 아이콘 */}
                         <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          isDone ? "bg-green-100" : "bg-[#1F3864]/10"
+                          hasSaved ? "bg-green-100" : "bg-[#1F3864]/10"
                         }`}>
                           {isPending ? (
                             <Loader2 className="w-4 h-4 text-[#1F3864] animate-spin" />
-                          ) : isDone ? (
+                          ) : hasSaved ? (
                             <CheckCircle2 className="w-4 h-4 text-green-600" />
                           ) : (
                             <FileText className="w-4 h-4 text-[#1F3864]" />
@@ -450,21 +446,23 @@ export default function AssetsPage() {
                         {/* 서류명 */}
                         <div className="flex-1 min-w-0">
                           <p className={`text-sm font-semibold ${
-                            isDone ? "text-green-700" : "text-gray-800"
+                            hasSaved ? "text-green-700" : "text-gray-800"
                           }`}>{dt.label}</p>
                           {isPending && <p className="text-xs text-[#1F3864] mt-0.5">AI 분석 중...</p>}
-                          {isDone && (
+                          {!isPending && hasSaved && (
                             <p className="text-xs text-green-600 mt-0.5">
-                              ✓ 인식 완료{scanResult.issuer ? ` — ${scanResult.issuer}` : ""}
+                              ✓ {savedScans.length}건 등록됨 — 클릭하여 추가 업로드
                             </p>
                           )}
-                          {!isPending && !isDone && (
+                          {!isPending && !hasSaved && (
                             <p className="text-xs text-gray-400 mt-0.5">클릭하여 업로드</p>
                           )}
                         </div>
-                        {/* 우측 화살표 */}
-                        {!isPending && !isDone && (
-                          <Upload className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        {/* 우측 아이콘 */}
+                        {!isPending && (
+                          <Upload className={`w-4 h-4 flex-shrink-0 ${
+                            hasSaved ? "text-green-500" : "text-gray-400"
+                          }`} />
                         )}
                       </label>
                       {/* 파일 입력 */}
@@ -485,307 +483,55 @@ export default function AssetsPage() {
                           e.target.value = "";
                         }}
                       />
-                      {/* 인식 완료 결과 — 카드 바로 아래에 표시 */}
-                      {isDone && (
-                        <div className="mt-1 px-3 py-2 bg-green-50 border border-green-200 rounded-xl text-xs text-green-700">
+                      {/* DB 저장된 내역 — 카드 바로 아래에 항상 표시 */}
+                      {hasSaved && savedScans.map((scan: any) => (
+                        <div key={scan.id} className="mt-1 px-3 py-2 bg-green-50 border border-green-200 rounded-xl text-xs text-green-800">
                           <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
-                            {scanResult.docTypeLabel && <p>서류: <strong>{scanResult.docTypeLabel}</strong></p>}
-                            {scanResult.assetName && <p>자산명: <strong>{scanResult.assetName}</strong></p>}
-                            {scanResult.issuer && <p>발급기관: <strong>{scanResult.issuer}</strong></p>}
-                            {scanResult.amount && <p>금액: <strong>{Number(scanResult.amount.replace(/[^0-9]/g, "") || 0).toLocaleString()}원</strong></p>}
-                            {scanResult.location && <p>소재지: <strong>{scanResult.location}</strong></p>}
+                            {scan.issuer && <p>발급기관: <strong>{scan.issuer}</strong></p>}
+                            {scan.assetName && <p>자산명: <strong>{scan.assetName}</strong></p>}
+                            {scan.amount && <p>금액: <strong className="text-[#C9A961]">{Number(String(scan.amount).replace(/[^0-9]/g, "") || 0).toLocaleString()}원</strong></p>}
+                            {scan.location && <p className="col-span-2">소재지: <strong>{scan.location}</strong></p>}
+                            {scan.referenceDate && <p>발급일: {scan.referenceDate}</p>}
+                            {scan.ownerName && <p>소유자: {scan.ownerName}</p>}
+                            {scan.area && <p>면적: {scan.area}</p>}
+                            {scan.userMemo && <p className="col-span-2 text-blue-700">메모: {scan.userMemo}</p>}
                           </div>
-                          <p className={`mt-1 font-semibold ${
-                            scanResult.confidence === "high" ? "text-green-700" :
-                            scanResult.confidence === "medium" ? "text-yellow-600" : "text-red-600"
-                          }`}>신뢰도: {scanResult.confidence === "high" ? "높음" : scanResult.confidence === "medium" ? "보통" : "낙음"} — 아래 폼에 자동 채워졌습니다</p>
+                          <div className="flex items-center justify-between mt-1.5">
+                            <span className={`font-semibold ${
+                              scan.confidence === "high" ? "text-green-700" :
+                              scan.confidence === "medium" ? "text-yellow-600" : "text-red-600"
+                            }`}>신뢰도: {scan.confidence === "high" ? "높음" : scan.confidence === "medium" ? "보통" : "낮음"}</span>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={(e) => { e.preventDefault(); setEditingScanId(editingScanId === scan.id ? null : scan.id); setEditMemo(scan.userMemo || ""); setEditValue(scan.estimatedValue ? String(scan.estimatedValue) : ""); }}
+                                className="px-2 py-0.5 rounded text-xs bg-white border border-gray-200 text-gray-500 hover:text-blue-500"
+                              >수정</button>
+                              <button
+                                onClick={(e) => { e.preventDefault(); if (window.confirm("삭제하시겠습니까?")) deleteScanMutation.mutate({ scanId: scan.id }); }}
+                                className="px-2 py-0.5 rounded text-xs bg-white border border-gray-200 text-gray-500 hover:text-red-500"
+                              >삭제</button>
+                            </div>
+                          </div>
+                          {/* 수정 폼 */}
+                          {editingScanId === scan.id && (
+                            <div className="mt-2 p-2 bg-white rounded-lg space-y-2">
+                              <input value={editMemo} onChange={(e) => setEditMemo(e.target.value)} placeholder="메모" className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-[#1F3864]" />
+                              <input type="number" value={editValue} onChange={(e) => setEditValue(e.target.value)} placeholder="추정가치 (원)" className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-[#1F3864]" />
+                              <div className="flex gap-1">
+                                <button onClick={(e) => { e.preventDefault(); setEditingScanId(null); }} className="flex-1 py-1 rounded border border-gray-200 text-xs text-gray-500">닫기</button>
+                                <button onClick={(e) => { e.preventDefault(); updateScanMutation.mutate({ scanId: scan.id, userMemo: editMemo, estimatedValue: editValue ? Number(editValue) : undefined }); }} disabled={updateScanMutation.isPending} className="flex-1 py-1 rounded bg-[#1F3864] text-white text-xs disabled:opacity-50">{updateScanMutation.isPending ? "저장중" : "저장"}</button>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )}
+                      ))}
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            {/* ── 업로드된 서류 내역 (항상 표시) ── */}
-            {scanList.length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <CheckCircle2 className="w-4 h-4 text-green-600" />
-                  <h3 className="font-bold text-[#1F3864] text-sm">업로드된 서류 내역</h3>
-                  <span className="text-xs text-gray-400">— 전체 {scanList.length}건</span>
-                </div>
-                <div className="space-y-3">
-                  {scanList.map((scan: any) => (
-                    <div key={scan.id} className="border border-gray-100 rounded-xl overflow-hidden">
-                      {/* 기본 정보 행 */}
-                      <div className="flex items-start gap-3 p-3">
-                        <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
-                          <CheckCircle2 className="w-4 h-4 text-green-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="text-sm font-bold text-[#1F3864]">{scan.docTypeLabel || scan.docType}</p>
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-                              scan.confidence === "high" ? "bg-green-100 text-green-700" :
-                              scan.confidence === "medium" ? "bg-yellow-100 text-yellow-700" :
-                              "bg-red-100 text-red-700"
-                            }`}>
-                              {scan.confidence === "high" ? "높음" : scan.confidence === "medium" ? "보통" : "낮음"}
-                            </span>
-                          </div>
-                          {/* 인식 내용 항상 표시 */}
-                          <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-gray-600">
-                            {scan.issuer && <p><span className="text-gray-400">발급기관:</span> <strong>{scan.issuer}</strong></p>}
-                            {scan.assetName && <p><span className="text-gray-400">자산명:</span> <strong>{scan.assetName}</strong></p>}
-                            {scan.amount && <p><span className="text-gray-400">금액:</span> <strong className="text-[#C9A961]">{Number(scan.amount.replace(/[^0-9]/g,"") || 0).toLocaleString()}원</strong></p>}
-                            {scan.location && <p className="col-span-2"><span className="text-gray-400">소재지:</span> <strong>{scan.location}</strong></p>}
-                            {scan.referenceDate && <p><span className="text-gray-400">발급일:</span> {scan.referenceDate}</p>}
-                            {scan.ownerName && <p><span className="text-gray-400">소유자:</span> {scan.ownerName}</p>}
-                            {scan.area && <p><span className="text-gray-400">면적:</span> {scan.area}</p>}
-                            {scan.additionalInfo && <p className="col-span-2"><span className="text-gray-400">추가정보:</span> {scan.additionalInfo}</p>}
-                            {scan.userMemo && <p className="col-span-2"><span className="text-gray-400">메모:</span> <span className="text-blue-600">{scan.userMemo}</span></p>}
-                          </div>
-                        </div>
-                        {/* 수정 / 삭제 버튼 */}
-                        <div className="flex gap-1 flex-shrink-0">
-                          <button
-                            onClick={() => {
-                              setEditingScanId(editingScanId === scan.id ? null : scan.id);
-                              setEditMemo(scan.userMemo || "");
-                              setEditValue(scan.estimatedValue ? String(scan.estimatedValue) : "");
-                            }}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (window.confirm("이 서류를 삭제하시겠습니까?"))
-                                deleteScanMutation.mutate({ scanId: scan.id });
-                            }}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                      {/* 수정 폼 (펼치기) */}
-                      {editingScanId === scan.id && (
-                        <div className="mx-3 mb-3 p-3 bg-gray-50 rounded-xl space-y-2">
-                          <div>
-                            <label className="text-xs font-semibold text-gray-600">메모 수정</label>
-                            <input
-                              value={editMemo}
-                              onChange={(e) => setEditMemo(e.target.value)}
-                              placeholder="자유롭게 메모를 입력하세요"
-                              className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1F3864]"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs font-semibold text-gray-600">추정 가치 수정 (원)</label>
-                            <input
-                              type="number"
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
-                              placeholder="예: 150000000"
-                              className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1F3864]"
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => setEditingScanId(null)}
-                              className="flex-1 py-2 rounded-lg border border-gray-200 text-sm text-gray-500 font-semibold"
-                            >닫기</button>
-                            <button
-                              onClick={() => updateScanMutation.mutate({
-                                scanId: scan.id,
-                                userMemo: editMemo,
-                                estimatedValue: editValue ? Number(editValue) : undefined,
-                              })}
-                              disabled={updateScanMutation.isPending}
-                              className="flex-1 py-2 rounded-lg bg-[#1F3864] text-white text-sm font-semibold disabled:opacity-50"
-                            >
-                              {updateScanMutation.isPending ? "저장 중..." : "저장"}
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
-            {/* 재산 추가 폼 */}
-            {showAssetForm && (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
-                <h3 className="font-bold text-[#1F3864] mb-4">새 재산 등록</h3>
-
-                {/* 자산 유형 선택 */}
-                <div className="mb-4">
-                  <label className="text-sm font-semibold text-gray-600 mb-2 block">자산 유형</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                    {(Object.entries(ASSET_TYPE_META) as [AssetType, typeof ASSET_TYPE_META[AssetType]][]).map(([key, meta]) => (
-                      <button
-                        key={key}
-                        onClick={() => setAssetForm(f => ({ ...f, type: key }))}
-                        className={`flex flex-col items-center gap-1 p-3 rounded-xl border text-xs font-semibold transition-all ${
-                          assetForm.type === key
-                            ? "border-[#1F3864] bg-[#1F3864] text-white"
-                            : `${meta.color} border`
-                        }`}
-                      >
-                        <meta.icon className="w-4 h-4" />
-                        {meta.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center">자산명 <span className="text-red-400 ml-1">*</span><HelpTooltip text="자산을 식별할 수 있는 이름을 입력하세요.&#10;예) 신한은행 주식계좌, 서울 서초구 아파트, 삼성전자 주식" /></label>
-                    <input
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
-                      placeholder={`예: ${ASSET_TYPE_META[assetForm.type].desc}`}
-                      value={assetForm.name}
-                      onChange={e => setAssetForm(f => ({ ...f, name: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center">국가<HelpTooltip text="이 자산이 위치한 나라를 선택하세요. 선택한 국가에 따라 화폐 단위가 자동으로 바뀝니다." /></label>
-                    <select
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
-                      value={assetForm.country}
-                      onChange={e => {
-                        const newCountry = e.target.value;
-                        const newCurrency = (COUNTRY_CURRENCY[newCountry] ?? COUNTRY_CURRENCY.OTHER).code;
-                        setAssetForm(f => ({ ...f, country: newCountry, currency: newCurrency }));
-                      }}
-                    >
-                      <option value="KR">🇰🇷 한국 (₩ 원)</option>
-                      <option value="US">🇺🇸 미국 ($ USD)</option>
-                      <option value="JP">🇯🇵 일본 (¥ 엔)</option>
-                      <option value="CN">🇨🇳 중국 (¥ 위안)</option>
-                      <option value="DE">🇩🇪 독일/유럽 (€ 유로)</option>
-                      <option value="GB">🇬🇧 영국 (£ 파운드)</option>
-                      <option value="AU">🇦🇺 호주 (A$ 호주달러)</option>
-                      <option value="CA">🇨🇦 캐나다 (C$ 캐나다달러)</option>
-                      <option value="SG">🇸🇬 싱가포르 (S$ SGD)</option>
-                      <option value="HK">🇭🇰 홍콩 (HK$ HKD)</option>
-                      <option value="TW">🇹🇼 대만 (NT$ TWD)</option>
-                      <option value="SA">🇸🇦 사우디 (﷼ SAR)</option>
-                      <option value="AE">🇦🇪 UAE (د.إ AED)</option>
-                      <option value="IN">🇮🇳 인도 (₹ 루피)</option>
-                      <option value="BR">🇧🇷 브라질 (R$ 헤알)</option>
-                      <option value="RU">🇷🇺 러시아 (₽ 루블)</option>
-                      <option value="OTHER">기타</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center">
-                      예상 가치 ({(COUNTRY_CURRENCY[assetForm.country] ?? COUNTRY_CURRENCY.OTHER).name})<HelpTooltip text="현재 시점의 시세 기준 연산 가액을 입력하세요.&#10;· 부동산: 공시지가 기준&#10;· 금융자산: 현재 잔액&#10;· 주식: 현재 시세 기준&#10;상속세 계산에 활용됩니다." /></label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-semibold">
-                        {(COUNTRY_CURRENCY[assetForm.country] ?? COUNTRY_CURRENCY.OTHER).symbol}
-                      </span>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        className="w-full border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
-                        placeholder="예: 500,000,000"
-                        value={assetForm.estimatedValue}
-                        onChange={e => {
-                          const comma = toCommaString(e.target.value);
-                          const raw = fromCommaString(e.target.value);
-                          setAssetForm(f => ({ ...f, estimatedValue: comma, estimatedValueRaw: raw }));
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-gray-600 mb-1 flex items-center">메모<HelpTooltip text="자산에 대한 추가 정보를 입력하세요.&#10;예) 은행명, 계좌번호 일부, 집행자에게 알려야 할 사항" position="bottom" /></label>
-                    <input
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
-                      placeholder="은행명, 계좌 메모 등 (선택)"
-                      value={assetForm.description}
-                      onChange={e => setAssetForm(f => ({ ...f, description: e.target.value }))}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => addAsset.mutate({
-                      type: assetForm.type,
-                      name: assetForm.name,
-                      description: assetForm.description || undefined,
-                      estimatedValue: assetForm.estimatedValueRaw ? Number(assetForm.estimatedValueRaw) : undefined,
-                      currency: assetForm.currency,
-                      country: assetForm.country,
-                    })}
-                    disabled={!assetForm.name || addAsset.isPending}
-                    className="btn-gold px-6 py-2 rounded-full text-sm font-bold disabled:opacity-50"
-                  >
-                    {addAsset.isPending ? "등록 중..." : "등록하기"}
-                  </button>
-                  <button
-                    onClick={() => setShowAssetForm(false)}
-                    className="px-6 py-2 rounded-full text-sm font-semibold text-gray-500 border border-gray-200 hover:bg-gray-50"
-                  >
-                    취소
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* 재산 목록 */}
-            {assetsLoading ? (
-              <div className="text-center py-12 text-gray-400">불러오는 중...</div>
-            ) : assetList.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-                <Building2 className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-                <p className="text-gray-400 text-sm">아직 등록된 재산이 없습니다</p>
-                <p className="text-gray-300 text-xs mt-1">위 버튼을 눌러 재산을 추가하세요</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {assetList.map((asset) => {
-                  const meta = ASSET_TYPE_META[asset.type as AssetType] ?? ASSET_TYPE_META.other;
-                  return (
-                    <div key={asset.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${meta.color}`}>
-                        <meta.icon className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-[#1F3864] text-sm truncate">{asset.name}</div>
-                        <div className="text-xs text-gray-400 flex items-center gap-2 mt-0.5">
-                          <span>{meta.label}</span>
-                          {asset.country && asset.country !== "KR" && <span>· {asset.country}</span>}
-                          {asset.description && <span>· {asset.description}</span>}
-                        </div>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        {asset.estimatedValue ? (
-                          <div className="font-bold text-[#C9A961] text-sm">
-                            {formatCurrency(asset.estimatedValue, asset.country || "KR")}
-                          </div>
-                        ) : (
-                          <div className="text-xs text-gray-300">가치 미입력</div>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => deleteAsset.mutate({ id: asset.id })}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-400 hover:bg-red-50 transition-colors flex-shrink-0"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
           </div>
         )}
 
