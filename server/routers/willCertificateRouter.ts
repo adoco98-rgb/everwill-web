@@ -16,6 +16,7 @@ import {
   heirs,
   willAttachments,
   notarizationDocs,
+  willAssetScans,
 } from "../../drizzle/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
@@ -141,14 +142,31 @@ export const willCertificateRouter = router({
         .where(eq(assets.userId, userId))
         .orderBy(assets.type);
 
-      const assetData = assetRows.map((a) => ({
-        type: a.type ?? "other",
-        name: a.name ?? "자산",
-        estimatedValue: a.estimatedValue ?? 0,
-        currency: a.currency ?? "KRW",
-        country: a.country ?? country,
-        details: a.details ?? undefined,
-      }));
+      const assetScanRowsDl = await db.select().from(willAssetScans).where(eq(willAssetScans.userId, userId));
+
+      const assetData = [
+        // assets 테이블 (pension 제외)
+        ...assetRows
+          .filter((a) => a.type !== "pension")
+          .map((a) => ({
+            type: a.type ?? "other",
+            name: a.name ?? "자산",
+            estimatedValue: a.estimatedValue ?? 0,
+            currency: a.currency ?? "KRW",
+            country: a.country ?? country,
+            details: a.details ?? undefined,
+          })),
+        // willAssetScans 테이블 (pension_statement 제외)
+        ...assetScanRowsDl
+          .filter((s) => s.docType !== "pension_statement")
+          .map((s) => ({
+            type: s.docType ?? "other",
+            name: s.assetName || s.docTypeLabel || s.docType || "자산",
+            estimatedValue: s.estimatedValue ? Number(s.estimatedValue) : 0,
+            currency: "KRW",
+            country: country,
+          })),
+      ];
 
       // ── 실제 상속자 목록 조회 ────────────────────────────────────────────────
       const heirRows = await db
@@ -499,13 +517,37 @@ export const willCertificateRouter = router({
 
       // 자산/상속자/첨부파일 조회
       const assetRows = await db.select().from(assets).where(eq(assets.userId, userId));
+      const assetScanRows = await db.select().from(willAssetScans).where(eq(willAssetScans.userId, userId));
       const heirRows = await db.select().from(heirs).where(eq(heirs.userId, userId));
       const attachmentRows = await db.select().from(willAttachments).where(eq(willAttachments.userId, userId));
       const notarizationRowsPreview = await db.select().from(notarizationDocs).where(eq(notarizationDocs.userId, userId));
 
+      // pension(연금)은 상속 대상이 아니므로 제외
+      const filteredAssetRows = assetRows.filter((a) => a.type !== "pension");
+      // willAssetScans도 pension 관련 서류 제외 (docType: pension_statement)
+      const filteredScanRows = assetScanRows.filter((s) => s.docType !== "pension_statement");
+
+      // assets 테이블 + willAssetScans 테이블 합산
+      const combinedAssets = [
+        ...filteredAssetRows.map((a) => ({
+          type: a.type ?? "other",
+          name: a.name ?? "자산",
+          estimatedValue: a.estimatedValue ?? 0,
+          currency: a.currency ?? "KRW",
+          country: a.country ?? country,
+        })),
+        ...filteredScanRows.map((s) => ({
+          type: s.docType ?? "other",
+          name: s.assetName || s.docTypeLabel || s.docType || "자산",
+          estimatedValue: s.estimatedValue ? Number(s.estimatedValue) : 0,
+          currency: "KRW",
+          country: country,
+        })),
+      ];
+
       const assetData =
-        assetRows.length > 0
-          ? assetRows.map((a) => ({ type: a.type ?? "other", name: a.name ?? "자산", estimatedValue: a.estimatedValue ?? 0, currency: a.currency ?? "KRW", country: a.country ?? country }))
+        combinedAssets.length > 0
+          ? combinedAssets
           : [
               { type: "real_estate", name: "서울 강남구 아파트 (예시)", estimatedValue: 850000000, currency: "KRW", country: "KR" },
               { type: "bank", name: "국민은행 예금 (예시)", estimatedValue: 45000000, currency: "KRW", country: "KR" },
@@ -587,7 +629,7 @@ export const willCertificateRouter = router({
         });
       }
 
-      // 서명 이미지 로드 (assetVerifications 테이블에서)
+      // 서명 이미지 로드 (assetVerifications 테이블 우선, 없으면 willData JSON의 signature1 fallback)
       let signatureImageBufferPreview: Buffer | null = null;
       try {
         const { assetVerifications } = await import("../../drizzle/schema");
@@ -606,6 +648,18 @@ export const willCertificateRouter = router({
         } else if (sigRow?.signatureUrl) {
           const sigRes = await fetch(sigRow.signatureUrl);
           if (sigRes.ok) signatureImageBufferPreview = Buffer.from(await sigRes.arrayBuffer());
+        }
+        // assetVerifications에 서명 없으면 willData JSON의 signature1 필드를 fallback으로 사용
+        if (!signatureImageBufferPreview && willRecord?.data) {
+          try {
+            const wd = JSON.parse(willRecord.data);
+            const sig1 = wd.signature1 || wd.signature || "";
+            if (sig1 && sig1.startsWith("data:image/")) {
+              // base64 data URL → Buffer
+              const base64Data = sig1.split(",")[1];
+              if (base64Data) signatureImageBufferPreview = Buffer.from(base64Data, "base64");
+            }
+          } catch { /* 무시 */ }
         }
       } catch { /* 서명 이미지 로드 실패 시 무시 */ }
 
