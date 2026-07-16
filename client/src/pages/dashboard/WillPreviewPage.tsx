@@ -109,7 +109,19 @@ export default function WillPreviewPage() {
   if (parsedJson?.willContent && !willText) willText = parsedJson.willContent;
 
   const signatureImage = parsedJson?.signature1 || "";
-  const signedAt = parsedJson?.signedAt || "";
+  // 서명 날짜: ISO 타임스탬프 → 한국어 날짜 형식으로 통일
+  const rawSignedAt = parsedJson?.signedAt || "";
+  const signedAt = rawSignedAt
+    ? (() => {
+        try {
+          const d = new Date(rawSignedAt);
+          if (!isNaN(d.getTime())) {
+            return `${d.getFullYear()}년 ${String(d.getMonth() + 1).padStart(2, '0')}월 ${String(d.getDate()).padStart(2, '0')}일`;
+          }
+        } catch {}
+        return rawSignedAt;
+      })()
+    : "";
 
   // 유언자 정보 (parsedJson 우선, 없으면 user 프로필)
   const testatorName = parsedJson?.testatorName || (user as any)?.name || "-";
@@ -230,40 +242,75 @@ export default function WillPreviewPage() {
           </section>
 
           {/* ─── 유언장 전문 텍스트 (Step4Will에서 저장한 경우) ─── */}
-          {willText && (
-            <section>
-              <div className="bg-[#FAFAF8] border border-gray-100 rounded-xl p-6 print:p-0 print:border-none print:bg-white">
-                <div className="prose prose-sm max-w-none text-gray-800 leading-relaxed whitespace-pre-wrap">
-                  {willText.split("\n").map((line, idx) => {
-                    if (line.includes("서명:") && line.includes("(인)") && signatureImage) {
-                      return (
-                        <div key={idx} className="flex items-center gap-2 my-2">
-                          <span className="text-sm">서명: </span>
-                          <img src={signatureImage} alt="유언자 서명" className="h-12 object-contain inline-block" />
-                          <span className="text-sm"> (인)</span>
-                        </div>
-                      );
-                    }
-                    if (line.startsWith("**") && line.endsWith("**")) {
-                      return <p key={idx} className="font-bold text-[#1F3864] text-base mt-4 mb-2">{line.replace(/\*\*/g, "")}</p>;
-                    }
-                    if (line.startsWith("---")) return <hr key={idx} className="my-4 border-gray-200" />;
-                    if (line.trim() === "") return <div key={idx} className="h-3" />;
-                    const parts = line.split(/(\*\*[^*]+\*\*)/g);
-                    return (
-                      <p key={idx} className="text-sm leading-7">
-                        {parts.map((part, pIdx) =>
-                          part.startsWith("**") && part.endsWith("**")
-                            ? <strong key={pIdx} className="text-[#1F3864]">{part.replace(/\*\*/g, "")}</strong>
-                            : <span key={pIdx}>{part}</span>
-                        )}
-                      </p>
-                    );
-                  })}
+          {/* ─── 유언장 본문 (DB 데이터 기반 동적 생성) ─── */}
+          <section>
+            <div className="bg-[#FAFAF8] border border-gray-100 rounded-xl p-6 print:p-0 print:border-none print:bg-white">
+              <div className="text-sm text-gray-800 leading-relaxed space-y-4">
+                {/* 서두 */}
+                <p className="text-base">
+                  본인 {testatorName} 은(는) 평생 사랑하고 아끼던 나의 가족에게,<br />
+                  정신이 맑고 건강한 상태에서, 오로지 자유로운 의지와 진심어린 마음으로<br />
+                  다음과 같이 재산 상속에 관한 사항을 유언합니다.
+                </p>
+                <p>
+                  이 유언은 어떠한 압력이나 강요 없이,<br />
+                  오로지 나의 자유로운 의지와 애정으로 작성하는<br />
+                  나의 마지막 유언입니다.
+                </p>
+                <hr className="border-gray-200" />
+
+                {/* 제1조: 유언집행자 */}
+                {executor && (
+                  <div>
+                    <p className="font-bold text-[#1F3864]">제1조 (유언집행자의 지정)</p>
+                    <p>본인의 유언을 집행할 유언집행자로 다음 사람을 지정합니다.</p>
+                    <p>1. {executor}{executorRelation ? ` (${executorRelation})` : ""}</p>
+                  </div>
+                )}
+
+                {/* 제2조: 재산의 상속 - DB 상속자 데이터 기반 */}
+                {displayHeirs.length > 0 && (
+                  <div>
+                    <p className="font-bold text-[#1F3864]">제2조 (재산의 상속)</p>
+                    <p>본인의 모든 재산은 다음 상속인에게 아래와 같이 상속합니다.</p>
+                    <div className="space-y-1 mt-1">
+                      {displayHeirs
+                        .slice()
+                        .sort((a: any, b: any) => (a.priority ?? 99) - (b.priority ?? 99))
+                        .map((heir: any, idx: number) => {
+                          const name = heir.nameKo || heir.name || "";
+                          const rel = RELATIONSHIP_LABELS[heir.relationship] || heir.relationship || "";
+                          const share = heir.sharePercent ?? heir.share ?? 0;
+                          const shareAmt = heir.shareAmount ?? 0;
+                          const shareType = heir.shareType || "percent";
+                          return (
+                            <p key={idx}>
+                              {idx + 1}. {name}{rel ? ` (${rel})` : ""}: 본인 소유의 모든 재산 중{" "}
+                              {shareType === "amount" && shareAmt > 0
+                                ? `₩${Number(shareAmt).toLocaleString()}의 지분`
+                                : share > 0 ? `${share}%의 지분` : "미정"}
+                            </p>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
+
+                {/* 제3조: 기타 사항 */}
+                <div>
+                  <p className="font-bold text-[#1F3864]">제3조 (기타 사항)</p>
+                  {funeralWish ? (
+                    <p>본인의 장례 방식: {funeralWish}</p>
+                  ) : (
+                    <p>본인의 장례 방식, 미성년 후견인 지정, 기부 내역 등은 별도로 지정하지 않습니다.</p>
+                  )}
+                  {guardian && <p>미성년 자녀 후견인: {guardian}</p>}
+                  {donationDetails && <p>기부 내역: {donationDetails}</p>}
+                  {specialInstructions && <p>기타: {specialInstructions}</p>}
                 </div>
               </div>
-            </section>
-          )}
+            </div>
+          </section>
 
           {/* ─── 상속자 목록 (항상 표시) ─── */}
           {displayHeirs.length > 0 && (
@@ -444,58 +491,6 @@ export default function WillPreviewPage() {
                     )}
                   </div>
                 ))}
-              </div>
-            </section>
-          )}
-
-          {/* ─── 유언집행자 ─── */}
-          {executor && (
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <ShieldCheck className="w-4 h-4 text-[#1F3864]" />
-                <h3 className="font-bold text-[#1F3864] text-base">유언집행자</h3>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="font-semibold text-gray-800">
-                  {executor}
-                  {executorRelation && <span className="text-gray-500 font-normal ml-2">({executorRelation})</span>}
-                </p>
-              </div>
-            </section>
-          )}
-
-          {/* ─── 특별 지시사항 ─── */}
-          {(funeralWish || guardian || donationDetails || specialInstructions) && (
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <FileText className="w-4 h-4 text-[#1F3864]" />
-                <h3 className="font-bold text-[#1F3864] text-base">특별 지시사항</h3>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-5 space-y-3">
-                {funeralWish && (
-                  <div>
-                    <p className="text-xs text-gray-500 mb-0.5">장례 방식</p>
-                    <p className="text-sm text-gray-800">{funeralWish}</p>
-                  </div>
-                )}
-                {guardian && (
-                  <div>
-                    <p className="text-xs text-gray-500 mb-0.5">미성년 자녀 후견인</p>
-                    <p className="text-sm text-gray-800">{guardian}</p>
-                  </div>
-                )}
-                {donationDetails && (
-                  <div>
-                    <p className="text-xs text-gray-500 mb-0.5">기부 내역</p>
-                    <p className="text-sm text-gray-800">{donationDetails}</p>
-                  </div>
-                )}
-                {specialInstructions && (
-                  <div>
-                    <p className="text-xs text-gray-500 mb-0.5">기타 지시사항</p>
-                    <p className="text-sm text-gray-800">{specialInstructions}</p>
-                  </div>
-                )}
               </div>
             </section>
           )}
