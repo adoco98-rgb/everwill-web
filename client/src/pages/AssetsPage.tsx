@@ -5,7 +5,6 @@
 import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
 import { toast } from "sonner";
 import {
   Building2, Landmark, TrendingUp, Shield, Bitcoin,
@@ -13,12 +12,13 @@ import {
   Plus, Trash2, Edit3, Users, ChevronRight,
   ArrowLeft, CheckCircle2, AlertCircle,
   ScanLine, FileText, Eye, Loader2, Upload, Sparkles, X,
-  Camera,
+  Lock, LockOpen, Save,
 } from "lucide-react";
 import { useRef } from "react";
 import { Link } from "wouter";
 import { HelpTooltip } from "@/components/HelpTooltip";
 import { GradeGate } from "@/components/GradeGate";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 // ─── 국가별 화폐 단위 매핑 ───
 const COUNTRY_CURRENCY: Record<string, { code: string; symbol: string; locale: string; name: string }> = {
@@ -97,8 +97,8 @@ const emptyAssetForm = {
   type: "bank" as AssetType,
   name: "",
   description: "",
-  estimatedValue: "",       // 켄마 포함 표시용 (UI)
-  estimatedValueRaw: "",   // 순수 숫자 (DB 저장용)
+  estimatedValue: "",
+  estimatedValueRaw: "",
   currency: "KRW",
   country: "KR",
 };
@@ -126,29 +126,90 @@ const ASSET_DOC_TYPES = [
   { value: "other",                 label: "기타 자산 서류" },
 ];
 
-// ─── 기타 자산 서류 예시 안내 ───
-const OTHER_DOC_EXAMPLES = [
-  "사업자등록증 (법인/개인사업체 지분)",
-  "예·적금 증서",
-  "채권·펀드 보유 확인서",
-  "암호화폐(가상자산) 보유 내역",
-  "골프·콘도 회원권 증서",
-  "귀금속·미술품 감정서",
-  "대여금·차용증 (빌려준 돈)",
-  "지식재산권 (특허·상표) 등록증",
-  "기타 재산적 가치가 있는 모든 서류",
-];
+// ─── 서류 미리보기 모달 ───
+function DocPreviewModal({
+  open,
+  onClose,
+  fileUrl,
+  docLabel,
+}: {
+  open: boolean;
+  onClose: () => void;
+  fileUrl: string | null;
+  docLabel: string;
+}) {
+  if (!fileUrl) return null;
 
-// 스캔 결과 → 자산 유형 매핑
-function mapDocTypeToAssetType(docType: string): AssetType {
-  if (docType.includes("real_estate")) return "real_estate";
-  if (docType.includes("bank")) return "bank";
-  if (docType.includes("stock")) return "stock";
-  if (docType.includes("insurance")) return "insurance";
-  if (docType.includes("pension")) return "pension";
-  if (docType.includes("vehicle")) return "vehicle";
-  if (docType.includes("business")) return "business";
-  return "other";
+  // 파일 확장자 또는 URL 패턴으로 PDF 여부 판단
+  const isPdf =
+    fileUrl.includes(".pdf") ||
+    fileUrl.includes("application/pdf") ||
+    fileUrl.toLowerCase().includes("pdf");
+
+  // 이미지 확장자 판단
+  const isImage =
+    /\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?|$)/i.test(fileUrl) ||
+    fileUrl.startsWith("data:image/");
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-3xl w-full p-0 overflow-hidden">
+        <DialogHeader className="px-5 py-4 border-b border-gray-100">
+          <DialogTitle className="flex items-center gap-2 text-[#1F3864]">
+            <FileText className="w-4 h-4" />
+            {docLabel} — 원본 미리보기
+          </DialogTitle>
+        </DialogHeader>
+        <div className="overflow-auto max-h-[70vh] bg-gray-50 flex items-center justify-center p-4">
+          {isPdf ? (
+            <iframe
+              src={fileUrl}
+              className="w-full"
+              style={{ height: "60vh", border: "none" }}
+              title="PDF 미리보기"
+            />
+          ) : isImage ? (
+            <img
+              src={fileUrl}
+              alt={docLabel}
+              className="max-w-full max-h-[60vh] object-contain rounded-lg shadow"
+            />
+          ) : (
+            <div className="text-center py-12">
+              <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 text-sm mb-4">이 파일 형식은 직접 미리보기가 지원되지 않습니다.</p>
+              <a
+                href={fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#1F3864] text-white rounded-lg text-sm font-semibold hover:bg-[#1F3864]/90"
+              >
+                <Eye className="w-4 h-4" />
+                새 탭에서 열기
+              </a>
+            </div>
+          )}
+        </div>
+        <div className="px-5 py-3 border-t border-gray-100 flex justify-between items-center">
+          <a
+            href={fileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-[#1F3864] hover:underline flex items-center gap-1"
+          >
+            <Eye className="w-3.5 h-3.5" />
+            새 탭에서 열기
+          </a>
+          <button
+            onClick={onClose}
+            className="px-4 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50"
+          >
+            닫기
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export default function AssetsPage() {
@@ -163,8 +224,12 @@ export default function AssetsPage() {
   const [scanDocType, setScanDocType] = useState("bank_balance");
   const [scanPreview, setScanPreview] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<any | null>(null);
-  const [showScanPanel, setShowScanPanel] = useState(false);
-    const scanFileInputRef = useRef<HTMLInputElement>(null);
+  const scanFileInputRef = useRef<HTMLInputElement>(null);
+
+  // ── 서류 미리보기 모달 상태 ──
+  const [previewModal, setPreviewModal] = useState<{ open: boolean; url: string | null; label: string }>({
+    open: false, url: null, label: "",
+  });
 
   // ── 임시저장: 자산 폼 상태 복원 ──
   useEffect(() => {
@@ -199,7 +264,6 @@ export default function AssetsPage() {
     onSuccess: (data) => {
       const d = data.data;
       setScanResult(d);
-      // DB 목록 즉시 갱신 → 카드 아래에 바로 표시
       refetchScans();
       toast.success(`✅ ${d.docTypeLabel || '서류'} 등록 완료! 아래에서 내역을 확인하세요.`);
     },
@@ -208,7 +272,7 @@ export default function AssetsPage() {
     },
   });
 
-  // ── 스캔 파일 처리 (이미지·PDF·Word·Excel·HWP 모두) ──
+  // ── 스캔 파일 처리 ──
   function handleScanImageSelect(file: File) {
     const allowedTypes = [
       "image/", "application/pdf",
@@ -226,7 +290,6 @@ export default function AssetsPage() {
     const reader = new FileReader();
     reader.onload = (e) => {
       const dataUrl = e.target?.result as string;
-      // 이미지가 아닌 문서는 파일아이콘 미리보기
       setScanPreview(isImage ? dataUrl : `__file__:${file.name}`);
       setScanResult(null);
       assetScanMutation.mutate({ imageUrl: dataUrl, docTypeHint: scanDocType as any });
@@ -247,6 +310,7 @@ export default function AssetsPage() {
     undefined, { enabled: isAuthenticated }
   );
   const scanList = (scanData?.scans || []) as any[];
+
   const deleteScanMutation = trpc.willAuto.deleteAssetScan.useMutation({
     onSuccess: () => { toast.success("삭제되었습니다."); refetchScans(); },
     onError: (err) => toast.error(err.message || "삭제 실패"),
@@ -259,6 +323,27 @@ export default function AssetsPage() {
     onError: (err) => toast.error(err.message || "수정 실패"),
   });
   const [expandedScanId, setExpandedScanId] = useState<number | null>(null);
+
+  // ── 자산 잠금 상태 ──
+  const { data: lockStatus, refetch: refetchLockStatus } = trpc.asset.getAssetLockStatus.useQuery(
+    undefined, { enabled: isAuthenticated }
+  );
+  const isLocked = (lockStatus?.assetLocked ?? 0) === 1;
+
+  const lockAssetsMutation = trpc.asset.lockAssets.useMutation({
+    onSuccess: () => {
+      refetchLockStatus();
+      toast.success("✅ 자산 목록이 최종 저장되었습니다. 유언장에 반영됩니다.");
+    },
+    onError: (err) => toast.error(err.message || "저장 실패"),
+  });
+  const unlockAssetsMutation = trpc.asset.unlockAssets.useMutation({
+    onSuccess: () => {
+      refetchLockStatus();
+      toast.success("수정 모드로 전환되었습니다.");
+    },
+    onError: (err) => toast.error(err.message || "수정 전환 실패"),
+  });
 
   // ── 재산 뮤테이션 ──
   const addAsset = trpc.asset.addAsset.useMutation({
@@ -328,14 +413,20 @@ export default function AssetsPage() {
             <h1 className="font-bold text-[#1F3864] text-lg">내 재산 관리</h1>
             <p className="text-xs text-gray-400">유언장 작성 시 자동으로 불러와집니다</p>
           </div>
-
+          {/* 잠금 상태 뱃지 */}
+          {isLocked && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
+              <Lock className="w-3.5 h-3.5 text-green-600" />
+              <span className="text-xs font-semibold text-green-700">저장 완료</span>
+            </div>
+          )}
         </div>
       </header>
 
       <div className="max-w-4xl mx-auto px-4 py-8">
 
         {/* ── 요약 카드 ── */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
             <div className="text-2xl font-bold text-[#1F3864]">{scanList.length}</div>
             <div className="text-sm text-gray-400 mt-1">등록된 서류</div>
@@ -361,6 +452,69 @@ export default function AssetsPage() {
           </div>
         </div>
 
+        {/* ── 최종 저장 / 수정 버튼 영역 ── */}
+        {!isLocked ? (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Save className="w-5 h-5 text-amber-600 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-bold text-amber-800">자산 등록이 완료되셨나요?</p>
+                <p className="text-xs text-amber-600 mt-0.5">최종 저장하면 유언장에 자동 반영되고 편집이 잠깁니다.</p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                if (scanList.length === 0) {
+                  toast.error("등록된 자산 서류가 없습니다. 먼저 서류를 업로드해주세요.");
+                  return;
+                }
+                if (window.confirm("자산 목록을 최종 저장하시겠습니까?\n저장 후에는 '수정하기' 버튼을 눌러야 편집할 수 있습니다.")) {
+                  lockAssetsMutation.mutate();
+                }
+              }}
+              disabled={lockAssetsMutation.isPending}
+              className="flex items-center gap-2 px-5 py-2.5 bg-[#1F3864] text-white rounded-xl text-sm font-bold hover:bg-[#1F3864]/90 disabled:opacity-50 flex-shrink-0"
+            >
+              {lockAssetsMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Lock className="w-4 h-4" />
+              )}
+              최종 저장
+            </button>
+          </div>
+        ) : (
+          <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-6 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-bold text-green-800">자산 목록이 최종 저장되었습니다</p>
+                <p className="text-xs text-green-600 mt-0.5">
+                  {lockStatus?.assetLockedAt
+                    ? `저장일: ${new Date(lockStatus.assetLockedAt).toLocaleDateString("ko-KR")}`
+                    : "유언장에 자동 반영됩니다"}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                if (window.confirm("수정 모드로 전환하시겠습니까?\n자산 목록을 수정한 후 다시 최종 저장해주세요.")) {
+                  unlockAssetsMutation.mutate();
+                }
+              }}
+              disabled={unlockAssetsMutation.isPending}
+              className="flex items-center gap-2 px-5 py-2.5 bg-white border border-green-300 text-green-700 rounded-xl text-sm font-bold hover:bg-green-50 disabled:opacity-50 flex-shrink-0"
+            >
+              {unlockAssetsMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <LockOpen className="w-4 h-4" />
+              )}
+              수정하기
+            </button>
+          </div>
+        )}
+
         {/* ── 탭 ── */}
         <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 flex-wrap">
           {(["assets", "heirs", "scans"] as const).map((t) => (
@@ -379,101 +533,133 @@ export default function AssetsPage() {
         {/* ══════════════ 재산 탭 ══════════════ */}
         {tab === "assets" && (
           <div>
-            {/* ── 서류 등록 목록 (항상 표시) ── */}
-            <div className="bg-white rounded-2xl border border-[#1F3864]/10 shadow-sm p-5 mb-5">
+            {/* ── 서류 등록 목록 ── */}
+            <div className={`bg-white rounded-2xl border shadow-sm p-5 mb-5 ${isLocked ? "border-green-200 opacity-90" : "border-[#1F3864]/10"}`}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-[#1F3864]" />
                   <h3 className="font-bold text-[#1F3864] text-sm">서류 등록 목록</h3>
                   <span className="text-xs text-gray-400">— 서류를 업로드하면 AI가 자동으로 자산 정보를 인식합니다</span>
                 </div>
-
+                {isLocked && (
+                  <div className="flex items-center gap-1 text-xs text-green-600 font-semibold">
+                    <Lock className="w-3 h-3" />
+                    읽기 전용
+                  </div>
+                )}
               </div>
 
-              {/* PDF 업로드 안내 문구 */}
-              <div className="flex items-start gap-2 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
-                <span className="text-base leading-none mt-0.5">💡</span>
-                <div>
-                  <span className="font-semibold">PDF 업로드 안내</span>
-                  <span className="ml-1">텍스트가 있는 PDF(디지털 발급)는 AI가 자동 인식합니다.</span>
-                  <br />
-                  <span className="text-amber-700">카메라로 찍어 저장한 스캔 이미지 PDF는 인식 불가 → JPG 또는 PNG 이미지로 업로드해주세요.</span>
+              {/* PDF 업로드 안내 */}
+              {!isLocked && (
+                <div className="flex items-start gap-2 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 mb-4">
+                  <span className="text-base leading-none mt-0.5">💡</span>
+                  <div>
+                    <span className="font-semibold">PDF 업로드 안내</span>
+                    <span className="ml-1">텍스트가 있는 PDF(디지털 발급)는 AI가 자동 인식합니다.</span>
+                    <br />
+                    <span className="text-amber-700">카메라로 찍어 저장한 스캔 이미지 PDF는 인식 불가 → JPG 또는 PNG 이미지로 업로드해주세요.</span>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* 서류 유형 카드 그리드 - 클릭하면 즉시 파일 선택사다 열림 */}
+              {/* 서류 유형 카드 그리드 */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {ASSET_DOC_TYPES.map((dt) => {
                   const fileInputId = `scan-input-${dt.value}`;
                   const isThisActive = scanDocType === dt.value;
                   const isPending = isThisActive && assetScanMutation.isPending;
-                  // DB에 저장된 해당 서류 타입의 스캔 목록
                   const savedScans = scanList.filter((s: any) => s.docType === dt.value);
                   const hasSaved = savedScans.length > 0;
                   return (
                     <div key={dt.value} className="flex flex-col">
-                      {/* 카드 전체를 클릭하면 파일 선택사다 열림 */}
-                      <label
-                        htmlFor={fileInputId}
-                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all select-none ${
-                          isPending ? "border-[#1F3864] bg-[#1F3864]/5 cursor-wait" :
-                          hasSaved ? "border-green-400 bg-green-50" :
-                          "border-gray-100 bg-gray-50 hover:border-[#1F3864]/50 hover:bg-[#1F3864]/5"
-                        }`}
-                      >
-                        {/* 아이콘 */}
-                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          hasSaved ? "bg-green-100" : "bg-[#1F3864]/10"
+                      {/* 카드 — 잠금 상태면 label 대신 div */}
+                      {isLocked ? (
+                        <div className={`flex items-center gap-3 p-3 rounded-xl border ${
+                          hasSaved ? "border-green-400 bg-green-50" : "border-gray-100 bg-gray-50"
                         }`}>
-                          {isPending ? (
-                            <Loader2 className="w-4 h-4 text-[#1F3864] animate-spin" />
-                          ) : hasSaved ? (
-                            <CheckCircle2 className="w-4 h-4 text-green-600" />
-                          ) : (
-                            <FileText className="w-4 h-4 text-[#1F3864]" />
-                          )}
-                        </div>
-                        {/* 서류명 */}
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-semibold ${
-                            hasSaved ? "text-green-700" : "text-gray-800"
-                          }`}>{dt.label}</p>
-                          {isPending && <p className="text-xs text-[#1F3864] mt-0.5">AI 분석 중...</p>}
-                          {!isPending && hasSaved && (
-                            <p className="text-xs text-green-600 mt-0.5">
-                              ✓ {savedScans.length}건 등록됨 — 클릭하여 추가 업로드
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            hasSaved ? "bg-green-100" : "bg-gray-100"
+                          }`}>
+                            {hasSaved ? (
+                              <CheckCircle2 className="w-4 h-4 text-green-600" />
+                            ) : (
+                              <FileText className="w-4 h-4 text-gray-400" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-semibold ${hasSaved ? "text-green-700" : "text-gray-400"}`}>
+                              {dt.label}
                             </p>
-                          )}
-                          {!isPending && !hasSaved && (
-                            <p className="text-xs text-gray-400 mt-0.5">클릭하여 업로드</p>
+                            {hasSaved && (
+                              <p className="text-xs text-green-600 mt-0.5">✓ {savedScans.length}건 등록됨</p>
+                            )}
+                          </div>
+                          {hasSaved && (
+                            <Lock className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
                           )}
                         </div>
-                        {/* 우측 아이콘 */}
-                        {!isPending && (
-                          <Upload className={`w-4 h-4 flex-shrink-0 ${
-                            hasSaved ? "text-green-500" : "text-gray-400"
-                          }`} />
-                        )}
-                      </label>
-                      {/* 파일 입력 */}
-                      <input
-                        id={fileInputId}
-                        type="file"
-                        accept="image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx,.hwp,.hwpx,.txt"
-                        multiple
-                        className="hidden"
-                        onChange={(e) => {
-                          const files = e.target.files;
-                          if (files && files.length > 0) {
-                            setScanDocType(dt.value);
-                            setScanPreview(null);
-                            setScanResult(null);
-                            Array.from(files).forEach((f) => handleScanImageSelect(f));
-                          }
-                          e.target.value = "";
-                        }}
-                      />
-                      {/* 업로드 중 미리보기 — AI 분석 중일 때 이미지 + 로딩 표시 */}
+                      ) : (
+                        <label
+                          htmlFor={fileInputId}
+                          className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all select-none ${
+                            isPending ? "border-[#1F3864] bg-[#1F3864]/5 cursor-wait" :
+                            hasSaved ? "border-green-400 bg-green-50" :
+                            "border-gray-100 bg-gray-50 hover:border-[#1F3864]/50 hover:bg-[#1F3864]/5"
+                          }`}
+                        >
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                            hasSaved ? "bg-green-100" : "bg-[#1F3864]/10"
+                          }`}>
+                            {isPending ? (
+                              <Loader2 className="w-4 h-4 text-[#1F3864] animate-spin" />
+                            ) : hasSaved ? (
+                              <CheckCircle2 className="w-4 h-4 text-green-600" />
+                            ) : (
+                              <FileText className="w-4 h-4 text-[#1F3864]" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-semibold ${hasSaved ? "text-green-700" : "text-gray-800"}`}>
+                              {dt.label}
+                            </p>
+                            {isPending && <p className="text-xs text-[#1F3864] mt-0.5">AI 분석 중...</p>}
+                            {!isPending && hasSaved && (
+                              <p className="text-xs text-green-600 mt-0.5">
+                                ✓ {savedScans.length}건 등록됨 — 클릭하여 추가 업로드
+                              </p>
+                            )}
+                            {!isPending && !hasSaved && (
+                              <p className="text-xs text-gray-400 mt-0.5">클릭하여 업로드</p>
+                            )}
+                          </div>
+                          {!isPending && (
+                            <Upload className={`w-4 h-4 flex-shrink-0 ${hasSaved ? "text-green-500" : "text-gray-400"}`} />
+                          )}
+                        </label>
+                      )}
+
+                      {/* 파일 입력 (잠금 상태에서는 비활성) */}
+                      {!isLocked && (
+                        <input
+                          id={fileInputId}
+                          type="file"
+                          accept="image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx,.hwp,.hwpx,.txt"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => {
+                            const files = e.target.files;
+                            if (files && files.length > 0) {
+                              setScanDocType(dt.value);
+                              setScanPreview(null);
+                              setScanResult(null);
+                              Array.from(files).forEach((f) => handleScanImageSelect(f));
+                            }
+                            e.target.value = "";
+                          }}
+                        />
+                      )}
+
+                      {/* 업로드 중 미리보기 */}
                       {isPending && (
                         <div className="mt-1 rounded-xl border border-[#1F3864]/30 bg-[#1F3864]/5 overflow-hidden">
                           {scanPreview && !scanPreview.startsWith('__file__') ? (
@@ -497,6 +683,7 @@ export default function AssetsPage() {
                           )}
                         </div>
                       )}
+
                       {/* DB 저장된 내역 — 카드 바로 아래에 항상 표시 */}
                       {hasSaved && savedScans.map((scan: any) => (
                         <div key={scan.id} className="mt-1 px-3 py-2 bg-green-50 border border-green-200 rounded-xl text-xs text-green-800">
@@ -516,18 +703,35 @@ export default function AssetsPage() {
                               scan.confidence === "medium" ? "text-yellow-600" : "text-red-600"
                             }`}>신뢰도: {scan.confidence === "high" ? "높음" : scan.confidence === "medium" ? "보통" : "낮음"}</span>
                             <div className="flex gap-1">
-                              <button
-                                onClick={(e) => { e.preventDefault(); setEditingScanId(editingScanId === scan.id ? null : scan.id); setEditMemo(scan.userMemo || ""); setEditValue(scan.estimatedValue ? String(scan.estimatedValue) : ""); }}
-                                className="px-2 py-0.5 rounded text-xs bg-white border border-gray-200 text-gray-500 hover:text-blue-500"
-                              >수정</button>
-                              <button
-                                onClick={(e) => { e.preventDefault(); if (window.confirm("삭제하시겠습니까?")) deleteScanMutation.mutate({ scanId: scan.id }); }}
-                                className="px-2 py-0.5 rounded text-xs bg-white border border-gray-200 text-gray-500 hover:text-red-500"
-                              >삭제</button>
+                              {/* 미리보기 버튼 */}
+                              {scan.imageUrl && (
+                                <button
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    setPreviewModal({ open: true, url: scan.imageUrl, label: dt.label });
+                                  }}
+                                  className="px-2 py-0.5 rounded text-xs bg-white border border-gray-200 text-gray-500 hover:text-[#1F3864] flex items-center gap-1"
+                                >
+                                  <Eye className="w-3 h-3" />
+                                  미리보기
+                                </button>
+                              )}
+                              {!isLocked && (
+                                <>
+                                  <button
+                                    onClick={(e) => { e.preventDefault(); setEditingScanId(editingScanId === scan.id ? null : scan.id); setEditMemo(scan.userMemo || ""); setEditValue(scan.estimatedValue ? String(scan.estimatedValue) : ""); }}
+                                    className="px-2 py-0.5 rounded text-xs bg-white border border-gray-200 text-gray-500 hover:text-blue-500"
+                                  >수정</button>
+                                  <button
+                                    onClick={(e) => { e.preventDefault(); if (window.confirm("삭제하시겠습니까?")) deleteScanMutation.mutate({ scanId: scan.id }); }}
+                                    className="px-2 py-0.5 rounded text-xs bg-white border border-gray-200 text-gray-500 hover:text-red-500"
+                                  >삭제</button>
+                                </>
+                              )}
                             </div>
                           </div>
                           {/* 수정 폼 */}
-                          {editingScanId === scan.id && (
+                          {!isLocked && editingScanId === scan.id && (
                             <div className="mt-2 p-2 bg-white rounded-lg space-y-2">
                               <input value={editMemo} onChange={(e) => setEditMemo(e.target.value)} placeholder="메모" className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-[#1F3864]" />
                               <input type="number" value={editValue} onChange={(e) => setEditValue(e.target.value)} placeholder="추정가치 (원)" className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-[#1F3864]" />
@@ -545,7 +749,41 @@ export default function AssetsPage() {
               </div>
             </div>
 
-
+            {/* ── 자산 합계 요약 ── */}
+            {totalValue > 0 && (
+              <div className="bg-[#1F3864] rounded-2xl p-5 mb-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white/60 text-xs font-semibold uppercase tracking-wide">총 예상 자산 합계</p>
+                    <p className="text-3xl font-bold text-[#C9A961] mt-1">
+                      ₩{totalValue.toLocaleString()}
+                    </p>
+                    <p className="text-white/50 text-sm mt-0.5">
+                      약 {(totalValue / 100000000).toFixed(2)}억원
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-white/60 text-xs">등록 서류</p>
+                    <p className="text-2xl font-bold text-white">{scanList.length}건</p>
+                  </div>
+                </div>
+                {shareTotal === 100 && heirList.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-white/10">
+                    <p className="text-white/60 text-xs mb-2">상속자별 예상 상속액</p>
+                    <div className="space-y-1">
+                      {heirList.map((heir) => (
+                        <div key={heir.id} className="flex items-center justify-between text-xs">
+                          <span className="text-white/80">{heir.nameKo} ({RELATIONSHIP_LABELS[heir.relationship as RelType]})</span>
+                          <span className="text-[#C9A961] font-bold">
+                            {heir.sharePercent}% — ₩{Math.round(totalValue * (heir.sharePercent ?? 0) / 100).toLocaleString()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -587,7 +825,7 @@ export default function AssetsPage() {
                               scan.confidence === "medium" ? "bg-yellow-100 text-yellow-700" :
                               "bg-red-100 text-red-700"
                             }`}>
-                              {scan.confidence === "high" ? "높음" : scan.confidence === "medium" ? "보통" : "낙음"} 신뢰도
+                              {scan.confidence === "high" ? "높음" : scan.confidence === "medium" ? "보통" : "낮음"} 신뢰도
                             </span>
                           </div>
                           {scan.issuer && <p className="text-xs text-gray-500 mt-0.5">{scan.issuer}</p>}
@@ -602,27 +840,41 @@ export default function AssetsPage() {
                           {scan.userMemo && <p className="text-xs text-blue-600 mt-0.5">메모: {scan.userMemo}</p>}
                         </div>
                         <div className="flex gap-1 flex-shrink-0">
+                          {/* 미리보기 버튼 */}
+                          {scan.imageUrl && (
+                            <button
+                              onClick={() => setPreviewModal({ open: true, url: scan.imageUrl, label: scan.docTypeLabel || scan.docType })}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[#1F3864] hover:bg-[#1F3864]/5 transition-colors"
+                              title="원본 서류 미리보기"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                          )}
                           <button onClick={() => setExpandedScanId(expandedScanId === scan.id ? null : scan.id)}
                             className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[#1F3864] hover:bg-[#1F3864]/5 transition-colors">
-                            <Eye className="w-4 h-4" />
+                            <ChevronRight className={`w-4 h-4 transition-transform ${expandedScanId === scan.id ? "rotate-90" : ""}`} />
                           </button>
-                          <button onClick={() => {
-                            setEditingScanId(scan.id);
-                            setEditMemo(scan.userMemo || "");
-                            setEditValue(scan.estimatedValue ? String(scan.estimatedValue) : "");
-                          }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => {
-                            if (window.confirm("이 자산증명서를 삭제하시겠습니까?"))
-                              deleteScanMutation.mutate({ scanId: scan.id });
-                          }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          {!isLocked && (
+                            <>
+                              <button onClick={() => {
+                                setEditingScanId(scan.id);
+                                setEditMemo(scan.userMemo || "");
+                                setEditValue(scan.estimatedValue ? String(scan.estimatedValue) : "");
+                              }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
+                                <Edit3 className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => {
+                                if (window.confirm("이 자산증명서를 삭제하시겠습니까?"))
+                                  deleteScanMutation.mutate({ scanId: scan.id });
+                              }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                       {/* 메모 수정 폼 */}
-                      {editingScanId === scan.id && (
+                      {!isLocked && editingScanId === scan.id && (
                         <div className="mt-3 p-3 bg-gray-50 rounded-xl space-y-2">
                           <div>
                             <label className="text-xs font-semibold text-gray-600">메모</label>
@@ -638,7 +890,7 @@ export default function AssetsPage() {
                           </div>
                           <div className="flex gap-2">
                             <button onClick={() => setEditingScanId(null)}
-                              className="flex-1 py-2 rounded-lg border border-gray-200 text-sm text-gray-500 font-semibold">장닫기</button>
+                              className="flex-1 py-2 rounded-lg border border-gray-200 text-sm text-gray-500 font-semibold">닫기</button>
                             <button onClick={() => updateScanMutation.mutate({
                               scanId: scan.id,
                               userMemo: editMemo,
@@ -659,10 +911,12 @@ export default function AssetsPage() {
                           {scan.beneficiary && <p><span className="font-semibold">수익자:</span> {scan.beneficiary}</p>}
                           {scan.additionalInfo && <p><span className="font-semibold">추가정보:</span> {scan.additionalInfo}</p>}
                           {scan.imageUrl && (
-                            <a href={scan.imageUrl} target="_blank" rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-[#1F3864] font-semibold hover:underline mt-1">
-                              <Eye className="w-3.5 h-3.5" />원본 이미지 보기
-                            </a>
+                            <button
+                              onClick={() => setPreviewModal({ open: true, url: scan.imageUrl, label: scan.docTypeLabel || scan.docType })}
+                              className="inline-flex items-center gap-1 text-[#1F3864] font-semibold hover:underline mt-1"
+                            >
+                              <Eye className="w-3.5 h-3.5" />원본 서류 미리보기
+                            </button>
                           )}
                         </div>
                       )}
@@ -673,6 +927,7 @@ export default function AssetsPage() {
             )}
           </div>
         )}
+
         {/* ══════════════ 상속자 탭 ══════════════ */}
         {tab === "heirs" && (
           <div>
@@ -848,6 +1103,11 @@ export default function AssetsPage() {
                       <div className={`font-bold text-sm ${heir.sharePercent ? "text-[#C9A961]" : "text-gray-300"}`}>
                         {heir.sharePercent ? `${heir.sharePercent}%` : "지분 미설정"}
                       </div>
+                      {heir.sharePercent && totalValue > 0 && (
+                        <div className="text-xs text-gray-400 mt-0.5">
+                          ≈ ₩{Math.round(totalValue * (heir.sharePercent ?? 0) / 100).toLocaleString()}
+                        </div>
+                      )}
                     </div>
                     <button
                       onClick={() => deleteHeir.mutate({ id: heir.id })}
@@ -877,6 +1137,15 @@ export default function AssetsPage() {
 
       </div>
     </div>
+
+    {/* ── 서류 미리보기 모달 ── */}
+    <DocPreviewModal
+      open={previewModal.open}
+      onClose={() => setPreviewModal({ open: false, url: null, label: "" })}
+      fileUrl={previewModal.url}
+      docLabel={previewModal.label}
+    />
+
     </GradeGate>
   );
 }

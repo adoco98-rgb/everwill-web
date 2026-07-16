@@ -159,6 +159,10 @@ export const users = mysqlTable("users", {
   suspendReason: text("suspendReason"),
   /** 계정 정지 시각 */
   suspendedAt: timestamp("suspendedAt"),
+  /** 자산 목록 최종 저장 여부 (0=편집중, 1=잠금완료) */
+  assetLocked: int("assetLocked").default(0).notNull(),
+  /** 자산 목록 최종 저장 시각 */
+  assetLockedAt: timestamp("assetLockedAt"),
 });
 
 export type User = typeof users.$inferSelect;

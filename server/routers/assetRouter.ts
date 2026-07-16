@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
-import { assets, heirs, willAssetScans } from "../../drizzle/schema";
+import { assets, heirs, willAssetScans, users } from "../../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 
 // ─── 재산 유형 목록 ───
@@ -159,6 +159,37 @@ export const assetRouter = router({
         .where(and(eq(heirs.id, input.id), eq(heirs.userId, ctx.user.id)));
       return { success: true };
     }),
+
+  // ── 자산 목록 잠금 상태 조회 ──
+  getAssetLockStatus: protectedProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) return { assetLocked: 0, assetLockedAt: null };
+    const [user] = await db
+      .select({ assetLocked: users.assetLocked, assetLockedAt: users.assetLockedAt })
+      .from(users)
+      .where(eq(users.id, ctx.user.id));
+    return { assetLocked: user?.assetLocked ?? 0, assetLockedAt: user?.assetLockedAt ?? null };
+  }),
+
+  // ── 자산 목록 최종 저장 (잠금) ──
+  lockAssets: protectedProcedure.mutation(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) throw new Error("DB unavailable");
+    await db.update(users)
+      .set({ assetLocked: 1, assetLockedAt: new Date() })
+      .where(eq(users.id, ctx.user.id));
+    return { success: true };
+  }),
+
+  // ── 자산 목록 잠금 해제 (수정 모드) ──
+  unlockAssets: protectedProcedure.mutation(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) throw new Error("DB unavailable");
+    await db.update(users)
+      .set({ assetLocked: 0 })
+      .where(eq(users.id, ctx.user.id));
+    return { success: true };
+  }),
 
   // ── 재산 + 상속자 통합 조회 (유언장 작성 시 사용) ──
   getWillData: protectedProcedure.query(async ({ ctx }) => {
