@@ -261,7 +261,7 @@ export default function AssetsPage() {
 
   // ── 자산증명서 스캔 ──
   const { data: scanData, isLoading: scansLoading, refetch: refetchScans } = trpc.willAuto.listAssetScans.useQuery(
-    undefined, { enabled: isAuthenticated && tab === "scans" }
+    undefined, { enabled: isAuthenticated }
   );
   const scanList = (scanData?.scans || []) as any[];
   const deleteScanMutation = trpc.willAuto.deleteAssetScan.useMutation({
@@ -506,6 +506,116 @@ export default function AssetsPage() {
                 })}
               </div>
             </div>
+
+            {/* ── 업로드된 서류 내역 (항상 표시) ── */}
+            {scanList.length > 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  <h3 className="font-bold text-[#1F3864] text-sm">업로드된 서류 내역</h3>
+                  <span className="text-xs text-gray-400">— 전체 {scanList.length}건</span>
+                </div>
+                <div className="space-y-3">
+                  {scanList.map((scan: any) => (
+                    <div key={scan.id} className="border border-gray-100 rounded-xl overflow-hidden">
+                      {/* 기본 정보 행 */}
+                      <div className="flex items-start gap-3 p-3">
+                        <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
+                          <CheckCircle2 className="w-4 h-4 text-green-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-bold text-[#1F3864]">{scan.docTypeLabel || scan.docType}</p>
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
+                              scan.confidence === "high" ? "bg-green-100 text-green-700" :
+                              scan.confidence === "medium" ? "bg-yellow-100 text-yellow-700" :
+                              "bg-red-100 text-red-700"
+                            }`}>
+                              {scan.confidence === "high" ? "높음" : scan.confidence === "medium" ? "보통" : "낮음"}
+                            </span>
+                          </div>
+                          {/* 인식 내용 항상 표시 */}
+                          <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs text-gray-600">
+                            {scan.issuer && <p><span className="text-gray-400">발급기관:</span> <strong>{scan.issuer}</strong></p>}
+                            {scan.assetName && <p><span className="text-gray-400">자산명:</span> <strong>{scan.assetName}</strong></p>}
+                            {scan.amount && <p><span className="text-gray-400">금액:</span> <strong className="text-[#C9A961]">{Number(scan.amount.replace(/[^0-9]/g,"") || 0).toLocaleString()}원</strong></p>}
+                            {scan.location && <p className="col-span-2"><span className="text-gray-400">소재지:</span> <strong>{scan.location}</strong></p>}
+                            {scan.referenceDate && <p><span className="text-gray-400">발급일:</span> {scan.referenceDate}</p>}
+                            {scan.ownerName && <p><span className="text-gray-400">소유자:</span> {scan.ownerName}</p>}
+                            {scan.area && <p><span className="text-gray-400">면적:</span> {scan.area}</p>}
+                            {scan.additionalInfo && <p className="col-span-2"><span className="text-gray-400">추가정보:</span> {scan.additionalInfo}</p>}
+                            {scan.userMemo && <p className="col-span-2"><span className="text-gray-400">메모:</span> <span className="text-blue-600">{scan.userMemo}</span></p>}
+                          </div>
+                        </div>
+                        {/* 수정 / 삭제 버튼 */}
+                        <div className="flex gap-1 flex-shrink-0">
+                          <button
+                            onClick={() => {
+                              setEditingScanId(editingScanId === scan.id ? null : scan.id);
+                              setEditMemo(scan.userMemo || "");
+                              setEditValue(scan.estimatedValue ? String(scan.estimatedValue) : "");
+                            }}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (window.confirm("이 서류를 삭제하시겠습니까?"))
+                                deleteScanMutation.mutate({ scanId: scan.id });
+                            }}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                      {/* 수정 폼 (펼치기) */}
+                      {editingScanId === scan.id && (
+                        <div className="mx-3 mb-3 p-3 bg-gray-50 rounded-xl space-y-2">
+                          <div>
+                            <label className="text-xs font-semibold text-gray-600">메모 수정</label>
+                            <input
+                              value={editMemo}
+                              onChange={(e) => setEditMemo(e.target.value)}
+                              placeholder="자유롭게 메모를 입력하세요"
+                              className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1F3864]"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold text-gray-600">추정 가치 수정 (원)</label>
+                            <input
+                              type="number"
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              placeholder="예: 150000000"
+                              className="w-full mt-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#1F3864]"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setEditingScanId(null)}
+                              className="flex-1 py-2 rounded-lg border border-gray-200 text-sm text-gray-500 font-semibold"
+                            >닫기</button>
+                            <button
+                              onClick={() => updateScanMutation.mutate({
+                                scanId: scan.id,
+                                userMemo: editMemo,
+                                estimatedValue: editValue ? Number(editValue) : undefined,
+                              })}
+                              disabled={updateScanMutation.isPending}
+                              className="flex-1 py-2 rounded-lg bg-[#1F3864] text-white text-sm font-semibold disabled:opacity-50"
+                            >
+                              {updateScanMutation.isPending ? "저장 중..." : "저장"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* 재산 추가 폼 */}
             {showAssetForm && (
