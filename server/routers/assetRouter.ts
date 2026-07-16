@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
-import { assets, heirs } from "../../drizzle/schema";
+import { assets, heirs, willAssetScans } from "../../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 
 // ─── 재산 유형 목록 ───
@@ -163,11 +163,12 @@ export const assetRouter = router({
   // ── 재산 + 상속자 통합 조회 (유언장 작성 시 사용) ──
   getWillData: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();
-    if (!db) return { assets: [], heirs: [] };
-    const [userAssets, userHeirs] = await Promise.all([
+    if (!db) return { assets: [], heirs: [], assetScans: [] };
+    const [userAssets, userHeirs, userScans] = await Promise.all([
       db.select().from(assets).where(eq(assets.userId, ctx.user.id)),
       db.select().from(heirs).where(eq(heirs.userId, ctx.user.id)),
+      db.select().from(willAssetScans).where(eq(willAssetScans.userId, ctx.user.id)),
     ]);
-    return { assets: userAssets, heirs: userHeirs };
+    return { assets: userAssets, heirs: userHeirs, assetScans: userScans };
   }),
 });

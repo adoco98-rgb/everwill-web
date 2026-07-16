@@ -51,10 +51,11 @@ export default function WillPreviewPage() {
     { enabled: !!latestWillId }
   );
 
-  // 별도 테이블 자산 + 상속자 (항상 조회)
+  // 별도 테이블 자산 + 상속자 + 스캔 자산 (항상 조회)
   const { data: willData } = trpc.asset.getWillData.useQuery();
   const assetList = (willData?.assets ?? []) as any[];
   const heirList = (willData?.heirs ?? []) as any[];
+  const assetScanList = (willData?.assetScans ?? []) as any[];
 
   // 업로드된 증빙 서류
   const { data: attachments } = trpc.attachment.list.useQuery();
@@ -134,10 +135,12 @@ export default function WillPreviewPage() {
 
   // 표시할 상속자: JSON 내부 > 별도 테이블
   const displayHeirs = jsonHeirs.length > 0 ? jsonHeirs : heirList;
-  // 표시할 자산: JSON 내부 > 별도 테이블
+  // 표시할 자산: JSON 내부 > willAssetScans > assets 테이블 순서
   const displayAssets = (jsonRealEstates.length + jsonFinancialAssets.length + jsonOtherAssets.length) > 0
     ? null // JSON 자산은 아래에서 섹션별 표시
-    : assetList;
+    : assetScanList.length > 0
+      ? assetScanList // willAssetScans 우선
+      : assetList;
 
   // 오늘 날짜
   const today = new Date();
@@ -320,7 +323,7 @@ export default function WillPreviewPage() {
             </section>
           )}
 
-          {/* ─── 자산 목록 (별도 테이블) ─── */}
+          {/* ─── 자산 목록 (willAssetScans 또는 assets 테이블) ─── */}
           {displayAssets && displayAssets.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-3">
@@ -329,20 +332,37 @@ export default function WillPreviewPage() {
               </div>
               <div className="space-y-2">
                 {displayAssets.map((asset: any) => {
-                  const AssetIcon = getAssetIcon(asset.type);
+                  // willAssetScans 형식인지 assets 형식인지 구분
+                  const isScan = asset.docType !== undefined;
+                  const displayName = isScan
+                    ? (asset.assetName || asset.docTypeLabel || asset.docType)
+                    : asset.name;
+                  const displayType = isScan
+                    ? (asset.docTypeLabel || asset.docType)
+                    : (ASSET_TYPE_LABELS[asset.type] || asset.type);
+                  const displayIssuer = isScan ? asset.issuer : null;
+                  const displayLocation = isScan ? asset.location : asset.description;
+                  const displayAmount = isScan ? asset.amount : null;
+                  const displayUnit = isScan ? asset.unit : null;
+                  const displayValue = asset.estimatedValue;
+                  const AssetIcon = isScan ? Landmark : getAssetIcon(asset.type);
                   return (
-                    <div key={asset.id} className="bg-gray-50 rounded-xl p-4 flex justify-between items-center">
-                      <div className="flex items-center gap-3">
-                        <AssetIcon className="w-4 h-4 text-gray-400" />
-                        <div>
-                          <span className="font-semibold text-gray-800">{asset.name}</span>
-                          <span className="text-gray-500 text-sm ml-2">{ASSET_TYPE_LABELS[asset.type] || asset.type}</span>
-                          {asset.description && <p className="text-xs text-gray-400 mt-0.5">{asset.description}</p>}
+                    <div key={asset.id} className="bg-gray-50 rounded-xl p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-start gap-3">
+                          <AssetIcon className="w-4 h-4 text-gray-400 mt-0.5" />
+                          <div>
+                            <span className="font-semibold text-gray-800">{displayName}</span>
+                            <span className="text-gray-500 text-sm ml-2">{displayType}</span>
+                            {displayIssuer && <p className="text-xs text-gray-500 mt-0.5">발급기관: {displayIssuer}</p>}
+                            {displayLocation && <p className="text-xs text-gray-400 mt-0.5">{displayLocation}</p>}
+                            {displayAmount && <p className="text-xs text-gray-500 mt-0.5">금액: {displayAmount} {displayUnit}</p>}
+                          </div>
                         </div>
+                        {displayValue && displayValue > 0 && (
+                          <span className="text-[#1F3864] font-bold">₩{Number(displayValue).toLocaleString()}</span>
+                        )}
                       </div>
-                      {asset.estimatedValue > 0 && (
-                        <span className="text-[#1F3864] font-bold">₩{Number(asset.estimatedValue).toLocaleString()}</span>
-                      )}
                     </div>
                   );
                 })}
