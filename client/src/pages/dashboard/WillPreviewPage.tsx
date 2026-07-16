@@ -142,6 +142,13 @@ export default function WillPreviewPage() {
       ? assetScanList // willAssetScans 우선
       : assetList;
 
+  // 총 자산 합계 계산 (estimatedValue 우선, 없으면 amount 파싱)
+  const totalAssetValue = (assetScanList.length > 0 ? assetScanList : assetList).reduce((sum: number, a: any) => {
+    const ev = a.estimatedValue ? Number(a.estimatedValue) : 0;
+    const amt = ev > 0 ? ev : (Number(String(a.amount || '0').replace(/[^0-9]/g, '')) || 0);
+    return sum + amt;
+  }, 0);
+
   // 오늘 날짜
   const today = new Date();
   const todayStr = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
@@ -306,12 +313,19 @@ export default function WillPreviewPage() {
                           {heir.address && <p className="text-xs text-gray-400 flex items-center gap-1"><MapPin className="w-3 h-3" />{heir.address}</p>}
                           {heir.birthDate && <p className="text-xs text-gray-400 flex items-center gap-1"><CalendarDays className="w-3 h-3" />{heir.birthDate}</p>}
                         </div>
-                        {/* 분배 비율/금액 */}
+                                                {/* 분배 비율/금액 */}
                         <div className="text-right flex-shrink-0">
                           {shareType === "amount" && shareAmount > 0 ? (
                             <span className="text-[#1F3864] font-bold">₩{Number(shareAmount).toLocaleString()}</span>
                           ) : share > 0 ? (
-                            <span className="text-[#C9A961] font-bold text-xl">{share}%</span>
+                            <div>
+                              <span className="text-[#C9A961] font-bold text-xl">{share}%</span>
+                              {totalAssetValue > 0 && (
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                  ≈ ₩{Math.round(totalAssetValue * share / 100).toLocaleString()}
+                                </p>
+                              )}
+                            </div>
                           ) : (
                             <span className="text-gray-300 text-sm">미정</span>
                           )}
