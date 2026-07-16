@@ -811,7 +811,7 @@ function HeirForm({
   isEdit = false,
 }: {
   form: HeirFormData;
-  setForm: (f: HeirFormData) => void;
+  setForm: (f: HeirFormData | ((prev: HeirFormData) => HeirFormData)) => void;
   isFirst: boolean;
   onSave: () => void;
   onCancel: () => void;
@@ -819,7 +819,10 @@ function HeirForm({
   isEdit?: boolean;
 }) {
   const update = (key: keyof HeirFormData, value: string | number) =>
-    setForm({ ...form, [key]: value });
+    setForm((prev) => ({ ...prev, [key]: value }));
+
+  const updateMulti = (updates: Partial<HeirFormData>) =>
+    setForm((prev) => ({ ...prev, ...updates }));
 
   return (
     <div className="space-y-4">
@@ -1004,8 +1007,7 @@ function HeirForm({
           <Switch
             checked={form.isExecutor === 1}
             onCheckedChange={(checked) => {
-              update("isExecutor", checked ? 1 : 0);
-              update("accessLevel", checked ? "full" : "own_only");
+              updateMulti({ isExecutor: checked ? 1 : 0, accessLevel: checked ? "full" : "own_only" });
             }}
           />
         </div>
