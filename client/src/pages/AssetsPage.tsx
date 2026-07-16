@@ -288,8 +288,12 @@ export default function AssetsPage() {
     onSuccess: () => { utils.asset.listHeirs.invalidate(); toast.success("삭제됐습니다"); },
   });
 
-  // ── 총 자산 합계 (scanList 기준) ──
-  const totalValue = scanList.reduce((sum: number, s: any) => sum + (Number(String(s.amount || '0').replace(/[^0-9]/g, '')) || 0), 0);
+  // ── 총 자산 합계 (estimatedValue 우선, 없으면 amount 사용) ──
+  const totalValue = scanList.reduce((sum: number, s: any) => {
+    const ev = s.estimatedValue ? Number(s.estimatedValue) : 0;
+    const amt = ev > 0 ? ev : (Number(String(s.amount || '0').replace(/[^0-9]/g, '')) || 0);
+    return sum + amt;
+  }, 0);
   const shareTotal = heirList.reduce((sum, h) => sum + (h.sharePercent ?? 0), 0);
 
   // ── 로그인 필요 ──
@@ -338,9 +342,12 @@ export default function AssetsPage() {
           </div>
           <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
             <div className="text-2xl font-bold text-[#C9A961]">
-              {totalValue > 0 ? `${(totalValue / 100000000).toFixed(1)}억` : "미입력"}
+              {totalValue > 0 ? `${(totalValue / 100000000).toFixed(2)}억` : "미입력"}
             </div>
             <div className="text-sm text-gray-400 mt-1">총 예상 자산</div>
+            {totalValue > 0 && (
+              <div className="text-xs text-gray-500 mt-0.5">₩{totalValue.toLocaleString()}</div>
+            )}
           </div>
           <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
             <div className="flex items-center gap-2">
