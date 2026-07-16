@@ -38,8 +38,6 @@ const DOC_TYPES = [
   { value: "real_estate_registry", label: "부동산 등기부등본", assetType: "real_estate" },
   { value: "stock_certificate", label: "주식보유증명서", assetType: "stock" },
   { value: "insurance_policy", label: "보험증권", assetType: "insurance" },
-  { value: "pension_statement", label: "연금 수급확인서", assetType: "pension" },
-  { value: "vehicle_registration", label: "자동차 등록증", assetType: "vehicle" },
   { value: "other", label: "기타 자산 서류", assetType: "other" },
 ];
 

@@ -121,8 +121,6 @@ const ASSET_DOC_TYPES = [
   { value: "real_estate_registry",  label: "부동산 등기부등본" },
   { value: "stock_certificate",     label: "주식보유증명서" },
   { value: "insurance_policy",      label: "보험증권" },
-  { value: "pension_statement",     label: "연금 수급 확인서" },
-  { value: "vehicle_registration",  label: "자동차 등록증" },
   { value: "other",                 label: "기타 자산 서류" },
 ];
 
