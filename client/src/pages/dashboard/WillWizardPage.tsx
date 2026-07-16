@@ -129,6 +129,27 @@ function getAssetTypeLabel(type: string): string {
   return labels[type] || type;
 }
 
+// docType 한국어 변환 (영문으로 저장된 경우 대비)
+function getDocTypeLabel(docTypeLabel: string, docType?: string): string {
+  const KO_MAP: Record<string, string> = {
+    bank_balance: "은행 잔액증명서",
+    real_estate_registry: "부동산 등기부등본",
+    stock_certificate: "주식보유증명서",
+    insurance_policy: "보험증권",
+    bond_certificate: "채권증명서",
+    pension: "국민연금",
+    pension_statement: "연금증명서",
+    other: "기타 자산 서류",
+    // 영문 docTypeLabel 직접 매핑
+    "Bank Balance Certificate": "은행 잔액증명서",
+    "Real Estate Registry Certificate": "부동산 등기부등본",
+    "Stock Holding Certificate": "주식보유증명서",
+    "Insurance Policy": "보험증권",
+    "Bond Certificate": "채권증명서",
+  };
+  return KO_MAP[docTypeLabel] || KO_MAP[docType || ""] || docTypeLabel || "자산 서류";
+}
+
 // 관계 한글 변환
 function getRelationLabel(relation: string): string {
   const labels: Record<string, string> = {
@@ -470,7 +491,7 @@ export default function WillWizardPage() {
                           key={`scan-${s.id}`}
                           className="inline-flex items-center px-2 py-0.5 bg-blue-50 rounded text-xs text-blue-600"
                         >
-                          {s.docTypeLabel || s.docType}: {s.assetName || s.issuer || '서류'}
+                          {getDocTypeLabel(s.docTypeLabel || '', s.docType)}: {s.assetName || s.issuer || '서류'}
                         </span>
                       ))}
                       {totalAssetCount > 4 && (
