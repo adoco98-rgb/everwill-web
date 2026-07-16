@@ -109,19 +109,21 @@ export default function WillPreviewPage() {
   if (parsedJson?.willContent && !willText) willText = parsedJson.willContent;
 
   const signatureImage = parsedJson?.signature1 || "";
-  // 서명 날짜: ISO 타임스탬프 → 한국어 날짜 형식으로 통일
+  // 날짜 → 한국어 형식 변환 헬퍼 (ISO·Date 모두 처리)
+  function toKoreanDate(val: string | Date | null | undefined): string {
+    if (!val) return "";
+    try {
+      const d = typeof val === "string" ? new Date(val) : val;
+      if (isNaN(d.getTime())) return typeof val === "string" ? val : "";
+      return `${d.getFullYear()}년 ${String(d.getMonth() + 1).padStart(2, '0')}월 ${String(d.getDate()).padStart(2, '0')}일`;
+    } catch { return ""; }
+  }
+
+  // 서명 날짜
   const rawSignedAt = parsedJson?.signedAt || "";
-  const signedAt = rawSignedAt
-    ? (() => {
-        try {
-          const d = new Date(rawSignedAt);
-          if (!isNaN(d.getTime())) {
-            return `${d.getFullYear()}년 ${String(d.getMonth() + 1).padStart(2, '0')}월 ${String(d.getDate()).padStart(2, '0')}일`;
-          }
-        } catch {}
-        return rawSignedAt;
-      })()
-    : "";
+  const signedAt = toKoreanDate(rawSignedAt);
+  // 작성일
+  const createdAtStr = toKoreanDate(willDetail.createdAt);
 
   // 유언자 정보 (parsedJson 우선, 없으면 user 프로필)
   const testatorName = parsedJson?.testatorName || (user as any)?.name || "-";
@@ -187,7 +189,7 @@ export default function WillPreviewPage() {
           <div>
             <h2 className="font-bold text-lg">{willDetail.title || "나의 유언장"}</h2>
             <p className="text-white/70 text-sm print:text-gray-500">
-              작성일: {new Date(willDetail.createdAt).toLocaleDateString("ko-KR")} ·
+              작성일: {createdAtStr} ·
               상태: {willDetail.status === "certified" ? "인증 완료 ✓" : "초안 (미인증)"}
             </p>
           </div>
