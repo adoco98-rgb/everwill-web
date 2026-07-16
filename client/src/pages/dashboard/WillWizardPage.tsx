@@ -293,8 +293,14 @@ export default function WillWizardPage() {
 
   // 유언장 요약 데이터 계산
   const assets = willData?.assets || [];
+  const assetScans = willData?.assetScans || [];
   const heirs = willData?.heirs || [];
-  const totalAssetValue = assets.reduce((sum: number, a: any) => sum + (a.estimatedValue || 0), 0);
+  // 자산 총 건수: assets 테이블 + willAssetScans 테이블 합산
+  const totalAssetCount = assets.length + assetScans.length;
+  // 자산 총액: assets.estimatedValue + assetScans.estimatedValue 합산
+  const totalAssetValue =
+    assets.reduce((sum: number, a: any) => sum + (a.estimatedValue || 0), 0) +
+    assetScans.reduce((sum: number, s: any) => sum + (s.estimatedValue || 0), 0);
   const topHeir = heirs.length > 0
     ? [...heirs].sort((a: any, b: any) => (b.sharePercent || 0) - (a.sharePercent || 0))[0]
     : null;
@@ -442,25 +448,33 @@ export default function WillWizardPage() {
                 <div className="flex-1">
                   <p className="text-xs text-gray-400 mb-0.5">등록 자산</p>
                   <p className="text-sm font-bold text-gray-800">
-                    총 {assets.length}건
+                    총 {totalAssetCount}건
                     {totalAssetValue > 0 && (
                       <span className="text-[#C9A961] ml-2">
                         약 ₩{totalAssetValue.toLocaleString()}
                       </span>
                     )}
                   </p>
-                  {assets.length > 0 && (
+                  {totalAssetCount > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-1.5">
-                      {assets.slice(0, 4).map((a: any) => (
+                      {assets.slice(0, 3).map((a: any) => (
                         <span
-                          key={a.id}
+                          key={`asset-${a.id}`}
                           className="inline-flex items-center px-2 py-0.5 bg-gray-100 rounded text-xs text-gray-600"
                         >
                           {getAssetTypeLabel(a.type)}: {a.name}
                         </span>
                       ))}
-                      {assets.length > 4 && (
-                        <span className="text-xs text-gray-400">+{assets.length - 4}건</span>
+                      {assetScans.slice(0, Math.max(0, 4 - assets.length)).map((s: any) => (
+                        <span
+                          key={`scan-${s.id}`}
+                          className="inline-flex items-center px-2 py-0.5 bg-blue-50 rounded text-xs text-blue-600"
+                        >
+                          {s.docTypeLabel || s.docType}: {s.assetName || s.issuer || '서류'}
+                        </span>
+                      ))}
+                      {totalAssetCount > 4 && (
+                        <span className="text-xs text-gray-400">+{totalAssetCount - 4}건</span>
                       )}
                     </div>
                   )}
