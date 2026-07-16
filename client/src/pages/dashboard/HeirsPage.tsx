@@ -330,6 +330,14 @@ export default function HeirsPage() {
     .filter((h) => h.shareType === "percent")
     .reduce((sum, h) => sum + (h.sharePercent ?? 0), 0);
 
+  // 총 자산 합계 (willAssetScans 기준)
+  const { data: willData } = trpc.asset.getWillData.useQuery();
+  const assetScanList = (willData?.assetScans ?? []) as any[];
+  const totalAssetValue = assetScanList.reduce((sum: number, a: any) => {
+    const val = a.estimatedValue ? Number(a.estimatedValue) : 0;
+    return sum + val;
+  }, 0);
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
       {/* 헤더 */}
@@ -454,9 +462,18 @@ export default function HeirsPage() {
                     </div>
                   )}
                   <div className="flex items-center gap-1 font-medium text-[#1F3864]">
-                    {heir.shareType === "percent"
-                      ? `분배 비율: ${heir.sharePercent}%`
-                      : `분배 금액: ₩${(heir.shareAmount ?? 0).toLocaleString()}`}
+                    {heir.shareType === "percent" ? (
+                      <span>
+                        분배 비율: {heir.sharePercent}%
+                        {totalAssetValue > 0 && heir.sharePercent && (
+                          <span className="text-[#C9A961] ml-2">
+                            (약 ₩{Math.round(totalAssetValue * (heir.sharePercent / 100)).toLocaleString()})
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      `분배 금액: ₩${(heir.shareAmount ?? 0).toLocaleString()}`
+                    )}
                   </div>
                   {heir.priority === 1 && (
                     <div className="flex items-center gap-1 col-span-2">
