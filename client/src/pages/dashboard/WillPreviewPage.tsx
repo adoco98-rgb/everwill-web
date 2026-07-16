@@ -139,9 +139,15 @@ export default function WillPreviewPage() {
   const jsonFinancialAssets: any[] = parsedJson?.financialAssets || [];
   const jsonOtherAssets: any[] = parsedJson?.otherAssets || [];
 
-  // 집행자, 특별 지시사항
-  const executor = parsedJson?.executor || parsedJson?.executorCustomName || "";
-  const executorRelation = parsedJson?.executorCustomRelation || "";
+  // 집행자: DB heirList에서 isExecutor===1인 상속자 우선, 없으면 parsedJson fallback
+  // MySQL int 컬럼은 JS로 올 때 number 또는 string 모두 가능하므로 Number() 변환
+  const executorHeir = (heirList as any[]).find((h: any) => Number(h.isExecutor) === 1);
+  const executor = executorHeir
+    ? executorHeir.nameKo || executorHeir.nameEn || ""
+    : parsedJson?.executor || parsedJson?.executorCustomName || "";
+  const executorRelation = executorHeir
+    ? (executorHeir.relationship === 'spouse' ? '배우자' : executorHeir.relationship === 'child' ? '자녀' : executorHeir.relationship === 'parent' ? '부모' : executorHeir.relationship === 'sibling' ? '형제자매' : executorHeir.relationship || '')
+    : parsedJson?.executorCustomRelation || "";
   const guardian = parsedJson?.guardian || "";
   const funeralWish = parsedJson?.funeralWish || "";
   const specialInstructions = parsedJson?.specialInstructions || "";

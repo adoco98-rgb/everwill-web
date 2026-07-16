@@ -138,6 +138,11 @@ export const assetRouter = router({
       country: z.string().optional(),
       address: z.string().optional(),
       sharePercent: z.number().min(0).max(100).optional(),
+      shareAmount: z.number().optional(),
+      shareType: z.enum(['percent', 'amount']).optional(),
+      isExecutor: z.number().min(0).max(1).optional(),
+      accessLevel: z.enum(['own_only', 'full']).optional(),
+      smsConsent: z.number().min(0).max(1).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
