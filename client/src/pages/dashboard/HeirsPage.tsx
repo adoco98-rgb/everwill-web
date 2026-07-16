@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,19 +7,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
   Users, Plus, Trash2, Edit2, Save, X, Phone, MapPin,
-  User, Crown, MessageSquare, ChevronDown, ChevronUp,
-  Heart, Building2, ShieldCheck, Eye, EyeOff
+  User, Crown, MessageSquare, ShieldCheck, Eye, EyeOff,
+  FileText, Upload, Loader2, CheckCircle2, UserPlus, ChevronRight
 } from "lucide-react";
 import AddressSearch from "@/components/write/AddressSearch";
 
 /**
  * 상속자 등록 페이지
- * - 제1상속자부터 순서대로 등록
- * - 자산 분배 비율(%) 또는 금액(₩) 입력
- * - 제1상속자 SMS 알림 동의
+ * - 상속자 추가 버튼 클릭 시 두 가지 옵션:
+ *   1. 가족관계증명서에서 불러오기 (업로드된 가족 정보 자동 입력)
+ *   2. 직접 입력 (기존 폼)
  */
 
 // 관계 목록
@@ -31,6 +32,17 @@ const RELATIONSHIP_LABELS: Record<string, string> = {
   grandchild: "손자녀",
   other: "기타",
 };
+
+// 가족관계증명서 한국어 관계 → heirs enum 매핑
+function normalizeRelationship(raw: string): "spouse" | "child" | "parent" | "sibling" | "grandchild" | "other" {
+  const r = raw.trim().toLowerCase();
+  if (r.includes("배우자") || r.includes("spouse") || r.includes("처") || r.includes("남편") || r.includes("아내")) return "spouse";
+  if (r.includes("자녀") || r.includes("아들") || r.includes("딸") || r.includes("child") || r.includes("son") || r.includes("daughter")) return "child";
+  if (r.includes("부모") || r.includes("아버지") || r.includes("어머니") || r.includes("부") || r.includes("모") || r.includes("parent") || r.includes("father") || r.includes("mother")) return "parent";
+  if (r.includes("형") || r.includes("제") || r.includes("오빠") || r.includes("언니") || r.includes("누나") || r.includes("동생") || r.includes("sibling")) return "sibling";
+  if (r.includes("손") || r.includes("grandchild")) return "grandchild";
+  return "other";
+}
 
 type Heir = {
   id: number;
@@ -97,7 +109,18 @@ export default function HeirsPage() {
   const [form, setForm] = useState<HeirFormData>(defaultForm);
   const [editForm, setEditForm] = useState<HeirFormData>(defaultForm);
 
+  // 상속자 추가 방법 선택 모달
+  const [showChoiceModal, setShowChoiceModal] = useState(false);
+  // 가족관계증명서 업로드 모달
+  const [showFamilyUploadModal, setShowFamilyUploadModal] = useState(false);
+  // 가족관계증명서 업로드 상태
+  const [familyUploadPreview, setFamilyUploadPreview] = useState<string | null>(null);
+  const [familyUploadLoading, setFamilyUploadLoading] = useState(false);
+  const familyFileInputRef = useRef<HTMLInputElement>(null);
+
   const { data: heirs = [], refetch } = trpc.heirs.getMyHeirs.useQuery();
+  // 저장된 가족 구성원 목록
+  const { data: familyMembers = [], refetch: refetchFamily } = trpc.familyMembers.getMyFamilyMembers.useQuery();
 
   const addMutation = trpc.heirs.addHeir.useMutation({
     onSuccess: () => {
@@ -124,6 +147,20 @@ export default function HeirsPage() {
       refetch();
     },
     onError: (err) => toast.error(err.message),
+  });
+
+  // 가족관계증명서 AI 파싱 뮤테이션
+  const extractFamilyMutation = trpc.familyMembers.extractFromDocument.useMutation({
+    onSuccess: (data) => {
+      setFamilyUploadLoading(false);
+      refetchFamily();
+      toast.success(`✅ ${data.count}명의 가족 정보를 추출했습니다. 아래에서 선택하여 추가하세요.`);
+      setShowFamilyUploadModal(false);
+    },
+    onError: (err) => {
+      setFamilyUploadLoading(false);
+      toast.error(err.message || "가족 정보 추출에 실패했습니다.");
+    },
   });
 
   const handleAdd = () => {
@@ -167,6 +204,46 @@ export default function HeirsPage() {
     });
   };
 
+  // 가족관계증명서 파일 선택 처리
+  function handleFamilyFileSelect(file: File) {
+    if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
+      toast.error("이미지(JPG/PNG) 또는 PDF 파일만 업로드 가능합니다.");
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("파일 크기는 20MB 이하여야 합니다.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      setFamilyUploadPreview(dataUrl);
+      setFamilyUploadLoading(true);
+      // base64 부분만 추출
+      const base64 = dataUrl.split(",")[1];
+      extractFamilyMutation.mutate({
+        imageBase64: base64,
+        fileName: file.name,
+        docType: "family_cert",
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // 가족 구성원 선택 → 상속자 폼에 자동 입력
+  function fillFromFamilyMember(member: any) {
+    setForm({
+      ...defaultForm,
+      nameKo: member.nameKo || "",
+      relationship: normalizeRelationship(member.relationship || ""),
+      birthDate: member.birthDate || "",
+      address: member.address || "",
+    });
+    setShowChoiceModal(false);
+    setShowAddForm(true);
+    toast.success(`${member.nameKo} 정보가 자동 입력되었습니다. 나머지 정보를 확인 후 등록하세요.`);
+  }
+
   // 총 분배 비율 계산
   const totalPercent = heirs
     .filter((h) => h.shareType === "percent")
@@ -186,7 +263,7 @@ export default function HeirsPage() {
           </p>
         </div>
         <Button
-          onClick={() => { setShowAddForm(true); setEditingId(null); }}
+          onClick={() => { setShowChoiceModal(true); setShowAddForm(false); setEditingId(null); }}
           className="bg-[#1F3864] hover:bg-[#162a4e] text-white gap-2"
         >
           <Plus className="w-4 h-4" />
@@ -250,27 +327,15 @@ export default function HeirsPage() {
                   <Badge variant="secondary" className="text-xs">
                     {RELATIONSHIP_LABELS[heir.relationship] ?? heir.relationship}
                   </Badge>
-
-                  {/* 열람 권한 배지 */}
                   <Badge variant="outline" className={`text-xs ${heir.accessLevel === "full" ? "border-green-400 text-green-600" : "border-gray-300 text-gray-500"}`}>
                     {heir.accessLevel === "full" ? <><Eye className="w-3 h-3 mr-1" />전체 열람</> : <><EyeOff className="w-3 h-3 mr-1" />자기 몫만</>}
                   </Badge>
                 </div>
                 <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleEdit(heir)}
-                    className="h-8 w-8 p-0 text-gray-400 hover:text-[#1F3864]"
-                  >
+                  <Button size="sm" variant="ghost" onClick={() => handleEdit(heir)} className="h-8 w-8 p-0 text-gray-400 hover:text-[#1F3864]">
                     <Edit2 className="w-4 h-4" />
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => deleteMutation.mutate({ id: heir.id })}
-                    className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
-                  >
+                  <Button size="sm" variant="ghost" onClick={() => deleteMutation.mutate({ id: heir.id })} className="h-8 w-8 p-0 text-gray-400 hover:text-red-500">
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
@@ -328,14 +393,23 @@ export default function HeirsPage() {
         ))}
       </div>
 
-      {/* 상속자 추가 폼 */}
+      {/* 상속자 직접 입력 폼 */}
       {showAddForm && (
         <Card className="border-2 border-[#C9A961]/50 shadow-md">
           <CardHeader>
-            <CardTitle className="text-base text-[#1F3864] flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              새 상속자 등록 (제{heirs.length + 1}상속자)
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base text-[#1F3864] flex items-center gap-2">
+                <Plus className="w-4 h-4" />
+                새 상속자 등록 (제{heirs.length + 1}상속자)
+              </CardTitle>
+              <button
+                onClick={() => setShowChoiceModal(true)}
+                className="text-xs text-[#1F3864] underline flex items-center gap-1"
+              >
+                <FileText className="w-3 h-3" />
+                가족관계증명서에서 불러오기
+              </button>
+            </div>
           </CardHeader>
           <CardContent>
             <HeirForm
@@ -365,6 +439,194 @@ export default function HeirsPage() {
         </div>
       )}
 
+      {/* ── 상속자 추가 방법 선택 모달 ── */}
+      <Dialog open={showChoiceModal} onOpenChange={setShowChoiceModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-[#1F3864] flex items-center gap-2">
+              <UserPlus className="w-5 h-5" />
+              상속자 추가 방법 선택
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3 pt-2">
+            {/* 옵션 1: 가족관계증명서에서 불러오기 */}
+            <button
+              onClick={() => {
+                setShowChoiceModal(false);
+                setShowFamilyUploadModal(true);
+              }}
+              className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-[#1F3864]/20 hover:border-[#1F3864] hover:bg-[#1F3864]/5 transition-all text-left group"
+            >
+              <div className="w-12 h-12 rounded-xl bg-[#1F3864]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#1F3864]/20">
+                <FileText className="w-6 h-6 text-[#1F3864]" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-[#1F3864]">가족관계증명서에서 불러오기</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  가족관계증명서를 업로드하면 AI가 가족 정보를 자동으로 추출합니다
+                </p>
+                {familyMembers.length > 0 && (
+                  <p className="text-xs text-green-600 mt-1 font-medium">
+                    ✓ {familyMembers.length}명의 가족 정보가 저장되어 있습니다
+                  </p>
+                )}
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#1F3864]" />
+            </button>
+
+            {/* 저장된 가족 구성원이 있으면 바로 선택 가능 */}
+            {familyMembers.length > 0 && (
+              <div className="border border-green-200 bg-green-50 rounded-xl p-3">
+                <p className="text-xs font-semibold text-green-700 mb-2 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  저장된 가족 정보에서 바로 선택
+                </p>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {(familyMembers as any[]).map((member) => {
+                    // 이미 상속자로 등록된 경우 표시
+                    const alreadyAdded = (heirs as Heir[]).some(
+                      (h) => h.nameKo === member.nameKo
+                    );
+                    return (
+                      <button
+                        key={member.id}
+                        onClick={() => fillFromFamilyMember(member)}
+                        disabled={alreadyAdded}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${
+                          alreadyAdded
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : "bg-white hover:bg-green-100 text-gray-700 border border-green-200"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <User className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
+                          <span className="font-medium">{member.nameKo}</span>
+                          <span className="text-gray-400 text-xs">{member.relationship}</span>
+                          {member.birthDate && <span className="text-gray-400 text-xs">({member.birthDate})</span>}
+                        </div>
+                        {alreadyAdded ? (
+                          <span className="text-xs text-gray-400">등록됨</span>
+                        ) : (
+                          <span className="text-xs text-green-600 font-medium">선택 →</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 옵션 2: 직접 입력 */}
+            <button
+              onClick={() => {
+                setShowChoiceModal(false);
+                setForm(defaultForm);
+                setShowAddForm(true);
+              }}
+              className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 hover:border-[#1F3864] hover:bg-gray-50 transition-all text-left group"
+            >
+              <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-[#1F3864]/10">
+                <UserPlus className="w-6 h-6 text-gray-500 group-hover:text-[#1F3864]" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-gray-700 group-hover:text-[#1F3864]">직접 입력</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  이름, 관계, 연락처 등을 직접 입력합니다
+                </p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#1F3864]" />
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── 가족관계증명서 업로드 모달 ── */}
+      <Dialog open={showFamilyUploadModal} onOpenChange={(open) => {
+        if (!familyUploadLoading) setShowFamilyUploadModal(open);
+      }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-[#1F3864] flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              가족관계증명서 업로드
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              가족관계증명서 또는 주민등록등본을 업로드하면 AI가 가족 구성원 정보를 자동으로 추출합니다.
+            </p>
+
+            {/* 업로드 영역 */}
+            {!familyUploadLoading ? (
+              <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-[#1F3864]/30 rounded-xl cursor-pointer hover:border-[#1F3864] hover:bg-[#1F3864]/5 transition-all">
+                <Upload className="w-10 h-10 text-[#1F3864]/40" />
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-[#1F3864]">클릭하여 파일 선택</p>
+                  <p className="text-xs text-gray-400 mt-1">JPG, PNG, PDF 지원 · 최대 20MB</p>
+                </div>
+                <input
+                  ref={familyFileInputRef}
+                  type="file"
+                  accept="image/*,application/pdf,.pdf"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFamilyFileSelect(file);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            ) : (
+              <div className="relative rounded-xl overflow-hidden border border-[#1F3864]/20">
+                {familyUploadPreview && (
+                  <img
+                    src={familyUploadPreview}
+                    alt="업로드 중"
+                    className="w-full max-h-64 object-contain bg-white"
+                  />
+                )}
+                <div className="absolute inset-0 bg-[#1F3864]/50 flex flex-col items-center justify-center gap-3">
+                  <Loader2 className="w-10 h-10 text-white animate-spin" />
+                  <p className="text-white font-semibold text-sm">AI가 가족 정보를 추출하고 있습니다...</p>
+                  <p className="text-white/70 text-xs">잠시만 기다려주세요</p>
+                </div>
+              </div>
+            )}
+
+            {/* 안내 */}
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-700">
+              <p className="font-semibold mb-1">📋 발급 방법</p>
+              <p>정부24(gov.kr) 또는 주민센터에서 가족관계증명서를 발급받아 업로드하세요.</p>
+              <p className="mt-1">스캔 이미지 PDF는 인식이 어려울 수 있습니다. JPG/PNG로 촬영하여 업로드를 권장합니다.</p>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowFamilyUploadModal(false)}
+                disabled={familyUploadLoading}
+                className="flex-1"
+              >
+                취소
+              </Button>
+              {familyMembers.length > 0 && (
+                <Button
+                  onClick={() => {
+                    setShowFamilyUploadModal(false);
+                    setShowChoiceModal(true);
+                  }}
+                  disabled={familyUploadLoading}
+                  className="flex-1 bg-[#1F3864] text-white"
+                >
+                  저장된 가족 정보 보기
+                </Button>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -504,8 +766,6 @@ function HeirForm({
           )}
         </div>
       </div>
-
-
 
       {/* 자산 분배 */}
       <div className="bg-gray-50 rounded-lg p-3 space-y-3">
