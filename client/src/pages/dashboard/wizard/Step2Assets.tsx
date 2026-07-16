@@ -7,7 +7,7 @@ import { useState, useRef } from "react";
 import {
   ClipboardList, Plus, Trash2, CheckCircle2, Home, Banknote, Car, Package,
   Upload, ScanLine, Sparkles, Loader2, X, Camera, Eye, Edit3, FileText,
-  TrendingUp, Shield, Bitcoin, Briefcase, PiggyBank, Gem,
+  TrendingUp, Shield, Bitcoin, Briefcase, PiggyBank, Gem, RefreshCw,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -43,6 +43,20 @@ const DOC_TYPES = [
   { value: "other", label: "기타 자산 서류", assetType: "other" },
 ];
 
+// 서류 유형 → 한국어 레이블
+const DOC_TYPE_LABELS: Record<string, string> = {
+  bank_balance: "은행 잔액증명서",
+  real_estate_registry: "부동산 등기부등본",
+  stock_certificate: "주식보유증명서",
+  insurance_policy: "보험증권",
+  pension_statement: "연금 수급확인서",
+  vehicle_registration: "자동차 등록증",
+  business_registration: "사업자등록증",
+  loan_statement: "대출 잔액 확인서",
+  bond_certificate: "채권증명서",
+  other: "기타 자산 서류",
+};
+
 // 스캔 결과 → 자산 유형 매핑
 function mapDocTypeToAssetType(docType: string): AssetType {
   if (docType.includes("real_estate")) return "real_estate";
@@ -77,19 +91,29 @@ export default function Step2Assets({ onComplete }: Props) {
     details: "",
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // 서류 변경 시 기존 스캔 ID 추적
+  const [replacingScanId, setReplacingScanId] = useState<number | null>(null);
 
   // ── tRPC ──
   const { data: assets, refetch } = trpc.asset.listAssets.useQuery();
+  const { data: scansData, refetch: refetchScans } = trpc.willAuto.listAssetScans.useQuery();
+  const scans = scansData?.scans || [];
+
   const addMutation = trpc.asset.addAsset.useMutation({
     onSuccess: () => {
       toast.success("자산이 등록됐습니다!");
       refetch();
+      refetchScans();
       resetForm();
     },
     onError: (e) => toast.error(e.message),
   });
   const deleteMutation = trpc.asset.deleteAsset.useMutation({
-    onSuccess: () => { toast.success("삭제됐습니다."); refetch(); },
+    onSuccess: () => { toast.success("삭제됐습니다."); refetch(); refetchScans(); },
+    onError: (e) => toast.error(e.message),
+  });
+  const deleteScanMutation = trpc.willAuto.deleteAssetScan.useMutation({
+    onSuccess: () => { toast.success("서류가 삭제됐습니다."); refetchScans(); },
     onError: (e) => toast.error(e.message),
   });
   const scanMutation = trpc.willAuto.scanAndSaveAssetDocument.useMutation({
@@ -113,6 +137,7 @@ export default function Step2Assets({ onComplete }: Props) {
         details: d.location || d.assetCode || "",
       });
       setMode("form");
+      refetchScans();
       toast.success("서류 인식 완료! 아래 정보를 확인해주세요.");
     },
     onError: (err) => {
@@ -124,6 +149,7 @@ export default function Step2Assets({ onComplete }: Props) {
     setMode("list");
     setScanPreview(null);
     setScanResult(null);
+    setReplacingScanId(null);
     setForm({ type: "bank", name: "", description: "", estimatedValue: "", estimatedValueRaw: "", details: "" });
   };
 
@@ -131,7 +157,6 @@ export default function Step2Assets({ onComplete }: Props) {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    // 허용 파일 형식: 이미지, PDF, Word, Excel, HWP 등 모든 문서
     const allowedTypes = [
       "image/", "application/pdf",
       "application/msword",
@@ -145,14 +170,11 @@ export default function Step2Assets({ onComplete }: Props) {
     if (!isAllowed) { toast.error("지원하지 않는 파일 형식입니다. (이미지·PDF·Word·Excel·HWP 가능)"); return; }
     if (file.size > 20 * 1024 * 1024) { toast.error("파일 크기는 20MB 이하여야 합니다."); return; }
 
-    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
     const isImage = file.type.startsWith("image/");
 
-    // PDF 또는 문서 파일: 파일 아이콘 미리보기 + 파일명 표시
     if (!isImage) {
       setScanPreview(`__file__:${file.name}`);
       setScanResult(null);
-      // base64로 변환 후 서버 전송
       const reader = new FileReader();
       reader.onload = (ev) => {
         const dataUrl = ev.target?.result as string;
@@ -163,7 +185,6 @@ export default function Step2Assets({ onComplete }: Props) {
       return;
     }
 
-    // 이미지 파일: 기존 방식
     const reader = new FileReader();
     reader.onload = (ev) => {
       const dataUrl = ev.target?.result as string;
@@ -225,35 +246,88 @@ export default function Step2Assets({ onComplete }: Props) {
               </div>
             )}
 
-            {/* 자산 목록 */}
-            {assets && assets.length > 0 && (
-              <div className="space-y-2">
-                {assets.map((asset) => {
-                  const typeInfo = ASSET_TYPES.find((t) => t.value === asset.type) || ASSET_TYPES[9];
-                  const TypeIcon = typeInfo.icon;
-                  return (
-                    <div key={asset.id} className="flex items-center gap-3 p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${typeInfo.color}15` }}>
-                        <TypeIcon className="w-5 h-5" style={{ color: typeInfo.color }} />
+            {/* ── 업로드된 서류 목록 ── */}
+            {scans.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-bold text-gray-700">업로드된 서류</p>
+                  <span className="text-xs text-gray-400">{scans.length}건</span>
+                </div>
+                <div className="space-y-2">
+                  {scans.map((scan: any) => (
+                    <div key={scan.id} className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-xl">
+                      {/* 완료 아이콘 */}
+                      <div className="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+                        <CheckCircle2 className="w-5 h-5 text-green-600" />
                       </div>
+                      {/* 서류 정보 */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-800 truncate">{asset.name}</p>
-                        <p className="text-xs text-gray-400">{typeInfo.label}{asset.estimatedValue ? ` · ₩${asset.estimatedValue.toLocaleString()}` : ""}</p>
+                        <p className="text-sm font-semibold text-gray-800 truncate">
+                          {scan.docTypeLabel || DOC_TYPE_LABELS[scan.docType] || "서류"}
+                        </p>
+                        <p className="text-xs text-green-600 font-medium">업로드 완료</p>
+                        {scan.assetName && <p className="text-xs text-gray-500 truncate">{scan.assetName}</p>}
+                        {scan.estimatedValue && (
+                          <p className="text-xs text-gray-500">추정가: ₩{Number(scan.estimatedValue).toLocaleString()}</p>
+                        )}
                       </div>
+                      {/* 서류 변경 버튼 */}
                       <button
-                        onClick={() => deleteMutation.mutate({ id: asset.id })}
+                        onClick={() => {
+                          setReplacingScanId(scan.id);
+                          setScanDocType(scan.docType || "other");
+                          setMode("scan");
+                        }}
+                        className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-[#1F3864] border border-[#1F3864]/30 rounded-lg hover:bg-[#1F3864]/5 transition-all"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        변경
+                      </button>
+                      {/* 삭제 버튼 */}
+                      <button
+                        onClick={() => deleteScanMutation.mutate({ scanId: scan.id })}
                         className="p-2 text-gray-300 hover:text-red-400 transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── 등록된 자산 목록 ── */}
+            {assets && assets.length > 0 && (
+              <div>
+                <p className="text-sm font-bold text-gray-700 mb-2">등록된 자산</p>
+                <div className="space-y-2">
+                  {assets.map((asset) => {
+                    const typeInfo = ASSET_TYPES.find((t) => t.value === asset.type) || ASSET_TYPES[9];
+                    const TypeIcon = typeInfo.icon;
+                    return (
+                      <div key={asset.id} className="flex items-center gap-3 p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors">
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${typeInfo.color}15` }}>
+                          <TypeIcon className="w-5 h-5" style={{ color: typeInfo.color }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-800 truncate">{asset.name}</p>
+                          <p className="text-xs text-gray-400">{typeInfo.label}{asset.estimatedValue ? ` · ₩${asset.estimatedValue.toLocaleString()}` : ""}</p>
+                        </div>
+                        <button
+                          onClick={() => deleteMutation.mutate({ id: asset.id })}
+                          className="p-2 text-gray-300 hover:text-red-400 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
             {/* 자산이 없을 때 안내 */}
-            {(!assets || assets.length === 0) && (
+            {(!assets || assets.length === 0) && scans.length === 0 && (
               <div className="text-center py-8">
                 <div className="w-20 h-20 mx-auto mb-4 bg-green-50 rounded-full flex items-center justify-center">
                   <ScanLine className="w-10 h-10 text-green-500" />
@@ -266,14 +340,14 @@ export default function Step2Assets({ onComplete }: Props) {
               </div>
             )}
 
-            {/* 등록 버튼 2개: 서류 스캔(메인) + 직접 입력(보조) */}
+            {/* 서류 추가 / 직접 입력 버튼 */}
             <div className="space-y-3">
               <button
-                onClick={() => setMode("scan")}
+                onClick={() => { setReplacingScanId(null); setMode("scan"); }}
                 className="w-full bg-gradient-to-r from-[#1F3864] to-[#2d4a7a] text-white py-5 rounded-2xl font-bold text-base flex items-center justify-center gap-3 hover:opacity-90 transition-all shadow-lg"
               >
-                <ScanLine className="w-6 h-6" />
-                서류 업로드로 자동 등록
+                <Plus className="w-5 h-5" />
+                서류 추가 업로드
               </button>
               <button
                 onClick={() => { setMode("form"); setScanPreview(null); setScanResult(null); }}
@@ -305,7 +379,9 @@ export default function Step2Assets({ onComplete }: Props) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-[#1F3864]" />
-                <h4 className="font-bold text-[#1F3864] text-lg">서류 자동 인식</h4>
+                <h4 className="font-bold text-[#1F3864] text-lg">
+                  {replacingScanId ? "서류 변경" : "서류 자동 인식"}
+                </h4>
               </div>
               <button onClick={resetForm} className="text-sm text-gray-400 hover:text-gray-600">취소</button>
             </div>
@@ -341,7 +417,7 @@ export default function Step2Assets({ onComplete }: Props) {
               </div>
             </div>
 
-            {/* 파일 입력 (숨김) - 이미지·PDF·Word·Excel·HWP 모두 허용 */}
+            {/* 파일 입력 (숨김) */}
             <input
               ref={fileInputRef}
               type="file"
@@ -445,14 +521,11 @@ export default function Step2Assets({ onComplete }: Props) {
                 <p className="text-sm text-green-700">
                   아래 정보가 자동으로 입력되었습니다. <strong>잘못된 부분이 있으면 수정</strong>하고 저장해주세요.
                 </p>
-                {scanResult.confidence && (
-                  <p className="text-xs text-green-600 mt-1">인식 신뢰도: {Math.round(scanResult.confidence * 100)}%</p>
-                )}
               </div>
             )}
 
             {/* 미리보기 (스캔한 경우) */}
-            {scanPreview && (
+            {scanPreview && !scanPreview.startsWith("__file__:") && (
               <div className="rounded-xl overflow-hidden border border-gray-200">
                 <img src={scanPreview} alt="업로드된 서류" className="w-full max-h-40 object-contain bg-gray-50" />
               </div>
@@ -561,7 +634,6 @@ export default function Step2Assets({ onComplete }: Props) {
               </button>
             </div>
 
-            {/* 추가 안내 */}
             {scanResult && (
               <p className="text-xs text-center text-gray-400">
                 저장 후 다른 서류도 계속 업로드할 수 있습니다
