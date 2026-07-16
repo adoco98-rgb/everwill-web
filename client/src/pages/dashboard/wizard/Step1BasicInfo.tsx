@@ -105,8 +105,10 @@ export default function Step1BasicInfo({ onComplete }: Props) {
   const isNameFilled = form.name.trim().length > 0;
   const isPhoneFilled = form.phone.trim().length > 0;
   const isAddressFilled = form.address.trim().length > 0;
+  // 주민번호(13자리) 또는 생년월일 중 하나만 있으면 통과
+  const isRRNFilled = form.residentNumber.replace(/[^0-9]/g, "").length === 13;
   const isBirthFilled = form.birthDate.trim().length > 0;
-  const allRequired = isNameFilled && isPhoneFilled && isAddressFilled && isBirthFilled;
+  const allRequired = isNameFilled && isPhoneFilled && isAddressFilled && (isRRNFilled || isBirthFilled);
 
   // 카카오 주소 검색
   function openKakaoPostcode() {
@@ -266,11 +268,13 @@ export default function Step1BasicInfo({ onComplete }: Props) {
               {form.addressDetail && (
                 <InfoRow icon={MapPin} label="상세주소" value={form.addressDetail} />
               )}
-              <InfoRow icon={Calendar} label="생년월일" value={form.birthDate} required />
-              <InfoRow icon={Mail} label="이메일" value={form.email} />
-              {form.residentNumber && (
-                <InfoRow icon={User} label="주민등록번호" value={form.residentNumber.slice(0, 6) + "-*******"} />
+              {/* 주민번호 있으면 주민번호만, 없으면 생년월일 표시 */}
+              {isRRNFilled ? (
+                <InfoRow icon={User} label="주민등록번호" value={form.residentNumber.slice(0, 6) + "-*******"} required />
+              ) : (
+                <InfoRow icon={Calendar} label="생년월일" value={form.birthDate} required />
               )}
+              <InfoRow icon={Mail} label="이메일" value={form.email} />
             </div>
 
             <div className="flex gap-3 mt-6">
@@ -356,10 +360,10 @@ export default function Step1BasicInfo({ onComplete }: Props) {
               />
             </div>
 
-            {/* 생년월일 */}
-            <div>
+            {/* 생년월일 - 주민번호 없을 때만 표시 */}
+            {!isRRNFilled && <div>
               <label className="text-sm font-semibold text-gray-700 mb-1.5 block">
-                생년월일 <span className="text-red-400">*</span>
+                생년월일 <span className="text-red-400">*</span> <span className="text-gray-400 text-xs font-normal">(주민번호 입력 시 생략 가능)</span>
               </label>
               <div className="flex gap-2 items-center">
                 <input
@@ -403,12 +407,12 @@ export default function Step1BasicInfo({ onComplete }: Props) {
               <p className="text-xs text-gray-400 mt-1.5">
                 예시: 19690812 입력 → 자동으로 1969-08-12 변환됩니다. 또는 달력 아이콘을 눌러 선택하세요.
               </p>
-            </div>
+            </div>}
 
-            {/* 주민등록번호 (선택) */}
+            {/* 주민등록번호 (필수) */}
             <div>
               <label className="text-sm font-semibold text-gray-700 mb-1.5 block">
-                주민등록번호 <span className="text-gray-400 text-xs font-normal">(선택 — 인증서 PDF에 표시)</span>
+                주민등록번호 <span className="text-red-400">*</span> <span className="text-gray-400 text-xs font-normal">(또는 생년월일 입력)</span>
               </label>
               <input
                 type="text"
@@ -419,7 +423,7 @@ export default function Step1BasicInfo({ onComplete }: Props) {
                 maxLength={14}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864] outline-none transition-all"
               />
-              <p className="text-xs text-gray-400 mt-1">인증서 PDF에만 사용되며, 암호화하여 안전하게 보관됩니다.</p>
+              <p className="text-xs text-gray-400 mt-1">유언장 전문 및 인증서 PDF에 포함됩니다. 암호화하여 안전하게 보관됩니다.</p>
             </div>
 
             {/* 이메일 (자동) */}

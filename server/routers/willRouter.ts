@@ -64,6 +64,7 @@ const OtherAssetSchema = z.object({
 const WillDataSchema = z.object({
   testatorName: z.string(),
   testatorRRN: z.string().optional(),
+  testatorBirthDate: z.string().optional(),
   testatorAddress: z.string(),
   testatorPhone: z.string().optional(),
   writtenDate: z.string(),
@@ -120,6 +121,8 @@ export const willRouter = router({
 
 [유언자 정보]
 - 성명: ${input.testatorName}
+- 주민등록번호: ${input.testatorRRN || (input.testatorBirthDate ? `${input.testatorBirthDate.replace(/-/g, '').slice(2)} - (뒷자리 미기재)` : '미기재')}
+- 생년월일: ${input.testatorBirthDate || (input.testatorRRN ? input.testatorRRN.slice(0,6).replace(/(d{2})(d{2})(d{2})/, '19$1-$2-$3') : '미기재')}
 - 주소: ${input.testatorAddress}
 - 작성일: ${input.writtenDate}
 

@@ -99,6 +99,8 @@ export default function WillPreviewPage() {
   const testatorName = parsedJson?.testatorName || user?.name || "-";
   const testatorAddress = parsedJson?.testatorAddress || "";
   const testatorPhone = parsedJson?.testatorPhone || "";
+  const testatorRRN = parsedJson?.testatorRRN || "";
+  const testatorBirthDate = parsedJson?.testatorBirthDate || "";
   const executor = parsedJson?.executor || parsedJson?.executorCustomName || "";
   const executorRelation = parsedJson?.executorCustomRelation || "";
   const guardian = parsedJson?.guardian || "";
@@ -218,6 +220,8 @@ export default function WillPreviewPage() {
                 </div>
                 <div className="bg-gray-50 rounded-xl p-5">
                   <p className="font-bold text-lg text-gray-900">{testatorName}</p>
+                  {testatorRRN && <p className="text-gray-600 text-sm mt-1">주민등록번호: {testatorRRN.slice(0,6)}-*******</p>}
+                  {!testatorRRN && testatorBirthDate && <p className="text-gray-600 text-sm mt-1">생년월일: {testatorBirthDate}</p>}
                   {testatorAddress && <p className="text-gray-600 text-sm mt-1">{testatorAddress}</p>}
                   {testatorPhone && <p className="text-gray-600 text-sm">{testatorPhone}</p>}
                 </div>

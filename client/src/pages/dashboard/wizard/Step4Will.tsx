@@ -253,10 +253,14 @@ export default function Step4Will({ onComplete }: Props) {
     const today = new Date().toISOString().split("T")[0];
     const testatorName = profileData?.name || userName || "유언자";
     const testatorAddress = profileData?.address || "주소 미입력";
+    const testatorBirthDate = (profileData as any)?.birthDate || "";
+    const testatorRRN = (profileData as any)?.residentNumberMasked || "";
 
     generateDraftMutation.mutate({
       testatorName,
       testatorAddress,
+      testatorBirthDate: testatorBirthDate || undefined,
+      testatorRRN: testatorRRN || undefined,
       writtenDate: today,
       heirs: (willData?.heirs || []).map((h: any) => ({
         id: String(h.id),

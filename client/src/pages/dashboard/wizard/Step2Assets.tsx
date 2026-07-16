@@ -350,6 +350,17 @@ export default function Step2Assets({ onComplete }: Props) {
               onChange={handleFileSelect}
             />
 
+            {/* PDF 안내 문구 */}
+            <div className="flex items-start gap-2 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
+              <span className="text-base leading-none mt-0.5">💡</span>
+              <div>
+                <span className="font-semibold">PDF 업로드 안내</span>
+                <span className="ml-1">텍스트가 있는 PDF(디지털 발급)는 AI가 자동 인식합니다.</span>
+                <br />
+                <span className="text-amber-700">카메라로 찍어 저장한 스캔 이미지 PDF는 인식 불가 → JPG 또는 PNG 이미지로 업로드해주세요.</span>
+              </div>
+            </div>
+
             {/* 미리보기 + AI 인식 중 */}
             {scanPreview ? (
               <div className="space-y-3">
