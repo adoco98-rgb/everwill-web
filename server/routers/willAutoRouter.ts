@@ -657,14 +657,13 @@ ${dateStr}
       }
 
       // ── DB에 저장 ──
-      const validDocType = ASSET_DOC_TYPES.includes(ocrResult.detectedDocType)
-        ? ocrResult.detectedDocType as typeof ASSET_DOC_TYPES[number]
-        : docTypeHint;
+      // 사용자가 선택한 서류 유형을 강제 고정 (AI가 임의로 바꾸지 못하게)
+      const validDocType = docTypeHint as typeof ASSET_DOC_TYPES[number];
 
       await db.insert(willAssetScans).values({
         userId,
         docType: validDocType,
-        docTypeLabel: ocrResult.docTypeLabel || DOC_TYPE_LABELS[validDocType],
+        docTypeLabel: DOC_TYPE_LABELS[validDocType],
         issuer: ocrResult.issuer || null,
         ownerName: ocrResult.ownerName || null,
         assetName: ocrResult.assetName || null,

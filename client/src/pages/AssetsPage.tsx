@@ -199,26 +199,9 @@ export default function AssetsPage() {
     onSuccess: (data) => {
       const d = data.data;
       setScanResult(d);
-      // 자산 폼 자동 채움
-      const assetType = mapDocTypeToAssetType(d.detectedDocType || scanDocType);
-      const rawAmount = d.amount ? d.amount.replace(/[^0-9]/g, "") : "";
-      setAssetForm({
-        type: assetType,
-        name: d.assetName || d.issuer || "",
-        description: [
-          d.issuer ? `발급기관: ${d.issuer}` : "",
-          d.location ? `소재지: ${d.location}` : "",
-          d.assetCode ? `코드: ${d.assetCode}` : "",
-          d.additionalInfo || "",
-        ].filter(Boolean).join(" / "),
-        estimatedValue: rawAmount ? Number(rawAmount).toLocaleString() : "",
-        estimatedValueRaw: rawAmount,
-        currency: "KRW",
-        country: "KR",
-      });
-      setShowAssetForm(true);
-      setShowScanPanel(false);
-      toast.success(`${d.docTypeLabel} 인식 완료! 아래 정보를 확인 후 등록하세요.`);
+      // DB 목록 즉시 갱신 → 카드 아래에 바로 표시
+      refetchScans();
+      toast.success(`✅ ${d.docTypeLabel || '서류'} 등록 완료! 아래에서 내역을 확인하세요.`);
     },
     onError: (err) => {
       toast.error(err.message || "자산 서류 인식에 실패했습니다. 다시 시도해 주세요.");
