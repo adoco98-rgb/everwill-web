@@ -546,10 +546,16 @@ export default function Step10Sign({ will }: StepProps) {
     const willTitle = will.testatorName
       ? `${will.testatorName}의 유언장 ${new Date().toLocaleDateString("ko-KR")}`
       : `유언장 ${new Date().toLocaleDateString("ko-KR")}`;
+    // 서명 데이터를 will JSON에 포함하여 저장 (PDF 서명란 표시용)
+    const willDataWithSignature = {
+      ...will,
+      ...(signatureDataUrl ? { signature1: signatureDataUrl } : {}),
+      signedAt: ts,
+    };
     saveWillMutation.mutate(
       {
         title: willTitle,
-        data: JSON.stringify(will),
+        data: JSON.stringify(willDataWithSignature),
         mode: (will.mode as "ai" | "direct") ?? "ai",
         status: "draft",
       },
