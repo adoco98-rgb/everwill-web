@@ -11,6 +11,8 @@ import PDFDocument from "pdfkit";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
+import { execSync } from "child_process";
+import os from "os";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -55,6 +57,39 @@ const STAMP_PATH = path.join(ASSETS_DIR, "everwill_stamp.png");
 
 let _sealBuffer: Buffer | null | undefined = undefined;
 let _stampBuffer: Buffer | null | undefined = undefined;
+
+/**
+ * PDF 바이트를 PNG 이미지 배열로 변환 (pdftoppm 사용)
+ * 배포 환경에서는 pdftoppm이 없을 수 있으므로 fallback 처리
+ */
+function convertPdfToImages(pdfBytes: Buffer): Buffer[] {
+  const tmpDir = os.tmpdir();
+  const tmpPdf = path.join(tmpDir, `everwill_att_${Date.now()}.pdf`);
+  const tmpOut = path.join(tmpDir, `everwill_att_${Date.now()}_page`);
+  try {
+    fs.writeFileSync(tmpPdf, pdfBytes);
+    // pdftoppm: PDF 각 페이지를 PNG로 변환 (-r 150 = 150dpi)
+    execSync(`pdftoppm -r 150 -png "${tmpPdf}" "${tmpOut}"`, { timeout: 30000 });
+    // 생성된 PNG 파일 목록 수집
+    const dir = path.dirname(tmpOut);
+    const prefix = path.basename(tmpOut);
+    const files = fs.readdirSync(dir)
+      .filter(f => f.startsWith(prefix) && f.endsWith('.ppm') || f.startsWith(prefix) && f.endsWith('.png'))
+      .sort();
+    const images: Buffer[] = [];
+    for (const f of files) {
+      const imgPath = path.join(dir, f);
+      images.push(fs.readFileSync(imgPath));
+      fs.unlinkSync(imgPath); // 임시 파일 정리
+    }
+    return images;
+  } catch (err) {
+    console.error('[PDF변환] pdftoppm 실패:', err instanceof Error ? err.message : err);
+    return [];
+  } finally {
+    try { fs.unlinkSync(tmpPdf); } catch { /* 무시 */ }
+  }
+}
 
 async function getSealBuffer(): Promise<Buffer | null> {
   if (_sealBuffer !== undefined) return _sealBuffer;
@@ -1147,57 +1182,87 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
 
       // ── 실제 첨부파일 내용 삽입 (이미지 파일) ──────────────────────────────
       for (const att of attachList) {
-        const isImage = att.fileType && (att.fileType.startsWith("image/") || att.fileType === "image/jpeg" || att.fileType === "image/png" || att.fileType === "image/webp");
-        if (!isImage) continue;
+        const fileBytes = att.fileBytes ?? null;
+        if (!fileBytes) continue;
 
-        // 미리 로드된 바이트만 사용 (async 컨텍스트에서 이미 fetch 완료)
-        const imgBytes: Buffer | null = att.fileBytes ?? null;
-        if (!imgBytes) continue;
+        const isPdfAtt = att.fileType === 'application/pdf';
+        const isImageAtt = !!(att.fileType && att.fileType.startsWith('image/'));
 
-        // 새 페이지에 이미지 삽입
-        doc.addPage();
-        drawPageStamp(doc, config, sealExists);
-
-        // 페이지 헤더
-        doc.rect(0, 0, pageWidth, 50).fill(`rgb(${pr},${pg},${pb})`);
-        doc.rect(0, 50, pageWidth, 3).fill(`rgb(${ar},${ag},${ab})`);
-        doc.font(fontBold).fontSize(11).fillColor(`rgb(${ar},${ag},${ab})`).text("EverWill", margin, 16);
-        doc.font(fontRegular).fontSize(8).fillColor("rgba(255,255,255,0.6)").text(
-          `${data.certNumber}  |  ${attachCategoryLabel(att.category, config.lang)}`,
-          margin, 33, { width: contentWidth, align: "right" }
-        );
-
-        // 서류 제목
-        let yImg = 65;
-        doc.rect(margin, yImg, contentWidth, 28).fill(`rgb(${ar},${ag},${ab})`);
-        doc.font(fontBold).fontSize(10).fillColor("white").text(
-          attachCategoryLabel(att.category, config.lang),
-          margin + 12, yImg + 8, { width: contentWidth - 24 }
-        );
-        yImg += 36;
-
-        // 파일명 + 설명
-        if (att.description) {
-          doc.font(fontRegular).fontSize(8).fillColor("#555").text(att.description, margin, yImg, { width: contentWidth });
-          yImg += 18;
+        // PDF는 pdftoppm으로 PNG 변환, 이미지는 바로 삽입
+        let imagesToInsert: Buffer[] = [];
+        if (isPdfAtt) {
+          const pdfBuf = Buffer.isBuffer(fileBytes) ? fileBytes : Buffer.from(fileBytes as any);
+          imagesToInsert = convertPdfToImages(pdfBuf);
+        } else if (isImageAtt) {
+          imagesToInsert = [Buffer.isBuffer(fileBytes) ? fileBytes : Buffer.from(fileBytes as any)];
         }
 
-        // 이미지 삽입 (페이지 여백 내 최대 크기)
-        const maxImgH = pageHeight - yImg - 80;
-        const maxImgW = contentWidth;
-        try {
-          doc.image(imgBytes, margin, yImg, { fit: [maxImgW, maxImgH], align: "center" });
-        } catch { /* 이미지 삽입 실패 시 무시 */ }
+        // 체부파일 페이지 생성 (이미지가 없어도 파일명 표시 페이지 생성)
+        const pageCount = imagesToInsert.length > 0 ? imagesToInsert.length : 1;
+        for (let pi = 0; pi < pageCount; pi++) {
+          doc.addPage();
+          drawPageStamp(doc, config, sealExists);
 
-        // EverWill 인증 스탬프 (우하단 불투명)
-        const sx = pageWidth - margin - 120;
-        const sy = pageHeight - 90;
-        doc.save();
-        doc.opacity(0.85);
-        doc.rect(sx, sy, 120, 40).fill(`rgb(${pr},${pg},${pb})`);
-        doc.font(fontBold).fontSize(9).fillColor(`rgb(${ar},${ag},${ab})`).text("EverWill 인증", sx + 8, sy + 6, { width: 104, align: "center" });
-        doc.font(fontRegular).fontSize(7).fillColor("white").text(data.certNumber, sx + 8, sy + 22, { width: 104, align: "center" });
-        doc.restore();
+          // 페이지 헤더
+          doc.rect(0, 0, pageWidth, 50).fill(`rgb(${pr},${pg},${pb})`);
+          doc.rect(0, 50, pageWidth, 3).fill(`rgb(${ar},${ag},${ab})`);
+          doc.font(fontBold).fontSize(11).fillColor(`rgb(${ar},${ag},${ab})`).text('EverWill', margin, 16);
+          const pageLabel = pageCount > 1 ? ` (${pi + 1}/${pageCount})` : '';
+          doc.font(fontRegular).fontSize(8).fillColor('rgba(255,255,255,0.6)').text(
+            `${data.certNumber}  |  ${attachCategoryLabel(att.category, config.lang)}${pageLabel}`,
+            margin, 33, { width: contentWidth, align: 'right' }
+          );
+
+          // 서류 제목 (첫 페이지만)
+          let yImg = 65;
+          if (pi === 0) {
+            doc.rect(margin, yImg, contentWidth, 28).fill(`rgb(${ar},${ag},${ab})`);
+            doc.font(fontBold).fontSize(10).fillColor('white').text(
+              att.fileName || attachCategoryLabel(att.category, config.lang),
+              margin + 12, yImg + 8, { width: contentWidth - 24 }
+            );
+            yImg += 36;
+            if (att.description && att.description !== att.fileName) {
+              doc.font(fontRegular).fontSize(8).fillColor('#555').text(att.description, margin, yImg, { width: contentWidth });
+              yImg += 18;
+            }
+          }
+
+          // 이미지 삽입
+          const maxImgH = pageHeight - yImg - 80;
+          const maxImgW = contentWidth;
+          if (imagesToInsert.length > 0) {
+            try {
+              doc.image(imagesToInsert[pi], margin, yImg, { fit: [maxImgW, maxImgH], align: 'center' });
+            } catch (imgErr) {
+              console.error('[PDF] 체부 이미지 삽입 실패:', imgErr instanceof Error ? imgErr.message : imgErr);
+              doc.font(fontRegular).fontSize(9).fillColor('#CC0000').text(
+                `[이미지 로드 실패: ${att.fileName}]`,
+                margin, yImg, { width: contentWidth }
+              );
+            }
+          } else {
+            // 변환 실패 또는 미지원 형식
+            doc.font(fontRegular).fontSize(10).fillColor('#555').text(
+              `첨부 파일: ${att.fileName}`,
+              margin, yImg + 20, { width: contentWidth, align: 'center' }
+            );
+            doc.font(fontRegular).fontSize(8).fillColor('#888').text(
+              '(파일 형식으로 인해 미리보기 불가)',
+              margin, yImg + 44, { width: contentWidth, align: 'center' }
+            );
+          }
+
+          // EverWill 인증 스탬프 (우하단)
+          const sx2 = pageWidth - margin - 120;
+          const sy2 = pageHeight - 90;
+          doc.save();
+          doc.opacity(0.85);
+          doc.rect(sx2, sy2, 120, 40).fill(`rgb(${pr},${pg},${pb})`);
+          doc.font(fontBold).fontSize(9).fillColor(`rgb(${ar},${ag},${ab})`).text('EverWill 인증', sx2 + 8, sy2 + 6, { width: 104, align: 'center' });
+          doc.font(fontRegular).fontSize(7).fillColor('white').text(data.certNumber, sx2 + 8, sy2 + 22, { width: 104, align: 'center' });
+          doc.restore();
+        }
       }
 
       // 하단 법적 고지: 이미지 루프 이후 현재 페이지 좌표 기준으로 새 위치 계산

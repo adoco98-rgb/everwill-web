@@ -234,12 +234,23 @@ export const willCertificateRouter = router({
       const filteredScanRowsDl = assetScanRowsDl.filter(
         (s) => (s.docType as string) !== 'pension_statement' && (s.docType as string) !== 'pension'
       );
+      // docType → 한글 라벨 변환 맵 (영문으로 저장된 레거시 데이터 보정)
+      const SCAN_DOC_LABEL_MAP_DL: Record<string, string> = {
+        bank_balance: '은행 잔액증명서',
+        real_estate_registry: '부동산 등기부등본',
+        stock_certificate: '주식보유증명서',
+        insurance_policy: '보험증권',
+        bond_certificate: '채권증서',
+        other: '기타 자산서류',
+      };
       for (const scan of filteredScanRowsDl) {
         const imgUrl = scan.imageUrl ?? null;
         const imgKey = scan.imageKey ?? null;
         if (!imgUrl && !imgKey) continue;
         const fname4 = (imgKey ?? imgUrl ?? "").toLowerCase();
-        const isImage4 = /\.(jpg|jpeg|png|webp|gif|bmp)$/.test(fname4) || (imgUrl ?? "").includes("/manus-storage/");
+        // 이미지 + PDF 모두 처리
+        const isPdf4 = fname4.endsWith('.pdf');
+        const isImage4 = /\.(jpg|jpeg|png|webp|gif|bmp)$/.test(fname4) || isPdf4 || (imgUrl ?? "").includes("/manus-storage/");
         let fileBytes4: Buffer | null = null;
         if (isImage4) {
           try {
@@ -252,11 +263,15 @@ export const willCertificateRouter = router({
               const res4b = await fetch(imgUrl);
               if (res4b.ok) fileBytes4 = Buffer.from(await res4b.arrayBuffer());
             }
-          } catch { /* 무시 */ }
+          } catch (e4) { console.error('[downloadPdf] 파일 fetch 실패:', e4 instanceof Error ? e4.message : e4); }
         }
-        const detectedFileType4 = fname4.endsWith('.png') ? 'image/png' : fname4.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
-        const docLabel4 = scan.docTypeLabel ?? scan.docType ?? '자산서류';
-        const assetLabel4 = scan.assetName ? `${docLabel4}: ${scan.assetName}` : docLabel4;
+        // fileType 결정: PDF는 application/pdf, 나머지는 이미지
+        const detectedFileType4 = isPdf4 ? 'application/pdf' : fname4.endsWith('.png') ? 'image/png' : fname4.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
+        // docTypeLabel 한글 보정
+        const rawLabel4 = scan.docTypeLabel ?? '';
+        const isEnglishLabel4 = /^[A-Za-z\s]+$/.test(rawLabel4.trim());
+        const koLabel4 = isEnglishLabel4 ? (SCAN_DOC_LABEL_MAP_DL[scan.docType as string] ?? rawLabel4) : (rawLabel4 || (SCAN_DOC_LABEL_MAP_DL[scan.docType as string] ?? '자산서류'));
+        const assetLabel4 = scan.assetName ? `${koLabel4}: ${scan.assetName}` : koLabel4;
         attachmentData.push({
           fileName: assetLabel4,
           fileType: detectedFileType4,
@@ -640,12 +655,23 @@ export const willCertificateRouter = router({
         });
       }
       // willAssetScans 원본 이미지도 첨부파일로 추가 (pension 제외)
+      // docType → 한글 라벨 변환 맵 (영문으로 저장된 레거시 데이터 보정)
+      const SCAN_DOC_LABEL_MAP: Record<string, string> = {
+        bank_balance: '은행 잔액증명서',
+        real_estate_registry: '부동산 등기부등본',
+        stock_certificate: '주식보유증명서',
+        insurance_policy: '보험증권',
+        bond_certificate: '채권증서',
+        other: '기타 자산서류',
+      };
       for (const scan of filteredScanRows) {
         const imgUrl = scan.imageUrl ?? null;
         const imgKey = scan.imageKey ?? null;
-        if (!imgUrl && !imgKey) continue; // 이미지 없는 항목 스킵
+        if (!imgUrl && !imgKey) continue;
         const fname3 = (imgKey ?? imgUrl ?? "").toLowerCase();
-        const isImage3 = /\.(jpg|jpeg|png|webp|gif|bmp)$/.test(fname3) || (imgUrl ?? "").includes("/manus-storage/");
+        // 이미지 + PDF 모두 처리
+        const isPdf3 = fname3.endsWith('.pdf');
+        const isImage3 = /\.(jpg|jpeg|png|webp|gif|bmp)$/.test(fname3) || isPdf3 || (imgUrl ?? "").includes("/manus-storage/");
         let fileBytes3: Buffer | null = null;
         if (isImage3) {
           try {
@@ -658,11 +684,15 @@ export const willCertificateRouter = router({
               const res3b = await fetch(imgUrl);
               if (res3b.ok) fileBytes3 = Buffer.from(await res3b.arrayBuffer());
             }
-          } catch { /* 무시 */ }
+          } catch (e3) { console.error('[previewPdf] 파일 fetch 실패:', e3 instanceof Error ? e3.message : e3); }
         }
-        const detectedFileType3 = fname3.endsWith('.png') ? 'image/png' : fname3.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
-        const docLabel = scan.docTypeLabel ?? scan.docType ?? '자산서류';
-        const assetLabel = scan.assetName ? `${docLabel}: ${scan.assetName}` : docLabel;
+        // fileType 결정: PDF는 application/pdf, 나머지는 이미지
+        const detectedFileType3 = isPdf3 ? 'application/pdf' : fname3.endsWith('.png') ? 'image/png' : fname3.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
+        // docTypeLabel 한글 보정 (영문으로 저장된 레거시 데이터 처리)
+        const rawLabel = scan.docTypeLabel ?? '';
+        const isEnglishLabel = /^[A-Za-z\s]+$/.test(rawLabel.trim());
+        const koLabel = isEnglishLabel ? (SCAN_DOC_LABEL_MAP[scan.docType as string] ?? rawLabel) : (rawLabel || (SCAN_DOC_LABEL_MAP[scan.docType as string] ?? '자산서류'));
+        const assetLabel = scan.assetName ? `${koLabel}: ${scan.assetName}` : koLabel;
         attachmentData.push({
           fileName: assetLabel,
           fileType: detectedFileType3,
