@@ -7,6 +7,7 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { assets, heirs, willAssetScans, users, assetVerifications } from "../../drizzle/schema";
 import { eq, and } from "drizzle-orm";
+import { storageGetSignedUrl } from "../storage";
 
 // ─── 재산 유형 목록 ───
 const ASSET_TYPES = [
@@ -204,10 +205,16 @@ export const assetRouter = router({
       db.select().from(assets).where(eq(assets.userId, ctx.user.id)),
       db.select().from(heirs).where(eq(heirs.userId, ctx.user.id)),
       db.select().from(willAssetScans).where(eq(willAssetScans.userId, ctx.user.id)),
-      db.select({ signatureUrl: assetVerifications.signatureUrl })
+      db.select({ signatureUrl: assetVerifications.signatureUrl, signatureKey: assetVerifications.signatureKey })
         .from(assetVerifications).where(eq(assetVerifications.userId, ctx.user.id)).limit(1),
     ]);
-    const signatureUrl = verRows[0]?.signatureUrl ?? null;
+    // signatureKey가 있으면 presigned URL 생성 (배포 환경에서 /manus-storage/ 경로 대신 사용)
+    let signatureUrl: string | null = verRows[0]?.signatureUrl ?? null;
+    if (verRows[0]?.signatureKey) {
+      try {
+        signatureUrl = await storageGetSignedUrl(verRows[0].signatureKey);
+      } catch { /* fallback to signatureUrl */ }
+    }
     return { assets: userAssets, heirs: userHeirs, assetScans: userScans, signatureUrl };
   }),
 });
