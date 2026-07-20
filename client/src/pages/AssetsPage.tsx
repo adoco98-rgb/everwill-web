@@ -328,6 +328,19 @@ export default function AssetsPage() {
   );
   const isLocked = (lockStatus?.assetLocked ?? 0) === 1;
 
+  // ── 유언자 신분증명서 OCR 뮤테이션 ──
+  const extractTestatorMutation = trpc.willAuto.extractTestatorFromDoc.useMutation({
+    onSuccess: (data) => {
+      const updated = data.updated || [];
+      if (updated.length > 0) {
+        toast.success(`✅ 유언자 정보 자동 추출 완료! (${updated.map((k: string) => k === 'name' ? '성명' : k === 'residentNumberMasked' ? '주민번호' : k === 'address' ? '주소' : k).join(', ')} 업데이트)`);
+      } else {
+        toast.info('서류에서 추출된 정보가 없습니다. 이미지를 확인해주세요.');
+      }
+    },
+    onError: (err) => toast.error(err.message || 'OCR 추출 실패'),
+  });
+
   const lockAssetsMutation = trpc.asset.lockAssets.useMutation({
     onSuccess: () => {
       refetchLockStatus();
@@ -788,6 +801,68 @@ export default function AssetsPage() {
         {/* ══════════════ 자산증명서 스캔 탭 ══════════════ */}
         {tab === "scans" && (
           <div>
+            {/* 유언자 신분증명서 업로드 섹션 */}
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-base">🪪</span>
+                <p className="text-sm font-bold text-blue-800">유언자 정보 자동 추출</p>
+              </div>
+              <p className="text-xs text-blue-600 mb-3">주민등록등본 또는 기본증명서를 업로드하면 AI가 성명·주민번호·주소를 자동으로 추출하여 유언장에 반영합니다.</p>
+              <div className="flex gap-2 flex-wrap">
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = async (ev) => {
+                        const dataUrl = ev.target?.result as string;
+                        toast.info('기본증명서 분석 중...');
+                        extractTestatorMutation.mutate({ imageUrl: dataUrl, docType: 'basic_certificate' });
+                      };
+                      reader.readAsDataURL(file);
+                      e.target.value = '';
+                    }}
+                  />
+                  <div className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+                    <Upload className="w-3.5 h-3.5" />
+                    기본증명서 업로드
+                  </div>
+                </label>
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = async (ev) => {
+                        const dataUrl = ev.target?.result as string;
+                        toast.info('주민등록등본 분석 중...');
+                        extractTestatorMutation.mutate({ imageUrl: dataUrl, docType: 'resident_register' });
+                      };
+                      reader.readAsDataURL(file);
+                      e.target.value = '';
+                    }}
+                  />
+                  <div className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-colors">
+                    <Upload className="w-3.5 h-3.5" />
+                    주민등록등본 업로드
+                  </div>
+                </label>
+                {extractTestatorMutation.isPending && (
+                  <div className="flex items-center gap-1.5 px-3 py-2 text-xs text-blue-600">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> AI 분석 중...
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl mb-4">
               <ScanLine className="w-6 h-6 text-green-600 flex-shrink-0" />
               <div>

@@ -749,6 +749,105 @@ ${dateStr}
     }),
 
   /**
+   * 주민등록등본 / 기본증명서 OCR 자동 추출 → 유언자 정보 업데이트
+   * 업로드된 이미지/PDF에서 성명, 주민번호, 주소를 추출하여 users 테이블 업데이트
+   */
+  extractTestatorFromDoc: protectedProcedure
+    .input(z.object({
+      imageUrl: z.string().min(1),
+      docType: z.enum(["resident_register", "basic_certificate"]).default("resident_register"),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      const userRows = await db.select().from(users).where(eq(users.openId, ctx.user.openId)).limit(1);
+      if (userRows.length === 0) throw new TRPCError({ code: "UNAUTHORIZED", message: "사용자를 찾을 수 없습니다." });
+      const userId = userRows[0].id;
+
+      const docLabel = input.docType === "resident_register" ? "주민등록등본" : "기본증명서";
+      const rawDataUrl = input.imageUrl;
+      const mimeTypeMatch = rawDataUrl.match(/^data:([^;]+);base64,/);
+      const fileMimeType = mimeTypeMatch ? mimeTypeMatch[1] : "image/jpeg";
+      const isPdfFile = fileMimeType === "application/pdf";
+      const isImageFile = fileMimeType.startsWith("image/");
+
+      let ocrResult: {
+        name: string | null;
+        residentNumber: string | null;
+        address: string | null;
+        birthDate: string | null;
+        confidence: string;
+      } = { name: null, residentNumber: null, address: null, birthDate: null, confidence: "low" };
+
+      try {
+        let userContent: any[];
+        if (isPdfFile) {
+          userContent = [
+            { type: "text", text: `이 ${docLabel} PDF에서 유언자 정보를 추출해주세요.` },
+            { type: "file_url", file_url: { url: rawDataUrl, mime_type: "application/pdf" } },
+          ];
+        } else if (isImageFile) {
+          userContent = [
+            { type: "text", text: `이 ${docLabel} 이미지에서 유언자 정보를 추출해주세요.` },
+            { type: "image_url", image_url: { url: rawDataUrl, detail: "high" } },
+          ];
+        } else {
+          userContent = [{ type: "text", text: `${docLabel} 서류에서 유언자 정보를 추출해주세요.` }];
+        }
+
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: `당신은 한국 공문서 OCR 전문가입니다. ${docLabel}에서 유언자 정보를 정확히 추출하세요. 주민등록번호는 뒤 7자리를 *로 마스킹 (690812-*******). JSON만 반환.`,
+            },
+            { role: "user", content: userContent },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "testator_info",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  name: { type: ["string", "null"] },
+                  residentNumber: { type: ["string", "null"] },
+                  address: { type: ["string", "null"] },
+                  birthDate: { type: ["string", "null"] },
+                  confidence: { type: "string" },
+                },
+                required: ["name", "residentNumber", "address", "birthDate", "confidence"],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+        const content = response.choices?.[0]?.message?.content;
+        if (content) ocrResult = typeof content === "string" ? JSON.parse(content) : content;
+      } catch (e) {
+        console.error("[willAuto] 유언자 OCR 실패:", e);
+      }
+
+      // users 테이블 업데이트 (추출된 정보만)
+      const updateData: Record<string, any> = {};
+      if (ocrResult.name) updateData.name = ocrResult.name;
+      if (ocrResult.residentNumber) updateData.residentNumberMasked = ocrResult.residentNumber;
+      if (ocrResult.address) updateData.address = ocrResult.address;
+      if (ocrResult.birthDate) updateData.birthDate = ocrResult.birthDate;
+
+      if (Object.keys(updateData).length > 0) {
+        await db.update(users).set(updateData).where(eq(users.id, userId));
+      }
+
+      return {
+        success: true,
+        extracted: ocrResult,
+        updated: Object.keys(updateData),
+      };
+    }),
+
+  /**
    * 로그인 사용자의 상속인 목록 조회 (유언장 생성용)
    */
   getHeirsForWill: protectedProcedure
