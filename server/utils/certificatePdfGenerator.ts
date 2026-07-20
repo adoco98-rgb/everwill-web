@@ -11,8 +11,6 @@ import PDFDocument from "pdfkit";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
-import { execSync } from "child_process";
-import os from "os";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -59,36 +57,21 @@ let _sealBuffer: Buffer | null | undefined = undefined;
 let _stampBuffer: Buffer | null | undefined = undefined;
 
 /**
- * PDF 바이트를 PNG 이미지 배열로 변환 (pdftoppm 사용)
- * 배포 환경에서는 pdftoppm이 없을 수 있으므로 fallback 처리
+ * PDF 바이트를 PNG 이미지 배열로 변환 (pdf-to-img 사용, pdfjs-dist 기반)
+ * pdftoppm 없이 순수 Node.js로 동작 - 배포 환경에서도 안정적
  */
-function convertPdfToImages(pdfBytes: Buffer): Buffer[] {
-  const tmpDir = os.tmpdir();
-  const ts = Date.now(); // 단일 타임스탬프 사용 (두 번 호출하면 값이 달라짐)
-  const tmpPdf = path.join(tmpDir, `everwill_att_${ts}.pdf`);
-  const tmpOut = path.join(tmpDir, `everwill_att_${ts}_page`);
+async function convertPdfToImages(pdfBytes: Buffer): Promise<Buffer[]> {
   try {
-    fs.writeFileSync(tmpPdf, pdfBytes);
-    // pdftoppm: PDF 각 페이지를 PNG로 변환 (-r 150 = 150dpi)
-    execSync(`pdftoppm -r 150 -png "${tmpPdf}" "${tmpOut}"`, { timeout: 30000 });
-    // 생성된 PNG 파일 목록 수집 (pdftoppm은 prefix-01.png 형태로 생성)
-    const dir = path.dirname(tmpOut);
-    const prefix = path.basename(tmpOut);
-    const files = fs.readdirSync(dir)
-      .filter(f => f.startsWith(prefix) && (f.endsWith('.png') || f.endsWith('.ppm')))
-      .sort();
+    const { pdf } = await import('pdf-to-img');
     const images: Buffer[] = [];
-    for (const f of files) {
-      const imgPath = path.join(dir, f);
-      images.push(fs.readFileSync(imgPath));
-      fs.unlinkSync(imgPath); // 임시 파일 정리
+    for await (const page of await pdf(pdfBytes, { scale: 1.5 })) {
+      images.push(page as Buffer);
     }
+    console.log(`[PDF변환] pdf-to-img 성공: ${images.length}페이지`);
     return images;
   } catch (err) {
-    console.error('[PDF변환] pdftoppm 실패:', err instanceof Error ? err.message : err);
+    console.error('[PDF변환] pdf-to-img 실패:', err instanceof Error ? err.message : err);
     return [];
-  } finally {
-    try { fs.unlinkSync(tmpPdf); } catch { /* 무시 */ }
   }
 }
 
@@ -463,6 +446,7 @@ export interface AttachmentData {
   fileKey?: string | null;   // S3 키 (실제 파일 삽입용)
   fileUrl?: string | null;   // 직접 URL (있을 경우 우선)
   fileBytes?: Buffer | null; // 미리 로드된 바이트 (선택)
+  pdfImages?: Buffer[];       // PDF→PNG 변환 결과 (미리 계산)
 }
 
 export interface CertificateData {
@@ -610,10 +594,12 @@ function formatCurrency(value: number, currency: string): string {
 
 // ─── 메인 PDF 생성 함수 ────────────────────────────────────────────────────────
 export async function generateWillCertificatePDF(data: CertificateData): Promise<Buffer> {
-  // 첨부파일 이미지 미리 fetch (async 컨텍스트에서 처리)
-  const attachWithBytes: (AttachmentData & { fileBytes?: Buffer | null })[] = [];
+  // 첨부파일 이미지 미리 fetch + PDF→PNG 변환 (async 컨텍스트에서 처리)
+  const attachWithBytes: (AttachmentData & { fileBytes?: Buffer | null; pdfImages?: Buffer[] })[] = [];
   for (const att of data.attachments ?? []) {
     const isImage = att.fileType && (att.fileType.startsWith("image/") || att.fileType === "image/jpeg" || att.fileType === "image/png" || att.fileType === "image/webp");
+    const isPdf = att.fileType === 'application/pdf';
+    // 이미지 파일: fileBytes가 없으면 URL에서 fetch
     if (isImage && att.fileUrl && !att.fileBytes) {
       try {
         const res = await fetch(att.fileUrl);
@@ -622,6 +608,24 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
           continue;
         }
       } catch { /* 무시 */ }
+    }
+    // PDF 파일: fileBytes를 PNG 배열로 미리 변환
+    if (isPdf && (att.fileBytes || att.fileUrl)) {
+      try {
+        let pdfBuf: Buffer | null = att.fileBytes ?? null;
+        if (!pdfBuf && att.fileUrl) {
+          const res = await fetch(att.fileUrl);
+          if (res.ok) pdfBuf = Buffer.from(await res.arrayBuffer());
+        }
+        if (pdfBuf) {
+          const pdfImages = await convertPdfToImages(pdfBuf);
+          console.log(`[PDF변환] ${att.fileName}: ${pdfImages.length}페이지 변환됨`);
+          attachWithBytes.push({ ...att, pdfImages });
+          continue;
+        }
+      } catch (e) {
+        console.error('[PDF변환] 실패:', e instanceof Error ? e.message : e);
+      }
     }
     attachWithBytes.push(att);
   }
@@ -1208,18 +1212,17 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
       // ── 실제 첨부파일 내용 삽입 (이미지 파일) ──────────────────────────────
       for (const att of attachList) {
         const fileBytes = att.fileBytes ?? null;
-        if (!fileBytes) continue;
-
-        const isPdfAtt = att.fileType === 'application/pdf';
+                const isPdfAtt = att.fileType === 'application/pdf';
         const isImageAtt = !!(att.fileType && att.fileType.startsWith('image/'));
-
-        // PDF는 pdftoppm으로 PNG 변환, 이미지는 바로 삽입
+        // PDF는 사전 변환된 pdfImages 사용, 이미지는 fileBytes 사용
         let imagesToInsert: Buffer[] = [];
-        if (isPdfAtt) {
-          const pdfBuf = Buffer.isBuffer(fileBytes) ? fileBytes : Buffer.from(fileBytes as any);
-          imagesToInsert = convertPdfToImages(pdfBuf);
-        } else if (isImageAtt) {
+        if (isPdfAtt && att.pdfImages && att.pdfImages.length > 0) {
+          imagesToInsert = att.pdfImages;
+        } else if (isImageAtt && fileBytes) {
           imagesToInsert = [Buffer.isBuffer(fileBytes) ? fileBytes : Buffer.from(fileBytes as any)];
+        } else if (!isPdfAtt && !isImageAtt) {
+          // 알 수 없는 파일 형식 - 파일명만 표시
+          imagesToInsert = [];
         }
 
         // 체부파일 페이지 생성 (이미지가 없어도 파일명 표시 페이지 생성)
