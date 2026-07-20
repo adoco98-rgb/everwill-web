@@ -1,8 +1,17 @@
 FROM node:22-slim
 
-# CJK 폰트 설치 (한글·일본어·중국어 PDF 렌더링용)
+# CJK 폰트 + canvas 네이티브 모듈 빌드 의존성 (pdf-to-img 사용)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-noto-cjk \
+    build-essential \
+    python3 \
+    pkg-config \
+    libcairo2-dev \
+    libpango1.0-dev \
+    libjpeg-dev \
+    libgif-dev \
+    librsvg2-dev \
+    libpixman-1-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
