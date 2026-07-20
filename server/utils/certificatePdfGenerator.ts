@@ -76,8 +76,12 @@ async function convertPdfToImages(pdfBytes: Buffer): Promise<Buffer[]> {
     const outPrefix = pathMod.join(tmpDir, 'page');
     await execFileAsync('pdftoppm', ['-r', '150', '-png', tmpPdf, outPrefix]);
     const files = fs.readdirSync(tmpDir)
-      .filter((f: string) => f.startsWith('page') && f.endsWith('.png'))
-      .sort();
+      .filter((f: string) => /^page-?\d+\.png$/i.test(f))
+      .sort((a: string, b: string) => {
+        const na = parseInt(a.replace(/\D/g, ''), 10);
+        const nb = parseInt(b.replace(/\D/g, ''), 10);
+        return na - nb;
+      });
     const images: Buffer[] = files.map((f: string) => fs.readFileSync(pathMod.join(tmpDir, f)));
     // 임시 파일 정리
     try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
