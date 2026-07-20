@@ -230,6 +230,47 @@ export const willCertificateRouter = router({
           fileBytes,
         });
       }
+      // willAssetScans 원본 이미지도 첨부파일로 추가 (pension 제외)
+      const filteredScanRowsDl = assetScanRowsDl.filter(
+        (s) => (s.docType as string) !== 'pension_statement' && (s.docType as string) !== 'pension'
+      );
+      for (const scan of filteredScanRowsDl) {
+        const imgUrl = scan.imageUrl ?? null;
+        const imgKey = scan.imageKey ?? null;
+        if (!imgUrl && !imgKey) continue;
+        const fname4 = (imgKey ?? imgUrl ?? "").toLowerCase();
+        const isImage4 = /\.(jpg|jpeg|png|webp|gif|bmp)$/.test(fname4) || (imgUrl ?? "").includes("/manus-storage/");
+        let fileBytes4: Buffer | null = null;
+        if (isImage4) {
+          try {
+            if (imgKey) {
+              const signedUrl4 = await storageGetSignedUrl(imgKey);
+              const res4 = await fetch(signedUrl4);
+              if (res4.ok) fileBytes4 = Buffer.from(await res4.arrayBuffer());
+            }
+            if (!fileBytes4 && imgUrl) {
+              const res4b = await fetch(imgUrl);
+              if (res4b.ok) fileBytes4 = Buffer.from(await res4b.arrayBuffer());
+            }
+          } catch { /* 무시 */ }
+        }
+        const detectedFileType4 = fname4.endsWith('.png') ? 'image/png' : fname4.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
+        const docLabel4 = scan.docTypeLabel ?? scan.docType ?? '자산서류';
+        const assetLabel4 = scan.assetName ? `${docLabel4}: ${scan.assetName}` : docLabel4;
+        attachmentData.push({
+          fileName: assetLabel4,
+          fileType: detectedFileType4,
+          category: scan.docType ?? 'other',
+          description: assetLabel4,
+          fileSize: 0,
+          verified: 1,
+          createdAt: scan.createdAt ? new Date(scan.createdAt) : undefined,
+          fileKey: imgKey ?? undefined,
+          fileUrl: imgUrl ?? undefined,
+          fileBytes: fileBytes4,
+        });
+      }
+
       // 공증서류도 첨부파일로 추가
       for (const doc of notarizationRows) {
         // 파일명으로 이미지 여부 판단 (fileType 커럼 없음)
@@ -598,6 +639,44 @@ export const willCertificateRouter = router({
           fileBytes,
         });
       }
+      // willAssetScans 원본 이미지도 첨부파일로 추가 (pension 제외)
+      for (const scan of filteredScanRows) {
+        const imgUrl = scan.imageUrl ?? null;
+        const imgKey = scan.imageKey ?? null;
+        if (!imgUrl && !imgKey) continue; // 이미지 없는 항목 스킵
+        const fname3 = (imgKey ?? imgUrl ?? "").toLowerCase();
+        const isImage3 = /\.(jpg|jpeg|png|webp|gif|bmp)$/.test(fname3) || (imgUrl ?? "").includes("/manus-storage/");
+        let fileBytes3: Buffer | null = null;
+        if (isImage3) {
+          try {
+            if (imgKey) {
+              const signedUrl3 = await storageGetSignedUrl(imgKey);
+              const res3 = await fetch(signedUrl3);
+              if (res3.ok) fileBytes3 = Buffer.from(await res3.arrayBuffer());
+            }
+            if (!fileBytes3 && imgUrl) {
+              const res3b = await fetch(imgUrl);
+              if (res3b.ok) fileBytes3 = Buffer.from(await res3b.arrayBuffer());
+            }
+          } catch { /* 무시 */ }
+        }
+        const detectedFileType3 = fname3.endsWith('.png') ? 'image/png' : fname3.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
+        const docLabel = scan.docTypeLabel ?? scan.docType ?? '자산서류';
+        const assetLabel = scan.assetName ? `${docLabel}: ${scan.assetName}` : docLabel;
+        attachmentData.push({
+          fileName: assetLabel,
+          fileType: detectedFileType3,
+          category: scan.docType ?? 'other',
+          description: assetLabel,
+          fileSize: 0,
+          verified: 1,
+          createdAt: scan.createdAt ? new Date(scan.createdAt) : undefined,
+          fileKey: imgKey ?? undefined,
+          fileUrl: imgUrl ?? undefined,
+          fileBytes: fileBytes3,
+        });
+      }
+
       // 공증서류도 첨부파일로 추가
       for (const doc of notarizationRowsPreview) {
         const fname2 = (doc.fileName ?? doc.fileKey ?? "").toLowerCase();
