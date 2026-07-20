@@ -25,7 +25,7 @@ import {
   Award,
   History,
 } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import {
@@ -69,6 +69,7 @@ export default function WillCertificatePage() {
   // ── 신청 폼 상태 ───────────────────────────────────────────────────────────
   const [selectedWillId, setSelectedWillId] = useState<number | null>(null);
   const [purpose, setPurpose] = useState("유언장 인증 확인용");
+
   const [appliedCert, setAppliedCert] = useState<any>(null); // 신청 완료된 인증서 레코드
 
   // ── PDF 미리보기 상태 ──────────────────────────────────────────────────────
@@ -84,6 +85,13 @@ export default function WillCertificatePage() {
   // ── 데이터 조회 ────────────────────────────────────────────────────────────
   const { data: myWills, isLoading: willsLoading } = trpc.will.getMyWills.useQuery();
   const { data: certificates, isLoading: certsLoading, refetch } = trpc.willCertificate.getMyList.useQuery();
+
+  // 유언장 목록 로드 시 첫 번째 유언장 자동 선택
+  useEffect(() => {
+    if (myWills && myWills.length > 0 && selectedWillId === null) {
+      setSelectedWillId((myWills[0] as any).id);
+    }
+  }, [myWills]);
 
   // ── 뮤테이션 ───────────────────────────────────────────────────────────────
   const recordPrintMutation = trpc.willCertificate.recordPrint.useMutation({

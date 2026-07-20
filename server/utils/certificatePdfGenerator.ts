@@ -64,17 +64,18 @@ let _stampBuffer: Buffer | null | undefined = undefined;
  */
 function convertPdfToImages(pdfBytes: Buffer): Buffer[] {
   const tmpDir = os.tmpdir();
-  const tmpPdf = path.join(tmpDir, `everwill_att_${Date.now()}.pdf`);
-  const tmpOut = path.join(tmpDir, `everwill_att_${Date.now()}_page`);
+  const ts = Date.now(); // 단일 타임스탬프 사용 (두 번 호출하면 값이 달라짐)
+  const tmpPdf = path.join(tmpDir, `everwill_att_${ts}.pdf`);
+  const tmpOut = path.join(tmpDir, `everwill_att_${ts}_page`);
   try {
     fs.writeFileSync(tmpPdf, pdfBytes);
     // pdftoppm: PDF 각 페이지를 PNG로 변환 (-r 150 = 150dpi)
     execSync(`pdftoppm -r 150 -png "${tmpPdf}" "${tmpOut}"`, { timeout: 30000 });
-    // 생성된 PNG 파일 목록 수집
+    // 생성된 PNG 파일 목록 수집 (pdftoppm은 prefix-01.png 형태로 생성)
     const dir = path.dirname(tmpOut);
     const prefix = path.basename(tmpOut);
     const files = fs.readdirSync(dir)
-      .filter(f => f.startsWith(prefix) && f.endsWith('.ppm') || f.startsWith(prefix) && f.endsWith('.png'))
+      .filter(f => f.startsWith(prefix) && (f.endsWith('.png') || f.endsWith('.ppm')))
       .sort();
     const images: Buffer[] = [];
     for (const f of files) {
@@ -533,6 +534,7 @@ function drawSectionHeader(
 // ─── 헬퍼: 자산 유형 한국어 변환 ──────────────────────────────────────────────
 function assetTypeLabel(type: string, lang: string): string {
   const map: Record<string, Record<string, string>> = {
+    // 짧은 키 (DB 신규)
     real_estate: { ko: "부동산", en: "Real Estate", ja: "不動産", zh: "房地产" },
     bank:        { ko: "예금·적금", en: "Bank/Savings", ja: "預金", zh: "银行存款" },
     stock:       { ko: "주식·펀드", en: "Stocks/Funds", ja: "株式", zh: "股票" },
@@ -543,6 +545,17 @@ function assetTypeLabel(type: string, lang: string): string {
     pension:     { ko: "연금", en: "Pension", ja: "年金", zh: "养老金" },
     artwork:     { ko: "예술품", en: "Artwork", ja: "美術品", zh: "艺术品" },
     other:       { ko: "기타", en: "Other", ja: "その他", zh: "其他" },
+    // DB 실제 저장 키 (bank_balance, real_estate_registry 등)
+    bank_balance:          { ko: "예금·적금", en: "Bank/Savings", ja: "預金", zh: "银行存款" },
+    real_estate_registry:  { ko: "부동산", en: "Real Estate", ja: "不動産", zh: "房地产" },
+    stock_certificate:     { ko: "주식·펀드", en: "Stocks/Funds", ja: "株式", zh: "股票" },
+    crypto_certificate:    { ko: "가상자산", en: "Cryptocurrency", ja: "仮想通貨", zh: "加密货币" },
+    insurance_policy:      { ko: "보험", en: "Insurance", ja: "保険", zh: "保险" },
+    pension_statement:     { ko: "연금", en: "Pension", ja: "年金", zh: "养老金" },
+    vehicle_registration:  { ko: "차량", en: "Vehicle", ja: "車両", zh: "车辆" },
+    business_registration: { ko: "사업체", en: "Business", ja: "事業", zh: "企业" },
+    artwork_certificate:   { ko: "예술품", en: "Artwork", ja: "美術品", zh: "艺术品" },
+    other_document:        { ko: "기타", en: "Other", ja: "その他", zh: "其他" },
   };
   const l = lang === "ko" ? "ko" : lang === "ja" ? "ja" : lang === "zh" ? "zh" : "en";
   return map[type]?.[l] ?? type;
@@ -563,13 +576,25 @@ function relationshipLabel(rel: string, lang: string): string {
 
 function attachCategoryLabel(cat: string, lang: string): string {
   const map: Record<string, Record<string, string>> = {
+    // 짧은 키
     real_estate: { ko: "부동산 등기부등본", en: "Real Estate Registry", ja: "不動産登記簿謄本", zh: "房地产登记证" },
-    bank:        { ko: "통장 사본/잔고증명", en: "Bank Statement", ja: "通帳写し/残高証明", zh: "银行流水/余额证明" },
-    stock:       { ko: "주식 잔고증명서", en: "Stock Certificate", ja: "株式残高証明書", zh: "股票持仓证明" },
+    bank:        { ko: "통장 사본/잌고증명", en: "Bank Statement", ja: "通帳写し/残高証明", zh: "银行流水/余额证明" },
+    stock:       { ko: "주식 잌고증명서", en: "Stock Certificate", ja: "株式残高証明書", zh: "股票持仓证明" },
     crypto:      { ko: "가상자산 보유증명", en: "Crypto Holdings Proof", ja: "仮想通貨保有証明", zh: "加密货币持有证明" },
     insurance:   { ko: "보험증권", en: "Insurance Policy", ja: "保険証券", zh: "保险单" },
     pension:     { ko: "연금 증명서", en: "Pension Certificate", ja: "年金証書", zh: "养老金证明" },
     other:       { ko: "기타 증빙서류", en: "Other Document", ja: "その他書類", zh: "其他文件" },
+    // DB 실제 저장 키
+    bank_balance:          { ko: "은행 잌액증명서", en: "Bank Balance Certificate", ja: "残高証明書", zh: "银行余额证明" },
+    real_estate_registry:  { ko: "부동산 등기부등본", en: "Real Estate Registry", ja: "不動産登記簿謄本", zh: "房地产登记证" },
+    stock_certificate:     { ko: "주식보유증명서", en: "Stock Certificate", ja: "株式残高証明書", zh: "股票持仓证明" },
+    crypto_certificate:    { ko: "가상자산 보유증명", en: "Crypto Holdings Proof", ja: "仮想通貨保有証明", zh: "加密货币持有证明" },
+    insurance_policy:      { ko: "보험증권", en: "Insurance Policy", ja: "保険証券", zh: "保险单" },
+    pension_statement:     { ko: "연금 증명서", en: "Pension Certificate", ja: "年金証書", zh: "养老金证明" },
+    vehicle_registration:  { ko: "자동차등록증", en: "Vehicle Registration", ja: "車両登録証明書", zh: "车辆登记证" },
+    business_registration: { ko: "사업자등록증", en: "Business Registration", ja: "事業登録証明書", zh: "业务登记证" },
+    artwork_certificate:   { ko: "예술품 감정서", en: "Artwork Certificate", ja: "美術品鑑定書", zh: "艺术品证书" },
+    other_document:        { ko: "기타 증빙서류", en: "Other Document", ja: "その他書類", zh: "其他文件" },
   };
   const l = lang === "ko" ? "ko" : lang === "ja" ? "ja" : lang === "zh" ? "zh" : "en";
   return map[cat]?.[l] ?? cat;
