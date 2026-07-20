@@ -108,6 +108,8 @@ export default function AssetVerifyPage() {
   const deleteDocument = trpc.assetVerify.deleteDocument.useMutation();
   const submitVerification = trpc.assetVerify.submitVerification.useMutation();
   const { data: status, refetch } = trpc.assetVerify.getStatus.useQuery();
+  // willAssetScans 테이블에서 기존 자산 서류 스캔 데이터 로드
+  const { data: scansData } = trpc.willAuto.listAssetScans.useQuery();
 
   // 이미 제출된 경우 상태 반영
   useEffect(() => {
@@ -457,10 +459,38 @@ export default function AssetVerifyPage() {
             <input type="file" className="hidden" accept="image/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx,.hwp,.hwpx,.txt" onChange={handleDocUpload} />
           </label>
 
+          {/* 유언장 작성 시 등록된 자산 서류 (willAssetScans) */}
+          {scansData?.scans && scansData.scans.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-[#1F3864] mb-2 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                유언장에 등록된 자산 서류 ({scansData.scans.length}건)
+              </h3>
+              <p className="text-xs text-gray-500 mb-2">유언장 작성 시 업로드한 자산증명서입니다. 이미 인증에 포함됩니다.</p>
+              <div className="space-y-2">
+                {scansData.scans.map((scan: any) => (
+                  <div key={scan.id} className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <FileText className="w-5 h-5 text-blue-500 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-800 truncate">
+                        {scan.docTypeLabel || scan.assetName || '자산 서류'}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {scan.issuer ? `${scan.issuer} · ` : ''}
+                        {scan.amount ? `${Number(scan.amount).toLocaleString()}원` : ''}
+                      </p>
+                    </div>
+                    <span className="text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">등록됨</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* 업로드된 서류 목록 */}
           {documents.length > 0 && (
             <div>
-              <h3 className="font-semibold text-[#1F3864] mb-2">업로드된 서류 ({documents.length}건)</h3>
+              <h3 className="font-semibold text-[#1F3864] mb-2">추가 업로드된 서류 ({documents.length}건)</h3>
               <div className="space-y-2">
                 {documents.map((doc, i) => (
                   <div key={i} className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -484,7 +514,7 @@ export default function AssetVerifyPage() {
             </Button>
             <Button
               className="flex-1 bg-[#1F3864] hover:bg-[#162a4e] text-white h-12"
-              disabled={documents.length === 0}
+              disabled={documents.length === 0 && !(scansData?.scans && scansData.scans.length > 0)}
               onClick={() => setStep(3)}
             >
               다음 단계 <ChevronRight className="w-4 h-4 ml-1" />
