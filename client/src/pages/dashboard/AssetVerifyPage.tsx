@@ -101,7 +101,7 @@ export default function AssetVerifyPage() {
   const [submitting, setSubmitting] = useState(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
 
-  // tRPC 뮤테이션
+  // tRPC 뮤테이션 (모든 Hook은 조건부 return 이전에 선언)
   const uploadIdPhoto = trpc.assetVerify.uploadIdPhoto.useMutation();
   const uploadSelfie = trpc.assetVerify.uploadSelfie.useMutation();
   const uploadDocument = trpc.assetVerify.uploadDocument.useMutation();
@@ -127,6 +127,45 @@ export default function AssetVerifyPage() {
       }
     }
   }, [status]);
+
+  // ── 서명 캔버스 헬퍼 (useCallback은 조건부 return 이전에 선언) ──
+  const getPos = (e: React.MouseEvent | React.TouchEvent, canvas: HTMLCanvasElement) => {
+    const rect = canvas.getBoundingClientRect();
+    if ("touches" in e) {
+      return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+    }
+    return { x: (e as React.MouseEvent).clientX - rect.left, y: (e as React.MouseEvent).clientY - rect.top };
+  };
+
+  const startDraw = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    setIsDrawing(true);
+    lastPos.current = getPos(e, canvas);
+  }, []);
+
+  const draw = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx || !lastPos.current) return;
+    const pos = getPos(e, canvas);
+    ctx.beginPath();
+    ctx.moveTo(lastPos.current.x, lastPos.current.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.strokeStyle = "#1F3864";
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.stroke();
+    lastPos.current = pos;
+    setHasSig(true);
+  }, [isDrawing]);
+
+  const endDraw = useCallback(() => {
+    setIsDrawing(false);
+    lastPos.current = null;
+  }, []);
 
   // ── 이미 승인/제출된 경우 완료 화면 ──
   if (status?.status === "approved") {
@@ -223,45 +262,6 @@ export default function AssetVerifyPage() {
     setDocuments(prev => prev.filter((_, i) => i !== index));
     toast.success("서류가 삭제되었습니다.");
   };
-
-  // ── 서명 캔버스 ──
-  const getPos = (e: React.MouseEvent | React.TouchEvent, canvas: HTMLCanvasElement) => {
-    const rect = canvas.getBoundingClientRect();
-    if ("touches" in e) {
-      return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
-    }
-    return { x: (e as React.MouseEvent).clientX - rect.left, y: (e as React.MouseEvent).clientY - rect.top };
-  };
-
-  const startDraw = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    setIsDrawing(true);
-    lastPos.current = getPos(e, canvas);
-  }, []);
-
-  const draw = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    if (!isDrawing) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx || !lastPos.current) return;
-    const pos = getPos(e, canvas);
-    ctx.beginPath();
-    ctx.moveTo(lastPos.current.x, lastPos.current.y);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.strokeStyle = "#1F3864";
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = "round";
-    ctx.stroke();
-    lastPos.current = pos;
-    setHasSig(true);
-  }, [isDrawing]);
-
-  const endDraw = useCallback(() => {
-    setIsDrawing(false);
-    lastPos.current = null;
-  }, []);
 
   const clearSig = () => {
     const canvas = canvasRef.current;
@@ -360,7 +360,8 @@ export default function AssetVerifyPage() {
                   <p className="text-xs text-gray-400 mt-1">JPG, PNG, PDF · 최대 10MB</p>
                 </div>
               )}
-              <input type="file" className="hidden" accept="image/*,application/pdf" onChange={handleIdPhotoUpload} />
+              <input type="file" className="hidden" accept="image/*,application/pdf"
+                onChange={handleIdPhotoUpload} />
             </label>
           </div>
 
@@ -381,11 +382,12 @@ export default function AssetVerifyPage() {
               ) : (
                 <div>
                   <Camera className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-500">정면을 바라보는 얼굴 사진</p>
+                  <p className="text-sm text-gray-500">본인 얼굴이 잘 보이는 사진</p>
                   <p className="text-xs text-gray-400 mt-1">JPG, PNG · 최대 10MB</p>
                 </div>
               )}
-              <input type="file" className="hidden" accept="image/*" onChange={handleSelfieUpload} />
+              <input type="file" className="hidden" accept="image/*"
+                onChange={handleSelfieUpload} />
             </label>
           </div>
 
@@ -468,7 +470,7 @@ export default function AssetVerifyPage() {
               </h3>
               <p className="text-xs text-gray-500 mb-2">유언장 작성 시 업로드한 자산증명서입니다. 이미 인증에 포함됩니다.</p>
               <div className="space-y-2">
-                {scansData.scans.map((scan: any) => (
+                {(scansData.scans as any[]).map((scan: any) => (
                   <div key={scan.id} className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <FileText className="w-5 h-5 text-blue-500 shrink-0" />
                     <div className="flex-1 min-w-0">
@@ -487,7 +489,7 @@ export default function AssetVerifyPage() {
             </div>
           )}
 
-          {/* 업로드된 서류 목록 */}
+          {/* 추가 업로드된 서류 목록 */}
           {documents.length > 0 && (
             <div>
               <h3 className="font-semibold text-[#1F3864] mb-2">추가 업로드된 서류 ({documents.length}건)</h3>
@@ -618,7 +620,7 @@ export default function AssetVerifyPage() {
             </div>
             <div className="flex items-center gap-2 text-gray-600">
               <CheckCircle2 className="w-4 h-4 text-green-500" />
-              자산 서류 {documents.length}건 업로드 완료
+              자산 서류 {documents.length + (scansData?.scans?.length ?? 0)}건 업로드 완료
             </div>
             <div className="flex items-center gap-2 text-gray-600">
               <CheckCircle2 className="w-4 h-4 text-green-500" />
