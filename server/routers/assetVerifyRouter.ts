@@ -259,13 +259,14 @@ export const assetVerifyRouter = router({
       const sigBase64 = input.signatureBase64.replace(/^data:[^;]+;base64,/, "");
       const sigBuffer = Buffer.from(sigBase64, "base64");
       const sigKey = `asset-verify/${ctx.user.id}/signature-${Date.now()}.png`;
-      const { url: sigUrl } = await storagePut(sigKey, sigBuffer, "image/png");
+      // storagePut은 내부적으로 해시를 추가하므로 반환된 key(해시 포함)를 저장해야 함
+      const { key: actualSigKey, url: sigUrl } = await storagePut(sigKey, sigBuffer, "image/png");
 
       // 서류 업로드 완료 시 자동 승인 처리 (관리자 수동 검토 불필요)
       await db.update(assetVerifications)
         .set({
           status: "approved",
-          signatureKey: sigKey,
+          signatureKey: actualSigKey,
           signatureUrl: sigUrl,
           consentAt: new Date(),
           submittedAt: new Date(),

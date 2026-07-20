@@ -210,16 +210,10 @@ export const assetRouter = router({
     ]);
     // signatureKey가 있으면 presigned URL 생성 (배포 환경에서 /manus-storage/ 경로 대신 사용)
     let signatureUrl: string | null = verRows[0]?.signatureUrl ?? null;
-    console.log('[서명디버그] verRows[0]:', JSON.stringify({ signatureKey: verRows[0]?.signatureKey, signatureUrl: verRows[0]?.signatureUrl?.substring(0, 60) }));
     if (verRows[0]?.signatureKey) {
       try {
         signatureUrl = await storageGetSignedUrl(verRows[0].signatureKey);
-        console.log('[서명디버그] presigned URL 생성 성공:', signatureUrl?.substring(0, 80));
-      } catch (e) {
-        console.log('[서명디버그] presigned URL 생성 실패:', e);
-      }
-    } else {
-      console.log('[서명디버그] signatureKey 없음, signatureUrl 사용:', signatureUrl?.substring(0, 60));
+      } catch { /* fallback to signatureUrl */ }
     }
     return { assets: userAssets, heirs: userHeirs, assetScans: userScans, signatureUrl };
   }),
