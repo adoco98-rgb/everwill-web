@@ -715,11 +715,11 @@ export default function AssetsPage() {
                             }`}>신뢰도: {scan.confidence === "high" ? "높음" : scan.confidence === "medium" ? "보통" : "낮음"}</span>
                             <div className="flex gap-1">
                               {/* 미리보기 버튼 */}
-                              {scan.imageUrl && (
+                              {((scan as any).previewUrl || scan.imageUrl) && (
                                 <button
                                   onClick={(e) => {
                                     e.preventDefault();
-                                    setPreviewModal({ open: true, url: scan.imageUrl, label: dt.label });
+                                    setPreviewModal({ open: true, url: (scan as any).previewUrl || scan.imageUrl, label: dt.label });
                                   }}
                                   className="px-2 py-0.5 rounded text-xs bg-white border border-gray-200 text-gray-500 hover:text-[#1F3864] flex items-center gap-1"
                                 >
@@ -914,9 +914,9 @@ export default function AssetsPage() {
                         </div>
                         <div className="flex gap-1 flex-shrink-0">
                           {/* 미리보기 버튼 */}
-                          {scan.imageUrl && (
+                          {((scan as any).previewUrl || scan.imageUrl) && (
                             <button
-                              onClick={() => setPreviewModal({ open: true, url: scan.imageUrl, label: scan.docTypeLabel || scan.docType })}
+                              onClick={() => setPreviewModal({ open: true, url: (scan as any).previewUrl || scan.imageUrl, label: scan.docTypeLabel || scan.docType })}
                               className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[#1F3864] hover:bg-[#1F3864]/5 transition-colors"
                               title="원본 서류 미리보기"
                             >
@@ -983,9 +983,9 @@ export default function AssetsPage() {
                           {scan.area && <p><span className="font-semibold">면적:</span> {scan.area}</p>}
                           {scan.beneficiary && <p><span className="font-semibold">수익자:</span> {scan.beneficiary}</p>}
                           {scan.additionalInfo && <p><span className="font-semibold">추가정보:</span> {scan.additionalInfo}</p>}
-                          {scan.imageUrl && (
+                          {((scan as any).previewUrl || scan.imageUrl) && (
                             <button
-                              onClick={() => setPreviewModal({ open: true, url: scan.imageUrl, label: scan.docTypeLabel || scan.docType })}
+                              onClick={() => setPreviewModal({ open: true, url: (scan as any).previewUrl || scan.imageUrl, label: scan.docTypeLabel || scan.docType })}
                               className="inline-flex items-center gap-1 text-[#1F3864] font-semibold hover:underline mt-1"
                             >
                               <Eye className="w-3.5 h-3.5" />원본 서류 미리보기

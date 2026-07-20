@@ -234,9 +234,16 @@ export const willCertificateRouter = router({
       }
       // willAssetScans 원본 이미지도 첨부파일로 추가 (pension 제외)
       // willAttachments에 이미 데이터가 있으면 willAssetScans 중복 방지
-      const filteredScanRowsDl = attachmentRows.length > 0 ? [] : assetScanRowsDl.filter(
-        (s) => (s.docType as string) !== 'pension_statement' && (s.docType as string) !== 'pension'
-      );
+      // imageKey 기준 중복 제거
+      const seenKeysDl = new Set<string>();
+      const filteredScanRowsDl = attachmentRows.length > 0 ? [] : assetScanRowsDl
+        .filter((s) => (s.docType as string) !== 'pension_statement' && (s.docType as string) !== 'pension')
+        .filter((s) => {
+          const key = s.imageKey ?? s.imageUrl ?? '';
+          if (!key || seenKeysDl.has(key)) return false;
+          seenKeysDl.add(key);
+          return true;
+        });
       // docType → 한글 라벨 변환 맵 (영문으로 저장된 레거시 데이터 보정)
       const SCAN_DOC_LABEL_MAP_DL: Record<string, string> = {
         bank_balance: '은행 잔액증명서',
@@ -588,7 +595,15 @@ export const willCertificateRouter = router({
       // pension(연금)은 상속 대상이 아니므로 제외
       const filteredAssetRows = assetRows.filter((a) => a.type !== "pension");
       // willAssetScans도 pension 관련 서류 제외 (docType: pension_statement, pension)
-      const filteredScanRows = assetScanRows.filter((s) => (s.docType as string) !== "pension_statement" && (s.docType as string) !== "pension");
+      const seenKeysPreview = new Set<string>();
+      const filteredScanRows = assetScanRows
+        .filter((s) => (s.docType as string) !== "pension_statement" && (s.docType as string) !== "pension")
+        .filter((s) => {
+          const key = s.imageKey ?? s.imageUrl ?? '';
+          if (!key || seenKeysPreview.has(key)) return false;
+          seenKeysPreview.add(key);
+          return true;
+        });
 
       // assets 테이블 + willAssetScans 테이블 합산
       const combinedAssets = [

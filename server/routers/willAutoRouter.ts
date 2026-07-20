@@ -702,7 +702,18 @@ ${dateStr}
       const scans = await db.select().from(willAssetScans)
         .where(eq(willAssetScans.userId, userRows[0].id))
         .orderBy(desc(willAssetScans.createdAt));
-      return { success: true, scans };
+      // imageKey가 있으면 presigned URL 생성 (배포 환경에서 /manus-storage/ 경로 대신 사용)
+      const { storageGetSignedUrl } = await import('../storage.js');
+      const scansWithUrl = await Promise.all(scans.map(async (scan) => {
+        let previewUrl: string | null = scan.imageUrl ?? null;
+        if (scan.imageKey) {
+          try {
+            previewUrl = await storageGetSignedUrl(scan.imageKey);
+          } catch { /* fallback to imageUrl */ }
+        }
+        return { ...scan, previewUrl };
+      }));
+      return { success: true, scans: scansWithUrl };
     }),
 
   /**
