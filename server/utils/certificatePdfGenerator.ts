@@ -600,7 +600,7 @@ function attachCategoryLabel(cat: string, lang: string): string {
     pension:     { ko: "연금 증명서", en: "Pension Certificate", ja: "年金証書", zh: "养老金证明" },
     other:       { ko: "기타 증빙서류", en: "Other Document", ja: "その他書類", zh: "其他文件" },
     // DB 실제 저장 키
-    bank_balance:          { ko: "은행 잌액증명서", en: "Bank Balance Certificate", ja: "残高証明書", zh: "银行余额证明" },
+    bank_balance:          { ko: "은행 잔액증명서", en: "Bank Balance Certificate", ja: "残高証明書", zh: "银行余额证明" },
     real_estate_registry:  { ko: "부동산 등기부등본", en: "Real Estate Registry", ja: "不動産登記簿謄本", zh: "房地产登记证" },
     stock_certificate:     { ko: "주식보유증명서", en: "Stock Certificate", ja: "株式残高証明書", zh: "股票持仓证明" },
     crypto_certificate:    { ko: "가상자산 보유증명", en: "Crypto Holdings Proof", ja: "仮想通貨保有証明", zh: "加密货币持有证明" },
@@ -1223,7 +1223,7 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
         let ax2 = margin + 8;
         doc.font(fontBold).fontSize(9).fillColor(`rgb(${pr},${pg},${pb})`).text(`${i + 1}`, ax2, ya + 10, { width: aColW[0] }); ax2 += aColW[0];
         doc.font(fontBold).fontSize(8).fillColor("#1A1A1A").text(attachCategoryLabel(att.category, config.lang), ax2, ya + 10, { width: aColW[1] }); ax2 += aColW[1];
-        const descStr = att.description ? `${att.fileName}\n${att.description}` : att.fileName;
+        const descStr = (att.description && att.description !== att.fileName) ? `${att.fileName}\n${att.description}` : att.fileName;
         doc.font(fontRegular).fontSize(8).fillColor("#333").text(descStr, ax2, ya + 6, { width: aColW[2], lineGap: 1 }); ax2 += aColW[2];
         const dateStr = att.createdAt ? new Date(att.createdAt).toLocaleDateString("ko-KR") : "-";
         doc.font(fontRegular).fontSize(8).fillColor("#666").text(dateStr, ax2, ya + 10, { width: aColW[3] }); ax2 += aColW[3];

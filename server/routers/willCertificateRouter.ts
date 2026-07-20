@@ -204,11 +204,13 @@ export const willCertificateRouter = router({
         .where(eq(notarizationDocs.userId, userId));
 
       // 첨부파일 이미지 bytes 미리 로드 (presigned URL 통해 S3에서 직접 fetch)
+      // 이미지 + PDF 모두 처리
       const attachmentData: any[] = [];
       for (const att of attachmentRows) {
         const isImage = att.fileType && att.fileType.startsWith("image/");
+        const isPdf = att.fileType === "application/pdf" || (att.fileKey ?? "").toLowerCase().endsWith(".pdf");
         let fileBytes: Buffer | null = null;
-        if (isImage && att.fileKey) {
+        if ((isImage || isPdf) && att.fileKey) {
           try {
             const signedUrl = await storageGetSignedUrl(att.fileKey);
             const res = await fetch(signedUrl);
@@ -231,7 +233,8 @@ export const willCertificateRouter = router({
         });
       }
       // willAssetScans 원본 이미지도 첨부파일로 추가 (pension 제외)
-      const filteredScanRowsDl = assetScanRowsDl.filter(
+      // willAttachments에 이미 데이터가 있으면 willAssetScans 중복 방지
+      const filteredScanRowsDl = attachmentRows.length > 0 ? [] : assetScanRowsDl.filter(
         (s) => (s.docType as string) !== 'pension_statement' && (s.docType as string) !== 'pension'
       );
       // docType → 한글 라벨 변환 맵 (영문으로 저장된 레거시 데이터 보정)
