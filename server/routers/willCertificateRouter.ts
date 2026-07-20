@@ -664,28 +664,37 @@ export const willCertificateRouter = router({
         bond_certificate: '채권증서',
         other: '기타 자산서류',
       };
+      console.log('[previewPdf] filteredScanRows 개수:', filteredScanRows.length);
       for (const scan of filteredScanRows) {
         const imgUrl = scan.imageUrl ?? null;
         const imgKey = scan.imageKey ?? null;
+        console.log('[previewPdf] scan id:', scan.id, '| imgKey:', imgKey, '| imgUrl:', (imgUrl ?? '').substring(0, 60));
         if (!imgUrl && !imgKey) continue;
         const fname3 = (imgKey ?? imgUrl ?? "").toLowerCase();
         // 이미지 + PDF 모두 처리
         const isPdf3 = fname3.endsWith('.pdf');
         const isImage3 = /\.(jpg|jpeg|png|webp|gif|bmp)$/.test(fname3) || isPdf3 || (imgUrl ?? "").includes("/manus-storage/");
+        console.log('[previewPdf] fname3:', fname3, '| isPdf3:', isPdf3, '| isImage3:', isImage3);
         let fileBytes3: Buffer | null = null;
         if (isImage3) {
           try {
             if (imgKey) {
+              console.log('[previewPdf] storageGetSignedUrl 시도:', imgKey);
               const signedUrl3 = await storageGetSignedUrl(imgKey);
+              console.log('[previewPdf] signedUrl3:', signedUrl3.substring(0, 80));
               const res3 = await fetch(signedUrl3);
+              console.log('[previewPdf] fetch status:', res3.status, '| size:', res3.headers.get('content-length'));
               if (res3.ok) fileBytes3 = Buffer.from(await res3.arrayBuffer());
             }
             if (!fileBytes3 && imgUrl) {
+              console.log('[previewPdf] imgUrl fallback fetch:', imgUrl.substring(0, 60));
               const res3b = await fetch(imgUrl);
+              console.log('[previewPdf] imgUrl fetch status:', res3b.status);
               if (res3b.ok) fileBytes3 = Buffer.from(await res3b.arrayBuffer());
             }
           } catch (e3) { console.error('[previewPdf] 파일 fetch 실패:', e3 instanceof Error ? e3.message : e3); }
         }
+        console.log('[previewPdf] fileBytes3 크기:', fileBytes3 ? fileBytes3.length : 'null');
         // fileType 결정: PDF는 application/pdf, 나머지는 이미지
         const detectedFileType3 = isPdf3 ? 'application/pdf' : fname3.endsWith('.png') ? 'image/png' : fname3.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
         // docTypeLabel 한글 보정 (영문으로 저장된 레거시 데이터 처리)
