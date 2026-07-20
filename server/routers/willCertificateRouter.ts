@@ -144,22 +144,20 @@ export const willCertificateRouter = router({
 
       const assetScanRowsDl = await db.select().from(willAssetScans).where(eq(willAssetScans.userId, userId));
 
-      const assetData = [
-        // assets 테이블 (pension 제외)
-        ...assetRows
-          .filter((a) => a.type !== "pension")
-          .map((a) => ({
+      // assets 테이블이 있으면 assets만 사용, 없으면 willAssetScans 활용 (중복 방지)
+      const filteredAssetRowsDl = assetRows.filter((a) => a.type !== "pension");
+      const filteredScanRowsDl2 = assetScanRowsDl
+        .filter((s) => (s.docType as string) !== "pension_statement" && (s.docType as string) !== "pension");
+      const assetData = filteredAssetRowsDl.length > 0
+        ? filteredAssetRowsDl.map((a) => ({
             type: a.type ?? "other",
             name: a.name ?? "자산",
             estimatedValue: a.estimatedValue ?? 0,
             currency: a.currency ?? "KRW",
             country: a.country ?? country,
             details: a.details ?? undefined,
-          })),
-        // willAssetScans 테이블 (pension/pension_statement 제외)
-        ...assetScanRowsDl
-          .filter((s) => (s.docType as string) !== "pension_statement" && (s.docType as string) !== "pension")
-          .map((s) => {
+          }))
+        : filteredScanRowsDl2.map((s) => {
             const ev = s.estimatedValue ? Number(s.estimatedValue) : 0;
             const rawAmt = Number(String((s as any).amount || '0').replace(/[^0-9]/g, '')) || 0;
             return {
@@ -169,8 +167,7 @@ export const willCertificateRouter = router({
               currency: "KRW",
               country: country,
             };
-          }),
-      ];
+          });
 
       // ── 실제 상속자 목록 조회 ────────────────────────────────────────────────
       const heirRows = await db
@@ -277,10 +274,8 @@ export const willCertificateRouter = router({
         }
         // fileType 결정: PDF는 application/pdf, 나머지는 이미지
         const detectedFileType4 = isPdf4 ? 'application/pdf' : fname4.endsWith('.png') ? 'image/png' : fname4.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
-        // docTypeLabel 한글 보정
-        const rawLabel4 = scan.docTypeLabel ?? '';
-        const isEnglishLabel4 = /^[A-Za-z\s]+$/.test(rawLabel4.trim());
-        const koLabel4 = isEnglishLabel4 ? (SCAN_DOC_LABEL_MAP_DL[scan.docType as string] ?? rawLabel4) : (rawLabel4 || (SCAN_DOC_LABEL_MAP_DL[scan.docType as string] ?? '자산서류'));
+        // docType 기준으로 한글 라벨 결정 (docTypeLabel은 잘못 저장된 경우가 있어 docType 우선)
+        const koLabel4 = SCAN_DOC_LABEL_MAP_DL[scan.docType as string] ?? scan.docTypeLabel ?? '자산서류';
         const assetLabel4 = scan.assetName ? `${koLabel4}: ${scan.assetName}` : koLabel4;
         attachmentData.push({
           fileName: assetLabel4,
@@ -605,27 +600,26 @@ export const willCertificateRouter = router({
           return true;
         });
 
-      // assets 테이블 + willAssetScans 테이블 합산
-      const combinedAssets = [
-        ...filteredAssetRows.map((a) => ({
-          type: a.type ?? "other",
-          name: a.name ?? "자산",
-          estimatedValue: a.estimatedValue ?? 0,
-          currency: a.currency ?? "KRW",
-          country: a.country ?? country,
-        })),
-        ...filteredScanRows.map((s) => {
-          const ev = s.estimatedValue ? Number(s.estimatedValue) : 0;
-          const rawAmt = Number(String((s as any).amount || '0').replace(/[^0-9]/g, '')) || 0;
-          return {
-            type: s.docType ?? "other",
-            name: s.assetName || s.docTypeLabel || s.docType || "자산",
-            estimatedValue: ev > 0 ? ev : rawAmt,
-            currency: "KRW",
-            country: country,
-          };
-        }),
-      ];
+      // assets 테이블이 있으면 assets만 사용, 없으면 willAssetScans 활용 (중복 방지)
+      const combinedAssets = filteredAssetRows.length > 0
+        ? filteredAssetRows.map((a) => ({
+            type: a.type ?? "other",
+            name: a.name ?? "자산",
+            estimatedValue: a.estimatedValue ?? 0,
+            currency: a.currency ?? "KRW",
+            country: a.country ?? country,
+          }))
+        : filteredScanRows.map((s) => {
+            const ev = s.estimatedValue ? Number(s.estimatedValue) : 0;
+            const rawAmt = Number(String((s as any).amount || '0').replace(/[^0-9]/g, '')) || 0;
+            return {
+              type: s.docType ?? "other",
+              name: s.assetName || s.docTypeLabel || s.docType || "자산",
+              estimatedValue: ev > 0 ? ev : rawAmt,
+              currency: "KRW",
+              country: country,
+            };
+          });
 
       const assetData =
         combinedAssets.length > 0
@@ -715,10 +709,8 @@ export const willCertificateRouter = router({
         console.log('[previewPdf] fileBytes3 크기:', fileBytes3 ? fileBytes3.length : 'null');
         // fileType 결정: PDF는 application/pdf, 나머지는 이미지
         const detectedFileType3 = isPdf3 ? 'application/pdf' : fname3.endsWith('.png') ? 'image/png' : fname3.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
-        // docTypeLabel 한글 보정 (영문으로 저장된 레거시 데이터 처리)
-        const rawLabel = scan.docTypeLabel ?? '';
-        const isEnglishLabel = /^[A-Za-z\s]+$/.test(rawLabel.trim());
-        const koLabel = isEnglishLabel ? (SCAN_DOC_LABEL_MAP[scan.docType as string] ?? rawLabel) : (rawLabel || (SCAN_DOC_LABEL_MAP[scan.docType as string] ?? '자산서류'));
+        // docType 기준으로 한글 라벨 결정 (docTypeLabel은 잘못 저장된 경우가 있어 docType 우선)
+        const koLabel = SCAN_DOC_LABEL_MAP[scan.docType as string] ?? scan.docTypeLabel ?? '자산서류';
         const assetLabel = scan.assetName ? `${koLabel}: ${scan.assetName}` : koLabel;
         attachmentData.push({
           fileName: assetLabel,

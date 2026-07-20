@@ -1256,8 +1256,9 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
           imagesToInsert = [];
         }
 
-        // 체부파일 페이지 생성 (이미지가 없어도 파일명 표시 페이지 생성)
-        const pageCount = imagesToInsert.length > 0 ? imagesToInsert.length : 1;
+        // 첨부파일 페이지 생성 (이미지가 없으면 페이지 생성 안 함 - 빈 페이지 방지)
+        if (imagesToInsert.length === 0) continue;
+        const pageCount = imagesToInsert.length;
         for (let pi = 0; pi < pageCount; pi++) {
           doc.addPage();
           drawPageStamp(doc, config, sealExists);
