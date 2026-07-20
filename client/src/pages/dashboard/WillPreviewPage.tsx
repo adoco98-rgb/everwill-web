@@ -440,20 +440,27 @@ export default function WillPreviewPage() {
                 <h3 className="font-bold text-[#1F3864] text-base">등록 자산 ({displayAssets.length}건)</h3>
               </div>
               <div className="space-y-2">
-                {displayAssets.map((asset: any) => {
+                {displayAssets
+                  // pension 유형 제외 (연금은 상속 대상 아님)
+                  .filter((asset: any) => asset.docType !== 'pension' && asset.docType !== 'pension_statement')
+                  .map((asset: any) => {
                   // willAssetScans 형식인지 assets 형식인지 구분
                   const isScan = asset.docType !== undefined;
+                  // 자산명: assetName 우선, 없으면 서류명
                   const displayName = isScan
                     ? (asset.assetName || asset.docTypeLabel || asset.docType)
                     : asset.name;
+                  // 서류명: 한국어로 변환
                   const displayType = isScan
                     ? getDocTypeLabelKo(asset.docTypeLabel || '', asset.docType)
                     : (ASSET_TYPE_LABELS[asset.type] || asset.type);
                   const displayIssuer = isScan ? asset.issuer : null;
                   const displayLocation = isScan ? asset.location : asset.description;
-                  const displayAmount = isScan ? asset.amount : null;
-                  const displayUnit = isScan ? asset.unit : null;
-                  const displayValue = asset.estimatedValue;
+                  // 금액: estimatedValue 우선, 없으면 amount 필드 파싱
+                  const ev = asset.estimatedValue ? Number(asset.estimatedValue) : 0;
+                  const rawAmt = Number(String(asset.amount || '0').replace(/[^0-9]/g, '')) || 0;
+                  const displayValue = ev > 0 ? ev : rawAmt;
+                  const displayUnit = isScan ? (asset.unit || '원') : null;
                   const AssetIcon = isScan ? Landmark : getAssetIcon(asset.type);
                   return (
                     <div key={asset.id} className="bg-gray-50 rounded-xl p-4">
@@ -461,15 +468,17 @@ export default function WillPreviewPage() {
                         <div className="flex items-start gap-3">
                           <AssetIcon className="w-4 h-4 text-gray-400 mt-0.5" />
                           <div>
-                            <span className="font-semibold text-gray-800">{displayName}</span>
-                            <span className="text-gray-500 text-sm ml-2">{displayType}</span>
+                            {/* 자산명 (큰 글씨) + 서류명 (작은 글씨) */}
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-semibold text-gray-800">{displayName}</span>
+                              <span className="text-gray-400 text-xs bg-gray-200 px-1.5 py-0.5 rounded">{displayType}</span>
+                            </div>
                             {displayIssuer && <p className="text-xs text-gray-500 mt-0.5">발급기관: {displayIssuer}</p>}
                             {displayLocation && <p className="text-xs text-gray-400 mt-0.5">{displayLocation}</p>}
-                            {displayAmount && <p className="text-xs text-gray-500 mt-0.5">금액: {displayAmount} {displayUnit}</p>}
                           </div>
                         </div>
-                        {displayValue && displayValue > 0 && (
-                          <span className="text-[#1F3864] font-bold">₩{Number(displayValue).toLocaleString()}</span>
+                        {displayValue > 0 && (
+                          <span className="text-[#1F3864] font-bold whitespace-nowrap">₩{displayValue.toLocaleString()}</span>
                         )}
                       </div>
                     </div>

@@ -156,16 +156,20 @@ export const willCertificateRouter = router({
             country: a.country ?? country,
             details: a.details ?? undefined,
           })),
-        // willAssetScans 테이블 (pension_statement 제외)
+        // willAssetScans 테이블 (pension/pension_statement 제외)
         ...assetScanRowsDl
-          .filter((s) => s.docType !== "pension_statement")
-          .map((s) => ({
-            type: s.docType ?? "other",
-            name: s.assetName || s.docTypeLabel || s.docType || "자산",
-            estimatedValue: s.estimatedValue ? Number(s.estimatedValue) : 0,
-            currency: "KRW",
-            country: country,
-          })),
+          .filter((s) => (s.docType as string) !== "pension_statement" && (s.docType as string) !== "pension")
+          .map((s) => {
+            const ev = s.estimatedValue ? Number(s.estimatedValue) : 0;
+            const rawAmt = Number(String((s as any).amount || '0').replace(/[^0-9]/g, '')) || 0;
+            return {
+              type: s.docType ?? "other",
+              name: s.assetName || s.docTypeLabel || s.docType || "자산",
+              estimatedValue: ev > 0 ? ev : rawAmt,
+              currency: "KRW",
+              country: country,
+            };
+          }),
       ];
 
       // ── 실제 상속자 목록 조회 ────────────────────────────────────────────────
@@ -524,8 +528,8 @@ export const willCertificateRouter = router({
 
       // pension(연금)은 상속 대상이 아니므로 제외
       const filteredAssetRows = assetRows.filter((a) => a.type !== "pension");
-      // willAssetScans도 pension 관련 서류 제외 (docType: pension_statement)
-      const filteredScanRows = assetScanRows.filter((s) => s.docType !== "pension_statement");
+      // willAssetScans도 pension 관련 서류 제외 (docType: pension_statement, pension)
+      const filteredScanRows = assetScanRows.filter((s) => (s.docType as string) !== "pension_statement" && (s.docType as string) !== "pension");
 
       // assets 테이블 + willAssetScans 테이블 합산
       const combinedAssets = [
@@ -536,13 +540,17 @@ export const willCertificateRouter = router({
           currency: a.currency ?? "KRW",
           country: a.country ?? country,
         })),
-        ...filteredScanRows.map((s) => ({
-          type: s.docType ?? "other",
-          name: s.assetName || s.docTypeLabel || s.docType || "자산",
-          estimatedValue: s.estimatedValue ? Number(s.estimatedValue) : 0,
-          currency: "KRW",
-          country: country,
-        })),
+        ...filteredScanRows.map((s) => {
+          const ev = s.estimatedValue ? Number(s.estimatedValue) : 0;
+          const rawAmt = Number(String((s as any).amount || '0').replace(/[^0-9]/g, '')) || 0;
+          return {
+            type: s.docType ?? "other",
+            name: s.assetName || s.docTypeLabel || s.docType || "자산",
+            estimatedValue: ev > 0 ? ev : rawAmt,
+            currency: "KRW",
+            country: country,
+          };
+        }),
       ];
 
       const assetData =
