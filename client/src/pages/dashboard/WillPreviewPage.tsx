@@ -148,7 +148,8 @@ export default function WillPreviewPage() {
   }
   if (parsedJson?.willContent && !willText) willText = parsedJson.willContent;
 
-  const signatureImage = parsedJson?.signature1 || "";
+  // 서명 이미지: assetVerifications.signatureUrl 우선, 없으면 유언장 data JSON의 signature1 사용
+  const signatureImage = (willData as any)?.signatureUrl || parsedJson?.signature1 || "";
   // 날짜 → 한국어 형식 변환 헬퍼 (ISO·Date 모두 처리)
   function toKoreanDate(val: string | Date | null | undefined): string {
     if (!val) return "";

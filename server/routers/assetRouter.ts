@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
-import { assets, heirs, willAssetScans, users } from "../../drizzle/schema";
+import { assets, heirs, willAssetScans, users, assetVerifications } from "../../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 
 // ─── 재산 유형 목록 ───
@@ -199,12 +199,15 @@ export const assetRouter = router({
   // ── 재산 + 상속자 통합 조회 (유언장 작성 시 사용) ──
   getWillData: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();
-    if (!db) return { assets: [], heirs: [], assetScans: [] };
-    const [userAssets, userHeirs, userScans] = await Promise.all([
+    if (!db) return { assets: [], heirs: [], assetScans: [], signatureUrl: null };
+    const [userAssets, userHeirs, userScans, verRows] = await Promise.all([
       db.select().from(assets).where(eq(assets.userId, ctx.user.id)),
       db.select().from(heirs).where(eq(heirs.userId, ctx.user.id)),
       db.select().from(willAssetScans).where(eq(willAssetScans.userId, ctx.user.id)),
+      db.select({ signatureUrl: assetVerifications.signatureUrl })
+        .from(assetVerifications).where(eq(assetVerifications.userId, ctx.user.id)).limit(1),
     ]);
-    return { assets: userAssets, heirs: userHeirs, assetScans: userScans };
+    const signatureUrl = verRows[0]?.signatureUrl ?? null;
+    return { assets: userAssets, heirs: userHeirs, assetScans: userScans, signatureUrl };
   }),
 });
