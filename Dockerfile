@@ -1,8 +1,9 @@
 FROM node:22-slim
 
-# CJK 폰트 + canvas 네이티브 모듈 빌드 의존성 (pdf-to-img 사용)
+# CJK 폰트 + poppler-utils (pdftoppm) + canvas 빌드 의존성
 RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-noto-cjk \
+    poppler-utils \
     build-essential \
     python3 \
     pkg-config \

@@ -57,10 +57,37 @@ let _sealBuffer: Buffer | null | undefined = undefined;
 let _stampBuffer: Buffer | null | undefined = undefined;
 
 /**
- * PDF 바이트를 PNG 이미지 배열로 변환 (pdf-to-img 사용, pdfjs-dist 기반)
- * pdftoppm 없이 순수 Node.js로 동작 - 배포 환경에서도 안정적
+ * PDF 바이트를 PNG 이미지 배열로 변환
+ * 1순위: pdftoppm (시스템 명령어, 가장 안정적)
+ * 2순위: pdf-to-img (Node.js 폸라이브러리)
  */
 async function convertPdfToImages(pdfBytes: Buffer): Promise<Buffer[]> {
+  const os = await import('os');
+  const pathMod = await import('path');
+  const { execFile } = await import('child_process');
+  const { promisify } = await import('util');
+  const execFileAsync = promisify(execFile);
+
+  // 1순위: pdftoppm 시도 (배포 Dockerfile에 poppler-utils 설치됨)
+  try {
+    const tmpDir = fs.mkdtempSync(pathMod.join(os.tmpdir(), 'pdf-'));
+    const tmpPdf = pathMod.join(tmpDir, 'input.pdf');
+    fs.writeFileSync(tmpPdf, pdfBytes);
+    const outPrefix = pathMod.join(tmpDir, 'page');
+    await execFileAsync('pdftoppm', ['-r', '150', '-png', tmpPdf, outPrefix]);
+    const files = fs.readdirSync(tmpDir)
+      .filter((f: string) => f.startsWith('page') && f.endsWith('.png'))
+      .sort();
+    const images: Buffer[] = files.map((f: string) => fs.readFileSync(pathMod.join(tmpDir, f)));
+    // 임시 파일 정리
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+    console.log(`[PDF변환] pdftoppm 성공: ${images.length}페이지`);
+    return images;
+  } catch (err1) {
+    console.error('[PDF변환] pdftoppm 실패:', err1 instanceof Error ? err1.message : err1);
+  }
+
+  // 2순위: pdf-to-img 시도
   try {
     const { pdf } = await import('pdf-to-img');
     const images: Buffer[] = [];
@@ -69,8 +96,8 @@ async function convertPdfToImages(pdfBytes: Buffer): Promise<Buffer[]> {
     }
     console.log(`[PDF변환] pdf-to-img 성공: ${images.length}페이지`);
     return images;
-  } catch (err) {
-    console.error('[PDF변환] pdf-to-img 실패:', err instanceof Error ? err.message : err);
+  } catch (err2) {
+    console.error('[PDF변환] pdf-to-img 실패:', err2 instanceof Error ? err2.message : err2);
     return [];
   }
 }
