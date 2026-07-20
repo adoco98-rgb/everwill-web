@@ -656,10 +656,22 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     doc.font(fontBold).fontSize(7).fillColor("#FFFFFF").text("EverWill  Digital Will OS", -60, -3);
     doc.restore();
 
-    // 씰 이미지 (중앙, 170pt)
+    // ── 표지 콘텐츠 전체 높이 계산 후 세로 중앙 정렬 ──
     const sealSize = 170;
+    const titleH   = 32 + 24; // 제목(22pt) + 서브(9pt) 두 줄
+    const divH     = 54;      // 구분선까지
+    const confirmH = 16 + 18 + 18; // 확인 문구 두 줄
+    const boxH     = 193;
+    const totalContentH = sealSize + 10 + titleH + divH + confirmH + 85 + boxH;
+    // 상단 골드바(14) ~ 하단 네이비바(83) 사이 가용 영역
+    const availableTop    = 14;
+    const availableBottom = pageHeight - 83;
+    const availableH      = availableBottom - availableTop;
+    const startY = availableTop + (availableH - totalContentH) / 2;
+
+    // 씰 이미지 (중앙)
     const sealX = (pageWidth - sealSize) / 2;
-    const sealY = 14 + 28; // 상단 골드 라인 아래 28pt
+    const sealY = startY;
     if (sealExists && sealBuffer) {
       try { doc.image(sealBuffer, sealX, sealY, { width: sealSize }); } catch { /* 무시 */ }
     }
@@ -695,7 +707,6 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
        .text(confirmLine2, boxX + 8, confirmY + confirmLineGap);
 
     // 정보 박스
-    const boxH = 193; // 68mm ≈ 193pt
     const boxY = divY + 85;
     doc.roundedRect(boxX, boxY, boxW, boxH, 7).fill("#F8F5ED");
     doc.roundedRect(boxX, boxY, boxW, boxH, 7).strokeColor("#DDD5B0").lineWidth(0.7).stroke();
