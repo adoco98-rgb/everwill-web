@@ -194,11 +194,11 @@ export default function MembershipPage() {
                 </p>
               </div>
               {/* 에버윌 원형 로고 - 우측 상단 */}
-              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/60 shadow-lg bg-white/10 flex-shrink-0">
+              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/80 shadow-lg bg-white flex-shrink-0">
                 <img
-                  src="/manus-storage/everwill-logo_caf255c0.png"
+                  src="/everwill-logo.png"
                   alt="EverWill Logo"
-                  className="w-full h-full object-contain p-0.5"
+                  className="w-full h-full object-cover"
                 />
               </div>
             </div>

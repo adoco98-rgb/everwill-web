@@ -351,6 +351,13 @@
       "when": 1784185688804,
       "tag": "0049_cool_vanisher",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "5",
+      "when": 1784627817521,
+      "tag": "0050_bright_synch",
+      "breakpoints": true
     }
   ]
 }
