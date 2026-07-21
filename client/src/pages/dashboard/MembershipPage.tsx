@@ -193,12 +193,24 @@ export default function MembershipPage() {
                   {gradeData?.label ?? "무료회원"}
                 </p>
               </div>
-              {/* 에버윌 원형 로고 - 우측 상단 */}
-              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/80 shadow-lg bg-white flex-shrink-0">
+              {/* 에버윌 원형 엠블럼 로고 - 우측 상단 */}
+              <div
+                className="flex-shrink-0"
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: '50%',
+                  background: '#fff',
+                  border: '3px solid #1F3864',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.45)',
+                  overflow: 'hidden',
+                  padding: 2,
+                }}
+              >
                 <img
                   src="/everwill-logo.png"
                   alt="EverWill Logo"
-                  className="w-full h-full object-cover"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
                 />
               </div>
             </div>
