@@ -730,8 +730,9 @@ export const willCertificateRouter = router({
       for (const doc of notarizationRowsPreview) {
         const fname2 = (doc.fileName ?? doc.fileKey ?? "").toLowerCase();
         const isImage2 = /\.(jpg|jpeg|png|webp|gif|bmp)$/.test(fname2);
+        const isPdf2 = fname2.endsWith('.pdf') || (!isImage2 && (doc.fileKey ?? '').endsWith('.pdf'));
         let fileBytes: Buffer | null = null;
-        if (isImage2) {
+        if (isImage2 || isPdf2) {
           try {
             if (doc.fileKey) {
               const signedUrl = await storageGetSignedUrl(doc.fileKey);

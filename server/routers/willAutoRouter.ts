@@ -580,7 +580,18 @@ ${dateStr}
           messages: [
             {
               role: "system",
-              content: `당신은 한국 자산증명서 OCR 전문가입니다. 파일에서 자산 정보를 추출하세요. 힌트: "${DOC_TYPE_LABELS[docTypeHint]}". 계좌번호/주민번호는 마지막 4자리만 표시. JSON만 반환.`,
+              content: `당신은 한국 자산증명서 OCR 전문가입니다. 파일에서 자산 정보를 추출하세요.
+힌트: 서류 유형은 "${DOC_TYPE_LABELS[docTypeHint]}"입니다.
+
+[assetName 추출 규칙 - 서류 유형별]
+- bank_balance(은행 잔액증명서): assetName = 은행명 (예: "국민은행", "신한은행"). 토지/부동산 단어는 무시.
+- real_estate_registry(부동산 등기부등본): assetName = 부동산 소재지 또는 지번 (예: "서울시 강남구 역삼동 123").
+- stock_certificate(주식보유증명서): assetName = 종목명 또는 증권사명 (예: "삼성전자", "NH투자증권").
+- insurance_policy(보험증권): assetName = 보험상품명 (예: "종신보험").
+- pension_statement(연금): assetName = null.
+- 기타: assetName = 서류에서 명확히 식별되는 자산명. 불명확하면 null.
+
+계좌번호/주민번호는 마지막 4자리만 표시. JSON만 반환.`,
             },
             {
               role: "user",
