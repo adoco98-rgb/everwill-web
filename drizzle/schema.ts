@@ -163,6 +163,10 @@ export const users = mysqlTable("users", {
   assetLocked: int("assetLocked").default(0).notNull(),
   /** 자산 목록 최종 저장 시각 */
   assetLockedAt: timestamp("assetLockedAt"),
+  /** 한글 성명 (마이페이지 입력) */
+  nameKo: varchar("nameKo", { length: 64 }),
+  /** 영문 성명 (마이페이지 입력) */
+  nameEn: varchar("nameEn", { length: 64 }),
 });
 
 export type User = typeof users.$inferSelect;
