@@ -642,12 +642,23 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
   for (const att of data.attachments ?? []) {
     const isImage = att.fileType && (att.fileType.startsWith("image/") || att.fileType === "image/jpeg" || att.fileType === "image/png" || att.fileType === "image/webp");
     const isPdf = att.fileType === 'application/pdf';
-    // 이미지 파일: fileBytes가 없으면 URL에서 fetch
-    if (isImage && att.fileUrl && !att.fileBytes) {
+    // 이미지 파일: fileBytes 또는 URL에서 fetch + EXIF 자동 회전 보정
+    if (isImage) {
       try {
-        const res = await fetch(att.fileUrl);
-        if (res.ok) {
-          attachWithBytes.push({ ...att, fileBytes: Buffer.from(await res.arrayBuffer()) });
+        let rawBuf: Buffer | null = att.fileBytes ?? null;
+        if (!rawBuf && att.fileUrl) {
+          const res = await fetch(att.fileUrl);
+          if (res.ok) rawBuf = Buffer.from(await res.arrayBuffer());
+        }
+        if (rawBuf) {
+          // sharp로 EXIF orientation 자동 보정 (거꾸로/회전 이미지 수정)
+          try {
+            const sharp = (await import('sharp')).default;
+            const rotated = await sharp(rawBuf).rotate().toBuffer();
+            attachWithBytes.push({ ...att, fileBytes: rotated });
+          } catch {
+            attachWithBytes.push({ ...att, fileBytes: rawBuf });
+          }
           continue;
         }
       } catch { /* 무시 */ }
@@ -1311,8 +1322,13 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
 
         // 첨부파일 페이지 생성 (이미지가 없으면 페이지 생성 안 함 - 빈 페이지 방지)
         if (imagesToInsert.length === 0) continue;
-        // 빈 이미지 필터링: 5KB 미만인 이미지는 빈 페이지로 간주하여 제외
-        const filteredImages = imagesToInsert.filter(img => img.length > 5000);
+        // 빈 이미지 필터링: 20KB 미만이거나 유효한 PNG/JPEG 헤더가 없으면 제외
+        const filteredImages = imagesToInsert.filter(img => {
+          if (img.length < 20000) return false;
+          const isPng = img[0] === 0x89 && img[1] === 0x50 && img[2] === 0x4E && img[3] === 0x47;
+          const isJpeg = img[0] === 0xFF && img[1] === 0xD8;
+          return isPng || isJpeg;
+        });
         if (filteredImages.length === 0) continue;
         const pageCount = filteredImages.length;
         for (let pi = 0; pi < pageCount; pi++) {

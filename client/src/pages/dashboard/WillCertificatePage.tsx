@@ -26,7 +26,7 @@ import {
   History,
   Trash2,
 } from "lucide-react";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import {
@@ -82,6 +82,23 @@ export default function WillCertificatePage() {
   const [previewZoom, setPreviewZoom] = useState(100);
   const [isPrinting, setIsPrinting] = useState(false);
   const [isDownloadingFile, setIsDownloadingFile] = useState(false);
+
+  // previewBase64 → Blob URL 변환 (data-URI 방식은 대용량 PDF에서 빈 화면 발생)
+  const previewBlobUrl = useMemo(() => {
+    if (!previewBase64) return null;
+    try {
+      const byteChars = atob(previewBase64);
+      const byteNums = new Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+      const blob = new Blob([new Uint8Array(byteNums)], { type: 'application/pdf' });
+      return URL.createObjectURL(blob);
+    } catch { return null; }
+  }, [previewBase64]);
+
+  // Blob URL 메모리 해제
+  useEffect(() => {
+    return () => { if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl); };
+  }, [previewBlobUrl]);
 
   // ── 데이터 조회 ────────────────────────────────────────────────────────────
   const { data: myWills, isLoading: willsLoading } = trpc.will.getMyWills.useQuery();
@@ -557,13 +574,13 @@ export default function WillCertificatePage() {
                   <div className="w-full h-full overflow-auto flex items-start justify-center p-4" style={{ background: "#e5e7eb" }}>
                     <div style={{ transform: `scale(${previewZoom / 100})`, transformOrigin: "top center", width: "100%", transition: "transform 0.2s ease" }}>
                       <object
-                        data={`data:application/pdf;base64,${previewBase64}`}
+                        data={previewBlobUrl ?? ''}
                         type="application/pdf"
                         className="w-full rounded-lg shadow-xl"
                         style={{ minHeight: "60vh", height: "60vh" }}
                       >
                         <iframe
-                          src={`data:application/pdf;base64,${previewBase64}`}
+                          src={previewBlobUrl ?? ''}
                           className="w-full rounded-lg shadow-xl"
                           style={{ minHeight: "60vh", height: "60vh", border: "none" }}
                           title="유언인증서 미리보기"
@@ -754,8 +771,8 @@ export default function WillCertificatePage() {
             ) : (
               <div className="w-full h-full overflow-auto flex items-start justify-center p-4" style={{ background: "#e5e7eb" }}>
                 <div style={{ transform: `scale(${previewZoom / 100})`, transformOrigin: "top center", width: "100%", transition: "transform 0.2s ease" }}>
-                  <object data={`data:application/pdf;base64,${previewBase64}`} type="application/pdf" className="w-full rounded-lg shadow-xl" style={{ minHeight: "calc(90vh - 120px)", height: "calc(90vh - 120px)" }}>
-                    <iframe src={`data:application/pdf;base64,${previewBase64}`} className="w-full rounded-lg shadow-xl" style={{ minHeight: "calc(90vh - 120px)", height: "calc(90vh - 120px)", border: "none" }} title="PDF 미리보기" />
+                  <object data={previewBlobUrl ?? ''} type="application/pdf" className="w-full rounded-lg shadow-xl" style={{ minHeight: "calc(90vh - 120px)", height: "calc(90vh - 120px)" }}>
+                    <iframe src={previewBlobUrl ?? ''} className="w-full rounded-lg shadow-xl" style={{ minHeight: "calc(90vh - 120px)", height: "calc(90vh - 120px)", border: "none" }} title="PDF 미리보기" />
                   </object>
                 </div>
               </div>

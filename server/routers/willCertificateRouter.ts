@@ -645,14 +645,20 @@ export const willCertificateRouter = router({
       const attachmentData: any[] = [];
       for (const att of attachmentRows) {
         const isImage = att.fileType && att.fileType.startsWith("image/");
+        const isPdf = att.fileType === 'application/pdf';
         let fileBytes: Buffer | null = null;
-        if (isImage && att.fileKey) {
+        if ((isImage || isPdf) && att.fileKey) {
           try {
             const signedUrl = await storageGetSignedUrl(att.fileKey);
             const res = await fetch(signedUrl);
             if (res.ok) {
               fileBytes = Buffer.from(await res.arrayBuffer());
             }
+          } catch { /* 무시 */ }
+        } else if ((isImage || isPdf) && att.fileUrl) {
+          try {
+            const res = await fetch(att.fileUrl);
+            if (res.ok) fileBytes = Buffer.from(await res.arrayBuffer());
           } catch { /* 무시 */ }
         }
         attachmentData.push({
