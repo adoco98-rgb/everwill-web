@@ -629,7 +629,22 @@ ${dateStr}
           },
         });
         const content = response.choices?.[0]?.message?.content;
-        if (content) ocrResult = typeof content === "string" ? JSON.parse(content) : content;
+        if (content) {
+          const contentStr = typeof content === "string" ? content : null;
+          try {
+            ocrResult = contentStr ? JSON.parse(contentStr) : content;
+          } catch (parseErr) {
+            // JSON 파싱 실패 시 (응답이 잘린 경우 등) 기본값 유지
+            console.error("[willAuto] OCR JSON 파싱 실패 - 기본값 사용:", parseErr);
+            // 부분적으로 파싱 가능한 내용 추출 시도
+            if (contentStr) {
+              const jsonMatch = contentStr.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                try { ocrResult = JSON.parse(jsonMatch[0]); } catch {}
+              }
+            }
+          }
+        }
       } catch (e) {
         console.error("[willAuto] OCR 실패:", e);
       }
@@ -801,6 +816,52 @@ ${dateStr}
         })
         .where(eq(willAssetScans.id, input.scanId));
       return { success: true };
+    }),
+
+  /**
+   * 공시지가 조회 - 부동산 소재지 주소로 공시지가 조회
+   * 공공데이터포털 API 키 승인 전까지는 gongsijiga-search 패키지 사용
+   */
+  lookupGongsijiga: protectedProcedure
+    .input(z.object({
+      address: z.string().min(1),
+      area: z.string().optional(),   // 면적 (㎡)
+      scanId: z.number().optional(), // 저장 시 scan DB 업데이트
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      try {
+        const { lookupGongsijiga } = await import("gongsijiga-search");
+        const result = await lookupGongsijiga(input.address);
+        const pricePerSqm = result.latest.price_per_sqm;
+        const year = result.latest.year;
+        const yoy = result.yoy_change_pct;
+        // 면적이 있으면 전체 공시가액 계산
+        const areaNum = input.area ? parseFloat(input.area.replace(/[^0-9.]/g, '')) : null;
+        const totalValue = areaNum ? Math.round(pricePerSqm * areaNum) : null;
+        const additionalInfoText = `공시지가: ${pricePerSqm.toLocaleString()}원/㎡ (${year}년 기준, 전년비 ${yoy > 0 ? '+' : ''}${yoy}%)`;
+        // scanId가 있으면 DB 업데이트
+        if (input.scanId) {
+          await db.update(willAssetScans)
+            .set({
+              additionalInfo: additionalInfoText,
+              estimatedValue: totalValue ?? undefined,
+            })
+            .where(eq(willAssetScans.id, input.scanId));
+        }
+        return {
+          success: true,
+          pricePerSqm,
+          year,
+          yoyChangePct: yoy,
+          totalValue,
+          additionalInfo: additionalInfoText,
+        };
+      } catch (e: any) {
+        console.error("[공시지가] 조회 실패:", e.message);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `공시지가 조회 실패: ${e.message}` });
+      }
     }),
 
   /**

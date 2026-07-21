@@ -320,6 +320,24 @@ export default function AssetsPage() {
     onSuccess: () => { toast.success("수정되었습니다."); setEditingScanId(null); refetchScans(); },
     onError: (err) => toast.error(err.message || "수정 실패"),
   });
+  // 공시지가 조회 mutation
+  const [gongsijigaLoading, setGongsijigaLoading] = useState<number | null>(null);
+  const lookupGongsijigaMutation = trpc.willAuto.lookupGongsijiga.useMutation({
+    onSuccess: (data, variables) => {
+      if (data.totalValue) {
+        setEditValue(String(data.totalValue));
+        toast.success(`공시가액 자동 반영: ${data.totalValue.toLocaleString()}원 (${data.additionalInfo})`);
+      } else {
+        toast.success(`공시지가: ${data.pricePerSqm.toLocaleString()}원/㎡ (${data.year}년 기준) - 면적을 입력하면 총액이 계산됩니다.`);
+      }
+      setGongsijigaLoading(null);
+      refetchScans();
+    },
+    onError: (err) => {
+      toast.error("공시지가 조회 실패: " + (err.message || "주소를 확인해주세요"));
+      setGongsijigaLoading(null);
+    },
+  });
   const [expandedScanId, setExpandedScanId] = useState<number | null>(null);
 
   // ── 자산 잠금 상태 ──
@@ -745,7 +763,34 @@ export default function AssetsPage() {
                           {!isLocked && editingScanId === scan.id && (
                             <div className="mt-2 p-2 bg-white rounded-lg space-y-2">
                               <input value={editMemo} onChange={(e) => setEditMemo(e.target.value)} placeholder="메모" className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-[#1F3864]" />
-                              <input type="number" value={editValue} onChange={(e) => setEditValue(e.target.value)} placeholder="추정가치 (원)" className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-[#1F3864]" />
+                              <div className="space-y-1">
+                                <input type="number" value={editValue} onChange={(e) => setEditValue(e.target.value)} placeholder="평가금액 (원) - 직접 입력" className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-[#1F3864]" />
+                                {/* 부동산 등기부등본인 경우 공시지가 반영 버튼 표시 */}
+                                {scan.docType === 'real_estate_registry' && scan.location && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      setGongsijigaLoading(scan.id);
+                                      lookupGongsijigaMutation.mutate({
+                                        address: scan.location!,
+                                        area: scan.area ?? undefined,
+                                        scanId: scan.id,
+                                      });
+                                    }}
+                                    disabled={gongsijigaLoading === scan.id}
+                                    className="w-full py-1.5 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold disabled:opacity-50 flex items-center justify-center gap-1"
+                                  >
+                                    {gongsijigaLoading === scan.id ? (
+                                      <><span className="animate-spin">⏳</span> 공시지가 조회 중...</>
+                                    ) : (
+                                      <>🏛 공시지가 자동 반영 ({scan.location})</>
+                                    )}
+                                  </button>
+                                )}
+                                {scan.docType === 'real_estate_registry' && !scan.location && (
+                                  <p className="text-xs text-gray-400">* 소재지 정보가 없어 공시지가 자동 조회 불가. 직접 입력해주세요.</p>
+                                )}
+                              </div>
                               <div className="flex gap-1">
                                 <button onClick={(e) => { e.preventDefault(); setEditingScanId(null); }} className="flex-1 py-1 rounded border border-gray-200 text-xs text-gray-500">닫기</button>
                                 <button onClick={(e) => { e.preventDefault(); updateScanMutation.mutate({ scanId: scan.id, userMemo: editMemo, estimatedValue: editValue ? Number(editValue) : undefined }); }} disabled={updateScanMutation.isPending} className="flex-1 py-1 rounded bg-[#1F3864] text-white text-xs disabled:opacity-50">{updateScanMutation.isPending ? "저장중" : "저장"}</button>
