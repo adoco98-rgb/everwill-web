@@ -359,9 +359,38 @@ export default function NotarizationDocsPage() {
   const analyzeMutation = trpc.docAnalyze.analyzeDocument.useMutation();
   // 인감도장 교차검증 mutation
   const compareSealMutation = trpc.docAnalyze.compareSealStamp.useMutation();
-  // 공증서류 서버 저장 mutation
-  const uploadToServerMutation = trpc.notarizationDocs.upload.useMutation();
+  // 공증서류 서버 저장 mutation (presigned URL 방식)
+  const getUploadUrlMutation = trpc.notarizationDocs.getUploadUrl.useMutation();
+  const confirmUploadMutation = trpc.notarizationDocs.confirmUpload.useMutation();
   const deleteFromServerMutation = trpc.notarizationDocs.delete.useMutation();
+
+  /** presigned URL 방식으로 파일을 S3에 직접 업로드 후 DB 저장 */
+  const uploadFileToServer = async (docId: string, docName: string, file: File) => {
+    // Step 1: presigned PUT URL 발급
+    const { presignedUrl, fileKey } = await getUploadUrlMutation.mutateAsync({
+      docId,
+      fileName: file.name,
+      mimeType: file.type || 'application/octet-stream',
+    });
+    // Step 2: 브라우저에서 직접 S3에 PUT 업로드 (서버 경유 없음)
+    const uploadResp = await fetch(presignedUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': file.type || 'application/octet-stream' },
+      body: file,
+    });
+    if (!uploadResp.ok) {
+      throw new Error(`S3 업로드 실패 (${uploadResp.status})`);
+    }
+    // Step 3: 업로드 완료 후 DB에 메타데이터 저장
+    await confirmUploadMutation.mutateAsync({
+      docId,
+      docName,
+      fileName: file.name,
+      fileSize: file.size,
+      fileKey,
+      mimeType: file.type || 'application/octet-stream',
+    });
+  };
   // 서버에서 저장된 서류 목록 조회
   const { data: serverDocs, refetch: refetchServerDocs } = trpc.notarizationDocs.list.useQuery();
   // 서버 서류를 uploadedDocs에 합치
@@ -537,24 +566,16 @@ export default function NotarizationDocsPage() {
         dataUrl: finalDataUrl,
       },
     }));
-    // 서버에 저장
+    // 서버에 저장 (presigned URL 직접 업로드)
     try {
-      const dataUrl = finalDataUrl || await fileToDataUrl(finalFile);
-      await uploadToServerMutation.mutateAsync({
-        docId,
-        docName,
-        fileName: file.name,
-        fileSize: file.size,
-        fileBase64: dataUrl,
-        mimeType: finalFile.type,
-      });
+      await uploadFileToServer(docId, docName, finalFile);
       setUploadedDocs((prev) => ({ ...prev, [docId]: { ...prev[docId], savedToServer: true } }));
       refetchServerDocs();
     } catch (err: any) {
       console.error('[공증서류 업로드 실패]', err);
       toast.error(`서버 저장 실패: ${err?.message ?? String(err)}`);
     }
-        // AI 분석 실행 (보정된 파일로)
+    // AI 분석 실행 (보정된 파일로)
     runAnalysis(docId, finalFile);
     // 인감도장 날인 업로드 시 → 인감증명서와 교차검증 자동 실행
     if (docId === 'seal_stamp') {
@@ -577,23 +598,14 @@ export default function NotarizationDocsPage() {
     if (!previewUrl && file.type === "application/pdf") {
       previewUrl = await pdfToPreviewUrl(file);
     }
-    // 서버 전송용 base64 dataUrl 미리 저장 (blob URL은 서버에서 접근 불가)
-    const dataUrl = await fileToDataUrl(file);
     setUploadedDocs((prev) => ({
       ...prev,
-      [docId]: { fileName: file.name, uploadedAt: new Date().toLocaleString("ko-KR"), previewUrl, dataUrl },
+      [docId]: { fileName: file.name, uploadedAt: new Date().toLocaleString("ko-KR"), previewUrl },
     }));
     toast.success(`${file.name} 업로드 완료. AI 분석을 시작합니다...`);
-    // 서버에 저장
+    // 서버에 저장 (presigned URL 직접 업로드)
     try {
-      await uploadToServerMutation.mutateAsync({
-        docId,
-        docName: docName || docId,
-        fileName: file.name,
-        fileSize: file.size,
-        fileBase64: dataUrl,
-        mimeType: file.type,
-      });
+      await uploadFileToServer(docId, docName || docId, file);
       setUploadedDocs((prev) => ({ ...prev, [docId]: { ...prev[docId], savedToServer: true } }));
       refetchServerDocs();
     } catch (err: any) {

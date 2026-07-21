@@ -82,10 +82,27 @@ async function convertPdfToImages(pdfBytes: Buffer): Promise<Buffer[]> {
         const nb = parseInt(b.replace(/\D/g, ''), 10);
         return na - nb;
       });
-    const images: Buffer[] = files.map((f: string) => fs.readFileSync(pathMod.join(tmpDir, f)));
+    const rawImages: Buffer[] = files.map((f: string) => fs.readFileSync(pathMod.join(tmpDir, f)));
     // 임시 파일 정리
     try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
-    console.log(`[PDF변환] pdftoppm 성공: ${images.length}페이지`);
+    // sharp로 EXIF 회전 보정 + 빈 페이지 필터링 (평균 밝기 > 252 = 거의 흰 페이지)
+    const images: Buffer[] = [];
+    try {
+      const sharp = (await import('sharp')).default;
+      for (const raw of rawImages) {
+        try {
+          const rotated = await sharp(raw).rotate().toBuffer();
+          const stats = await sharp(rotated).stats();
+          const avgMean = stats.channels.reduce((s: number, c: { mean: number }) => s + c.mean, 0) / stats.channels.length;
+          if (avgMean < 252) images.push(rotated); // 빈 페이지 제거
+        } catch {
+          images.push(raw); // sharp 실패 시 원본 사용
+        }
+      }
+    } catch {
+      images.push(...rawImages); // sharp 모듈 없으면 원본 사용
+    }
+    console.log(`[PDF변환] pdftoppm 성공: ${rawImages.length}페이지 → 필터 후 ${images.length}페이지`);
     return images;
   } catch (err1) {
     console.error('[PDF변환] pdftoppm 실패:', err1 instanceof Error ? err1.message : err1);
@@ -651,10 +668,35 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
           if (res.ok) rawBuf = Buffer.from(await res.arrayBuffer());
         }
         if (rawBuf) {
-          // sharp로 EXIF orientation 자동 보정 (거꾸로/회전 이미지 수정)
+          // sharp로 EXIF orientation 자동 보정 + 긴 세로 이미지 A4 비율 분할
           try {
             const sharp = (await import('sharp')).default;
             const rotated = await sharp(rawBuf).rotate().toBuffer();
+            const meta = await sharp(rotated).metadata();
+            const w = meta.width ?? 800;
+            const h = meta.height ?? 600;
+            // A4 비율(1:1.414) 기준 한 페이지 높이 계산
+            const pageH = Math.round(w * 1.414);
+            if (h > pageH * 1.3) {
+              // 긴 세로 이미지: A4 높이 단위로 분할
+              const slices: Buffer[] = [];
+              let yOffset = 0;
+              while (yOffset < h) {
+                const sliceH = Math.min(pageH, h - yOffset);
+                const slice = await sharp(rotated)
+                  .extract({ left: 0, top: yOffset, width: w, height: sliceH })
+                  .toBuffer();
+                // 빈 조각 필터: 평균 밝기 > 250이면 거의 흰 페이지 → 제외
+                const stats = await sharp(slice).stats();
+                const avgMean = stats.channels.reduce((s, c) => s + c.mean, 0) / stats.channels.length;
+                if (avgMean < 250) slices.push(slice);
+                yOffset += pageH;
+              }
+              if (slices.length > 0) {
+                attachWithBytes.push({ ...att, pdfImages: slices });
+                continue;
+              }
+            }
             attachWithBytes.push({ ...att, fileBytes: rotated });
           } catch {
             attachWithBytes.push({ ...att, fileBytes: rawBuf });
@@ -1275,8 +1317,13 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
       const groupOrder = ['notarization', 'asset', 'other'];
       const notarizationCats = new Set(['notarization', 'basic_cert', 'family_cert', 'resident_cert', 'health_cert', 'dementia_cert']);
       const assetCats = new Set(['bank_balance', 'real_estate_registry', 'stock_certificate', 'insurance_policy', 'bond_certificate', 'pension_statement', 'vehicle_registration', 'business_registration', 'loan_statement', 'bank', 'real_estate', 'stock', 'crypto', 'insurance', 'pension', 'other']);
-      const notarizationItems = attachList.filter(a => notarizationCats.has(a.category));
-      const assetItems = attachList.filter(a => !notarizationCats.has(a.category));
+      // category 없을 때 fallback 처리 (undefined 방지)
+      const normalizedAttachList = attachList.map(a => ({
+        ...a,
+        category: a.category ?? 'other',
+      }));
+      const notarizationItems = normalizedAttachList.filter(a => notarizationCats.has(a.category));
+      const assetItems = normalizedAttachList.filter(a => !notarizationCats.has(a.category));
       const groupedList: { groupTitle: string; items: typeof attachList }[] = [];
       if (notarizationItems.length > 0) groupedList.push({ groupTitle: config.lang === 'ko' ? '공증서류 (신원·가족·의료)' : 'Notarization Documents', items: notarizationItems });
       if (assetItems.length > 0) groupedList.push({ groupTitle: config.lang === 'ko' ? '자산 증빙서류' : 'Asset Documents', items: assetItems });
@@ -1297,7 +1344,7 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
         doc.font(fontBold).fontSize(9).fillColor(`rgb(${pr},${pg},${pb})`).text(group.groupTitle, margin + 12, ya + 6, { width: contentWidth - 16 });
         ya += 26;
 
-        group.items.forEach((att, i) => {
+        group.items.forEach((att: typeof normalizedAttachList[0], i: number) => {
           if (ya > pageHeight - 120) {
             doc.addPage();
             drawPageStamp(doc, config, sealExists);
@@ -1310,7 +1357,7 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
           doc.rect(margin, ya + 29, contentWidth, 1).fill('#E8E8E8');
           let ax2 = margin + 8;
           doc.font(fontBold).fontSize(9).fillColor(`rgb(${pr},${pg},${pb})`).text(`${globalIdx}`, ax2, ya + 10, { width: aColW[0] }); ax2 += aColW[0];
-          doc.font(fontBold).fontSize(8).fillColor('#1A1A1A').text(attachCategoryLabel(att.category, config.lang), ax2, ya + 10, { width: aColW[1] }); ax2 += aColW[1];
+          doc.font(fontBold).fontSize(8).fillColor('#1A1A1A').text(attachCategoryLabel(att.category ?? 'other', config.lang), ax2, ya + 10, { width: aColW[1] }); ax2 += aColW[1];
           const descStr = (att.description && att.description !== att.fileName) ? `${att.fileName}\n${att.description}` : att.fileName;
           doc.font(fontRegular).fontSize(8).fillColor('#333').text(descStr, ax2, ya + 6, { width: aColW[2], lineGap: 1 }); ax2 += aColW[2];
           const dateStr = att.createdAt ? new Date(att.createdAt).toLocaleDateString('ko-KR') : '-';
@@ -1350,12 +1397,16 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
 
         // 첨부파일 페이지 생성 (이미지가 없으면 페이지 생성 안 함 - 빈 페이지 방지)
         if (imagesToInsert.length === 0) continue;
-        // 빈 이미지 필터링: 20KB 미만이거나 유효한 PNG/JPEG 헤더가 없으면 제외
+        // 빈 이미지 필터링: PNG/JPEG 헤더 검증 + 크기 기준 (빈 페이지 제거)
+        // 주의: Promise 콜백 내부라 await 불가 → 동기 필터링으로 처리
         const filteredImages = imagesToInsert.filter(img => {
-          if (img.length < 20000) return false;
+          // 1차: PNG/JPEG 헤더 검증
           const isPng = img[0] === 0x89 && img[1] === 0x50 && img[2] === 0x4E && img[3] === 0x47;
           const isJpeg = img[0] === 0xFF && img[1] === 0xD8;
-          return isPng || isJpeg;
+          if (!isPng && !isJpeg) return false;
+          // 2차: 크기 기준 (빈 페이지는 일반적으로 5KB 미만)
+          if (img.length < 5000) return false;
+          return true;
         });
         if (filteredImages.length === 0) continue;
         const pageCount = filteredImages.length;
@@ -1369,16 +1420,17 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
           doc.font(fontBold).fontSize(11).fillColor(`rgb(${pr},${pg},${pb})`).text('EverWill', margin, 16);
           const pageLabel = pageCount > 1 ? ` (${pi + 1}/${pageCount})` : '';
           doc.font(fontRegular).fontSize(8).fillColor(`#888888`).text(
-            `${data.certNumber}  |  ${attachCategoryLabel(att.category, config.lang)}${pageLabel}`,
+            `${data.certNumber}  |  ${attachCategoryLabel(att.category ?? 'other', config.lang)}${pageLabel}`,
             margin, 33, { width: contentWidth, align: 'right' }
           );
 
-          // 서류 제목 (첫 페이지만)
+          // 서류 제목 (첫 페이지만) - 인쇄 친화적: 연한 배경 + 어두운 글자
           let yImg = 65;
           if (pi === 0) {
-            doc.rect(margin, yImg, contentWidth, 28).fill(`rgb(${ar},${ag},${ab})`);
-            doc.font(fontBold).fontSize(10).fillColor('white').text(
-              att.fileName || attachCategoryLabel(att.category, config.lang),
+            doc.rect(margin, yImg, contentWidth, 28).fill(`#EEF2F7`);
+            doc.rect(margin, yImg, contentWidth, 28).stroke(`#C8D4E4`).lineWidth(0.5);
+            doc.font(fontBold).fontSize(10).fillColor(`rgb(${pr},${pg},${pb})`).text(
+              att.fileName || attachCategoryLabel(att.category ?? 'other', config.lang),
               margin + 12, yImg + 8, { width: contentWidth - 24 }
             );
             yImg += 36;
