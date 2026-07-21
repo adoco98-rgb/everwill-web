@@ -453,6 +453,9 @@ export interface AssetData {
   estimatedValue?: number | null;
   currency?: string | null;
   country?: string | null;
+  additionalInfo?: string | null;  // 공시지가 등 추가 정보
+  area?: string | null;           // 면적 (부동산)
+  location?: string | null;       // 소재지 (부동산)
 }
 
 export interface HeirData {
@@ -1014,6 +1017,12 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
         doc.font(fontRegular).fontSize(8).fillColor("#333").text(valStr, ax, y2 + 8, { width: colW[3] });
         if (asset.estimatedValue) totalValue += asset.estimatedValue;
         y2 += 26;
+        // 공시지가 정보가 있으면 자산 행 아래에 작은 글씨로 표시
+        if (asset.additionalInfo && asset.additionalInfo.includes('공시지가')) {
+          doc.rect(margin, y2, contentWidth, 16).fill("#EFF6FF");
+          doc.font(fontRegular).fontSize(7).fillColor("#1D4ED8").text(`🏛 ${asset.additionalInfo}`, margin + 8, y2 + 4, { width: contentWidth - 16 });
+          y2 += 17;
+        }
       });
 
       // 합계

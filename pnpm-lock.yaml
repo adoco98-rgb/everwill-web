@@ -187,6 +187,9 @@ importers:
       framer-motion:
         specifier: ^12.23.22
         version: 12.23.22(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      gongsijiga-search:
+        specifier: ^0.1.1
+        version: 0.1.1
       html-pdf-node:
         specifier: ^1.0.8
         version: 1.0.8
@@ -3997,6 +4000,10 @@ packages:
 
   globals@15.15.0:
     resolution: {integrity: sha512-7ACyT3wmyp3I61S4fG682L0VA2RGD9otkqGJIwNUMF1SWUombIIk+af1unuDYgMm082aHYwD+mzJvv9Iu8dsgg==}
+    engines: {node: '>=18'}
+
+  gongsijiga-search@0.1.1:
+    resolution: {integrity: sha512-46RBqJt6XilF0NaZc7SL86F47x6f85hhzbIkm85GfaSb/+rxshZH0iEnVDa7VRe4S4pTDo7C1dzAR7dHZU1LbA==}
     engines: {node: '>=18'}
 
   gopd@1.2.0:
@@ -9482,6 +9489,8 @@ snapshots:
       path-is-absolute: 1.0.1
 
   globals@15.15.0: {}
+
+  gongsijiga-search@0.1.1: {}
 
   gopd@1.2.0: {}
 

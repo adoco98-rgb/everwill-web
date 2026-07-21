@@ -980,9 +980,22 @@ export default function AssetsPage() {
                         <div className="mt-3 p-3 bg-gray-50 rounded-xl text-xs text-gray-600 space-y-1">
                           {scan.ownerName && <p><span className="font-semibold">소유자:</span> {scan.ownerName}</p>}
                           {scan.assetCode && <p><span className="font-semibold">자산코드:</span> {scan.assetCode}</p>}
-                          {scan.area && <p><span className="font-semibold">면적:</span> {scan.area}</p>}
+                          {scan.area && <p><span className="font-semibold">면적:</span> {scan.area}㎡</p>}
                           {scan.beneficiary && <p><span className="font-semibold">수익자:</span> {scan.beneficiary}</p>}
-                          {scan.additionalInfo && <p><span className="font-semibold">추가정보:</span> {scan.additionalInfo}</p>}
+                          {/* 공시지가 정보 (부동산 등기부등본) */}
+                          {scan.docType === 'real_estate_registry' && scan.additionalInfo && scan.additionalInfo.includes('공시지가') && (
+                            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                              <p className="text-xs font-bold text-blue-700 mb-0.5">🏛국토교통부 공시지가 (자동 조회)</p>
+                              <p className="text-xs text-blue-600">{scan.additionalInfo}</p>
+                              {scan.estimatedValue && (
+                                <p className="text-xs font-bold text-blue-800 mt-1">
+                                  추정 공시가액: {Number(scan.estimatedValue).toLocaleString()}원
+                                  {scan.area && ` (${scan.area}㎡ 기준)`}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                          {scan.additionalInfo && !scan.additionalInfo.includes('공시지가') && <p><span className="font-semibold">추가정보:</span> {scan.additionalInfo}</p>}
                           {((scan as any).previewUrl || scan.imageUrl) && (
                             <button
                               onClick={() => setPreviewModal({ open: true, url: (scan as any).previewUrl || scan.imageUrl, label: scan.docTypeLabel || scan.docType })}

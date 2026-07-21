@@ -162,10 +162,13 @@ export const willCertificateRouter = router({
             const rawAmt = Number(String((s as any).amount || '0').replace(/[^0-9]/g, '')) || 0;
             return {
               type: s.docType ?? "other",
-              name: s.assetName || s.docTypeLabel || s.docType || "자산",
+              name: s.assetName || (s as any).location || s.docTypeLabel || s.docType || "자산",
               estimatedValue: ev > 0 ? ev : rawAmt,
               currency: "KRW",
               country: country,
+              additionalInfo: (s as any).additionalInfo ?? null,
+              area: (s as any).area ?? null,
+              location: (s as any).location ?? null,
             };
           });
 
@@ -614,10 +617,13 @@ export const willCertificateRouter = router({
             const rawAmt = Number(String((s as any).amount || '0').replace(/[^0-9]/g, '')) || 0;
             return {
               type: s.docType ?? "other",
-              name: s.assetName || s.docTypeLabel || s.docType || "자산",
+              name: s.assetName || s.location || s.docTypeLabel || s.docType || "자산",
               estimatedValue: ev > 0 ? ev : rawAmt,
               currency: "KRW",
               country: country,
+              additionalInfo: s.additionalInfo ?? null,
+              area: s.area ?? null,
+              location: s.location ?? null,
             };
           });
 

@@ -671,6 +671,37 @@ ${dateStr}
       // 사용자가 선택한 서류 유형을 강제 고정 (AI가 임의로 바꾸지 못하게)
       const validDocType = docTypeHint as typeof ASSET_DOC_TYPES[number];
 
+      // ── 부동산 등기부등본: 공시지가 자동 조회 ──────────────────────────
+      let gongsijigaData: { pricePerSqm: number; year: number; noticeDate: string; yoyChangePct: number; sourceUrl: string } | null = null;
+      let autoEstimatedValue: number | null = (() => { const v = Number(String(ocrResult.estimatedValue || "").replace(/[^0-9.]/g, "")); return isNaN(v) || v === 0 ? null : v; })();
+
+      if (validDocType === "real_estate_registry" && ocrResult.location) {
+        try {
+          const { lookupGongsijiga } = await import("gongsijiga-search");
+          const gResult = await lookupGongsijiga(ocrResult.location);
+          if (gResult?.latest?.price_per_sqm) {
+            gongsijigaData = {
+              pricePerSqm: gResult.latest.price_per_sqm,
+              year: gResult.latest.year,
+              noticeDate: gResult.latest.notice_date,
+              yoyChangePct: gResult.yoy_change_pct,
+              sourceUrl: gResult.source_url,
+            };
+            // 면적(㎡)이 있으면 공시지가 × 면적 = 공시가격 자동 계산
+            const areaNum = ocrResult.area ? Number(String(ocrResult.area).replace(/[^0-9.]/g, "")) : 0;
+            if (areaNum > 0) {
+              autoEstimatedValue = Math.round(gResult.latest.price_per_sqm * areaNum);
+            } else {
+              // 면적 없으면 공시지가만 저장 (단위: 원/㎡)
+              autoEstimatedValue = gResult.latest.price_per_sqm;
+            }
+            console.log(`[공시지가] ${ocrResult.location} → ${gResult.latest.price_per_sqm.toLocaleString()}원/㎡ (${gResult.latest.year}년), 면적 ${areaNum}㎡, 추정가 ${autoEstimatedValue?.toLocaleString()}원`);
+          }
+        } catch (gErr) {
+          console.warn("[공시지가] 조회 실패:", gErr instanceof Error ? gErr.message : gErr);
+        }
+      }
+
       await db.insert(willAssetScans).values({
         userId,
         docType: validDocType,
@@ -685,11 +716,13 @@ ${dateStr}
         location: ocrResult.location || null,
         area: ocrResult.area || null,
         beneficiary: ocrResult.beneficiary || null,
-        additionalInfo: ocrResult.additionalInfo || null,
+        additionalInfo: gongsijigaData
+          ? `공시지가: ${gongsijigaData.pricePerSqm.toLocaleString()}원/㎡ (${gongsijigaData.year}년 기준, 전년비 ${gongsijigaData.yoyChangePct > 0 ? '+' : ''}${gongsijigaData.yoyChangePct}%)`
+          : (ocrResult.additionalInfo || null),
         confidence: ocrResult.confidence || "medium",
         imageKey: savedImageKey,
         imageUrl: savedImageUrl,
-        estimatedValue: (() => { const v = Number(String(ocrResult.estimatedValue || "").replace(/[^0-9.]/g, "")); return isNaN(v) || v === 0 ? null : v; })(),
+        estimatedValue: autoEstimatedValue,
         status: "done",
         sortOrder: 0,
       });
