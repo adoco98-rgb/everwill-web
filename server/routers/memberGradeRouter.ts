@@ -102,6 +102,8 @@ export const memberGradeRouter = router({
       .select({
         id: users.id,
         name: users.name,
+        nameKo: users.nameKo,
+        nameEn: users.nameEn,
         createdAt: users.createdAt,
         qrCode: users.qrCode,
         memberGrade: users.memberGrade,
@@ -157,7 +159,8 @@ export const memberGradeRouter = router({
       allPlans: MEMBERSHIP_PLANS,
       // 회원 카드용 추가 정보
       userId: user.id,
-      userName: user.name ?? "",
+      userName: user.nameKo || user.name || "",
+      userNameEn: user.nameEn || "",
       memberSince: user.createdAt,
       qrCode: user.qrCode ?? "",
     };

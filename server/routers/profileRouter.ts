@@ -12,10 +12,13 @@ export const profileRouter = router({
   /**
    * 기본정보 저장 (로그인된 사용자 본인)
    * - 전화번호, 주소, 상세주소, 생년월일 등
+   * - nameKo(한글 성명), nameEn(영문 성명) 포함
    */
   saveBasicInfo: protectedProcedure
     .input(z.object({
       name: z.string().min(1).max(50),
+      nameKo: z.string().max(64).optional(), // 한글 성명
+      nameEn: z.string().max(64).optional(), // 영문 성명 (Latin)
       phone: z.string().max(20).optional(),
       address: z.string().optional(),
       addressDetail: z.string().optional(),
@@ -39,6 +42,8 @@ export const profileRouter = router({
 
       await db.update(users).set({
         name: input.name,
+        nameKo: input.nameKo || input.name || null,
+        nameEn: input.nameEn || null,
         phone: input.phone || null,
         address: input.address || null,
         addressDetail: input.addressDetail || null,
@@ -59,6 +64,8 @@ export const profileRouter = router({
 
     const rows = await db.select({
       name: users.name,
+      nameKo: users.nameKo,
+      nameEn: users.nameEn,
       phone: users.phone,
       email: users.email,
       address: users.address,

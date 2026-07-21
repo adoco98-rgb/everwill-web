@@ -52,7 +52,8 @@ export interface OtherAsset {
 
 export interface WillData {
   // 1. 유언자 정보
-  testatorName: string;
+  testatorName: string; // 한글 성명
+  testatorNameEn: string; // 영문 성명 (Latin)
   testatorRRN: string; // 주민등록번호
   testatorAddress: string;
   testatorPhone: string;
@@ -94,6 +95,7 @@ export interface WillData {
 
 export const initialWillData: WillData = {
   testatorName: "",
+  testatorNameEn: "",
   testatorRRN: "",
   testatorAddress: "",
   testatorPhone: "",

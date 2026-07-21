@@ -153,6 +153,7 @@ export default function MembershipPage() {
     ? new Date(gradeData.memberSince).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })
     : "-";
   const userName = gradeData?.userName || "회원";
+  const userNameEn = (gradeData as any)?.userNameEn || "";
   const features = GRADE_FEATURES[grade] ?? GRADE_FEATURES.general;
 
   return (
@@ -251,8 +252,7 @@ export default function MembershipPage() {
               <div className="flex items-center gap-2">
                 <span className="text-gray-400 text-xs w-16">영문 성명</span>
                 <span className="font-semibold text-[#1F3864] uppercase">
-                  {/* 영문 이름이 없으면 한글 이름 그대로 표시 */}
-                  {userName}
+                  {userNameEn || <span className="text-gray-400 text-xs font-normal">마이페이지에서 입력해 주세요</span>}
                 </span>
               </div>
               <div className="flex items-center gap-2">

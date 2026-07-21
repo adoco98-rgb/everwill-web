@@ -55,6 +55,11 @@ export default function Step1Testator({ will, update }: StepProps) {
       updates.testatorName = me.name;
       didFill = true;
     }
+    // 영문 성명 자동 입력 (nameEn 필드가 있는 경우)
+    if ((me as any).nameEn && !(will as any).testatorNameEn) {
+      (updates as any).testatorNameEn = (me as any).nameEn;
+      didFill = true;
+    }
     if ((me as any).phone && !will.testatorPhone) {
       updates.testatorPhone = (me as any).phone;
       const matchedCode = Object.entries(PHONE_CODE_TO_ISO).find(([, iso]) => iso === ((me as any).country || "KR"));
@@ -119,10 +124,11 @@ export default function Step1Testator({ will, update }: StepProps) {
         <strong>민법 제1066조</strong> — 자필증서 유언은 유언자가 전문·연월일·주소·성명을 자필로 기재하고 날인해야 합니다.
       </div>
 
+      {/* 한글 성명 + 영문 성명 */}
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-semibold text-[#1F3864] mb-1.5">
-            성명 <span className="text-red-500">*</span>
+            한글 성명 <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -132,6 +138,23 @@ export default function Step1Testator({ will, update }: StepProps) {
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 transition-all"
           />
         </div>
+        <div>
+          <label className="block text-sm font-semibold text-[#1F3864] mb-1.5">
+            영문 성명 <span className="text-gray-400 text-xs font-normal">(Latin Name)</span>
+          </label>
+          <input
+            type="text"
+            value={(will as any).testatorNameEn ?? ""}
+            onChange={(e) => update({ testatorNameEn: e.target.value } as any)}
+            placeholder="HONG GIL DONG"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1F3864] focus:ring-2 focus:ring-[#1F3864]/10 transition-all"
+          />
+          <p className="text-xs text-gray-400 mt-1">멤버십 카드 및 글로벌 서류에 사용됩니다</p>
+        </div>
+      </div>
+
+      {/* 주민등록번호 */}
+      <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-semibold text-[#1F3864] mb-1.5">
             주민등록번호 <span className="text-red-500">*</span>
