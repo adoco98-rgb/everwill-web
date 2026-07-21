@@ -175,9 +175,9 @@ const COUNTRY_CONFIGS: Record<string, CountryCertConfig> = {
     stampText: "EverWill\n인증완료",
     totalAssetsLabel: "총 자산 추정가",
     legalBasis: "법적 근거: 대한민국 민법 제1060조~제1072조 (유언의 방식), 전자서명법 제3조",
-    legalNote: "본 인증서는 대한민국 민법 및 전자서명법에 따라 EverWill 플랫폼에서 발급된 디지털 유언 인증 문서입니다. 본 인증서는 유언장의 존재 및 인증 사실을 증명하며, 법원·금융기관·행정기관 제출용으로 활용 가능합니다. 유언의 법적 효력은 유언자 사망 후 가정법원 검인 절차를 통해 확정됩니다. ※ 위조·변조 시 형법 제231조에 따라 처벌받을 수 있습니다.",
-    issuerName: "주식회사 에버윌 (EverWill Inc.)",
-    issuerSubtitle: "디지털 유언 인증 기관 | 사업자등록번호: 621-81-61690",
+    legalNote: "본 인증서는 대한민국 민법 및 전자서명법에 따라 EverWill 플랫폼에서 발급된 디지털 유언 인증 문서입니다. 본 인증서는 유언자가 자의로 문서를 작성하고 원본문서를 인증받아 원본과 동일함을 확인합니다. 전자유언인증 전문 플랫폼 에버윌은 본 문서의 존재 및 인증 사실을 증명하며, 법원·금융기관·행정기관 제출용으로 활용 가능합니다. ※ 위조·변조 시 형법 제231조에 따라 처벌받을 수 있습니다.",
+    issuerName: "주식회사 사람 (EverWill Inc.)",
+    issuerSubtitle: "전자유언인증 전문 플랫폼 에버윌 | 사업자등록번호: 621-81-61690",
     validityNote: "※ 본 인증서는 발급일로부터 유효하며, 유언장 수정 시 재인증이 필요합니다.",
     primaryColor: [31, 56, 100], accentColor: [201, 169, 97],
   },
@@ -974,10 +974,38 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     y += 80;
 
     // 서명란 (푸터 위 배치)
-    const signY = pageHeight - 110;
-    doc.rect(margin + contentWidth - 200, signY, 200, 1).fill("#333");
-    doc.font(fontBold).fontSize(9).fillColor("#333").text(config.signatureLabel, margin + contentWidth - 200, signY + 6, { width: 200, align: "center" });
-    doc.font(fontRegular).fontSize(8).fillColor("#555").text(config.issuerName, margin + contentWidth - 200, signY + 20, { width: 200, align: "center" });
+    const signY = pageHeight - 130;
+    // 서명란 박스
+    doc.rect(margin + contentWidth - 240, signY, 240, 80).fill("#FAFAFA");
+    doc.rect(margin + contentWidth - 240, signY, 240, 80).strokeColor("#CCCCCC").lineWidth(0.5).stroke();
+    // 발급책임자 레이블
+    doc.font(fontBold).fontSize(8).fillColor(`rgb(${pr},${pg},${pb})`)
+       .text(config.signatureLabel, margin + contentWidth - 240, signY + 8, { width: 240, align: "center" });
+    // 서명선
+    doc.moveTo(margin + contentWidth - 220, signY + 38).lineTo(margin + contentWidth - 20, signY + 38)
+       .strokeColor("#333333").lineWidth(0.5).stroke();
+    // 발급기관명
+    doc.font(fontBold).fontSize(9).fillColor("#1A1A1A")
+       .text(config.issuerName, margin + contentWidth - 240, signY + 44, { width: 240, align: "center" });
+    doc.font(fontRegular).fontSize(7).fillColor("#666666")
+       .text(config.issuerSubtitle, margin + contentWidth - 240, signY + 60, { width: 240, align: "center" });
+    // 빨간 도장 (stamp 이미지 또는 텍스트 도장)
+    const stampSignSize = 60;
+    const stampSignX = margin + contentWidth - 240 + (240 - stampSignSize) / 2;
+    const stampSignY = signY + 8;
+    if (stampExists && stampBuffer) {
+      try { doc.image(stampBuffer, stampSignX, stampSignY, { width: stampSignSize }); } catch { /* 무시 */ }
+    } else {
+      // 텍스트 도장 (빨간 원)
+      doc.save();
+      doc.circle(stampSignX + stampSignSize / 2, stampSignY + stampSignSize / 2, stampSignSize / 2)
+         .strokeColor("#CC0000").lineWidth(1.5).stroke();
+      doc.font(fontBold).fontSize(7).fillColor("#CC0000")
+         .text("EverWill", stampSignX, stampSignY + stampSignSize / 2 - 8, { width: stampSignSize, align: "center" });
+      doc.font(fontBold).fontSize(6).fillColor("#CC0000")
+         .text("인증완료", stampSignX, stampSignY + stampSignSize / 2 + 2, { width: stampSignSize, align: "center" });
+      doc.restore();
+    }
 
     // 페이지 1 스탬프
     drawPageStamp(doc, config, sealExists);

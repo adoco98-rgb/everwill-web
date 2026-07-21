@@ -295,7 +295,12 @@ export const willCertificateRouter = router({
       }
 
       // 공증서류도 첨부파일로 추가 (이미지 + PDF 모두 처리)
+      // 이미 attachmentData에 있는 fileKey와 중복되는 공증서류 제거
+      const seenFileKeys = new Set<string>(attachmentData.map(a => a.fileKey).filter(Boolean));
       for (const doc of notarizationRows) {
+        // fileKey 중복 제거 (같은 파일이 willAttachments와 notarizationDocs에 모두 있을 경우)
+        if (doc.fileKey && seenFileKeys.has(doc.fileKey)) continue;
+        if (doc.fileKey) seenFileKeys.add(doc.fileKey);
         const fname = (doc.fileName ?? doc.fileKey ?? "").toLowerCase();
         const isImage = /\.(jpg|jpeg|png|webp|gif|bmp)$/.test(fname);
         const isPdf = fname.endsWith('.pdf') || (doc.fileKey ?? '').toLowerCase().endsWith('.pdf');
@@ -734,8 +739,11 @@ export const willCertificateRouter = router({
         });
       }
 
-      // 공증서류도 첨부파일로 추가
+      // 공증서류도 첨부파일로 추가 (중복 제거)
+      const seenFileKeysPreview = new Set<string>(attachmentData.map(a => a.fileKey).filter(Boolean));
       for (const doc of notarizationRowsPreview) {
+        if (doc.fileKey && seenFileKeysPreview.has(doc.fileKey)) continue;
+        if (doc.fileKey) seenFileKeysPreview.add(doc.fileKey);
         const fname2 = (doc.fileName ?? doc.fileKey ?? "").toLowerCase();
         const isImage2 = /\.(jpg|jpeg|png|webp|gif|bmp)$/.test(fname2);
         const isPdf2 = fname2.endsWith('.pdf') || (!isImage2 && (doc.fileKey ?? '').endsWith('.pdf'));
