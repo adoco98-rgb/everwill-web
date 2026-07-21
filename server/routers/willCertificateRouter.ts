@@ -886,6 +886,24 @@ export const willCertificateRouter = router({
     }),
 
   /**
+   * 인증서 삭제 (테스트용 포함)
+   */
+  deleteCertificate: protectedProcedure
+    .input(z.object({ certificateId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
+      const [cert] = await db
+        .select({ id: willCertificates.id, userId: willCertificates.userId })
+        .from(willCertificates)
+        .where(and(eq(willCertificates.id, input.certificateId), eq(willCertificates.userId, ctx.user.id)))
+        .limit(1);
+      if (!cert) throw new TRPCError({ code: "NOT_FOUND", message: "인증서를 찾을 수 없습니다" });
+      await db.delete(willCertificates).where(eq(willCertificates.id, input.certificateId));
+      return { success: true };
+    }),
+
+  /**
    * 인증서 출력(다운로드) 일시 기록
    */
   recordPrint: protectedProcedure

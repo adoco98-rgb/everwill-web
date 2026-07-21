@@ -24,6 +24,7 @@ import {
   ChevronRight,
   Award,
   History,
+  Trash2,
 } from "lucide-react";
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
@@ -96,6 +97,15 @@ export default function WillCertificatePage() {
   // ── 뮤테이션 ───────────────────────────────────────────────────────────────
   const recordPrintMutation = trpc.willCertificate.recordPrint.useMutation({
     onSuccess: () => refetch(),
+  });
+
+  const utils = trpc.useUtils();
+  const deleteCertMutation = trpc.willCertificate.deleteCertificate.useMutation({
+    onSuccess: () => {
+      utils.willCertificate.getMyList.invalidate();
+      toast.success("인증서가 삭제되었습니다");
+    },
+    onError: (e) => toast.error(e.message || "삭제에 실패했습니다"),
   });
 
   const applyMutation = trpc.willCertificate.requestCertificate.useMutation({
@@ -682,6 +692,17 @@ export default function WillCertificatePage() {
                           다시 보기
                         </button>
                       )}
+                      <button
+                        onClick={() => {
+                          if (confirm("이 인증서를 삭제하시겠습니까?")) {
+                            deleteCertMutation.mutate({ certificateId: cert.id });
+                          }
+                        }}
+                        disabled={deleteCertMutation.isPending}
+                        className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600 px-2 py-1 rounded border border-red-200 hover:border-red-400 transition-colors disabled:opacity-50"
+                      >
+                        <Trash2 className="w-3 h-3" /> 삭제
+                      </button>
                     </div>
                   </div>
                 </div>
