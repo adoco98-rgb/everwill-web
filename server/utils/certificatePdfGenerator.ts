@@ -539,12 +539,14 @@ function drawSectionHeader(
 ): number {
   const [pr, pg, pb] = config.primaryColor;
   const [ar, ag, ab] = config.accentColor;
-  doc.rect(margin, y, contentWidth, 28).fill(`rgb(${pr},${pg},${pb})`);
-  doc.rect(margin, y, 4, 28).fill(`rgb(${ar},${ag},${ab})`);
+  // 인쇄 친화적: 연한 배경 + 어두운 텍스트 (잉크 절약)
+  doc.rect(margin, y, contentWidth, 28).fill(`#F0F4F8`);
+  doc.rect(margin, y, contentWidth, 28).stroke(`#D0D8E4`).lineWidth(0.5);
+  doc.rect(margin, y, 4, 28).fill(`rgb(${pr},${pg},${pb})`);
   doc
     .font(fontBold)
     .fontSize(10)
-    .fillColor("white")
+    .fillColor(`rgb(${pr},${pg},${pb})`)
     .text(title, margin + 12, y + 8, { width: contentWidth - 24 });
   return y + 36;
 }
@@ -864,32 +866,32 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     // ════════════════════════════════════════════════════════════════════
     doc.addPage();
 
-    // 배경 헤더
-    doc.rect(0, 0, pageWidth, 150).fill(`rgb(${pr},${pg},${pb})`);
-    doc.rect(0, pageHeight - 100, pageWidth, 100).fill(`rgb(${pr},${pg},${pb})`);
-    doc.rect(0, 150, pageWidth, 4).fill(`rgb(${ar},${ag},${ab})`);
-    doc.rect(0, pageHeight - 104, pageWidth, 4).fill(`rgb(${ar},${ag},${ab})`);
+    // 배경 헤더 (인쇄 친화적: 흰 배경 + 골드 상단 라인 + 네이비 하단 라인)
+    doc.rect(0, 0, pageWidth, 150).fill(`#FFFFFF`);
+    doc.rect(0, 0, pageWidth, 6).fill(`rgb(${ar},${ag},${ab})`);
+    doc.rect(0, 148, pageWidth, 2).fill(`rgb(${ar},${ag},${ab})`);
+    // 하단 푸터 영역도 흰 배경 (기존 100px 네이비 제거)
+    doc.rect(0, pageHeight - 60, pageWidth, 60).fill(`#FFFFFF`);
+    doc.rect(0, pageHeight - 62, pageWidth, 2).fill(`rgb(${ar},${ag},${ab})`);
 
-    // 페이지 1 푸터: EverWill 로고만 (PDFKit 커서 이동 최소화)
-    // 주의: doc.text()로 pageHeight 근처 글자를 그리면 커서가 페이지 하단으로 이동해 새 페이지가 자동 생성됨
-    // 따라서 푸터 텍스트는 최소한으로 유지하고 커서를 헤더 영역(y=30)으로 복원
-    (doc as any).y = 30;
+    // 커서를 헤더 영역으로 설정
+    (doc as any).y = 20;
 
     // EverWill 로고
-    doc.font(fontBold).fontSize(14).fillColor(`rgb(${ar},${ag},${ab})`).text("EverWill", margin, 30, { align: "left" });
+    doc.font(fontBold).fontSize(14).fillColor(`rgb(${pr},${pg},${pb})`).text("EverWill", margin, 20, { align: "left" });
 
     // 국가 배지
-    doc.roundedRect(pageWidth - margin - 55, 24, 55, 22, 4).fill("rgba(255,255,255,0.15)");
-    doc.font(fontBold).fontSize(9).fillColor("white").text(data.country.toUpperCase(), pageWidth - margin - 55, 30, { width: 55, align: "center" });
+    doc.roundedRect(pageWidth - margin - 55, 14, 55, 22, 4).fill(`rgb(${pr},${pg},${pb})`);
+    doc.font(fontBold).fontSize(9).fillColor("white").text(data.country.toUpperCase(), pageWidth - margin - 55, 20, { width: 55, align: "center" });
 
     // 메인 제목
-    doc.font(fontBold).fontSize(22).fillColor("white").text(config.title, margin, 60, { width: contentWidth, align: "center" });
-    doc.font(fontRegular).fontSize(9).fillColor("rgba(255,255,255,0.8)").text(config.subtitle, margin, 96, { width: contentWidth, align: "center" });
-    doc.font(fontBold).fontSize(8).fillColor(`rgb(${ar},${ag},${ab})`).text("OFFICIAL AUTHENTICATION DOCUMENT", margin, 122, { width: contentWidth, align: "center" });
+    doc.font(fontBold).fontSize(22).fillColor(`rgb(${pr},${pg},${pb})`).text(config.title, margin, 50, { width: contentWidth, align: "center" });
+    doc.font(fontRegular).fontSize(9).fillColor(`#555555`).text(config.subtitle, margin, 86, { width: contentWidth, align: "center" });
+    doc.font(fontBold).fontSize(8).fillColor(`rgb(${ar},${ag},${ab})`).text("OFFICIAL AUTHENTICATION DOCUMENT", margin, 112, { width: contentWidth, align: "center" });
 
     // 씰 이미지 (헤더 우측)
     if (sealExists && sealBuffer) {
-      try { doc.image(sealBuffer, pageWidth - margin - 70, 30, { width: 60 }); } catch { /* 무시 */ }
+      try { doc.image(sealBuffer, pageWidth - margin - 70, 10, { width: 60 }); } catch { /* 무시 */ }
     }
 
     // 인증번호 박스
@@ -949,8 +951,8 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     doc.font(fontRegular).fontSize(7.5).fillColor("#444").text(config.legalNote, margin, y, { width: contentWidth, align: "justify", lineGap: 2 });
     y += 80;
 
-    // 서명란
-    const signY = pageHeight - 155;
+    // 서명란 (푸터 위 배치)
+    const signY = pageHeight - 110;
     doc.rect(margin + contentWidth - 200, signY, 200, 1).fill("#333");
     doc.font(fontBold).fontSize(9).fillColor("#333").text(config.signatureLabel, margin + contentWidth - 200, signY + 6, { width: 200, align: "center" });
     doc.font(fontRegular).fontSize(8).fillColor("#555").text(config.issuerName, margin + contentWidth - 200, signY + 20, { width: 200, align: "center" });
@@ -964,12 +966,12 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     doc.addPage();
     drawPageStamp(doc, config, sealExists);
 
-    // 페이지 헤더
-    doc.rect(0, 0, pageWidth, 50).fill(`rgb(${pr},${pg},${pb})`);
-    doc.rect(0, 50, pageWidth, 3).fill(`rgb(${ar},${ag},${ab})`);
-    doc.font(fontBold).fontSize(11).fillColor(`rgb(${ar},${ag},${ab})`).text("EverWill", margin, 16);
-    doc.font(fontRegular).fontSize(9).fillColor("rgba(255,255,255,0.8)").text(config.title, margin + 80, 18, { width: contentWidth - 80 });
-    doc.font(fontRegular).fontSize(8).fillColor("rgba(255,255,255,0.6)").text(`${data.certNumber}  |  Page 2`, margin, 33, { width: contentWidth, align: "right" });
+    // 페이지 헤더 (인쇄 친화적: 흰 배경 + 하단 얇은 선)
+    doc.rect(0, 0, pageWidth, 50).fill(`#FFFFFF`);
+    doc.rect(0, 48, pageWidth, 2).fill(`rgb(${ar},${ag},${ab})`);
+    doc.font(fontBold).fontSize(11).fillColor(`rgb(${pr},${pg},${pb})`).text("EverWill", margin, 16);
+    doc.font(fontRegular).fontSize(9).fillColor(`#555555`).text(config.title, margin + 80, 18, { width: contentWidth - 80 });
+    doc.font(fontRegular).fontSize(8).fillColor(`#888888`).text(`${data.certNumber}  |  Page 2`, margin, 33, { width: contentWidth, align: "right" });
 
     let y2 = 70;
 
@@ -1098,11 +1100,11 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
       // 전 페이지 스탬프
       drawPageStamp(doc, config, sealExists);
 
-      // 페이지 헤더
-      doc.rect(0, 0, pageWidth, 50).fill(`rgb(${pr},${pg},${pb})`);
-      doc.rect(0, 50, pageWidth, 3).fill(`rgb(${ar},${ag},${ab})`);
-      doc.font(fontBold).fontSize(11).fillColor(`rgb(${ar},${ag},${ab})`).text("EverWill", margin, 16);
-      doc.font(fontRegular).fontSize(8).fillColor("rgba(255,255,255,0.6)").text(`${data.certNumber}  |  Page (Will Text)`, margin, 33, { width: contentWidth, align: "right" });
+      // 페이지 헤더 (인쇄 친화적: 흰 배경)
+      doc.rect(0, 0, pageWidth, 50).fill(`#FFFFFF`);
+      doc.rect(0, 48, pageWidth, 2).fill(`rgb(${ar},${ag},${ab})`);
+      doc.font(fontBold).fontSize(11).fillColor(`rgb(${pr},${pg},${pb})`).text("EverWill", margin, 16);
+      doc.font(fontRegular).fontSize(8).fillColor(`#888888`).text(`${data.certNumber}  |  Page (Will Text)`, margin, 33, { width: contentWidth, align: "right" });
 
       let yw = 70;
       yw = drawSectionHeader(doc, config.willTextTitle, yw, margin, contentWidth, config, fontBold);
@@ -1188,10 +1190,11 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
       doc.addPage();
       drawPageStamp(doc, config, sealExists);
 
-      doc.rect(0, 0, pageWidth, 50).fill(`rgb(${pr},${pg},${pb})`);
-      doc.rect(0, 50, pageWidth, 3).fill(`rgb(${ar},${ag},${ab})`);
-      doc.font(fontBold).fontSize(11).fillColor(`rgb(${ar},${ag},${ab})`).text("EverWill", margin, 16);
-      doc.font(fontRegular).fontSize(8).fillColor("rgba(255,255,255,0.6)").text(`${data.certNumber}  |  Attachments`, margin, 33, { width: contentWidth, align: "right" });
+      // 체부 목록 페이지 헤더 (인쇄 친화적)
+      doc.rect(0, 0, pageWidth, 50).fill(`#FFFFFF`);
+      doc.rect(0, 48, pageWidth, 2).fill(`rgb(${ar},${ag},${ab})`);
+      doc.font(fontBold).fontSize(11).fillColor(`rgb(${pr},${pg},${pb})`).text("EverWill", margin, 16);
+      doc.font(fontRegular).fontSize(8).fillColor(`#888888`).text(`${data.certNumber}  |  Attachments`, margin, 33, { width: contentWidth, align: "right" });
 
       let ya = 70;
       ya = drawSectionHeader(doc, config.attachmentSectionTitle, ya, margin, contentWidth, config, fontBold);
@@ -1243,10 +1246,11 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
 
       ya += 20;
 
-      // 합계 요약
-      doc.rect(margin, ya, contentWidth, 30).fill(`rgb(${pr},${pg},${pb})`);
-      const totalLabel = config.lang === "ko" ? `총 ${attachList.length}건의 증빙서류가 첨부되어 있습니다.` : `Total ${attachList.length} supporting document(s) attached.`;
-      doc.font(fontBold).fontSize(9).fillColor("white").text(totalLabel, margin + 12, ya + 10, { width: contentWidth - 24 });
+      // 합계 요약 (인쇄 친화적: 연한 배경)
+      doc.rect(margin, ya, contentWidth, 30).fill(`#F0F4F8`);
+      doc.rect(margin, ya, contentWidth, 30).stroke(`#D0D8E4`).lineWidth(0.5);
+      const totalLabel = config.lang === "ko" ? `옵 ${attachList.length}건의 증빙서류가 체부되어 있습니다.` : `Total ${attachList.length} supporting document(s) attached.`;
+      doc.font(fontBold).fontSize(9).fillColor(`rgb(${pr},${pg},${pb})`).text(totalLabel, margin + 12, ya + 10, { width: contentWidth - 24 });
       ya += 42;
 
       // ── 실제 첨부파일 내용 삽입 (이미지 파일) ──────────────────────────────
@@ -1267,17 +1271,20 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
 
         // 첨부파일 페이지 생성 (이미지가 없으면 페이지 생성 안 함 - 빈 페이지 방지)
         if (imagesToInsert.length === 0) continue;
-        const pageCount = imagesToInsert.length;
+        // 빈 이미지 필터링: 5KB 미만인 이미지는 빈 페이지로 간주하여 제외
+        const filteredImages = imagesToInsert.filter(img => img.length > 5000);
+        if (filteredImages.length === 0) continue;
+        const pageCount = filteredImages.length;
         for (let pi = 0; pi < pageCount; pi++) {
           doc.addPage();
           drawPageStamp(doc, config, sealExists);
 
-          // 페이지 헤더
-          doc.rect(0, 0, pageWidth, 50).fill(`rgb(${pr},${pg},${pb})`);
-          doc.rect(0, 50, pageWidth, 3).fill(`rgb(${ar},${ag},${ab})`);
-          doc.font(fontBold).fontSize(11).fillColor(`rgb(${ar},${ag},${ab})`).text('EverWill', margin, 16);
+          // 페이지 헤더 (인쇄 친화적: 흰 배경)
+          doc.rect(0, 0, pageWidth, 50).fill(`#FFFFFF`);
+          doc.rect(0, 48, pageWidth, 2).fill(`rgb(${ar},${ag},${ab})`);
+          doc.font(fontBold).fontSize(11).fillColor(`rgb(${pr},${pg},${pb})`).text('EverWill', margin, 16);
           const pageLabel = pageCount > 1 ? ` (${pi + 1}/${pageCount})` : '';
-          doc.font(fontRegular).fontSize(8).fillColor('rgba(255,255,255,0.6)').text(
+          doc.font(fontRegular).fontSize(8).fillColor(`#888888`).text(
             `${data.certNumber}  |  ${attachCategoryLabel(att.category, config.lang)}${pageLabel}`,
             margin, 33, { width: contentWidth, align: 'right' }
           );
@@ -1297,12 +1304,12 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
             }
           }
 
-          // 이미지 삽입
+          // 이미지 삽입 (filteredImages 사용)
           const maxImgH = pageHeight - yImg - 80;
           const maxImgW = contentWidth;
-          if (imagesToInsert.length > 0) {
+          if (filteredImages.length > 0) {
             try {
-              doc.image(imagesToInsert[pi], margin, yImg, { fit: [maxImgW, maxImgH], align: 'center' });
+              doc.image(filteredImages[pi], margin, yImg, { fit: [maxImgW, maxImgH], align: 'center' });
             } catch (imgErr) {
               console.error('[PDF] 체부 이미지 삽입 실패:', imgErr instanceof Error ? imgErr.message : imgErr);
               doc.font(fontRegular).fontSize(9).fillColor('#CC0000').text(
@@ -1322,14 +1329,15 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
             );
           }
 
-          // EverWill 인증 스탬프 (우하단)
+          // EverWill 인증 스탬프 (우하단, 인쇄 친화적: 흰 배경 + 테두리)
           const sx2 = pageWidth - margin - 120;
           const sy2 = pageHeight - 90;
           doc.save();
           doc.opacity(0.85);
-          doc.rect(sx2, sy2, 120, 40).fill(`rgb(${pr},${pg},${pb})`);
-          doc.font(fontBold).fontSize(9).fillColor(`rgb(${ar},${ag},${ab})`).text('EverWill 인증', sx2 + 8, sy2 + 6, { width: 104, align: 'center' });
-          doc.font(fontRegular).fontSize(7).fillColor('white').text(data.certNumber, sx2 + 8, sy2 + 22, { width: 104, align: 'center' });
+          doc.rect(sx2, sy2, 120, 40).fill(`#FFFFFF`);
+          doc.rect(sx2, sy2, 120, 40).stroke(`rgb(${pr},${pg},${pb})`).lineWidth(1);
+          doc.font(fontBold).fontSize(9).fillColor(`rgb(${pr},${pg},${pb})`).text('EverWill 인증', sx2 + 8, sy2 + 6, { width: 104, align: 'center' });
+          doc.font(fontRegular).fontSize(7).fillColor(`#555555`).text(data.certNumber, sx2 + 8, sy2 + 22, { width: 104, align: 'center' });
           doc.restore();
         }
       }
