@@ -294,37 +294,33 @@ export const willCertificateRouter = router({
         });
       }
 
-      // 공증서류도 첨부파일로 추가
+      // 공증서류도 첨부파일로 추가 (이미지 + PDF 모두 처리)
       for (const doc of notarizationRows) {
-        // 파일명으로 이미지 여부 판단 (fileType 커럼 없음)
         const fname = (doc.fileName ?? doc.fileKey ?? "").toLowerCase();
         const isImage = /\.(jpg|jpeg|png|webp|gif|bmp)$/.test(fname);
+        const isPdf = fname.endsWith('.pdf') || (doc.fileKey ?? '').toLowerCase().endsWith('.pdf');
+        const shouldFetch = isImage || isPdf;
         let fileBytes: Buffer | null = null;
-        if (isImage) {
+        if (shouldFetch) {
           try {
-            // presigned URL 시도
             if (doc.fileKey) {
               const signedUrl = await storageGetSignedUrl(doc.fileKey);
               const res = await fetch(signedUrl);
-              if (res.ok) {
-                fileBytes = Buffer.from(await res.arrayBuffer());
-              }
+              if (res.ok) fileBytes = Buffer.from(await res.arrayBuffer());
             }
-            // presigned URL 실패 시 fileUrl 직접 fallback
             if (!fileBytes && doc.fileUrl) {
               const res2 = await fetch(doc.fileUrl);
-              if (res2.ok) {
-                fileBytes = Buffer.from(await res2.arrayBuffer());
-              }
+              if (res2.ok) fileBytes = Buffer.from(await res2.arrayBuffer());
             }
           } catch { /* 무시 */ }
         }
-        // 실제 fileType 추정
-        const detectedFileType = isImage
-          ? (fname.endsWith('.png') ? 'image/png' : fname.endsWith('.webp') ? 'image/webp' : 'image/jpeg')
-          : 'application/pdf';
+        const detectedFileType = isPdf
+          ? 'application/pdf'
+          : isImage
+            ? (fname.endsWith('.png') ? 'image/png' : fname.endsWith('.webp') ? 'image/webp' : 'image/jpeg')
+            : 'application/octet-stream';
         attachmentData.push({
-          fileName: doc.fileName ?? doc.docName ?? "공증서류",
+          fileName: doc.docName ?? doc.fileName ?? "공증서류",
           fileType: detectedFileType,
           category: "notarization",
           description: doc.docName ?? undefined,
@@ -759,7 +755,7 @@ export const willCertificateRouter = router({
           ? (fname2.endsWith('.png') ? 'image/png' : fname2.endsWith('.webp') ? 'image/webp' : 'image/jpeg')
           : 'application/pdf';
         attachmentData.push({
-          fileName: doc.fileName ?? doc.docName ?? "공증서류",
+          fileName: doc.docName ?? doc.fileName ?? "공증서류",
           fileType: detectedFileType2,
           category: "notarization",
           description: doc.docName ?? undefined,

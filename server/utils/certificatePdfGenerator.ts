@@ -615,6 +615,13 @@ function attachCategoryLabel(cat: string, lang: string): string {
     business_registration: { ko: "사업자등록증", en: "Business Registration", ja: "事業登録証明書", zh: "业务登记证" },
     artwork_certificate:   { ko: "예술품 감정서", en: "Artwork Certificate", ja: "美術品鑑定書", zh: "艺术品证书" },
     other_document:        { ko: "기타 증빙서류", en: "Other Document", ja: "その他書類", zh: "其他文件" },
+    // 공증서류 카테고리
+    notarization:          { ko: "공증서류", en: "Notarization Document", ja: "公証書類", zh: "公证文件" },
+    basic_cert:            { ko: "기본증명서", en: "Basic Certificate", ja: "基本証明書", zh: "基本证明书" },
+    family_cert:           { ko: "가족관계증명서", en: "Family Relations Certificate", ja: "家族関係証明書", zh: "家庭关系证明书" },
+    resident_cert:         { ko: "주민등록등본", en: "Resident Registration", ja: "住民登録謄本", zh: "居民登记证明书" },
+    health_cert:           { ko: "건강증명서", en: "Health Certificate", ja: "健康証明書", zh: "健康证明书" },
+    dementia_cert:         { ko: "치매 검진 결과서", en: "Dementia Screening Result", ja: "認知症検査結果", zh: "痴呆筛查结果" },
   };
   const l = lang === "ko" ? "ko" : lang === "ja" ? "ja" : lang === "zh" ? "zh" : "en";
   return map[cat]?.[l] ?? cat;
@@ -761,7 +768,7 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     const titleH   = 32 + 24; // 제목(22pt) + 서브(9pt) 두 줄
     const divH     = 54;      // 구분선까지
     const confirmH = 16 + 18 + 18; // 확인 문구 두 줄
-    const boxH     = 193;
+    const boxH     = 253;  // 행 6개 (발급일, 인증번호, 유언자, 생년월일, 주소, 발급목적)
     const totalContentH = sealSize + 10 + titleH + divH + confirmH + 85 + boxH;
     // 상단 골드바(14) ~ 하단 네이비바(83) 사이 가용 영역
     const availableTop    = 14;
@@ -830,12 +837,16 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
           ["발  급  일", certDateStrCover],
           ["인 증 번 호", data.certNumber],
           ["유  언  자", data.testatorName],
+          ["생 년 월 일", data.testatorBirthDate ?? "-"],
+          ["주      소", data.testatorAddress ?? "-"],
           ["발 급 목 적", data.purpose],
         ]
       : [
           ["Issued Date",    certDateStrCover],
           ["Certificate No", data.certNumber],
           ["Testator",       data.testatorName],
+          ["Date of Birth",  data.testatorBirthDate ?? "-"],
+          ["Address",        data.testatorAddress ?? "-"],
           ["Purpose",        data.purpose],
         ];
     const rowH = boxH / coverRows.length;
@@ -1221,28 +1232,57 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
       });
       ya += 22;
 
-      attachList.forEach((att, i) => {
-        if (ya > pageHeight - 120) {
+      // 카테고리별 그룹핑: 공증서류 → 자산서류 → 기타
+      const groupOrder = ['notarization', 'asset', 'other'];
+      const notarizationCats = new Set(['notarization', 'basic_cert', 'family_cert', 'resident_cert', 'health_cert', 'dementia_cert']);
+      const assetCats = new Set(['bank_balance', 'real_estate_registry', 'stock_certificate', 'insurance_policy', 'bond_certificate', 'pension_statement', 'vehicle_registration', 'business_registration', 'loan_statement', 'bank', 'real_estate', 'stock', 'crypto', 'insurance', 'pension', 'other']);
+      const notarizationItems = attachList.filter(a => notarizationCats.has(a.category));
+      const assetItems = attachList.filter(a => !notarizationCats.has(a.category));
+      const groupedList: { groupTitle: string; items: typeof attachList }[] = [];
+      if (notarizationItems.length > 0) groupedList.push({ groupTitle: config.lang === 'ko' ? '공증서류 (신원·가족·의료)' : 'Notarization Documents', items: notarizationItems });
+      if (assetItems.length > 0) groupedList.push({ groupTitle: config.lang === 'ko' ? '자산 증빙서류' : 'Asset Documents', items: assetItems });
+
+      let globalIdx = 1;
+      for (const group of groupedList) {
+        // 그룹 서브 헤더
+        if (ya > pageHeight - 80) {
           doc.addPage();
           drawPageStamp(doc, config, sealExists);
-          doc.rect(0, 0, pageWidth, 50).fill(`rgb(${pr},${pg},${pb})`);
-          doc.rect(0, 50, pageWidth, 3).fill(`rgb(${ar},${ag},${pb})`);
-          doc.font(fontBold).fontSize(11).fillColor(`rgb(${ar},${ag},${ab})`).text("EverWill", margin, 16);
+          doc.rect(0, 0, pageWidth, 50).fill('#FFFFFF');
+          doc.rect(0, 48, pageWidth, 2).fill(`rgb(${ar},${ag},${ab})`);
+          doc.font(fontBold).fontSize(11).fillColor(`rgb(${pr},${pg},${pb})`).text('EverWill', margin, 16);
           ya = 70;
         }
-        doc.rect(margin, ya, contentWidth, 30).fill(i % 2 === 0 ? "#FAFAFA" : "#FFFFFF");
-        doc.rect(margin, ya + 29, contentWidth, 1).fill("#E8E8E8");
-        let ax2 = margin + 8;
-        doc.font(fontBold).fontSize(9).fillColor(`rgb(${pr},${pg},${pb})`).text(`${i + 1}`, ax2, ya + 10, { width: aColW[0] }); ax2 += aColW[0];
-        doc.font(fontBold).fontSize(8).fillColor("#1A1A1A").text(attachCategoryLabel(att.category, config.lang), ax2, ya + 10, { width: aColW[1] }); ax2 += aColW[1];
-        const descStr = (att.description && att.description !== att.fileName) ? `${att.fileName}\n${att.description}` : att.fileName;
-        doc.font(fontRegular).fontSize(8).fillColor("#333").text(descStr, ax2, ya + 6, { width: aColW[2], lineGap: 1 }); ax2 += aColW[2];
-        const dateStr = att.createdAt ? new Date(att.createdAt).toLocaleDateString("ko-KR") : "-";
-        doc.font(fontRegular).fontSize(8).fillColor("#666").text(dateStr, ax2, ya + 10, { width: aColW[3] }); ax2 += aColW[3];
-        const verStr = att.verified ? "✓" : "○";
-        doc.font(fontBold).fontSize(10).fillColor(att.verified ? "#16A34A" : "#999").text(verStr, ax2, ya + 9, { width: aColW[4] });
-        ya += 30;
-      });
+        doc.rect(margin, ya, contentWidth, 22).fill('#EEF2F8');
+        doc.rect(margin, ya, 4, 22).fill(`rgb(${pr},${pg},${pb})`);
+        doc.font(fontBold).fontSize(9).fillColor(`rgb(${pr},${pg},${pb})`).text(group.groupTitle, margin + 12, ya + 6, { width: contentWidth - 16 });
+        ya += 26;
+
+        group.items.forEach((att, i) => {
+          if (ya > pageHeight - 120) {
+            doc.addPage();
+            drawPageStamp(doc, config, sealExists);
+            doc.rect(0, 0, pageWidth, 50).fill('#FFFFFF');
+            doc.rect(0, 48, pageWidth, 2).fill(`rgb(${ar},${ag},${ab})`);
+            doc.font(fontBold).fontSize(11).fillColor(`rgb(${pr},${pg},${pb})`).text('EverWill', margin, 16);
+            ya = 70;
+          }
+          doc.rect(margin, ya, contentWidth, 30).fill(i % 2 === 0 ? '#FAFAFA' : '#FFFFFF');
+          doc.rect(margin, ya + 29, contentWidth, 1).fill('#E8E8E8');
+          let ax2 = margin + 8;
+          doc.font(fontBold).fontSize(9).fillColor(`rgb(${pr},${pg},${pb})`).text(`${globalIdx}`, ax2, ya + 10, { width: aColW[0] }); ax2 += aColW[0];
+          doc.font(fontBold).fontSize(8).fillColor('#1A1A1A').text(attachCategoryLabel(att.category, config.lang), ax2, ya + 10, { width: aColW[1] }); ax2 += aColW[1];
+          const descStr = (att.description && att.description !== att.fileName) ? `${att.fileName}\n${att.description}` : att.fileName;
+          doc.font(fontRegular).fontSize(8).fillColor('#333').text(descStr, ax2, ya + 6, { width: aColW[2], lineGap: 1 }); ax2 += aColW[2];
+          const dateStr = att.createdAt ? new Date(att.createdAt).toLocaleDateString('ko-KR') : '-';
+          doc.font(fontRegular).fontSize(8).fillColor('#666').text(dateStr, ax2, ya + 10, { width: aColW[3] }); ax2 += aColW[3];
+          const verStr = att.verified ? '✓' : '○';
+          doc.font(fontBold).fontSize(10).fillColor(att.verified ? '#16A34A' : '#999').text(verStr, ax2, ya + 9, { width: aColW[4] });
+          ya += 30;
+          globalIdx++;
+        });
+        ya += 8;
+      }
 
       ya += 20;
 
