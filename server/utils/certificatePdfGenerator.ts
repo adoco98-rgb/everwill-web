@@ -1325,28 +1325,7 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
         }
       }
 
-      // 하단 법적 고지: 이미지 루프 이후 현재 페이지 좌표 기준으로 새 위치 계산
-      // (이미지 루프에서 addPage()가 여러 번 호출되어 ya는 이전 페이지 좌표일 수 있음)
-      const legalNoteText = config.lang === "ko"
-        ? "※ 본 첨부서류 목록은 유언자가 직접 업로드한 파일의 목록입니다. EverWill은 서류의 진위 여부를 보증하지 않으며, 최종 법적 효력은 관할 법원의 판단에 따릅니다."
-        : "* This attachment list records files directly uploaded by the testator. EverWill does not guarantee the authenticity of documents; final legal validity is subject to court determination.";
-      // 현재 페이지에서 ya가 유효한 범위인지 확인
-      const currentY = doc.y;
-      const legalY = Math.max(ya, currentY + 10);
-      if (legalY < pageHeight - 60) {
-        doc.font(fontRegular).fontSize(7.5).fillColor("#888").text(
-          legalNoteText,
-          margin, legalY, { width: contentWidth }
-        );
-      } else {
-        // 공간 부족 시 새 페이지에 출력
-        doc.addPage();
-        drawPageStamp(doc, config, sealExists);
-        doc.font(fontRegular).fontSize(7.5).fillColor("#888").text(
-          legalNoteText,
-          margin, 70, { width: contentWidth }
-        );
-      }
+      // 면책 문구 제거됨
     }
 
     doc.end();
