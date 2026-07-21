@@ -1,15 +1,19 @@
 /**
- * 멤버십 카드 선택 + 승급 자동 계산 결제 화면
- * - 현재 등급 표시
- * - 상위 등급 카드 선택 시 차액 + 수수료 자동 계산
- * - Stripe 체크아웃으로 결제
+ * 멤버십 카드 페이지
+ * - 내 에버윌 인증 카드 (회원번호, 등록일, 한글 이름, QR 코드)
+ * - 결제 내역 표시
+ * - 멤버십 등급 업그레이드
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Star, Zap, Shield, ArrowRight, Loader2 } from "lucide-react";
+import {
+  Check, Crown, Star, Zap, Shield, Loader2, ArrowRight,
+  CreditCard, User
+} from "lucide-react";
 import { MEMBERSHIP_PLANS, GRADE_ORDER, calculateUpgradePrice, type MemberGrade } from "@shared/membershipProducts";
+import QRCode from "qrcode";
 
 /** 등급별 카드 아이콘 */
 const GRADE_ICONS: Record<string, React.ReactNode> = {
@@ -17,10 +21,12 @@ const GRADE_ICONS: Record<string, React.ReactNode> = {
   gold: <Star className="w-6 h-6" />,
   platinum: <Zap className="w-6 h-6" />,
   vip: <Crown className="w-6 h-6" />,
+  general: <User className="w-6 h-6" />,
 };
 
 /** 등급별 카드 그라디언트 */
 const CARD_GRADIENTS: Record<string, string> = {
+  general: "from-gray-500 to-gray-700",
   silver: "from-slate-400 to-slate-600",
   gold: "from-yellow-400 to-amber-600",
   platinum: "from-purple-400 to-violet-700",
@@ -29,6 +35,7 @@ const CARD_GRADIENTS: Record<string, string> = {
 
 /** 등급별 배경 색상 */
 const CARD_BG: Record<string, string> = {
+  general: "bg-gray-900 border-gray-500",
   silver: "bg-slate-900 border-slate-500",
   gold: "bg-amber-950 border-amber-500",
   platinum: "bg-violet-950 border-violet-500",
@@ -43,38 +50,59 @@ const BTN_COLORS: Record<string, string> = {
   vip: "bg-yellow-500 hover:bg-yellow-400 text-black",
 };
 
+/** 결제 상품 한국어 이름 */
+function getItemName(items: string): string {
+  if (!items) return "서비스 이용";
+  const map: Record<string, string> = {
+    membership_silver: "실버 멤버십",
+    membership_gold: "골드 멤버십",
+    membership_platinum: "플래티넘 멤버십",
+    membership_vip: "VIP 멤버십",
+    upgrade_to_silver: "실버 승급",
+    upgrade_to_gold: "골드 승급",
+    upgrade_to_platinum: "플래티넘 승급",
+    upgrade_to_vip: "VIP 승급",
+    will_certification: "유언 전자 인증",
+    will_recertification: "유언 재인증",
+    video_will: "영상 유언장",
+    handwritten_scan: "자필 유언 스캔",
+    annual_membership: "연간 멤버십",
+  };
+  for (const [key, label] of Object.entries(map)) {
+    if (items.includes(key)) return label;
+  }
+  return items.split(",")[0] ?? "서비스 이용";
+}
+
+/** 회원번호 포맷: EW-YYYYMMDD-XXXXXX */
+function formatMemberNumber(userId: number, createdAt: Date): string {
+  const d = new Date(createdAt);
+  const ymd = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+  const num = String(userId).padStart(6, "0");
+  return `EW-${ymd}-${num}`;
+}
+
 export default function MembershipPage() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [selectedGrade, setSelectedGrade] = useState<MemberGrade | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
 
-  // 내 등급 조회
-  const { data: gradeData, isLoading, refetch } = trpc.memberGrade.getMyGrade.useQuery();
+  const { data: gradeData, isLoading: gradeLoading, refetch } = trpc.memberGrade.getMyGrade.useQuery();
+  const { data: payments, isLoading: paymentsLoading } = trpc.tossPayment.getMyPayments.useQuery();
 
-  // 결제 완료 후 등급 재계산
   const recalculate = trpc.memberGrade.recalculate.useMutation({
     onSuccess: () => {
       refetch();
-      setToastMsg("등급이 업데이트됐습니다! 새로운 멤버십 혜택을 이용하세요.");
+      setToastMsg("등급이 업데이트됐습니다!");
     },
   });
 
-  // URL 파라미터로 결제 완료 감지
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("upgrade") === "success") {
-      recalculate.mutate();
-      // URL 정리
-      window.history.replaceState({}, "", "/dashboard/membership");
-    }
-  }, []);
-
-  // 승급 체크아웃 생성
   const createCheckout = trpc.memberGrade.createUpgradeCheckout.useMutation({
     onSuccess: (data) => {
       if (data.checkoutUrl) {
         window.open(data.checkoutUrl, "_blank");
-        setToastMsg("결제 페이지로 이동합니다. 결제 완료 후 자동으로 등급이 업그레이드됩니다.");
+        setToastMsg("결제 페이지로 이동합니다...");
       }
       setCheckingOut(false);
     },
@@ -84,10 +112,35 @@ export default function MembershipPage() {
     },
   });
 
+  // 결제 완료 후 등급 재계산
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("upgrade") === "success") {
+      recalculate.mutate();
+      window.history.replaceState({}, "", "/dashboard/membership");
+    }
+  }, []);
+
+  // QR 코드 생성
+  useEffect(() => {
+    if (!gradeData?.qrCode) return;
+    const qrUrl = `https://everwill.co.kr/verify/${gradeData.qrCode}`;
+    QRCode.toDataURL(qrUrl, {
+      width: 200,
+      margin: 2,
+      color: { dark: "#1F3864", light: "#FFFFFF" },
+    }).then(setQrDataUrl).catch(console.error);
+  }, [gradeData?.qrCode]);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
   const handleSelectGrade = (grade: MemberGrade) => {
     if (!gradeData) return;
     const currentGrade = gradeData.grade as MemberGrade;
-    if (GRADE_ORDER[grade] <= GRADE_ORDER[currentGrade]) return; // 하위 등급 선택 불가
+    if (GRADE_ORDER[grade] <= GRADE_ORDER[currentGrade]) return;
     setSelectedGrade(grade === selectedGrade ? null : grade);
   };
 
@@ -95,12 +148,11 @@ export default function MembershipPage() {
     if (!selectedGrade) return;
     setCheckingOut(true);
     createCheckout.mutate({
-        targetGrade: selectedGrade as "silver" | "gold" | "platinum" | "vip",
+      targetGrade: selectedGrade as "silver" | "gold" | "platinum" | "vip",
       origin: window.location.origin,
     });
   };
 
-  /** 선택한 등급의 결제 금액 계산 */
   const getUpgradeAmount = (targetGrade: MemberGrade) => {
     if (!gradeData) return null;
     const currentGrade = gradeData.grade as MemberGrade;
@@ -111,148 +163,275 @@ export default function MembershipPage() {
     return calculateUpgradePrice(currentGrade, targetGrade);
   };
 
-  if (isLoading) {
+  if (gradeLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-[#C9A961]" />
       </div>
     );
   }
 
+  const grade = gradeData?.grade ?? "general";
+  const gradientClass = CARD_GRADIENTS[grade] ?? CARD_GRADIENTS.general;
+  const memberNumber = gradeData?.userId && gradeData?.memberSince
+    ? formatMemberNumber(gradeData.userId, new Date(gradeData.memberSince))
+    : "EW---------";
+  const memberSinceStr = gradeData?.memberSince
+    ? new Date(gradeData.memberSince).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })
+    : "-";
+  const userName = gradeData?.userName || "회원";
   const currentGrade = (gradeData?.grade ?? "general") as MemberGrade;
-  const currentPlan = MEMBERSHIP_PLANS.find((p) => p.grade === currentGrade);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* 현재 등급 */}
-      <div className="mb-10 text-center">
-        <h1 className="text-3xl font-bold text-[#1F3864] mb-2">멤버십 카드</h1>
-        <p className="text-gray-500 mb-4">NFC 인증 카드로 언제 어디서나 유언을 증명하세요</p>
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1F3864] text-white text-sm font-medium">
-          <span>{gradeData?.badge}</span>
-          <span>현재 등급: {gradeData?.label}</span>
-          {currentGrade !== "general" && (
-            <Badge className="bg-amber-500 text-white text-xs ml-1">활성</Badge>
-          )}
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-10">
+      {/* 토스트 */}
+      {toastMsg && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-[#1F3864] text-white px-6 py-3 rounded-xl shadow-lg text-sm font-medium">
+          {toastMsg}
         </div>
-      </div>
+      )}
 
-      {/* 멤버십 카드 그리드 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {MEMBERSHIP_PLANS.map((plan) => {
-          const isCurrentGrade = plan.grade === currentGrade;
-          const isLowerGrade = GRADE_ORDER[plan.grade] < GRADE_ORDER[currentGrade];
-          const isSelected = selectedGrade === plan.grade;
-          const upgradeAmount = getUpgradeAmount(plan.grade);
+      {/* ── 에버윌 인증 카드 ── */}
+      <section>
+        <h2 className="text-xl font-bold text-[#1F3864] mb-4 flex items-center gap-2">
+          <CreditCard className="w-5 h-5 text-[#C9A961]" />
+          나의 에버윌 인증 카드
+        </h2>
 
-          return (
-            <div
-              key={plan.grade}
-              onClick={() => handleSelectGrade(plan.grade)}
-              className={`
-                relative rounded-2xl border-2 p-6 cursor-pointer transition-all duration-200
-                ${CARD_BG[plan.grade]}
-                ${isSelected ? "border-white scale-105 shadow-2xl" : ""}
-                ${isCurrentGrade ? "opacity-100 cursor-default" : ""}
-                ${isLowerGrade ? "opacity-40 cursor-not-allowed" : "hover:scale-102 hover:shadow-xl"}
-                ${plan.popular ? "ring-2 ring-amber-400" : ""}
-              `}
-            >
-              {/* 인기 배지 */}
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-amber-400 text-black text-xs font-bold rounded-full">
-                  인기
-                </div>
-              )}
+        <div
+          className={`relative w-full max-w-md mx-auto rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br ${gradientClass}`}
+          style={{ aspectRatio: "1.586" }}
+        >
+          {/* 카드 배경 패턴 */}
+          <div className="absolute inset-0 opacity-10 pointer-events-none">
+            <div className="absolute top-4 right-4 w-32 h-32 rounded-full border-2 border-white" />
+            <div className="absolute top-8 right-8 w-20 h-20 rounded-full border border-white" />
+            <div className="absolute -bottom-8 -left-8 w-40 h-40 rounded-full border-2 border-white" />
+          </div>
 
-              {/* 현재 등급 배지 */}
-              {isCurrentGrade && (
-                <div className="absolute -top-3 right-4 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
-                  현재 등급
-                </div>
-              )}
-
-              {/* 선택 체크 */}
-              {isSelected && (
-                <div className="absolute top-4 right-4 w-6 h-6 bg-white rounded-full flex items-center justify-center">
-                  <Check className="w-4 h-4 text-green-600" />
-                </div>
-              )}
-
-              {/* 카드 미리보기 */}
-              <div className={`w-full h-20 rounded-xl bg-gradient-to-br ${CARD_GRADIENTS[plan.grade]} mb-4 flex items-center justify-between px-4`}>
-                <div>
-                  <p className="text-white/70 text-xs font-medium">{plan.name}</p>
-                  <p className="text-white font-bold text-sm">EverWill</p>
-                </div>
-                <div className="text-white/80">
-                  {GRADE_ICONS[plan.grade]}
-                </div>
+          {/* 카드 내용 */}
+          <div className="relative z-10 p-6 h-full flex flex-col justify-between">
+            {/* 상단: 로고 + 등급 아이콘 */}
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-white/70 text-xs uppercase tracking-widest font-light">EverWill</p>
+                <p className="text-white font-bold text-lg leading-tight">
+                  {gradeData?.label ?? "무료회원"}
+                </p>
               </div>
-
-              {/* 등급명 */}
-              <div className="mb-1">
-                <span className="text-gray-400 text-xs uppercase tracking-wider">{plan.name}</span>
-                <h3 className="text-white font-bold text-lg">{plan.nameKo}</h3>
+              <div className="text-white/80">
+                {GRADE_ICONS[grade]}
               </div>
-
-              {/* 가격 */}
-              <div className="mb-4">
-                {isLowerGrade || isCurrentGrade ? (
-                  <p className="text-2xl font-bold text-white">
-                    ₩{plan.price.toLocaleString()}
-                  </p>
-                ) : upgradeAmount ? (
-                  <div>
-                    <p className="text-2xl font-bold text-white">
-                      ₩{upgradeAmount.total.toLocaleString()}
-                    </p>
-                    {upgradeAmount.fee > 0 && (
-                      <p className="text-xs text-gray-400 mt-1">
-                        차액 ₩{upgradeAmount.diff.toLocaleString()} + 수수료 ₩{upgradeAmount.fee.toLocaleString()}
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-2xl font-bold text-white">₩{plan.price.toLocaleString()}</p>
-                )}
-                <p className="text-gray-400 text-xs">/ 1회</p>
-              </div>
-
-              {/* 보관 기간 */}
-              <div className="mb-4 text-xs text-gray-300">
-                {plan.storageYears === null ? "영구 보관" : `${plan.storageYears}년 보관`}
-              </div>
-
-              {/* 기능 목록 */}
-              <ul className="space-y-2">
-                {plan.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-xs text-gray-300">
-                    <Check className="w-3.5 h-3.5 text-green-400 mt-0.5 flex-shrink-0" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
             </div>
-          );
-        })}
-      </div>
 
-      {/* 선택된 등급 결제 요약 */}
-      {selectedGrade && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-2xl p-4 z-50 lg:relative lg:border lg:rounded-2xl lg:shadow-none lg:mb-4">
-          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* 중단: QR 코드 + 이름 */}
+            <div className="flex items-center gap-4">
+              {qrDataUrl ? (
+                <div className="bg-white rounded-lg p-1.5 shadow-md flex-shrink-0">
+                  <img src={qrDataUrl} alt="QR 코드" className="w-16 h-16" />
+                </div>
+              ) : (
+                <div className="bg-white/20 rounded-lg p-1.5 w-[76px] h-[76px] flex items-center justify-center flex-shrink-0">
+                  <Loader2 className="w-6 h-6 text-white/60 animate-spin" />
+                </div>
+              )}
+              <div className="text-white min-w-0">
+                <p className="text-2xl font-bold tracking-wider truncate">{userName}</p>
+                <p className="text-white/70 text-xs mt-1">유언자 본인</p>
+              </div>
+            </div>
+
+            {/* 하단: 회원번호 + 등록일 */}
+            <div className="flex items-end justify-between">
+              <div>
+                <p className="text-white/60 text-[10px] uppercase tracking-widest">Member No.</p>
+                <p className="text-white font-mono text-sm font-semibold">{memberNumber}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-white/60 text-[10px] uppercase tracking-widest">Registered</p>
+                <p className="text-white text-xs">{memberSinceStr}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p className="text-center text-xs text-gray-400 mt-3">
+          QR 코드를 스캔하면 유언 인증 정보를 확인할 수 있습니다
+        </p>
+      </section>
+
+      {/* ── 결제 내역 ── */}
+      <section>
+        <h2 className="text-xl font-bold text-[#1F3864] mb-4 flex items-center gap-2">
+          <CreditCard className="w-5 h-5 text-[#C9A961]" />
+          결제 내역
+        </h2>
+
+        {paymentsLoading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-[#C9A961]" />
+          </div>
+        ) : !payments || payments.length === 0 ? (
+          <div className="bg-gray-50 rounded-xl p-8 text-center text-gray-400 border border-gray-100">
+            <CreditCard className="w-10 h-10 mx-auto mb-3 opacity-30" />
+            <p className="text-sm">결제 내역이 없습니다</p>
+          </div>
+        ) : (
+          <div className="border border-gray-100 rounded-xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-[#1F3864] text-white">
+                <tr>
+                  <th className="text-left px-4 py-3 font-medium">상품</th>
+                  <th className="text-right px-4 py-3 font-medium">금액</th>
+                  <th className="text-center px-4 py-3 font-medium">상태</th>
+                  <th className="text-right px-4 py-3 font-medium">결제일</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payments.map((p, i) => (
+                  <tr key={p.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                    <td className="px-4 py-3 font-medium text-gray-800">
+                      {getItemName(p.items ?? "")}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-700">
+                      {p.amountTotal ? `₩${p.amountTotal.toLocaleString()}` : "-"}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                        p.status === "completed"
+                          ? "bg-green-100 text-green-700"
+                          : p.status === "pending"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : p.status === "refunded"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-red-100 text-red-700"
+                      }`}>
+                        {p.status === "completed" ? "완료" : p.status === "pending" ? "대기" : p.status === "refunded" ? "환불" : "실패"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-500 text-xs">
+                      {p.paidAt
+                        ? new Date(p.paidAt).toLocaleDateString("ko-KR")
+                        : new Date(p.createdAt).toLocaleDateString("ko-KR")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* ── 멤버십 등급 업그레이드 ── */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-[#1F3864] flex items-center gap-2">
+            <Crown className="w-5 h-5 text-[#C9A961]" />
+            멤버십 등급
+          </h2>
+          <Badge
+            className="text-sm px-3 py-1 font-semibold"
+            style={{ backgroundColor: gradeData?.color ?? "#6B7280", color: "#fff" }}
+          >
+            {gradeData?.badge} 현재: {gradeData?.label}
+          </Badge>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {MEMBERSHIP_PLANS.map((plan) => {
+            const isCurrentGrade = plan.grade === currentGrade;
+            const isLowerGrade = GRADE_ORDER[plan.grade] < GRADE_ORDER[currentGrade];
+            const isSelected = selectedGrade === plan.grade;
+            const upgradeAmount = getUpgradeAmount(plan.grade);
+
+            return (
+              <div
+                key={plan.grade}
+                onClick={() => handleSelectGrade(plan.grade)}
+                className={`
+                  relative rounded-2xl border-2 p-5 transition-all duration-200
+                  ${CARD_BG[plan.grade]}
+                  ${isSelected ? "border-white scale-105 shadow-2xl" : ""}
+                  ${isCurrentGrade ? "opacity-100 cursor-default" : ""}
+                  ${isLowerGrade ? "opacity-40 cursor-not-allowed" : "cursor-pointer hover:shadow-xl"}
+                  ${plan.popular ? "ring-2 ring-amber-400" : ""}
+                `}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-amber-400 text-black text-xs font-bold rounded-full">
+                    인기
+                  </div>
+                )}
+                {isCurrentGrade && (
+                  <div className="absolute -top-3 right-4 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
+                    현재 등급
+                  </div>
+                )}
+                {isSelected && (
+                  <div className="absolute top-4 right-4 w-6 h-6 bg-white rounded-full flex items-center justify-center">
+                    <Check className="w-4 h-4 text-green-600" />
+                  </div>
+                )}
+
+                {/* 카드 미리보기 */}
+                <div className={`w-full h-16 rounded-lg bg-gradient-to-br ${CARD_GRADIENTS[plan.grade]} mb-3 flex items-center justify-between px-3`}>
+                  <div>
+                    <p className="text-white/70 text-[10px] font-medium uppercase">{plan.grade}</p>
+                    <p className="text-white font-bold text-sm">EverWill</p>
+                  </div>
+                  <div className="text-white/80">{GRADE_ICONS[plan.grade]}</div>
+                </div>
+
+                <p className="text-xs text-gray-400 uppercase tracking-wider">{plan.name}</p>
+                <h3 className="text-white font-bold text-base mt-0.5">{plan.nameKo}</h3>
+
+                <div className="mt-2 mb-3">
+                  {isLowerGrade || isCurrentGrade ? (
+                    <p className="text-xl font-bold text-white">₩{plan.price.toLocaleString()}</p>
+                  ) : upgradeAmount ? (
+                    <div>
+                      <p className="text-xl font-bold text-white">₩{upgradeAmount.total.toLocaleString()}</p>
+                      {upgradeAmount.fee > 0 && (
+                        <p className="text-[10px] text-gray-400 mt-0.5">
+                          차액 ₩{upgradeAmount.diff.toLocaleString()} + 수수료 ₩{upgradeAmount.fee.toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-xl font-bold text-white">₩{plan.price.toLocaleString()}</p>
+                  )}
+                  <p className="text-gray-500 text-xs">
+                    {plan.storageYears === null ? "영구 보관" : `${plan.storageYears}년 보관`}
+                  </p>
+                </div>
+
+                <ul className="space-y-1.5">
+                  {plan.features.slice(0, 5).map((f, i) => (
+                    <li key={i} className="flex items-start gap-1.5 text-xs text-gray-300">
+                      <Check className="w-3 h-3 text-green-400 mt-0.5 flex-shrink-0" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* 선택된 등급 결제 요약 */}
+        {selectedGrade && (
+          <div className="mt-6 p-5 bg-[#1F3864] rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
               {(() => {
                 const plan = MEMBERSHIP_PLANS.find((p) => p.grade === selectedGrade)!;
                 const amount = getUpgradeAmount(selectedGrade);
                 return (
                   <div>
-                    <p className="font-bold text-[#1F3864] text-lg">
+                    <p className="font-bold text-white text-lg">
                       {gradeData?.label} → EverWill {plan.name}
                     </p>
                     {amount && (
-                      <div className="flex items-center gap-3 text-sm text-gray-600 mt-1">
+                      <div className="flex items-center gap-2 text-sm text-white/70 mt-1">
                         {amount.fee > 0 && (
                           <>
                             <span>차액 ₩{amount.diff.toLocaleString()}</span>
@@ -261,7 +440,7 @@ export default function MembershipPage() {
                             <span>=</span>
                           </>
                         )}
-                        <span className="text-2xl font-bold text-[#1F3864]">
+                        <span className="text-2xl font-bold text-[#C9A961]">
                           ₩{amount.total.toLocaleString()}
                         </span>
                       </div>
@@ -274,33 +453,25 @@ export default function MembershipPage() {
               <Button
                 variant="outline"
                 onClick={() => setSelectedGrade(null)}
-                className="border-gray-300"
+                className="border-white/30 text-white hover:bg-white/10 bg-transparent"
               >
                 취소
               </Button>
               <Button
                 onClick={handleCheckout}
                 disabled={checkingOut}
-                className="bg-[#C9A961] hover:bg-[#b8933f] text-white px-8 py-3 text-base font-bold"
+                className="bg-[#C9A961] hover:bg-[#b8933f] text-white px-8 font-bold"
               >
                 {checkingOut ? (
-                  <><Loader2 className="w-4 h-4 animate-spin mr-2" /> 처리 중...</>
+                  <><Loader2 className="w-4 h-4 animate-spin mr-2" />처리 중...</>
                 ) : (
                   <>지금 신청하기 <ArrowRight className="w-4 h-4 ml-2" /></>
                 )}
               </Button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* 무료회원 안내 */}
-      {currentGrade === "general" && (
-        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700">
-          <strong>무료회원</strong>으로 개인인증·자산등록·상속자등록·유언장 작성까지 무료로 이용하실 수 있습니다.
-          멤버십 카드를 구매하시면 전자인증서 발급, NFC 카드, 유언 보관 서비스를 이용하실 수 있습니다.
-        </div>
-      )}
+        )}
+      </section>
     </div>
   );
 }

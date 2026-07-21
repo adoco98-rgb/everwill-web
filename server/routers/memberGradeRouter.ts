@@ -101,6 +101,9 @@ export const memberGradeRouter = router({
     const userRows = await db
       .select({
         id: users.id,
+        name: users.name,
+        createdAt: users.createdAt,
+        qrCode: users.qrCode,
         memberGrade: users.memberGrade,
         gradeUpdatedAt: users.gradeUpdatedAt,
       })
@@ -110,6 +113,14 @@ export const memberGradeRouter = router({
 
     if (!userRows.length) throw new TRPCError({ code: "NOT_FOUND" });
     const user = userRows[0];
+
+    // qrCode가 없으면 자동 생성
+    if (!user.qrCode) {
+      const { randomUUID } = await import("crypto");
+      const newQrCode = randomUUID();
+      await db.update(users).set({ qrCode: newQrCode }).where(eq(users.id, user.id));
+      user.qrCode = newQrCode;
+    }
 
     // 관리자는 VIP 등급으로 반환 (모든 기능 접근 가능)
     const currentGrade = (ctx.user.role === "admin" ? "vip" : (user.memberGrade ?? "general")) as MemberGrade;
@@ -144,6 +155,11 @@ export const memberGradeRouter = router({
       currentPlan: MEMBERSHIP_PLANS.find((p) => p.grade === currentGrade) ?? null,
       upgradePlans,
       allPlans: MEMBERSHIP_PLANS,
+      // 회원 카드용 추가 정보
+      userId: user.id,
+      userName: user.name ?? "",
+      memberSince: user.createdAt,
+      qrCode: user.qrCode ?? "",
     };
   }),
 
