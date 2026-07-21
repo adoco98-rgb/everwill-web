@@ -13,6 +13,55 @@ import {
   CreditCard, User
 } from "lucide-react";
 import { MEMBERSHIP_PLANS, GRADE_ORDER, calculateUpgradePrice, type MemberGrade } from "@shared/membershipProducts";
+
+/** UI 표시용 2개 플랜 (내부 등급: gold=베이직, vip=풀플랜) */
+const DISPLAY_PLANS = [
+  {
+    grade: "gold" as MemberGrade,
+    displayName: "베이직",
+    displayNameEn: "BASIC",
+    price: 79000,
+    priceLabel: "₩79,000",
+    storageLabel: "1년 보관 · 이후 매년 ₩15,000",
+    cardColor: "from-[#1F3864] to-[#2d4a7a]",
+    accentColor: "border-[#4a6fa5]",
+    icon: <Shield className="w-6 h-6" />,
+    features: [
+      "AI 유언장 작성 (무제한)",
+      "eKYC 본인인증 + 전자서명",
+      "블록체인 해시 기록",
+      "상속인 등록 · 자산 등록",
+      "유언장 수정 3회",
+      "인증서 발급 3회",
+      "1년 보관 (이후 ₩15,000/년)",
+    ],
+    notIncluded: ["영상 유언", "자필 유언장 스캔 인증", "AI 일기 (Life Story)", "자서전 만들기"],
+    popular: false,
+  },
+  {
+    grade: "vip" as MemberGrade,
+    displayName: "풀플랜",
+    displayNameEn: "FULL PLAN",
+    price: 168000,
+    priceLabel: "₩168,000",
+    storageLabel: "영구 보관 · 모든 기능 포함",
+    cardColor: "from-[#C9A961] to-[#8B6914]",
+    accentColor: "border-[#C9A961]",
+    icon: <Crown className="w-6 h-6" />,
+    features: [
+      "eKYC 본인인증 + 전자서명",
+      "블록체인 해시 + RFC 3161 타임스탬프",
+      "유언장 영구 보관 (평생)",
+      "수정 10회 무료",
+      "NFC 인증 카드 발급",
+      "QR 신원 인증 + 사망 트리거",
+      "영상 유언 녹화 지원",
+      "사후 집행 지원 (상속자 자동 알림)",
+    ],
+    notIncluded: [],
+    popular: true,
+  },
+];
 import QRCode from "qrcode";
 
 /** 등급별 카드 아이콘 */
@@ -322,12 +371,12 @@ export default function MembershipPage() {
         )}
       </section>
 
-      {/* ── 멤버십 등급 업그레이드 ── */}
+      {/* ── 멤버십 플랜 ── */}
       <section>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-[#1F3864] flex items-center gap-2">
             <Crown className="w-5 h-5 text-[#C9A961]" />
-            멤버십 등급
+            멤버십 플랜
           </h2>
           <Badge
             className="text-sm px-3 py-1 font-semibold"
@@ -337,8 +386,8 @@ export default function MembershipPage() {
           </Badge>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {MEMBERSHIP_PLANS.map((plan) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          {DISPLAY_PLANS.map((plan) => {
             const isCurrentGrade = plan.grade === currentGrade;
             const isLowerGrade = GRADE_ORDER[plan.grade] < GRADE_ORDER[currentGrade];
             const isSelected = selectedGrade === plan.grade;
@@ -373,42 +422,30 @@ export default function MembershipPage() {
                   </div>
                 )}
 
-                {/* 카드 미리보기 */}
-                <div className={`w-full h-16 rounded-lg bg-gradient-to-br ${CARD_GRADIENTS[plan.grade]} mb-3 flex items-center justify-between px-3`}>
+                                {/* 카드 미리보기 */}
+                <div className={`w-full h-16 rounded-lg bg-gradient-to-br ${plan.cardColor} mb-3 flex items-center justify-between px-3`}>
                   <div>
-                    <p className="text-white/70 text-[10px] font-medium uppercase">{plan.grade}</p>
+                    <p className="text-white/70 text-[10px] font-medium uppercase">{plan.displayNameEn}</p>
                     <p className="text-white font-bold text-sm">EverWill</p>
                   </div>
-                  <div className="text-white/80">{GRADE_ICONS[plan.grade]}</div>
+                  <div className="text-white/80">{plan.icon}</div>
                 </div>
-
-                <p className="text-xs text-gray-400 uppercase tracking-wider">{plan.name}</p>
-                <h3 className="text-white font-bold text-base mt-0.5">{plan.nameKo}</h3>
-
+                <p className="text-xs text-gray-400 uppercase tracking-wider">{plan.displayNameEn}</p>
+                <h3 className="text-white font-bold text-base mt-0.5">{plan.displayName}</h3>
                 <div className="mt-2 mb-3">
-                  {isLowerGrade || isCurrentGrade ? (
-                    <p className="text-xl font-bold text-white">₩{plan.price.toLocaleString()}</p>
-                  ) : upgradeAmount ? (
-                    <div>
-                      <p className="text-xl font-bold text-white">₩{upgradeAmount.total.toLocaleString()}</p>
-                      {upgradeAmount.fee > 0 && (
-                        <p className="text-[10px] text-gray-400 mt-0.5">
-                          차액 ₩{upgradeAmount.diff.toLocaleString()} + 수수료 ₩{upgradeAmount.fee.toLocaleString()}
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-xl font-bold text-white">₩{plan.price.toLocaleString()}</p>
-                  )}
-                  <p className="text-gray-500 text-xs">
-                    {plan.storageYears === null ? "영구 보관" : `${plan.storageYears}년 보관`}
-                  </p>
+                  <p className="text-xl font-bold text-white">{plan.priceLabel}</p>
+                  <p className="text-gray-500 text-xs">{plan.storageLabel}</p>
                 </div>
-
                 <ul className="space-y-1.5">
-                  {plan.features.slice(0, 5).map((f, i) => (
+                  {plan.features.map((f, i) => (
                     <li key={i} className="flex items-start gap-1.5 text-xs text-gray-300">
                       <Check className="w-3 h-3 text-green-400 mt-0.5 flex-shrink-0" />
+                      {f}
+                    </li>
+                  ))}
+                  {plan.notIncluded.map((f, i) => (
+                    <li key={`x-${i}`} className="flex items-start gap-1.5 text-xs text-gray-600 line-through">
+                      <span className="w-3 h-3 mt-0.5 flex-shrink-0 text-center">×</span>
                       {f}
                     </li>
                   ))}
