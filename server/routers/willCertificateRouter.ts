@@ -699,7 +699,7 @@ export const willCertificateRouter = router({
             if (imgKey) {
               console.log('[previewPdf] storageGetSignedUrl 시도:', imgKey);
               const signedUrl3 = await storageGetSignedUrl(imgKey);
-              console.log('[previewPdf] signedUrl3:', signedUrl3.substring(0, 80));
+              console.log('[previewPdf] signedUrl3:', signedUrl3.substring(0, 300));
               const res3 = await fetch(signedUrl3);
               console.log('[previewPdf] fetch status:', res3.status, '| size:', res3.headers.get('content-length'));
               if (res3.ok) fileBytes3 = Buffer.from(await res3.arrayBuffer());
