@@ -111,14 +111,7 @@ export const willCertificateRouter = router({
         throw new TRPCError({ code: "BAD_REQUEST", message: "certificateId 또는 willId가 필요합니다" });
       }
 
-      // 캐시된 PDF URL 반환 (재생성 요청 없으면)
-      if (certRecord?.fileUrl && !input.forceRegenerate) {
-        return {
-          pdfUrl: certRecord.fileUrl,
-          filename: `EverWill_Certificate_${certRecord.issueNumber ?? certRecord.id}_${country}.pdf`,
-          cached: true,
-        };
-      }
+      // 캐시 무효화: 항상 최신 생성기로 새로 생성 (수정사항 즉시 반영)
 
       // 유언장 데이터 파싱
       let willData: Record<string, any> = {};
