@@ -31,6 +31,7 @@ export default function Step1BasicInfo({ onComplete }: Props) {
   const [formInitialized, setFormInitialized] = useState(false);
   const [form, setForm] = useState({
     name: "",
+    nameEn: "", // 영문 성명 (Latin Name)
     phone: "",
     address: "",
     addressDetail: "",
@@ -50,6 +51,7 @@ export default function Step1BasicInfo({ onComplete }: Props) {
       // 저장한 값으로 폼 유지 (리셋 방지)
       setForm({
         name: variables.name,
+        nameEn: (variables as any).nameEn || form.nameEn,
         phone: variables.phone || "",
         address: variables.address || "",
         addressDetail: variables.addressDetail || "",
@@ -72,6 +74,7 @@ export default function Step1BasicInfo({ onComplete }: Props) {
     if (profileData) {
       setForm({
         name: profileData.name || "",
+        nameEn: (profileData as any).nameEn || "",
         phone: profileData.phone || "",
         address: profileData.address || "",
         addressDetail: profileData.addressDetail || "",
@@ -83,6 +86,7 @@ export default function Step1BasicInfo({ onComplete }: Props) {
     } else if (user && !profileLoading) {
       setForm({
         name: (user as any).name || "",
+        nameEn: (user as any).nameEn || "",
         phone: (user as any).phone || "",
         address: (user as any).address || "",
         addressDetail: (user as any).addressDetail || "",
@@ -144,6 +148,8 @@ export default function Step1BasicInfo({ onComplete }: Props) {
     }
     saveMutation.mutate({
       name: form.name.trim(),
+      nameKo: form.name.trim(),
+      nameEn: form.nameEn.trim() || undefined,
       phone: form.phone.trim(),
       address: form.address.trim(),
       addressDetail: form.addressDetail.trim(),
@@ -163,6 +169,8 @@ export default function Step1BasicInfo({ onComplete }: Props) {
     saveMutation.mutate(
       {
         name: form.name.trim(),
+        nameKo: form.name.trim(),
+        nameEn: form.nameEn.trim() || undefined,
         phone: form.phone.trim(),
         address: form.address.trim(),
         addressDetail: form.addressDetail.trim(),
@@ -262,7 +270,8 @@ export default function Step1BasicInfo({ onComplete }: Props) {
         {!isEditing ? (
           <>
             <div className="space-y-0">
-              <InfoRow icon={User} label="성명" value={form.name} required />
+              <InfoRow icon={User} label="한글 성명" value={form.name} required />
+              {form.nameEn && <InfoRow icon={User} label="영문 성명" value={form.nameEn} />}
               <InfoRow icon={Phone} label="연락처" value={form.phone} required />
               <InfoRow icon={MapPin} label="주소" value={form.address} required />
               {form.addressDetail && (
@@ -302,18 +311,33 @@ export default function Step1BasicInfo({ onComplete }: Props) {
         ) : (
           /* 수정 모드 */
           <div className="space-y-4">
-            {/* 성명 */}
-            <div>
-              <label className="text-sm font-semibold text-gray-700 mb-1.5 block">
-                성명 <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder="홍길동"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864] outline-none transition-all"
-              />
+            {/* 한글 성명 + 영문 성명 */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-semibold text-gray-700 mb-1.5 block">
+                  한글 성명 <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  placeholder="홍길동"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864] outline-none transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-gray-700 mb-1.5 block">
+                  영문 성명 <span className="text-gray-400 text-xs font-normal">(Latin Name)</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.nameEn}
+                  onChange={(e) => setForm((f) => ({ ...f, nameEn: e.target.value }))}
+                  placeholder="HONG GIL DONG"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1F3864]/20 focus:border-[#1F3864] outline-none transition-all uppercase"
+                />
+                <p className="text-xs text-gray-400 mt-1">멤버십 카드 및 글로벌 서류에 사용</p>
+              </div>
             </div>
 
             {/* 연락처 */}
