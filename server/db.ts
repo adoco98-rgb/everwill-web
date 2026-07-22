@@ -89,4 +89,27 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function mergeUserByEmail(
+  existingUserId: number,
+  newOpenId: string,
+  updates: { name?: string | null; loginMethod?: string | null; lastSignedIn?: Date; role?: 'admin' | 'user' }
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  // 기존 계정의 openId를 새 openId로 업데이트 (계정 통합)
+  const updateSet: Record<string, unknown> = { openId: newOpenId };
+  if (updates.name !== undefined) updateSet.name = updates.name;
+  if (updates.loginMethod !== undefined) updateSet.loginMethod = updates.loginMethod;
+  if (updates.lastSignedIn !== undefined) updateSet.lastSignedIn = updates.lastSignedIn;
+  if (updates.role !== undefined) updateSet.role = updates.role;
+  await db.update(users).set(updateSet).where(eq(users.id, existingUserId));
+}
+
 // TODO: add feature queries here as your schema grows.
