@@ -315,7 +315,9 @@ export default function AssetsPage() {
   });
   const [editingScanId, setEditingScanId] = useState<number | null>(null);
   const [editMemo, setEditMemo] = useState("");
-  const [editValue, setEditValue] = useState("");
+  const [editValue, setEditValue] = useState(""); // 숫자 원본값 (콤마 없음)
+  const [editValueDisplay, setEditValueDisplay] = useState(""); // 화면 표시용 (콤마 포함)
+  const [editAddress, setEditAddress] = useState(""); // 공시지가 조회용 주소 직접입력
   const updateScanMutation = trpc.willAuto.updateAssetScanMemo.useMutation({
     onSuccess: () => { toast.success("수정되었습니다."); setEditingScanId(null); refetchScans(); },
     onError: (err) => toast.error(err.message || "수정 실패"),
@@ -326,9 +328,10 @@ export default function AssetsPage() {
     onSuccess: (data, variables) => {
       if (data.totalValue) {
         setEditValue(String(data.totalValue));
-        toast.success(`공시가액 자동 반영: ${data.totalValue.toLocaleString()}원 (${data.additionalInfo})`);
+        setEditValueDisplay(data.totalValue.toLocaleString());
+        toast.success(`✅ 공시가액 자동 반영: ${data.totalValue.toLocaleString()}원`);
       } else {
-        toast.success(`공시지가: ${data.pricePerSqm.toLocaleString()}원/㎡ (${data.year}년 기준) - 면적을 입력하면 총액이 계산됩니다.`);
+        toast.success(`공시지가: ${data.pricePerSqm.toLocaleString()}원/㎡ (${data.year}년 기준)`);
       }
       setGongsijigaLoading(null);
       refetchScans();
@@ -748,7 +751,7 @@ export default function AssetsPage() {
                               {!isLocked && (
                                 <>
                                   <button
-                                    onClick={(e) => { e.preventDefault(); setEditingScanId(editingScanId === scan.id ? null : scan.id); setEditMemo(scan.userMemo || ""); setEditValue(scan.estimatedValue ? String(scan.estimatedValue) : ""); }}
+                                    onClick={(e) => { e.preventDefault(); setEditingScanId(editingScanId === scan.id ? null : scan.id); setEditMemo(scan.userMemo || ""); const v = scan.estimatedValue ? String(scan.estimatedValue) : ""; setEditValue(v); setEditValueDisplay(v ? Number(v).toLocaleString() : ""); setEditAddress(scan.location || ""); }}
                                     className="px-2 py-0.5 rounded text-xs bg-white border border-gray-200 text-gray-500 hover:text-blue-500"
                                   >수정</button>
                                   <button
@@ -764,31 +767,55 @@ export default function AssetsPage() {
                             <div className="mt-2 p-2 bg-white rounded-lg space-y-2">
                               <input value={editMemo} onChange={(e) => setEditMemo(e.target.value)} placeholder="메모" className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-[#1F3864]" />
                               <div className="space-y-1">
-                                <input type="number" value={editValue} onChange={(e) => setEditValue(e.target.value)} placeholder="평가금액 (원) - 직접 입력" className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-[#1F3864]" />
-                                {/* 부동산 등기부등본인 경우 공시지가 반영 버튼 표시 */}
-                                {scan.docType === 'real_estate_registry' && scan.location && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      setGongsijigaLoading(scan.id);
-                                      lookupGongsijigaMutation.mutate({
-                                        address: scan.location!,
-                                        area: scan.area ?? undefined,
-                                        scanId: scan.id,
-                                      });
+                                {/* 평가금액 - 콤마 자동 표시 */}
+                                <div className="relative">
+                                  <input
+                                    type="text"
+                                    value={editValueDisplay}
+                                    onChange={(e) => {
+                                      const raw = e.target.value.replace(/[^0-9]/g, '');
+                                      setEditValue(raw);
+                                      setEditValueDisplay(raw ? Number(raw).toLocaleString() : '');
                                     }}
-                                    disabled={gongsijigaLoading === scan.id}
-                                    className="w-full py-1.5 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold disabled:opacity-50 flex items-center justify-center gap-1"
-                                  >
-                                    {gongsijigaLoading === scan.id ? (
-                                      <><span className="animate-spin">⏳</span> 공시지가 조회 중...</>
-                                    ) : (
-                                      <>🏛 공시지가 자동 반영 ({scan.location})</>
+                                    placeholder="평가금액 - 직접 입력"
+                                    className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-[#1F3864] pr-6"
+                                  />
+                                  {editValueDisplay && <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400">원</span>}
+                                </div>
+                                {/* 부동산 등기부등본 - 공시지가 조회 */}
+                                {scan.docType === 'real_estate_registry' && (
+                                  <div className="space-y-1">
+                                    {/* 주소 입력 (location 없으면 직접 입력) */}
+                                    {!scan.location && (
+                                      <input
+                                        value={editAddress}
+                                        onChange={(e) => setEditAddress(e.target.value)}
+                                        placeholder="주소 입력 (예: 경기도 용인시 기흥구 상하동 660)"
+                                        className="w-full px-2 py-1 text-xs border border-blue-200 rounded focus:outline-none focus:border-blue-500 bg-blue-50"
+                                      />
                                     )}
-                                  </button>
-                                )}
-                                {scan.docType === 'real_estate_registry' && !scan.location && (
-                                  <p className="text-xs text-gray-400">* 소재지 정보가 없어 공시지가 자동 조회 불가. 직접 입력해주세요.</p>
+                                    <button
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        const addr = scan.location || editAddress;
+                                        if (!addr) { toast.error('주소를 입력해주세요'); return; }
+                                        setGongsijigaLoading(scan.id);
+                                        lookupGongsijigaMutation.mutate({
+                                          address: addr,
+                                          area: scan.area ?? undefined,
+                                          scanId: scan.id,
+                                        });
+                                      }}
+                                      disabled={gongsijigaLoading === scan.id}
+                                      className="w-full py-1.5 rounded bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold disabled:opacity-50 flex items-center justify-center gap-1"
+                                    >
+                                      {gongsijigaLoading === scan.id ? (
+                                        <><span className="animate-spin inline-block">⏳</span> 공시가격 조회 중...</>
+                                      ) : (
+                                        <>🏛 공시가격 자동 조회 {scan.location ? `(${scan.location.slice(0, 15)}...)` : ''}</>
+                                      )}
+                                    </button>
+                                  </div>
                                 )}
                               </div>
                               <div className="flex gap-1">

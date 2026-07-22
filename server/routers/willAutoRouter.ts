@@ -827,13 +827,75 @@ ${dateStr}
       address: z.string().min(1),
       area: z.string().optional(),   // 면적 (㎡)
       scanId: z.number().optional(), // 저장 시 scan DB 업데이트
+      dongNm: z.string().optional(), // 동명 (아파트용)
+      hoNm: z.string().optional(),   // 호명 (아파트용)
     }))
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
       try {
+        // 주소 정제: 아파트 단지명/건물명 제거 후 지번 주소만 추출
+        // 예: "경기도 용인시 기흥구 상하동 660 지석마을 진흥더루벤스" → "경기도 용인시 기흥구 상하동 660"
+        const cleanAddress = (raw: string): string => {
+          // 시도 + 시군구 + 읍면동 + 번지(숫자) 패턴까지만 추출
+          // 번지 뒤에 오는 아파트명/단지명/건물명 제거
+          const match = raw.match(/^(.+?[동리가]\s+\d+(?:-\d+)?)/);
+          if (match) return match[1].trim();
+          // 폴백: 마지막 숫자 토큰 이후 텍스트 제거
+          const tokens = raw.trim().split(/\s+/);
+          const lastNumIdx = tokens.map((t, i) => /^\d+(-\d+)?$/.test(t) ? i : -1).filter(i => i >= 0).pop();
+          if (lastNumIdx !== undefined) return tokens.slice(0, lastNumIdx + 1).join(' ');
+          return raw;
+        };
+        const cleanedAddress = cleanAddress(input.address);
+        console.log(`[공시지가] 원본주소: "${input.address}" → 정제주소: "${cleanedAddress}"`);
+
+        // V-World API로 공동주택 공시가격 조회 시도 (아파트인 경우)
+        const VWORLD_KEY = process.env.VWORLD_API_KEY;
+        if (VWORLD_KEY) {
+          try {
+            // 주소 → PNU 변환
+            const addrUrl = `https://api.vworld.kr/req/address?service=address&request=getcoord&version=2.0&crs=epsg:4326&address=${encodeURIComponent(cleanedAddress)}&refine=true&simple=false&format=json&type=parcel&key=${VWORLD_KEY}`;
+            const addrRes = await fetch(addrUrl);
+            if (addrRes.ok) {
+              const addrData = await addrRes.json() as any;
+              if (addrData.response?.status === 'OK' && addrData.response?.result?.items?.length) {
+                const pnu = addrData.response.result.items[0]?.id;
+                if (pnu) {
+                  const currentYear = new Date().getFullYear();
+                  // 공동주택 공시가격 조회
+                  let priceUrl = `https://api.vworld.kr/ned/data/getApartHousingPriceAttr?pnu=${pnu}&stdrYear=${currentYear - 1}&format=json&key=${VWORLD_KEY}`;
+                  if (input.dongNm) priceUrl += `&dongNm=${encodeURIComponent(input.dongNm)}`;
+                  if (input.hoNm) priceUrl += `&hoNm=${encodeURIComponent(input.hoNm)}`;
+                  const priceRes = await fetch(priceUrl);
+                  if (priceRes.ok) {
+                    const priceData = await priceRes.json() as any;
+                    if (priceData.response?.status === 'OK' && priceData.response?.result?.items?.length) {
+                      const item = priceData.response.result.items[0];
+                      const rawPrice = item?.pblntfPc || item?.housePc || null;
+                      if (rawPrice) {
+                        const priceNum = parseInt(String(rawPrice).replace(/,/g, ''), 10);
+                        const additionalInfoText = `공시가격: ${priceNum.toLocaleString()}원 (${currentYear - 1}년 공동주택 공시가격)`;
+                        if (input.scanId) {
+                          await db.update(willAssetScans)
+                            .set({ additionalInfo: additionalInfoText, estimatedValue: priceNum })
+                            .where(eq(willAssetScans.id, input.scanId));
+                        }
+                        return { success: true, pricePerSqm: 0, year: currentYear - 1, yoyChangePct: 0, totalValue: priceNum, additionalInfo: additionalInfoText };
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          } catch (vworldErr: any) {
+            console.log('[공시지가] V-World API 실패, gongsijiga-search로 폴백:', vworldErr.message);
+          }
+        }
+
+        // 폴백: gongsijiga-search (토지 공시지가)
         const { lookupGongsijiga } = await import("gongsijiga-search");
-        const result = await lookupGongsijiga(input.address);
+        const result = await lookupGongsijiga(cleanedAddress);
         const pricePerSqm = result.latest.price_per_sqm;
         const year = result.latest.year;
         const yoy = result.yoy_change_pct;
