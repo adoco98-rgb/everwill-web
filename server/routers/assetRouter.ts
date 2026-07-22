@@ -197,6 +197,68 @@ export const assetRouter = router({
     return { success: true };
   }),
 
+  // ── 브이월드 공시가격 조회 ──
+  getOfficialPrice: protectedProcedure
+    .input(z.object({
+      address: z.string(),
+      assetType: z.string(),
+      dongNm: z.string().optional(),
+      hoNm: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const VWORLD_KEY = process.env.VWORLD_API_KEY;
+      if (!VWORLD_KEY) throw new Error("브이월드 API 키가 설정되지 않았습니다.");
+
+      // 1단계: 주소 → PNU 코드 변환
+      const addrUrl = `https://api.vworld.kr/req/address?service=address&request=getcoord&version=2.0&crs=epsg:4326&address=${encodeURIComponent(input.address)}&refine=true&simple=false&format=json&type=parcel&key=${VWORLD_KEY}`;
+      const addrRes = await fetch(addrUrl);
+      if (!addrRes.ok) throw new Error("주소 변환 실패");
+      const addrData = await addrRes.json() as any;
+      if (addrData.response?.status !== "OK" || !addrData.response?.result?.items?.length) {
+        return { success: false, message: "주소를 찾을 수 없습니다. 정확한 주소를 입력해 주세요.", price: null };
+      }
+      const pnu = addrData.response.result.items[0]?.id;
+      if (!pnu) return { success: false, message: "PNU 코드를 가져올 수 없습니다.", price: null };
+
+      // 2단계: PNU → 공시가격 조회
+      const currentYear = new Date().getFullYear();
+      const isApartment = ["아파트", "빌라/연립", "오피스텔"].includes(input.assetType);
+      const isHouse = input.assetType === "단독주택";
+
+      let priceUrl = "";
+      if (isApartment) {
+        priceUrl = `https://api.vworld.kr/ned/data/getApartHousingPriceAttr?pnu=${pnu}&stdrYear=${currentYear - 1}&format=json&key=${VWORLD_KEY}`;
+        if (input.dongNm) priceUrl += `&dongNm=${encodeURIComponent(input.dongNm)}`;
+        if (input.hoNm) priceUrl += `&hoNm=${encodeURIComponent(input.hoNm)}`;
+      } else if (isHouse) {
+        priceUrl = `https://api.vworld.kr/ned/data/getIndvdHousingPriceAttr?pnu=${pnu}&stdrYear=${currentYear - 1}&format=json&key=${VWORLD_KEY}`;
+      } else {
+        priceUrl = `https://api.vworld.kr/ned/data/getIndvdLandPriceAttr?pnu=${pnu}&stdrYear=${currentYear - 1}&format=json&key=${VWORLD_KEY}`;
+      }
+
+      const priceRes = await fetch(priceUrl);
+      if (!priceRes.ok) throw new Error("공시가격 조회 실패");
+      const priceData = await priceRes.json() as any;
+
+      if (priceData.response?.status !== "OK" || !priceData.response?.result?.items?.length) {
+        return { success: false, message: `${currentYear - 1}년 공시가격 정보를 찾을 수 없습니다.`, price: null, pnu };
+      }
+
+      const item = priceData.response.result.items[0];
+      const rawPrice = item?.pblntfPc || item?.housePc || item?.pblntfLandPc || null;
+      if (!rawPrice) return { success: false, message: "공시가격 데이터가 없습니다.", price: null, pnu };
+
+      const priceNum = parseInt(String(rawPrice).replace(/,/g, ""), 10);
+      return {
+        success: true,
+        price: priceNum,
+        priceFormatted: priceNum.toLocaleString("ko-KR") + "원",
+        year: currentYear - 1,
+        pnu,
+        message: `${currentYear - 1}년 공시가격: ${priceNum.toLocaleString("ko-KR")}원`,
+      };
+    }),
+
   // ── 재산 + 상속자 통합 조회 (유언장 작성 시 사용) ──
   getWillData: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();

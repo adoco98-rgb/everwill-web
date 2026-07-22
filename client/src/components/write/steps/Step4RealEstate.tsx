@@ -1,13 +1,17 @@
 import { useState, useRef } from "react";
-import { Plus, Trash2, Home, Percent, DollarSign, Paperclip, X } from "lucide-react";
+import { Plus, Trash2, Home, Percent, DollarSign, Paperclip, X, Search, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { nanoid } from "nanoid";
 import type { StepProps } from "./StepProps";
 import type { RealEstate } from "@/lib/willTypes";
 import AIGuide from "../AIGuide";
 import GlobalAddressSearch from "../GlobalAddressSearch";
 import AmountInput from "../AmountInput";
+import { trpc } from "@/lib/trpc";
 
 const RE_TYPES = ["아파트", "단독주택", "빌라/연립", "오피스텔", "토지", "상가/건물", "기타"];
+
+// 공동주택(아파트/빌라/오피스텔)은 동·호 입력 필요
+const NEEDS_DONG_HO = ["아파트", "빌라/연립", "오피스텔"];
 
 const RE_COUNTRIES = [
   { code: "KR", label: "🇰🇷 한국" },
@@ -30,6 +34,46 @@ export default function Step4RealEstate({ will, update }: StepProps) {
   const [docFiles, setDocFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // 공시가격 조회 관련 상태
+  const [dongNm, setDongNm] = useState("");
+  const [hoNm, setHoNm] = useState("");
+  const [officialPriceResult, setOfficialPriceResult] = useState<{
+    success: boolean;
+    message: string;
+    price: number | null;
+    priceFormatted?: string;
+    year?: number;
+  } | null>(null);
+
+  // tRPC 공시가격 조회 mutation
+  const getOfficialPrice = trpc.asset.getOfficialPrice.useMutation({
+    onSuccess: (data) => {
+      setOfficialPriceResult(data as any);
+    },
+    onError: (err) => {
+      setOfficialPriceResult({ success: false, message: err.message, price: null });
+    },
+  });
+
+  // 공시가격 조회 실행
+  const handleFetchOfficialPrice = () => {
+    if (!form.address) return;
+    setOfficialPriceResult(null);
+    getOfficialPrice.mutate({
+      address: form.address,
+      assetType: form.type || "아파트",
+      dongNm: dongNm || undefined,
+      hoNm: hoNm || undefined,
+    });
+  };
+
+  // 공시가격을 예상 가액에 자동 채우기
+  const applyOfficialPrice = () => {
+    if (officialPriceResult?.price) {
+      setForm({ ...form, estimatedValue: String(officialPriceResult.price) });
+    }
+  };
+
   const save = () => {
     if (!form.address) return;
     const item: RealEstate = {
@@ -48,6 +92,9 @@ export default function Step4RealEstate({ will, update }: StepProps) {
     update({ realEstates: exists ? will.realEstates.map((r) => r.id === item.id ? item : r) : [...will.realEstates, item] });
     setShowForm(false);
     setForm({ distributionMode: "percent" });
+    setDongNm("");
+    setHoNm("");
+    setOfficialPriceResult(null);
   };
 
   // 배분 방식 표시 텍스트
@@ -57,6 +104,8 @@ export default function Step4RealEstate({ will, update }: StepProps) {
     }
     return `${re.sharePercent ?? 100}% 배분`;
   };
+
+  const needsDongHo = NEEDS_DONG_HO.includes(form.type || "아파트");
 
   return (
     <div className="space-y-5">
@@ -105,7 +154,7 @@ export default function Step4RealEstate({ will, update }: StepProps) {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => { setForm({ ...re }); setShowForm(true); }}
+              onClick={() => { setForm({ ...re }); setShowForm(true); setOfficialPriceResult(null); }}
               className="text-gray-400 hover:text-[#1F3864] text-xs px-2 py-1 rounded border border-gray-200 hover:border-[#1F3864]/30 transition-all"
             >
               수정
@@ -128,7 +177,10 @@ export default function Step4RealEstate({ will, update }: StepProps) {
               <label className="block text-xs font-semibold text-gray-500 mb-1">부동산 종류</label>
               <select
                 value={form.type || ""}
-                onChange={(e) => setForm({ ...form, type: e.target.value })}
+                onChange={(e) => {
+                  setForm({ ...form, type: e.target.value });
+                  setOfficialPriceResult(null);
+                }}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
               >
                 {RE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -147,7 +199,7 @@ export default function Step4RealEstate({ will, update }: StepProps) {
               <label className="block text-xs font-semibold text-gray-500 mb-1">소재지 국가</label>
               <select
                 value={reCountry}
-                onChange={(e) => { setReCountry(e.target.value); setForm({ ...form, address: "" }); }}
+                onChange={(e) => { setReCountry(e.target.value); setForm({ ...form, address: "" }); setOfficialPriceResult(null); }}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
               >
                 {RE_COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
@@ -157,12 +209,95 @@ export default function Step4RealEstate({ will, update }: StepProps) {
               <GlobalAddressSearch
                 label="주소 *"
                 value={form.address || ""}
-                onChange={(address) => setForm({ ...form, address })}
+                onChange={(address) => {
+                  setForm({ ...form, address });
+                  setOfficialPriceResult(null);
+                }}
                 countryCode={reCountry}
                 placeholder={reCountry === "KR" ? "주소 검색 버튼을 눌러주세요" : "Start typing address..."}
                 showLabel
               />
             </div>
+
+            {/* 아파트/빌라/오피스텔: 동·호 입력 필드 */}
+            {reCountry === "KR" && needsDongHo && (
+              <>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">
+                    동명 <span className="text-gray-400 font-normal">(예: 101동)</span>
+                  </label>
+                  <input
+                    value={dongNm}
+                    onChange={(e) => { setDongNm(e.target.value); setOfficialPriceResult(null); }}
+                    placeholder="101동"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">
+                    호명 <span className="text-gray-400 font-normal">(예: 1201호)</span>
+                  </label>
+                  <input
+                    value={hoNm}
+                    onChange={(e) => { setHoNm(e.target.value); setOfficialPriceResult(null); }}
+                    placeholder="1201호"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* 한국 부동산: 공시가격 조회 버튼 */}
+            {reCountry === "KR" && (
+              <div className="sm:col-span-2">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleFetchOfficialPrice}
+                    disabled={!form.address || getOfficialPrice.isPending}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-[#1F3864] text-white rounded-lg text-sm font-medium hover:bg-[#1F3864]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  >
+                    {getOfficialPrice.isPending ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Search className="w-3.5 h-3.5" />
+                    )}
+                    {getOfficialPrice.isPending ? "조회 중..." : "공시가격 자동 조회"}
+                  </button>
+                  {!form.address && (
+                    <span className="text-xs text-gray-400">주소를 먼저 입력해 주세요</span>
+                  )}
+                </div>
+
+                {/* 조회 결과 표시 */}
+                {officialPriceResult && (
+                  <div className={`mt-2 p-3 rounded-lg border text-sm flex items-start gap-2 ${
+                    officialPriceResult.success
+                      ? "bg-blue-50 border-blue-200 text-blue-800"
+                      : "bg-red-50 border-red-200 text-red-700"
+                  }`}>
+                    {officialPriceResult.success ? (
+                      <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-blue-600" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-red-500" />
+                    )}
+                    <div className="flex-1">
+                      <span>{officialPriceResult.message}</span>
+                      {officialPriceResult.success && officialPriceResult.price && (
+                        <button
+                          type="button"
+                          onClick={applyOfficialPrice}
+                          className="ml-3 text-xs underline text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          예상 가액에 적용
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1">등기 고유번호</label>
               <input
@@ -298,7 +433,13 @@ export default function Step4RealEstate({ will, update }: StepProps) {
           <div className="flex gap-3 pt-1">
             <button onClick={save} className="btn-navy text-white px-6 py-2 rounded-lg text-sm font-semibold">저장</button>
             <button
-              onClick={() => { setShowForm(false); setForm({ distributionMode: "percent" }); }}
+              onClick={() => {
+                setShowForm(false);
+                setForm({ distributionMode: "percent" });
+                setDongNm("");
+                setHoNm("");
+                setOfficialPriceResult(null);
+              }}
               className="text-gray-400 text-sm px-4 py-2"
             >
               취소
