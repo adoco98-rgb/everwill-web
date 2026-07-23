@@ -299,7 +299,7 @@ export default function DashboardHome() {
                         <span className="text-xs text-gray-400">{RELATIONSHIP_LABELS[heir.relationship] || heir.relationship}</span>
                         {(heir.sharePercent ?? 0) > 0 && (
                           <span className="text-xs bg-green-50 text-green-600 px-1.5 py-0.5 rounded-full font-medium">
-                            {heir.sharePercent ?? 0}%
+                            {((Math.round((heir.sharePercent ?? 0) * 10) / 10)).toFixed(1)}%
                           </span>
                         )}
                       </div>
@@ -313,10 +313,10 @@ export default function DashboardHome() {
                     <div className="border-t border-gray-100 pt-2 mt-2 flex items-center justify-between">
                       <span className="text-xs text-gray-400 font-medium">배분 합계</span>
                       <span className={`text-sm font-bold ${
-                        heirList.reduce((s, h) => s + (h.sharePercent ?? 0), 0) === 100
+                        Math.round(heirList.reduce((s, h) => s + (h.sharePercent ?? 0), 0) * 10) / 10 === 100.0
                           ? "text-green-600" : "text-amber-500"
                       }`}>
-                        {heirList.reduce((s, h) => s + (h.sharePercent ?? 0), 0)}%
+                        {(Math.round(heirList.reduce((s, h) => s + (h.sharePercent ?? 0), 0) * 10) / 10).toFixed(1)}%
                       </span>
                     </div>
                   )}

@@ -89,14 +89,14 @@ export const willRouter = router({
     .mutation(async ({ input }) => {
       // 상속인 목록 텍스트 생성
       const heirsText = input.heirs.map((h, i) =>
-        `${i + 1}. ${h.name} (${h.relation}, 지분 ${h.share}%)`
+        `${i + 1}. ${h.name} (${h.relation}, 지분 ${(Math.round((h.share ?? 0) * 10) / 10).toFixed(1)}%)`
       ).join("\n");
 
       // 부동산 목록 텍스트
       const realEstateText = input.realEstates.length > 0
         ? input.realEstates.map((r, i) => {
             const heir = input.heirs.find(h => h.id === r.heirId);
-            return `${i + 1}. ${r.type} (${r.address}) → ${heir?.name || "미지정"} (${r.sharePercent}%)`;
+            return `${i + 1}. ${r.type} (${r.address}) → ${heir?.name || "미지정"} (${(Math.round((r.sharePercent ?? 0) * 10) / 10).toFixed(1)}%)`;  
           }).join("\n")
         : "해당 없음";
 
@@ -104,7 +104,7 @@ export const willRouter = router({
       const financialText = input.financialAssets.length > 0
         ? input.financialAssets.map((f, i) => {
             const heir = input.heirs.find(h => h.id === f.heirId);
-            return `${i + 1}. ${f.institution} ${f.type} → ${heir?.name || "미지정"} (${f.sharePercent}%)`;
+            return `${i + 1}. ${f.institution} ${f.type} → ${heir?.name || "미지정"} (${(Math.round((f.sharePercent ?? 0) * 10) / 10).toFixed(1)}%)`;  
           }).join("\n")
         : "해당 없음";
 
@@ -728,7 +728,7 @@ ${input.currentData ? JSON.stringify(input.currentData, null, 2) : "없음"}
         const rel = RELATIONSHIP_KO[h.relationship] || h.relationship || "";
         const share = h.shareType === 'amount'
           ? `₩${Number(h.shareAmount).toLocaleString()}`
-          : `본인 소유의 모든 재산 중 ${h.sharePercent}%의 지분`;
+          : `본인 소유의 모든 재산 중 ${(Math.round((h.sharePercent ?? 0) * 10) / 10).toFixed(1)}%의 지분`;
         const approxAmt = h.shareType !== 'amount' && totalAssetValue > 0
           ? ` (약 ₩${Math.round(totalAssetValue * h.sharePercent / 100).toLocaleString()})`
           : '';

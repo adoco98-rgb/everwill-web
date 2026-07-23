@@ -1173,13 +1173,29 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
         let hx2 = margin + 8;
         doc.font(fontBold).fontSize(9).fillColor("#1A1A1A").text(heir.nameKo, hx2, y2 + 9, { width: hColW[0] }); hx2 += hColW[0];
         doc.font(fontRegular).fontSize(8).fillColor("#555").text(relationshipLabel(heir.relationship, config.lang), hx2, y2 + 9, { width: hColW[1] }); hx2 += hColW[1];
-        const shareStr = heir.shareType === "percent" ? `${heir.sharePercent ?? 0}%` : heir.shareAmount ? formatCurrency(heir.shareAmount, "KRW") : "-";
+        const shareStr = (heir.shareType === "percent" || heir.shareType === "percentage") ? `${(Math.round((heir.sharePercent ?? 0) * 10) / 10).toFixed(1)}%` : heir.shareAmount ? formatCurrency(heir.shareAmount, "KRW") : "-";
         doc.font(fontBold).fontSize(9).fillColor(`rgb(${pr},${pg},${pb})`).text(shareStr, hx2, y2 + 9, { width: hColW[2] }); hx2 += hColW[2];
         doc.font(fontRegular).fontSize(8).fillColor("#555").text(heir.country ?? "-", hx2, y2 + 9, { width: hColW[3] }); hx2 += hColW[3];
         const noteStr = heir.isExecutor ? (config.lang === "ko" ? "집행자" : config.lang === "ja" ? "執行者" : "Executor") : "";
         doc.font(fontRegular).fontSize(8).fillColor("#888").text(noteStr, hx2, y2 + 9, { width: hColW[4] });
         y2 += 28;
       });
+      // 합계 행 추가
+      if (heirList.length > 0) {
+        const percentHeirs = heirList.filter(h => h.shareType === "percent" || h.shareType === "percentage");
+        if (percentHeirs.length > 0) {
+          const rawTotal = percentHeirs.reduce((sum, h) => sum + (h.sharePercent ?? 0), 0);
+          const totalShare = (Math.round(rawTotal * 10) / 10).toFixed(1);
+          doc.rect(margin, y2, contentWidth, 24).fill(`rgb(${pr},${pg},${pb})`);
+          let htx = margin + 8;
+          const totalLabels = config.lang === "ko" ? ["합계", "", `${totalShare}%`, "", ""] : config.lang === "ja" ? ["合計", "", `${totalShare}%`, "", ""] : ["Total", "", `${totalShare}%`, "", ""];
+          totalLabels.forEach((lbl, i) => {
+            doc.font(fontBold).fontSize(9).fillColor("white").text(lbl, htx, y2 + 7, { width: hColW[i] });
+            htx += hColW[i];
+          });
+          y2 += 24;
+        }
+      }
       y2 += 10;
     }
 
@@ -1375,7 +1391,7 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
       // 합계 요약 (인쇄 친화적: 연한 배경)
       doc.rect(margin, ya, contentWidth, 30).fill(`#F0F4F8`);
       doc.rect(margin, ya, contentWidth, 30).stroke(`#D0D8E4`).lineWidth(0.5);
-      const totalLabel = config.lang === "ko" ? `옵 ${attachList.length}건의 증빙서류가 체부되어 있습니다.` : `Total ${attachList.length} supporting document(s) attached.`;
+      const totalLabel = config.lang === "ko" ? `전체 ${attachList.length}건의 증빙서류가 첨부되어 있습니다.` : `Total ${attachList.length} supporting document(s) attached.`;
       doc.font(fontBold).fontSize(9).fillColor(`rgb(${pr},${pg},${pb})`).text(totalLabel, margin + 12, ya + 10, { width: contentWidth - 24 });
       ya += 42;
 

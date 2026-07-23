@@ -17,6 +17,7 @@ import {
 import { useRef } from "react";
 import { Link } from "wouter";
 import { HelpTooltip } from "@/components/HelpTooltip";
+import { formatPercent } from "../../../shared/formatPercent";
 import { GradeGate } from "@/components/GradeGate";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -411,7 +412,7 @@ export default function AssetsPage() {
     const amt = ev > 0 ? ev : (Number(String(s.amount || '0').replace(/[^0-9]/g, '')) || 0);
     return sum + amt;
   }, 0);
-  const shareTotal = heirList.reduce((sum, h) => sum + (h.sharePercent ?? 0), 0);
+  const shareTotal = Math.round(heirList.reduce((sum, h) => sum + (h.sharePercent ?? 0), 0) * 10) / 10;
 
   // ── 로그인 필요 ──
   if (!loading && !isAuthenticated) {
@@ -475,11 +476,11 @@ export default function AssetsPage() {
           <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
             <div className="flex items-center gap-2">
               <div className="text-2xl font-bold text-[#1F3864]">{heirList.length}</div>
-              {shareTotal === 100 && <CheckCircle2 className="w-5 h-5 text-green-500" />}
-              {shareTotal > 0 && shareTotal !== 100 && <AlertCircle className="w-5 h-5 text-orange-400" />}
+              {shareTotal === 100.0 && <CheckCircle2 className="w-5 h-5 text-green-500" />}
+              {shareTotal > 0 && shareTotal !== 100.0 && <AlertCircle className="w-5 h-5 text-orange-400" />}
             </div>
             <div className="text-sm text-gray-400 mt-1">
-              상속자 {shareTotal > 0 ? `(지분 합계 ${shareTotal}%)` : ""}
+              상속자 {shareTotal > 0 ? `(지분 합계 ${shareTotal.toFixed(1)}%)` : ""}
             </div>
           </div>
         </div>
@@ -1105,18 +1106,18 @@ export default function AssetsPage() {
         {tab === "heirs" && (
           <div>
             {/* 지분 경고 */}
-            {shareTotal > 0 && shareTotal !== 100 && (
+            {shareTotal > 0 && shareTotal !== 100.0 && (
               <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 flex items-center gap-3 mb-4">
                 <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0" />
                 <p className="text-orange-700 text-sm">
-                  상속 지분 합계가 <strong>{shareTotal}%</strong>입니다. 합계가 100%가 되도록 조정해주세요.
+                  상속 지분 합계가 <strong>{shareTotal.toFixed(1)}%</strong>입니다. 합계가 100.0%가 되도록 조정해주세요.
                 </p>
               </div>
             )}
-            {shareTotal === 100 && heirList.length > 0 && (
+            {shareTotal === 100.0 && heirList.length > 0 && (
               <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-center gap-3 mb-4">
                 <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
-                <p className="text-green-700 text-sm">상속 지분 합계 100% — 완료됐습니다.</p>
+                <p className="text-green-700 text-sm">상속 지분 합계 100.0% — 완료됐습니다.</p>
               </div>
             )}
 
@@ -1171,7 +1172,8 @@ export default function AssetsPage() {
                       min={0}
                       max={100}
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1F3864]"
-                      placeholder="예: 50"
+                      step={0.1}
+                      placeholder="예: 25.5"
                       value={heirForm.sharePercent || ""}
                       onChange={e => setHeirForm(f => ({ ...f, sharePercent: Number(e.target.value) }))}
                     />
@@ -1274,7 +1276,7 @@ export default function AssetsPage() {
                     </div>
                     <div className="text-right flex-shrink-0">
                       <div className={`font-bold text-sm ${heir.sharePercent ? "text-[#C9A961]" : "text-gray-300"}`}>
-                        {heir.sharePercent ? `${heir.sharePercent}%` : "지분 미설정"}
+                        {heir.sharePercent ? formatPercent(heir.sharePercent) : "지분 미설정"}
                       </div>
                       {heir.sharePercent && totalValue > 0 && (
                         <div className="text-xs text-gray-400 mt-0.5">
