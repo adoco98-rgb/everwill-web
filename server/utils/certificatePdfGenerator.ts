@@ -970,35 +970,10 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
     );
     doc.font(fontRegular).fontSize(9).fillColor("#666").text(`${config.dateLabel}: ${certDateStr}`, margin + 16, certBoxY + 46);
 
-    // 제1조 유언자 정보
+    // 인증서 페이지 1: 인증번호 + 법적 근거만 표시 (상세 유언자 정보는 표지에 이미 있음)
     let y = certBoxY + 80;
-    y = drawSectionHeader(doc, config.lang === "ko" ? "제1조 유언자 정보" : config.lang === "ja" ? "第1条 遺言者情報" : config.lang === "zh" ? "第一条 立遗嘱人信息" : "Article 1: Testator Information", y, margin, contentWidth, config, fontBold);
 
-    // 주민등록번호 표시 (있을 때만)
-    const rrnDisplay = data.testatorRRN ?? data.testatorBirthDate ?? "-";
-    const info1Rows: string[][] = [
-      [config.testatorLabel, data.testatorName],
-      [config.lang === "ko" ? "주민등록번호" : config.lang === "ja" ? "住民登録番号" : "ID Number", rrnDisplay],
-      [config.lang === "ko" ? "주소" : config.lang === "ja" ? "住所" : "Address", data.testatorAddress ?? "-"],
-    ];
-    if (data.testatorPhone) {
-      info1Rows.push([config.lang === "ko" ? "연락처" : config.lang === "ja" ? "連絡先" : "Phone", data.testatorPhone]);
-    }
-    info1Rows.push(
-      [config.lang === "ko" ? "유언장 제목" : config.lang === "ja" ? "遺言書タイトル" : "Will Title", data.willTitle],
-      [config.purposeLabel, data.purpose],
-    );
-
-    info1Rows.forEach((row, i) => {
-      const ry = y + i * 32;
-      doc.rect(margin, ry, contentWidth, 32).fill(i % 2 === 0 ? "#FAFAFA" : "#FFFFFF");
-      doc.rect(margin, ry + 31, contentWidth, 1).fill("#E8E8E8");
-      doc.font(fontBold).fontSize(8).fillColor(`rgb(${pr},${pg},${pb})`).text(row[0], margin + 12, ry + 10, { width: 130 });
-      doc.font(fontRegular).fontSize(9).fillColor("#1A1A1A").text(row[1], margin + 150, ry + 10, { width: contentWidth - 162 });
-    });
-    y += info1Rows.length * 32 + 16;
-
-    // 블록체인 해시
+    // 블록체인 해시 (있을 때만)
     if (data.blockchainHash) {
       doc.rect(margin, y, contentWidth, 44).fill("#F0F4F8");
       doc.rect(margin, y, 4, 44).fill("#4A90D9");
@@ -1006,6 +981,20 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
       doc.font(fontRegular).fontSize(7).fillColor("#555").text(data.blockchainHash, margin + 12, y + 22, { width: contentWidth - 24, lineBreak: false });
       y += 56;
     }
+
+    // 발급 목적 + 유언장 제목 (간략 표시)
+    const summaryRows: string[][] = [
+      [config.lang === "ko" ? "유언장 제목" : config.lang === "ja" ? "遺言書タイトル" : "Will Title", data.willTitle],
+      [config.purposeLabel, data.purpose],
+    ];
+    summaryRows.forEach((row, i) => {
+      const ry = y + i * 32;
+      doc.rect(margin, ry, contentWidth, 32).fill(i % 2 === 0 ? "#FAFAFA" : "#FFFFFF");
+      doc.rect(margin, ry + 31, contentWidth, 1).fill("#E8E8E8");
+      doc.font(fontBold).fontSize(8).fillColor(`rgb(${pr},${pg},${pb})`).text(row[0], margin + 12, ry + 10, { width: 130 });
+      doc.font(fontRegular).fontSize(9).fillColor("#1A1A1A").text(row[1], margin + 150, ry + 10, { width: contentWidth - 162 });
+    });
+    y += summaryRows.length * 32 + 16;
 
     // 법적 근거
     doc.rect(margin, y, contentWidth, 2).fill(`rgb(${ar},${ag},${ab})`);
@@ -1217,24 +1206,74 @@ export async function generateWillCertificatePDF(data: CertificateData): Promise
       let yw = 70;
       yw = drawSectionHeader(doc, config.willTextTitle, yw, margin, contentWidth, config, fontBold);
 
-      // 유언 전문 박스: 서명란 공간(160px) 확보를 위해 높이 제한
-      const willBoxH = pageHeight - yw - 170; // 하단 170px 여백 (서명란)
-      doc.rect(margin, yw, contentWidth, willBoxH).fill("#FFFEF8");
-      doc.rect(margin, yw, contentWidth, willBoxH).stroke("#E0D5B0").lineWidth(1);
+      // 유언 전문 텍스트: 다중 페이지 자동 분할
+      // 한 페이지에 들어갈 수 있는 텍스트 높이 계산
+      const willLineHeight = 9.5 * 1.4 + 4; // fontSize * lineHeight + lineGap
+      const willPageContentH = pageHeight - yw - 170; // 서명란 공간 확보
+      const willBoxH = willPageContentH;
 
-      // 유언 전문 텍스트
-      doc
-        .font(fontRegular)
-        .fontSize(9.5)
-        .fillColor("#1A1A1A")
-        .text(data.willText, margin + 20, yw + 20, {
-          width: contentWidth - 40,
-          height: willBoxH - 40, // 박스 내부에만 출력 (넘치면 잘라냄)
-          lineGap: 4,
-          align: "justify",
-        });
+      // 유언 전문을 줄 단위로 분할하여 페이지 넘침 처리
+      const willLines = (data.willText ?? '').split('\n');
+      let willYCursor = yw;
+      let isFirstWillPage = true;
+
+      // 첫 페이지 박스 시작
+      const drawWillPageBox = (startY: number) => {
+        const boxH2 = pageHeight - startY - 170;
+        doc.rect(margin, startY, contentWidth, boxH2).fill("#FFFEF8");
+        doc.rect(margin, startY, contentWidth, boxH2).stroke("#E0D5B0").lineWidth(1);
+        return boxH2;
+      };
+
+      let currentBoxH = drawWillPageBox(willYCursor);
+      let textY = willYCursor + 20;
+      const maxTextY = () => willYCursor + currentBoxH - 20;
+
+      for (const line of willLines) {
+        // 빈 줄 처리
+        if (line.trim() === '') {
+          textY += willLineHeight * 0.6;
+          if (textY > maxTextY()) {
+            // 페이지 넘김
+            (doc as any).y = willYCursor + currentBoxH + 8;
+            doc.addPage();
+            drawPageStamp(doc, config, sealExists);
+            doc.rect(0, 0, pageWidth, 50).fill('#FFFFFF');
+            doc.rect(0, 48, pageWidth, 2).fill(`rgb(${ar},${ag},${ab})`);
+            doc.font(fontBold).fontSize(11).fillColor(`rgb(${pr},${pg},${pb})`).text('EverWill', margin, 16);
+            doc.font(fontRegular).fontSize(8).fillColor('#888888').text(`${data.certNumber}  |  Page (Will Text continued)`, margin, 33, { width: contentWidth, align: 'right' });
+            willYCursor = 65;
+            currentBoxH = drawWillPageBox(willYCursor);
+            textY = willYCursor + 20;
+          }
+          continue;
+        }
+
+        // 텍스트 높이 계산 (근사치)
+        const estimatedLines = Math.ceil((line.length * 5.5) / (contentWidth - 40)) + 1;
+        const estimatedH = estimatedLines * willLineHeight;
+
+        if (textY + estimatedH > maxTextY()) {
+          // 페이지 넘김
+          (doc as any).y = willYCursor + currentBoxH + 8;
+          doc.addPage();
+          drawPageStamp(doc, config, sealExists);
+          doc.rect(0, 0, pageWidth, 50).fill('#FFFFFF');
+          doc.rect(0, 48, pageWidth, 2).fill(`rgb(${ar},${ag},${ab})`);
+          doc.font(fontBold).fontSize(11).fillColor(`rgb(${pr},${pg},${pb})`).text('EverWill', margin, 16);
+          doc.font(fontRegular).fontSize(8).fillColor('#888888').text(`${data.certNumber}  |  Page (Will Text continued)`, margin, 33, { width: contentWidth, align: 'right' });
+          willYCursor = 65;
+          currentBoxH = drawWillPageBox(willYCursor);
+          textY = willYCursor + 20;
+        }
+
+        doc.font(fontRegular).fontSize(9.5).fillColor('#1A1A1A')
+          .text(line, margin + 20, textY, { width: contentWidth - 40, lineGap: 4, align: 'justify' });
+        textY = (doc as any).y + 4;
+      }
+
       // 텍스트 출력 후 커서를 박스 끝으로 이동
-      (doc as any).y = yw + willBoxH + 8;
+      (doc as any).y = willYCursor + currentBoxH + 8;
 
       // ── 중앙 대형 인증 도장 ──────────────────────────────────────────
       const stampCX = pageWidth / 2;
