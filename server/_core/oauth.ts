@@ -38,35 +38,20 @@ export function registerOAuthRoutes(app: Express) {
       const existingUser = await db.getUserByOpenId(userInfo.openId);
       const isNewUser = !existingUser;
 
-      // ★ 이메일 기준 계정 통합: 같은 이메일로 다른 소셜 로그인 시 기존 계정에 openId 연결
+      // 이메일 기준 계정 통합: 같은 이메일로 다른 소셜 로그인 시 기존 계정으로 연결
       if (isNewUser && userInfo.email) {
-        const existingByEmail = await db.getUserByEmail(userInfo.email);
-        if (existingByEmail && existingByEmail.openId !== userInfo.openId) {
-          // 기존 계정의 openId를 새 openId로 업데이트 (계정 통합)
-          await db.mergeUserByEmail(existingByEmail.id, userInfo.openId, {
-            name: userInfo.name || existingByEmail.name || null,
-            loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
-            lastSignedIn: new Date(),
-            ...(isAdmin ? { role: "admin" as const } : {}),
-          });
-          console.log(`[OAuth] 계정 통합: email=${userInfo.email}, 기존 userId=${existingByEmail.id}, 새 openId=${userInfo.openId}`);
-          // 기존 계정의 openId로 세션 생성 (데이터 유지)
+        const emailUser = await db.getUserByEmail(userInfo.email);
+        if (emailUser) {
+          // 기존 계정에 현재 openId 연결 (openId 업데이트)
+          await db.mergeUserOpenId(emailUser.id, userInfo.openId);
+          console.log(`[OAuth] 이메일 기준 계정 통합: ${userInfo.email} (기존 userId: ${emailUser.id})`);
           const sessionToken = await sdk.createSessionToken(userInfo.openId, {
-            name: userInfo.name || existingByEmail.name || "",
+            name: userInfo.name || "",
             expiresInMs: ONE_YEAR_MS,
           });
           const cookieOptions = getSessionCookieOptions(req);
           res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
-          // state는 base64 인코딩된 redirect URI
-          let redirectUrl = "/";
-          try {
-            const decoded = Buffer.from(state, 'base64').toString('utf-8');
-            // decoded가 URL 형태이면 그대로 사용, 아니면 기본 홈으로
-            if (decoded.startsWith('http')) {
-              redirectUrl = decoded;
-            }
-          } catch {}
-          res.redirect(302, redirectUrl);
+          res.redirect(302, "/");
           return;
         }
       }

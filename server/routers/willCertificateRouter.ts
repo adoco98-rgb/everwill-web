@@ -287,107 +287,9 @@ export const willCertificateRouter = router({
         });
       }
 
-      // ── 신분증/셀피/서명 이미지 조회 (6-A, 6-D 카테고리) ─────────────────────
-      const { assetVerifications } = await import("../../drizzle/schema");
-      const verRows = await db
-        .select()
-        .from(assetVerifications)
-        .where(eq(assetVerifications.userId, userId))
-        .orderBy(desc(assetVerifications.createdAt))
-        .limit(1);
-      const verRow = verRows[0];
-
-      // 신분증 이미지 (6-A)
-      const idPhotoData: any[] = [];
-      if (verRow?.idPhotoKey || verRow?.idPhotoUrl) {
-        let fileBytes: Buffer | null = null;
-        try {
-          if (verRow.idPhotoKey) {
-            const signedUrl = await storageGetSignedUrl(verRow.idPhotoKey);
-            const res = await fetch(signedUrl);
-            if (res.ok) fileBytes = Buffer.from(await res.arrayBuffer());
-          } else if (verRow.idPhotoUrl) {
-            const res = await fetch(verRow.idPhotoUrl);
-            if (res.ok) fileBytes = Buffer.from(await res.arrayBuffer());
-          }
-        } catch { /* 무시 */ }
-        if (fileBytes) {
-          idPhotoData.push({
-            fileName: "신분증",
-            fileType: "image/jpeg",
-            category: "id_document",
-            description: "신분증 (주민등록증/여권/운전면허증)",
-            fileSize: fileBytes.length,
-            verified: 1,
-            fileKey: verRow.idPhotoKey ?? undefined,
-            fileUrl: verRow.idPhotoUrl ?? undefined,
-            fileBytes,
-          });
-        }
-      }
-
-      // 셀피/얼굴 사진 (6-D)
-      const selfieData: any[] = [];
-      if (verRow?.selfieKey || verRow?.selfieUrl) {
-        let fileBytes: Buffer | null = null;
-        try {
-          if (verRow.selfieKey) {
-            const signedUrl = await storageGetSignedUrl(verRow.selfieKey);
-            const res = await fetch(signedUrl);
-            if (res.ok) fileBytes = Buffer.from(await res.arrayBuffer());
-          } else if (verRow.selfieUrl) {
-            const res = await fetch(verRow.selfieUrl);
-            if (res.ok) fileBytes = Buffer.from(await res.arrayBuffer());
-          }
-        } catch { /* 무시 */ }
-        if (fileBytes) {
-          selfieData.push({
-            fileName: "얼굴 사진 (셀피)",
-            fileType: "image/jpeg",
-            category: "selfie",
-            description: "본인 확인용 얼굴 사진",
-            fileSize: fileBytes.length,
-            verified: 1,
-            fileKey: verRow.selfieKey ?? undefined,
-            fileUrl: verRow.selfieUrl ?? undefined,
-            fileBytes,
-          });
-        }
-      }
-
-      // 서명 이미지 (6-D)
-      const signatureData: any[] = [];
-      if (verRow?.signatureKey || verRow?.signatureUrl) {
-        let fileBytes: Buffer | null = null;
-        try {
-          if (verRow.signatureKey) {
-            const signedUrl = await storageGetSignedUrl(verRow.signatureKey);
-            const res = await fetch(signedUrl);
-            if (res.ok) fileBytes = Buffer.from(await res.arrayBuffer());
-          } else if (verRow.signatureUrl) {
-            const res = await fetch(verRow.signatureUrl);
-            if (res.ok) fileBytes = Buffer.from(await res.arrayBuffer());
-          }
-        } catch { /* 무시 */ }
-        if (fileBytes) {
-          signatureData.push({
-            fileName: "서명 샘플",
-            fileType: "image/png",
-            category: "signature",
-            description: "유언자 전자 서명",
-            fileSize: fileBytes.length,
-            verified: 1,
-            fileKey: verRow.signatureKey ?? undefined,
-            fileUrl: verRow.signatureUrl ?? undefined,
-            fileBytes,
-          });
-        }
-      }
-
       // 공증서류도 첨부파일로 추가 (이미지 + PDF 모두 처리)
       // 이미 attachmentData에 있는 fileKey와 중복되는 공증서류 제거
-      const notarizationData: any[] = [];
-      const seenFileKeys = new Set<string>(attachmentData.map((a: any) => a.fileKey).filter(Boolean));
+      const seenFileKeys = new Set<string>(attachmentData.map(a => a.fileKey).filter(Boolean));
       for (const doc of notarizationRows) {
         // fileKey 중복 제거 (같은 파일이 willAttachments와 notarizationDocs에 모두 있을 경우)
         if (doc.fileKey && seenFileKeys.has(doc.fileKey)) continue;
@@ -415,7 +317,7 @@ export const willCertificateRouter = router({
           : isImage
             ? (fname.endsWith('.png') ? 'image/png' : fname.endsWith('.webp') ? 'image/webp' : 'image/jpeg')
             : 'application/octet-stream';
-        notarizationData.push({
+        attachmentData.push({
           fileName: doc.docName ?? doc.fileName ?? "공증서류",
           fileType: detectedFileType,
           category: "notarization",
@@ -428,20 +330,6 @@ export const willCertificateRouter = router({
           fileBytes,
         });
       }
-
-      // ── 고정 순서로 첨부파일 조립 ────────────────────────────────────────────
-      // 6-A 신분증 → 6-B 공증서류 → 6-C 자산서류 → 6-D 비교사진(셀피+서명)
-      const orderedAttachments = [
-        ...idPhotoData,          // 6-A: 신분증
-        ...notarizationData,     // 6-B: 공증서류 (인감증명서, 본인서명사실확인서)
-        ...attachmentData,       // 6-C: 자산서류 (주식, 예금, 부동산 등)
-        ...selfieData,           // 6-D: 얼굴 사진
-        ...signatureData,        // 6-D: 서명 샘플
-      ];
-
-      // 전체 attachmentData를 orderedAttachments로 교체
-      attachmentData.length = 0;
-      orderedAttachments.forEach((item: any) => attachmentData.push(item));
 
       // ── 유언 전문 추출 ────────────────────────────────────────────────────────
       // willContent: 10단계 마법사 최종 생성 텍스트 (가장 우선)
