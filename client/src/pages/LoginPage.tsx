@@ -192,6 +192,7 @@ export default function LoginPage() {
   const [loginOtp, setLoginOtp] = useState("");
   const [loginMaskedContact, setLoginMaskedContact] = useState("");
   const [loginE164Phone, setLoginE164Phone] = useState("");
+  const [loginChallengeToken, setLoginChallengeToken] = useState("");
   const [showLoginPw, setShowLoginPw] = useState(false);
   const [otpTimer, setOtpTimer] = useState(0);
 
@@ -200,10 +201,8 @@ export default function LoginPage() {
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPhone, setSignupPhone] = useState("");
   const [signupPhoneCode, setSignupPhoneCode] = useState("+82");
-  const [signupPhoneVerified, setSignupPhoneVerified] = useState(false);
   const [signupPhoneOtpSent, setSignupPhoneOtpSent] = useState(false);
   const [signupPhoneOtp, setSignupPhoneOtp] = useState("");
-  const [signupPhoneE164, setSignupPhoneE164] = useState("");
   const [signupPhoneTimer, setSignupPhoneTimer] = useState(0);
   const [signupName, setSignupName] = useState("");
   const [signupBirth, setSignupBirth] = useState("");
@@ -231,13 +230,8 @@ export default function LoginPage() {
   // ── tRPC mutations ──
   const emailLoginStep1 = trpc.auth.email.loginStep1.useMutation({
     onSuccess: (data) => {
-      // 관리자는 OTP 없이 즉시 로그인 완료
-      if (data.isAdmin) {
-        toast.success("로그인 완료!");
-        window.location.href = returnTo;
-        return;
-      }
       const contact = data.maskedContact ?? "";
+      setLoginChallengeToken(data.challengeToken);
       setLoginMaskedContact(contact);
       setLoginStep("otp");
       setOtpTimer(600);
@@ -248,9 +242,10 @@ export default function LoginPage() {
   });
 
   const phoneLoginStep1 = trpc.auth.phone.loginStep1.useMutation({
-    onSuccess: (data: { maskedPhone: string; phone: string }) => {
+    onSuccess: (data) => {
       setLoginMaskedContact(data.maskedPhone);
       setLoginE164Phone(data.phone);
+      setLoginChallengeToken(data.challengeToken);
       setLoginStep("otp");
       setOtpTimer(600);
       toast.success(`OTP가 ${data.maskedPhone}으로 발송되었습니다`);
@@ -275,37 +270,18 @@ export default function LoginPage() {
   });
 
   const emailRegister = trpc.auth.email.register.useMutation({
-    onSuccess: (_data, variables) => {
-      // 가입 완료 후 자동 로그인 시도
+    onSuccess: () => {
       setSignupStep("done");
-      emailLoginStep1.mutate(
-        { email: variables.email, password: variables.password },
-        {
-          onSuccess: (loginData) => {
-            if (loginData.isAdmin) {
-              window.location.href = returnTo;
-              return;
-            }
-            const contact = loginData.maskedContact ?? "";
-            setLoginMaskedContact(contact);
-            setLoginStep("otp");
-            setOtpTimer(600);
-            const channel = loginData.otpChannel === "sms" ? "SMS" : "이메일";
-            toast.info(`가입 완료! 인증 코드가 ${channel}(${contact})으로 발송되었습니다`);
-            setPageMode("login");
-          },
-          onError: () => {
-            // 자동 로그인 실패 시 수동 로그인 안내
-            toast.success("가입 완료! 로그인해 주세요.");
-          },
-        }
-      );
+      setTimeout(() => navigate(returnTo), 1200);
     },
     onError: (e: { message: string }) => toast.error(e.message),
   });
 
   const phoneRegister = trpc.auth.phone.register.useMutation({
-    onSuccess: () => setSignupStep("done"),
+    onSuccess: () => {
+      setSignupStep("done");
+      setTimeout(() => navigate(returnTo), 1200);
+    },
     onError: (e: { message: string }) => toast.error(e.message),
   });
 
@@ -359,9 +335,17 @@ export default function LoginPage() {
     e.preventDefault();
     if (loginOtp.length !== 6) return toast.error("6자리 OTP를 입력해주세요");
     if (loginMethod === "email") {
-      emailLoginStep2.mutate({ email: loginEmail, code: loginOtp });
+      emailLoginStep2.mutate({
+        email: loginEmail,
+        code: loginOtp,
+        challengeToken: loginChallengeToken,
+      });
     } else {
-      phoneLoginStep2.mutate({ phone: loginE164Phone, code: loginOtp });
+      phoneLoginStep2.mutate({
+        phone: loginE164Phone,
+        code: loginOtp,
+        challengeToken: loginChallengeToken,
+      });
     }
   }
 
@@ -383,21 +367,30 @@ export default function LoginPage() {
     } else {
       if (!signupPhone) return toast.error("휴대폰 번호를 입력해주세요");
     }
-    setSignupStep("info");
+    setSignupPhoneOtp("");
+    setSignupPhoneOtpSent(false);
+    if (loginMethod === "email") {
+      sendSignupEmailOtp.mutate({ email: signupEmail });
+    } else {
+      sendVerifyOtp.mutate({ phone: signupPhone, countryCode: signupPhoneCode });
+    }
   }
 
   function handleSignupStep2(e: React.FormEvent) {
     e.preventDefault();
     if (!signupName.trim()) return toast.error("이름을 입력해주세요");
-    // 전화번호 인증은 유언장 인증/결제(Step10) 단계에서 진행 (가입 시 불필요)
     if (!signupPassword) return toast.error("비밀번호를 입력해주세요");
     if (signupPassword.length < 8) return toast.error("비밀번호는 8자 이상이어야 합니다");
     if (signupPassword !== signupConfirmPw) return toast.error("비밀번호가 일치하지 않습니다");
     if (!agreeTerms || !agreePrivacy) return toast.error("필수 약관에 동의해주세요");
+    if (!signupPhoneOtpSent || signupPhoneOtp.length !== 6) {
+      return toast.error("전송된 6자리 인증 코드를 입력해주세요");
+    }
 
     if (loginMethod === "email") {
       emailRegister.mutate({
         email: signupEmail,
+        code: signupPhoneOtp,
         password: signupPassword,
         name: signupName,
         phone: signupPhone || "",
@@ -409,6 +402,7 @@ export default function LoginPage() {
       phoneRegister.mutate({
         phone: signupPhone,
         countryCode: signupPhoneCode,
+        code: signupPhoneOtp,
         password: signupPassword,
         name: signupName,
         address: signupAddress || undefined,
@@ -417,22 +411,22 @@ export default function LoginPage() {
     }
   }
 
-  // 이메일 가입 시 전화번호 OTP 발송
+  // 휴대폰 가입 인증번호 발송
   const sendVerifyOtp = trpc.auth.phone.sendVerifyOtp.useMutation({
     onSuccess: (data) => {
       setSignupPhoneOtpSent(true);
-      setSignupPhoneE164(data.phone);
       setSignupPhoneTimer(180);
+      setSignupStep("info");
       toast.success("인증번호가 발송되었습니다 (3분 유효)");
     },
     onError: (err) => toast.error(err.message),
   });
-  // 이메일 가입 시 전화번호 OTP 검증
-  const checkVerifyOtp = trpc.auth.phone.checkVerifyOtp.useMutation({
+  const sendSignupEmailOtp = trpc.auth.email.sendOtp.useMutation({
     onSuccess: () => {
-      setSignupPhoneVerified(true);
-      setSignupPhoneOtpSent(false);
-      toast.success("전화번호 인증이 완료되었습니다!");
+      setSignupPhoneOtpSent(true);
+      setSignupPhoneTimer(600);
+      setSignupStep("info");
+      toast.success("이메일 인증번호가 발송되었습니다");
     },
     onError: (err) => toast.error(err.message),
   });
@@ -444,7 +438,8 @@ export default function LoginPage() {
   }, [signupPhoneTimer]);
   const isLoading = emailLoginStep1.isPending || phoneLoginStep1.isPending ||
     emailLoginStep2.isPending || phoneLoginStep2.isPending ||
-    emailRegister.isPending || phoneRegister.isPending;
+    emailRegister.isPending || phoneRegister.isPending ||
+    sendVerifyOtp.isPending || sendSignupEmailOtp.isPending;
 
   const formatTimer = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
@@ -919,6 +914,35 @@ export default function LoginPage() {
                             <p className="text-xs text-green-600 mt-1 flex items-center gap-1"><Check className="w-3 h-3" /> 일치합니다</p>
                           )}
                         </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-gray-200 pt-4">
+                      <p className="text-sm font-bold text-[#1F3864] mb-2">
+                        {loginMethod === "email" ? "이메일" : "휴대폰"} 인증
+                      </p>
+                      <p className="text-xs text-gray-500 mb-3">
+                        입력하신 {loginMethod === "email" ? "이메일" : "휴대폰"}로 보낸 6자리 코드를 입력해주세요.
+                      </p>
+                      <OtpInput value={signupPhoneOtp} onChange={setSignupPhoneOtp} />
+                      <div className="mt-3 text-center text-xs text-gray-500">
+                        {signupPhoneTimer > 0 ? (
+                          <span>남은 시간 {formatTimer(signupPhoneTimer)}</span>
+                        ) : (
+                          <button
+                            type="button"
+                            className="text-[#1F3864] font-semibold hover:underline"
+                            onClick={() => {
+                              if (loginMethod === "email") {
+                                sendSignupEmailOtp.mutate({ email: signupEmail });
+                              } else {
+                                sendVerifyOtp.mutate({ phone: signupPhone, countryCode: signupPhoneCode });
+                              }
+                            }}
+                          >
+                            인증 코드 재전송
+                          </button>
+                        )}
                       </div>
                     </div>
 

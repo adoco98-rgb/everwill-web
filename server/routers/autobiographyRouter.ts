@@ -97,8 +97,8 @@ export const autobiographyRouter = router({
       title: `${userRows[0].name ?? "나"}의 자서전`,
       status: "draft",
       completedChapters: 0,
-    });
-    const newId = Number((result as any).insertId ?? 0);
+    }).returning({ id: autobiographies.id });
+    const newId = result.id;
 
     return {
       id: newId,
@@ -134,8 +134,8 @@ export const autobiographyRouter = router({
       title: `${userRows[0].name ?? "나"}의 자서전`,
       status: "draft",
       completedChapters: 0,
-    });
-    return { id: Number((insertResult as any).insertId ?? 0) };
+    }).returning({ id: autobiographies.id });
+    return { id: insertResult.id };
   }),
 
   /**

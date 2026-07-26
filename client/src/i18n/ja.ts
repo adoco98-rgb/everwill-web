@@ -550,7 +550,7 @@ export const ja = {
     step2Title: "② 寄付金額を入力してください",
     step2Desc: "直接入力するか、クイック選択ボタンをクリックしてください。",
     currencySymbol: "¥",
-    currencyUnit: "",
+    currencyUnit: "円",
     amountPlaceholder: "金額を入力",
     designatedTitle: "指定寄付団体情報",
     designatedSaved: "保存済み",

@@ -11,95 +11,12 @@ import { users, pointHistory } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { getSessionCookieOptions } from "../_core/cookies";
 import { sdk } from "../_core/sdk";
-import { publicProcedure, router } from "../_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { sendSmsOtp, verifySmsOtp, toE164 } from "../_core/sms";
-import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { COOKIE_NAME, SESSION_MAX_AGE_MS } from "@shared/const";
 import { randomUUID } from "crypto";
 
 export const phoneAuthRouter = router({
-  /**
-   * 휴대폰 번호로 OTP SMS 발송
-   * Twilio Verify가 OTP 생성 및 발송을 처리
-   */
-  sendOtp: publicProcedure
-    .input(z.object({
-      phone: z.string().min(7, "올바른 전화번호를 입력해주세요").max(20),
-      countryCode: z.string().default("+82"), // 예: +82, +1, +81
-    }))
-    .mutation(async ({ input }) => {
-      // E.164 형식으로 변환 (예: +821012345678)
-      const e164Phone = toE164(input.phone, input.countryCode);
-
-      const result = await sendSmsOtp(e164Phone);
-      if (!result.success) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: result.error ?? "SMS 발송에 실패했습니다. 잠시 후 다시 시도해주세요.",
-        });
-      }
-
-      return { success: true, phone: e164Phone };
-    }),
-
-  /**
-   * OTP 코드 검증 및 세션 생성
-   * Twilio Verify가 코드 검증 처리
-   */
-  verifyOtp: publicProcedure
-    .input(z.object({
-      phone: z.string().min(7).max(20),
-      countryCode: z.string().default("+82"),
-      code: z.string().length(6, "6자리 코드를 입력해주세요"),
-    }))
-    .mutation(async ({ input, ctx }) => {
-      const db = await getDb();
-      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
-
-      const e164Phone = toE164(input.phone, input.countryCode);
-
-      // Twilio Verify로 코드 검증
-      const result = await verifySmsOtp(e164Phone, input.code);
-      if (!result.success) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: result.error ?? "인증 코드가 올바르지 않습니다.",
-        });
-      }
-
-      // openId: 전화번호 기반 고유 식별자
-      const openId = `phone:${e164Phone}`;
-
-      // 기존 사용자 조회 또는 신규 생성
-      const existingUsers = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-      const isNewUser = existingUsers.length === 0;
-
-      // 신규 사용자용 QR 코드 생성
-      const newQrCode = randomUUID();
-
-      await db.insert(users).values({
-        openId,
-        phone: e164Phone,
-        name: e164Phone, // 임시 이름 (프로필 입력 단계에서 업데이트)
-        loginMethod: "phone",
-        lastSignedIn: new Date(),
-        qrCode: newQrCode,
-      }).onDuplicateKeyUpdate({
-        set: { lastSignedIn: new Date() },
-      });
-
-      // JWT 세션 토큰 생성
-      const token = await sdk.createSessionToken(openId, { name: e164Phone });
-
-      // 세션 쿠키 설정
-      const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.cookie(COOKIE_NAME, token, {
-        ...cookieOptions,
-        maxAge: ONE_YEAR_MS,
-      });
-
-      return { success: true, isNewUser, phone: e164Phone };
-    }),
-
   /**
    * [신규] 휴대폰+비밀번호 회원가입
    * 이름 + 휴대폰번호 + 비밀번호 저장 (OTP 인증 없이 즉시 가입)
@@ -109,12 +26,13 @@ export const phoneAuthRouter = router({
       phone: z.string().min(7, "올바른 전화번호를 입력해주세요").max(20),
       countryCode: z.string().default("+82"),
       password: z.string().min(8, "비밀번호는 8자 이상이어야 합니다").max(100),
+      code: z.string().regex(/^\d{6}$/, "6자리 인증 코드를 입력해주세요"),
       name: z.string().min(1, "이름을 입력해주세요").max(50),
       address: z.string().optional(),
       /** 추천인 코드 (선택) */
       referralCode: z.string().min(4).max(16).optional().or(z.literal("")),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
 
@@ -127,6 +45,13 @@ export const phoneAuthRouter = router({
         throw new TRPCError({
           code: "CONFLICT",
           message: "이미 가입된 휴대폰 번호입니다. 로그인해주세요.",
+        });
+      }
+      const verification = await verifySmsOtp(e164Phone, input.code);
+      if (!verification.success) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: verification.error ?? "인증 코드가 올바르지 않습니다.",
         });
       }
 
@@ -179,6 +104,11 @@ export const phoneAuthRouter = router({
         }
       }
 
+      const token = await sdk.createSessionToken(openId, { name: input.name });
+      ctx.res.cookie(COOKIE_NAME, token, {
+        ...getSessionCookieOptions(ctx.req),
+        maxAge: SESSION_MAX_AGE_MS,
+      });
       return { success: true };
     }),
 
@@ -239,7 +169,12 @@ export const phoneAuthRouter = router({
         return `${cc}${"*".repeat(mid.length)}${last}`;
       });
 
-      return { success: true, maskedPhone, phone: e164Phone };
+      return {
+        success: true,
+        maskedPhone,
+        phone: e164Phone,
+        challengeToken: await sdk.createLoginChallenge(e164Phone),
+      };
     }),
 
   /**
@@ -249,10 +184,17 @@ export const phoneAuthRouter = router({
     .input(z.object({
       phone: z.string().min(7).max(20), // E.164 형식
       code: z.string().length(6, "6자리 코드를 입력해주세요"),
+      challengeToken: z.string().min(1),
     }))
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
+      if (!await sdk.verifyLoginChallenge(input.challengeToken, input.phone)) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "로그인 인증 요청이 만료되었습니다. 비밀번호부터 다시 확인해주세요.",
+        });
+      }
 
       // Twilio Verify로 코드 검증
       const result = await verifySmsOtp(input.phone, input.code);
@@ -279,7 +221,7 @@ export const phoneAuthRouter = router({
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.cookie(COOKIE_NAME, token, {
         ...cookieOptions,
-        maxAge: ONE_YEAR_MS,
+        maxAge: SESSION_MAX_AGE_MS,
       });
 
       return { success: true };
@@ -288,7 +230,7 @@ export const phoneAuthRouter = router({
   /**
    * [기존] 회원가입 후 추가 정보 저장 (전화번호 기반 가입자)
    */
-  updateProfile: publicProcedure
+  updateProfile: protectedProcedure
     .input(z.object({
       phone: z.string().min(7).max(20), // E.164 형식
       name: z.string().min(1, "이름을 입력해주세요").max(50),
@@ -308,11 +250,10 @@ export const phoneAuthRouter = router({
       agreeMarketing: z.number().optional(),
       agreeGdpr: z.number().optional(),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
 
-      const openId = `phone:${input.phone}`;
       await db.update(users)
         .set({
           name: input.name,
@@ -334,7 +275,7 @@ export const phoneAuthRouter = router({
           profileCompleted: 1,
           updatedAt: new Date(),
         })
-        .where(eq(users.openId, openId));
+        .where(eq(users.id, ctx.user.id));
       return { success: true };
     }),
   /**
@@ -356,25 +297,4 @@ export const phoneAuthRouter = router({
       }
       return { success: true, phone: e164Phone };
     }),
-  /**
-   * 이메일 가입 시 전화번호 OTP 검증 (세션 생성 없음, 인증 여부만 확인)
-   */
-  checkVerifyOtp: publicProcedure
-    .input(z.object({
-      phone: z.string().min(7).max(20),
-      countryCode: z.string().default("+82"),
-      code: z.string().length(6, "6자리 코드를 입력해주세요"),
-    }))
-    .mutation(async ({ input }) => {
-      const e164Phone = toE164(input.phone, input.countryCode);
-      const result = await verifySmsOtp(e164Phone, input.code);
-      if (!result.success) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: result.error ?? "인증 코드가 올바르지 않습니다.",
-        });
-      }
-      return { success: true, phone: e164Phone };
-    }),
-
 });

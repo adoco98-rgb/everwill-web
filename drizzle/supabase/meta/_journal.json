@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1785051603358,
+      "tag": "20260726074003_init_supabase",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1785054095393,
+      "tag": "20260726082135_auth_security_hardening",
+      "breakpoints": true
+    }
+  ]
+}

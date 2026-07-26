@@ -550,7 +550,7 @@ export const zh = {
     step2Title: "② 输入捐赠金额",
     step2Desc: "直接输入或点击快速选择按钮。",
     currencySymbol: "¥",
-    currencyUnit: "",
+    currencyUnit: "元",
     amountPlaceholder: "输入金额",
     designatedTitle: "指定捐赠机构信息",
     designatedSaved: "已保存",

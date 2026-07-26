@@ -5,6 +5,7 @@ import { heirs, users, heirInvitations, wills } from "../../drizzle/schema";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { sendSmsMessage, toE164 } from "../_core/sms";
 import { randomUUID } from "crypto";
+import { ENV } from "../_core/env";
 
 /**
  * 상속자 관리 라우터
@@ -96,7 +97,7 @@ export const heirsRouter = router({
         lineId: input.lineId ?? null,
         whatsappId: input.whatsappId ?? null,
         wechatId: input.wechatId ?? null,
-      });
+      }).returning({ id: heirs.id });
 
       // 제1상속자이고 SMS 동의한 경우 즉시 알림 발송
       if (priority === 1 && input.smsConsent === 1 && input.phone) {
@@ -104,7 +105,7 @@ export const heirsRouter = router({
         const phone = input.phone.startsWith("+") ? input.phone : toE164(input.phone, "+82");
         const message = `[EverWill] ${testator?.name ?? "회원"}님이 EverWill 디지털 유언 서비스에 가입하셨습니다. 유언 작성이 완료되면 알림을 드리겠습니다. www.everwill.co.kr`;
         await sendSmsMessage(phone, message);
-        await db.update(heirs).set({ smsSent: 1 }).where(eq(heirs.id, (inserted as { insertId: number }).insertId));
+        await db.update(heirs).set({ smsSent: 1 }).where(eq(heirs.id, inserted.id));
       }
 
       return { success: true, priority, heirFee };
@@ -264,7 +265,7 @@ export const heirsRouter = router({
         // SMS 발송 (전화번호 있는 경우)
         if (heir.phone) {
           const phone = heir.phone.startsWith("+") ? heir.phone : toE164(heir.phone, "+82");
-          const inviteUrl = `${process.env.VITE_OAUTH_PORTAL_URL || "https://everwill.co.kr"}/heir/accept/${token}`;
+          const inviteUrl = `${ENV.appPublicUrl || "https://everwill.co.kr"}/heir/accept/${token}`;
           const roleLabel = heir.isExecutor ? "집행자" : `제${heir.priority}상속인`;
           const message = `[EverWill] 유언자의 유언 내용 확인을 위해 EverWill에 가입해주세요. (${roleLabel}) 가입 링크: ${inviteUrl} (30일 내 유효)`;
           const smsResult = await sendSmsMessage(phone, message);

@@ -13,12 +13,42 @@
  */
 import type { Express, Request, Response } from "express";
 import axios from "axios";
-import { getDb } from "./db";
-import { users } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { parse as parseCookieHeader } from "cookie";
+import { upsertUser } from "./db";
 import { sdk } from "./_core/sdk";
 import { getSessionCookieOptions } from "./_core/cookies";
-import { COOKIE_NAME, ONE_YEAR_MS } from "../shared/const";
+import { createOAuthState, verifyOAuthState } from "./_core/oauthState";
+import { COOKIE_NAME, SESSION_MAX_AGE_MS } from "../shared/const";
+
+const OAUTH_STATE_MAX_AGE_MS = 10 * 60 * 1000;
+
+function oauthStateCookieName(provider: string) {
+  return `oauth_state_${provider}`;
+}
+
+function startOAuth(req: Request, res: Response, provider: string) {
+  const state = createOAuthState();
+  res.cookie(oauthStateCookieName(provider), state, {
+    ...getSessionCookieOptions(req),
+    maxAge: OAUTH_STATE_MAX_AGE_MS,
+  });
+  return state;
+}
+
+function consumeOAuthState(
+  req: Request,
+  res: Response,
+  provider: string,
+  actual: unknown,
+) {
+  const cookieName = oauthStateCookieName(provider);
+  const expected = parseCookieHeader(req.headers.cookie ?? "")[cookieName];
+  res.clearCookie(cookieName, getSessionCookieOptions(req));
+  return verifyOAuthState(
+    expected,
+    typeof actual === "string" ? actual : undefined,
+  );
+}
 
 // ─── 헬퍼: redirect_uri 생성 (프로덕션 환경에서는 고정 URL 사용) ──────
 function getBaseUrl(req: Request): string {
@@ -56,42 +86,22 @@ async function loginSocialUser(
     profileImage?: string | null;
   }
 ) {
-  const db = await getDb();
-  if (!db) throw new Error("DB 연결 실패");
-
-  // 관리자 이메일 자동 승격
-  const ADMIN_EMAILS = ["wadokdo@hanmail.net"];
-  const isAdmin = params.email && ADMIN_EMAILS.includes(params.email);
-
-  // DB upsert (openId 기준)
-  await db
-    .insert(users)
-    .values({
-      openId: params.openId,
-      email: params.email,
-      name: params.name,
-      loginMethod: params.loginMethod,
-      role: isAdmin ? "admin" : "user",
-      lastSignedIn: new Date(),
-    })
-    .onDuplicateKeyUpdate({
-      set: {
-        email: params.email ?? undefined,
-        name: params.name ?? undefined,
-        loginMethod: params.loginMethod,
-        lastSignedIn: new Date(),
-        ...(isAdmin ? { role: "admin" } : {}),
-      },
-    });
+  await upsertUser({
+    openId: params.openId,
+    email: params.email,
+    name: params.name,
+    loginMethod: params.loginMethod,
+    lastSignedIn: new Date(),
+  });
 
   // 세션 토큰 발급
   const sessionToken = await sdk.createSessionToken(params.openId, {
     name: params.name || "",
-    expiresInMs: ONE_YEAR_MS,
+    expiresInMs: SESSION_MAX_AGE_MS,
   });
 
   const cookieOptions = getSessionCookieOptions(req);
-  res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+  res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: SESSION_MAX_AGE_MS });
 
   // 가입 후 대시보드로 이동
   res.redirect(302, "/dashboard");
@@ -113,7 +123,7 @@ function registerGoogleRoutes(app: Express) {
       return redirectError(res, "Google", "GOOGLE_CLIENT_ID 미설정");
     }
     const redirectUri = `${getBaseUrl(req)}/api/auth/google/callback`;
-    const state = Buffer.from(redirectUri).toString("base64");
+    const state = startOAuth(req, res, "google");
     const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
     url.searchParams.set("client_id", GOOGLE_CLIENT_ID);
     url.searchParams.set("redirect_uri", redirectUri);
@@ -129,6 +139,9 @@ function registerGoogleRoutes(app: Express) {
   app.get("/api/auth/google/callback", async (req: Request, res: Response) => {
     const code = req.query.code as string;
     if (!code) return redirectError(res, "Google", "code 없음");
+    if (!consumeOAuthState(req, res, "google", req.query.state)) {
+      return redirectError(res, "Google", "유효하지 않은 state");
+    }
 
     try {
       const redirectUri = `${getBaseUrl(req)}/api/auth/google/callback`;
@@ -169,17 +182,22 @@ function registerKakaoRoutes(app: Express) {
       return redirectError(res, "Kakao", "KAKAO_CLIENT_ID 미설정");
     }
     const redirectUri = `${getBaseUrl(req)}/api/auth/kakao/callback`;
+    const state = startOAuth(req, res, "kakao");
     const url = new URL("https://kauth.kakao.com/oauth/authorize");
     url.searchParams.set("client_id", KAKAO_CLIENT_ID);
     url.searchParams.set("redirect_uri", redirectUri);
     url.searchParams.set("response_type", "code");
     url.searchParams.set("scope", "profile_nickname,account_email");
+    url.searchParams.set("state", state);
     res.redirect(302, url.toString());
   });
 
   app.get("/api/auth/kakao/callback", async (req: Request, res: Response) => {
     const code = req.query.code as string;
     if (!code) return redirectError(res, "Kakao", "code 없음");
+    if (!consumeOAuthState(req, res, "kakao", req.query.state)) {
+      return redirectError(res, "Kakao", "유효하지 않은 state");
+    }
 
     try {
       const redirectUri = `${getBaseUrl(req)}/api/auth/kakao/callback`;
@@ -225,7 +243,7 @@ function registerNaverRoutes(app: Express) {
       return redirectError(res, "Naver", "NAVER_CLIENT_ID 미설정");
     }
     const redirectUri = `${getBaseUrl(req)}/api/auth/naver/callback`;
-    const state = Math.random().toString(36).substring(2);
+    const state = startOAuth(req, res, "naver");
     const url = new URL("https://nid.naver.com/oauth2.0/authorize");
     url.searchParams.set("client_id", NAVER_CLIENT_ID);
     url.searchParams.set("redirect_uri", redirectUri);
@@ -237,6 +255,9 @@ function registerNaverRoutes(app: Express) {
   app.get("/api/auth/naver/callback", async (req: Request, res: Response) => {
     const code = req.query.code as string;
     if (!code) return redirectError(res, "Naver", "code 없음");
+    if (!consumeOAuthState(req, res, "naver", req.query.state)) {
+      return redirectError(res, "Naver", "유효하지 않은 state");
+    }
 
     try {
       const redirectUri = `${getBaseUrl(req)}/api/auth/naver/callback`;
@@ -279,7 +300,7 @@ function registerLineRoutes(app: Express) {
       return redirectError(res, "LINE", "LINE_CHANNEL_ID 미설정");
     }
     const redirectUri = `${getBaseUrl(req)}/api/auth/line/callback`;
-    const state = Math.random().toString(36).substring(2);
+    const state = startOAuth(req, res, "line");
     const url = new URL("https://access.line.me/oauth2/v2.1/authorize");
     url.searchParams.set("response_type", "code");
     url.searchParams.set("client_id", LINE_CHANNEL_ID);
@@ -292,6 +313,9 @@ function registerLineRoutes(app: Express) {
   app.get("/api/auth/line/callback", async (req: Request, res: Response) => {
     const code = req.query.code as string;
     if (!code) return redirectError(res, "LINE", "code 없음");
+    if (!consumeOAuthState(req, res, "line", req.query.state)) {
+      return redirectError(res, "LINE", "유효하지 않은 state");
+    }
 
     try {
       const redirectUri = `${getBaseUrl(req)}/api/auth/line/callback`;

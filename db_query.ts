@@ -1,11 +1,12 @@
-import { drizzle } from "drizzle-orm/mysql2";
-import mysql from "mysql2/promise";
+import "dotenv/config";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import * as schema from "./drizzle/schema";
 import { count } from "drizzle-orm";
 
 async function main() {
-  const pool = mysql.createPool(process.env.DATABASE_URL!);
-  const db = drizzle(pool, { schema, mode: "default" });
+  const client = postgres(process.env.SUPABASE_DB_URL!, { ssl: "require" });
+  const db = drizzle({ client, schema });
 
   // 사용자 전체
   const users = await db.select().from(schema.users).orderBy(schema.users.createdAt);
@@ -29,7 +30,7 @@ async function main() {
   const wills = await db.select().from(schema.wills);
   console.log("=== WILLS ===");
   console.log(JSON.stringify(wills.map(w => ({
-    id: w.id, userId: w.userId, status: w.status, willType: w.willType,
+    id: w.id, userId: w.userId, status: w.status, mode: w.mode,
     title: w.title, createdAt: w.createdAt
   })), null, 2));
 
@@ -63,7 +64,7 @@ async function main() {
     .groupBy(schema.users.country);
   console.log("=== COUNTRIES ===", JSON.stringify(countries));
 
-  await pool.end();
+  await client.end();
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
