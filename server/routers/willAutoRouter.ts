@@ -15,7 +15,6 @@ import { eq, desc } from "drizzle-orm";
 import { storagePut } from "../storage";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const pdfParse = require("pdf-parse");
 
 // ─── 자산증명서 유형 ───────────────────────────────────────────
 const ASSET_DOC_TYPES = [
@@ -74,6 +73,7 @@ export const willAutoRouter = router({
           const pdfBuffer = Buffer.from(base64Data, "base64");
           let pdfText = "";
           try {
+            const pdfParse = require("pdf-parse");
             const parsed = await pdfParse(pdfBuffer);
             pdfText = parsed.text?.trim() || "";
           } catch (parseErr) {
