@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "express",
-  "buildCommand": "pnpm exec vite build && pnpm exec esbuild server/_core/index.ts --bundle --format=esm --platform=node --packages=external --outfile=dist/vercel-server.js",
+  "buildCommand": "pnpm exec vite build && pnpm exec esbuild server/_core/index.ts --bundle --format=esm --platform=node --packages=external --define:process.env.NODE_ENV=\\\"production\\\" --outfile=dist/vercel-server.js",
   "outputDirectory": null
 }
