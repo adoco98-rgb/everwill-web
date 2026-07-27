@@ -1,0 +1,1 @@
+ALTER TABLE "heirs" ALTER COLUMN "sharePercent" SET DATA TYPE numeric(5, 2);
