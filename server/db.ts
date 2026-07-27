@@ -4,62 +4,26 @@ import postgres from "postgres";
 import { authSessions, InsertUser, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
-type DbClient = ReturnType<typeof postgres>;
 type Db = ReturnType<typeof drizzle>;
 
-let _client: DbClient | null = null;
 let _db: Db | null = null;
-let _dbCheck: Promise<Db | null> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
-async function pingDb(client: DbClient) {
-  let timer: NodeJS.Timeout | undefined;
-  try {
-    await Promise.race([
-      client`select 1`,
-      new Promise((_, reject) => {
-        timer = setTimeout(() => reject(new Error("Database health check timed out")), 3_000);
-      }),
-    ]);
-  } finally {
-    if (timer) clearTimeout(timer);
-  }
-}
-
-async function ensureDb(): Promise<Db | null> {
+// Lazily create the client; postgres.js reconnects after idle connections close.
+export async function getDb(): Promise<Db | null> {
   if (!ENV.databaseUrl) return null;
 
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      if (!_client || !_db) {
-        _client = postgres(ENV.databaseUrl, {
-          ssl: "require",
-          prepare: false,
-          max: 1,
-          connect_timeout: 5,
-        });
-        _db = drizzle({ client: _client });
-      }
-
-      await pingDb(_client);
-      return _db;
-    } catch (error) {
-      console.warn("[Database] Recreating stale connection:", error instanceof Error ? error.message : String(error));
-      const client = _client;
-      _client = null;
-      _db = null;
-      await client?.end({ timeout: 1 }).catch(() => {});
-    }
+  if (!_db) {
+    const client = postgres(ENV.databaseUrl, {
+      ssl: "require",
+      prepare: false,
+      max: 1,
+      connect_timeout: 10,
+      idle_timeout: 20,
+    });
+    _db = drizzle({ client });
   }
 
-  return null;
-}
-
-export function getDb() {
-  _dbCheck ??= ensureDb().finally(() => {
-    _dbCheck = null;
-  });
-  return _dbCheck;
+  return _db;
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {
