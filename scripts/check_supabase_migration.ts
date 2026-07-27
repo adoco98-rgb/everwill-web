@@ -9,7 +9,7 @@ const db = await getDb();
 assert(db, "SUPABASE_DB_URL connection failed");
 
 try {
-  const [summary] = await db.execute<{
+  const { rows: [summary] } = await db.execute<{
     tables: number;
     rls_tables: number;
     identities: number;

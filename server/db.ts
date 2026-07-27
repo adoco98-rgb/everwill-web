@@ -1,6 +1,7 @@
 import { and, eq, gt, isNull } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { attachDatabasePool } from "@vercel/functions";
+import { Pool } from "pg";
 import { authSessions, InsertUser, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -8,19 +9,21 @@ type Db = ReturnType<typeof drizzle>;
 
 let _db: Db | null = null;
 
-// Lazily create the client; postgres.js reconnects after idle connections close.
+// Vercel keeps the pool alive only until its idle connections are closed.
 export async function getDb(): Promise<Db | null> {
   if (!ENV.databaseUrl) return null;
 
   if (!_db) {
-    const client = postgres(ENV.databaseUrl, {
-      ssl: "require",
-      prepare: false,
-      max: 1,
-      connect_timeout: 10,
-      idle_timeout: 20,
+    const pool = new Pool({
+      connectionString: ENV.databaseUrl,
+      ssl: { rejectUnauthorized: false },
+      min: 1,
+      max: 5,
+      connectionTimeoutMillis: 10_000,
+      idleTimeoutMillis: 5_000,
     });
-    _db = drizzle({ client });
+    if (ENV.isProduction) attachDatabasePool(pool);
+    _db = drizzle({ client: pool });
   }
 
   return _db;

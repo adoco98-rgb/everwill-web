@@ -874,7 +874,7 @@ export const willCertificateRouter = router({
       // 신청 즉시 issued 처리 (무료 자동 발급)
       const issueNumber = `EW-${new Date().getFullYear()}${String(new Date().getMonth()+1).padStart(2,'0')}${String(new Date().getDate()).padStart(2,'0')}-${String(userId).slice(-4)}${String(input.willId).padStart(4,'0')}`;
 
-      const [inserted] = await db.insert(willCertificates).values({
+      await db.insert(willCertificates).values({
         userId,
         willId: input.willId,
         certDate: input.certDate,

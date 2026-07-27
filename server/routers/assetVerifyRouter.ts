@@ -166,7 +166,7 @@ export const assetVerifyRouter = router({
         .limit(1);
 
       if (!verification) {
-        const [inserted] = await db.insert(assetVerifications).values({
+        await db.insert(assetVerifications).values({
           userId: ctx.user.id,
           status: "pending",
         });
