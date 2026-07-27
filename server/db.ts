@@ -1,15 +1,17 @@
-import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { and, eq, gt, isNull } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import { authSessions, InsertUser, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
-  if (!_db && process.env.DATABASE_URL) {
+  if (!_db && ENV.databaseUrl) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      const client = postgres(ENV.databaseUrl, { ssl: "require", prepare: false, max: 1 });
+      _db = drizzle({ client });
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -68,7 +70,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = new Date();
     }
 
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
+    await db.insert(users).values(values).onConflictDoUpdate({
+      target: users.openId,
       set: updateSet,
     });
   } catch (error) {
@@ -87,6 +90,52 @@ export async function getUserByOpenId(openId: string) {
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createAuthSession(input: {
+  id: string;
+  userId: number;
+  expiresAt: Date;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(authSessions).values(input);
+}
+
+export async function isAuthSessionActive(id: string, userId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  const rows = await db
+    .select({ id: authSessions.id })
+    .from(authSessions)
+    .where(
+      and(
+        eq(authSessions.id, id),
+        eq(authSessions.userId, userId),
+        isNull(authSessions.revokedAt),
+        gt(authSessions.expiresAt, new Date()),
+      ),
+    )
+    .limit(1);
+  return rows.length === 1;
+}
+
+export async function revokeAuthSession(id: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(authSessions)
+    .set({ revokedAt: new Date() })
+    .where(and(eq(authSessions.id, id), isNull(authSessions.revokedAt)));
+}
+
+export async function revokeUserSessions(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(authSessions)
+    .set({ revokedAt: new Date() })
+    .where(and(eq(authSessions.userId, userId), isNull(authSessions.revokedAt)));
 }
 
 // TODO: add feature queries here as your schema grows.
