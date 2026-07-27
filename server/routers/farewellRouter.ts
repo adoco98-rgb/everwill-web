@@ -76,8 +76,8 @@ export const farewellRouter = router({
         isPaid: 0,
         editCount: 0,
         isLocked: 0,
-      });
-      return { id: (result as any).insertId as number };
+      }).returning({ id: farewellLetters.id });
+      return { id: result.id };
     }),
 
   /** 유서 수정 */
@@ -143,8 +143,8 @@ export const farewellRouter = router({
         phone: input.phone,
         email: input.email,
         address: input.address,
-      });
-      return { id: (result as any).insertId as number };
+      }).returning({ id: farewellRecipients.id });
+      return { id: result.id };
     }),
 
   removeRecipient: protectedProcedure
@@ -278,8 +278,8 @@ export const farewellRouter = router({
         mimeType: input.mimeType,
         fileSize: input.fileSize,
         fileType: input.fileType,
-      });
-      return { id: (result as any).insertId as number };
+      }).returning({ id: farewellAttachments.id });
+      return { id: result.id };
     }),
 
   removeAttachment: protectedProcedure

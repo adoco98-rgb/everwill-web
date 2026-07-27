@@ -8,7 +8,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { protectedProcedure, router } from "../_core/trpc";
 import { generateImage } from "../_core/imageGeneration";
-import { storagePut, storageGetSignedUrl } from "../storage";
+import { storagePut } from "../storage";
 
 // 그림 스타일별 프롬프트
 const STYLE_PROMPTS: Record<string, string> = {
@@ -53,20 +53,17 @@ export const artworkRouter = router({
         const originalKey = `artwork-original/${ctx.user.openId}-${Date.now()}.${ext}`;
         const { url: originalUrl } = await storagePut(originalKey, imageBuffer, input.mimeType);
 
-        // AI에 전달할 presigned https URL 획득 (내부 /manus-storage/ 경로는 AI가 접근 불가)
-        const signedUrl = await storageGetSignedUrl(originalKey);
-
         // 스타일 프롬프트 구성
         const stylePrompt = STYLE_PROMPTS[input.style] ?? STYLE_PROMPTS.watercolor;
         const contextPart = input.contextHint ? ` Context: ${input.contextHint}.` : "";
         const fullPrompt = `${stylePrompt}${contextPart} Create a warm, nostalgic, and emotionally touching artwork suitable for a personal memoir or life story book.`;
 
-        // AI 그림 생성 (presigned URL로 원본 이미지 참조)
+        // AI 그림 생성 (원본 이미지 참조)
         const { url: artworkUrl } = await generateImage({
           prompt: fullPrompt,
           originalImages: [
             {
-              url: signedUrl,
+              url: originalUrl,
               mimeType: input.mimeType as "image/jpeg" | "image/png",
             },
           ],

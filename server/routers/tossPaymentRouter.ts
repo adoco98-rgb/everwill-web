@@ -70,7 +70,7 @@ export const tossPaymentRouter = router({
         currency: "krw",
         items: input.productCode,
         customerEmail: ctx.user.email || undefined,
-      });
+      }).returning({ id: payments.id });
 
       return {
         orderId,
@@ -78,7 +78,7 @@ export const tossPaymentRouter = router({
         orderName: product.name,
         customerName: ctx.user.name || "고객",
         customerEmail: ctx.user.email || "",
-        paymentId: (result as any).insertId,
+        paymentId: result.id,
       };
     }),
 

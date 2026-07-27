@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { GradeGate } from "@/components/GradeGate";
@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import SaramDashboardLayout from "@/components/SaramDashboardLayout";
+import Navbar from "@/components/Navbar";
 import { VoiceInput } from "@/components/VoiceInput";
 
 // 음성 입력 래퍼 컴포넌트 (안정적 콜백 보장)
@@ -81,18 +81,18 @@ function LockedScreen({ isLoggedIn }: { isLoggedIn: boolean }) {
         ) : (
           <>
             <p className="text-white/60 mb-4 leading-relaxed">
-              이 기능은 <span className="text-[#C9A961] font-semibold">EverWill 인증 (₩168,000) 회원</span> 전용입니다.
+              이 기능은 <span className="text-[#C9A961] font-semibold">Badge Gold (₩79,000) 이상</span> 구매 회원 전용입니다.
             </p>
             <p className="text-white/40 text-sm mb-8">
-              유언장 전자 인증을 완료하신 회원만 이용할 수 있습니다.
+              현재 플랜으로는 이용할 수 없습니다. 업그레이드 후 이용해주세요.
             </p>
 
             {/* 기능 미리보기 */}
             <div className="grid grid-cols-3 gap-3 mb-8">
               {[
                 { icon: <Mic className="w-5 h-5" />, label: "AI 일기" },
-                { icon: <Camera className="w-5 h-5" />, label: "나의 사진 갤러리" },
-                { icon: <Mail className="w-5 h-5" />, label: "소중한 편지" },
+                { icon: <Camera className="w-5 h-5" />, label: "인물 앨범" },
+                { icon: <Mail className="w-5 h-5" />, label: "레거시 편지" },
               ].map((f, i) => (
                 <div key={i} className="rounded-xl bg-white/5 border border-white/10 p-4 flex flex-col items-center gap-2">
                   <div className="text-[#C9A961]/60">{f.icon}</div>
@@ -102,11 +102,12 @@ function LockedScreen({ isLoggedIn }: { isLoggedIn: boolean }) {
               ))}
             </div>
 
-            <Link href="/certification">
+            <Link href="/payment">
               <Button className="bg-[#C9A961] text-[#1F3864] hover:bg-[#d4b56e] font-bold px-10 py-3 rounded-full text-lg">
-                유언장 인증하러 가기 →
+                Badge Gold 구매하기 →
               </Button>
             </Link>
+            <p className="text-white/30 text-xs mt-3">₩79,000 · 1회 결제 · 3년 이용</p>
           </>
         )}
 
@@ -131,7 +132,9 @@ function LifeStoryMain({ userId }: { userId: number }) {
   const [activeTab, setActiveTab] = useState<Tab>("journal");
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="min-h-screen bg-[#FAFAF8]">
+      <Navbar />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* 헤더 */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -153,7 +156,7 @@ function LifeStoryMain({ userId }: { userId: number }) {
           {[
             { id: "journal" as Tab, label: "AI 일기", icon: <BookOpen className="w-4 h-4" /> },
             { id: "letters" as Tab, label: "소중한 편지", icon: <Mail className="w-4 h-4" /> },
-            { id: "album" as Tab, label: "나의 사진 갤러리", icon: <Camera className="w-4 h-4" /> },
+            { id: "album" as Tab, label: "인물 앨범", icon: <Camera className="w-4 h-4" /> },
             { id: "autobiography" as Tab, label: "나의 자서전", icon: <span className="text-sm">📖</span> },
           ].map((tab) => (
             <button
@@ -174,7 +177,7 @@ function LifeStoryMain({ userId }: { userId: number }) {
         {/* 탭 콘텐츠 */}
         {activeTab === "journal" && <JournalTab userId={userId} />}
         {activeTab === "letters" && <LettersTab userId={userId} />}
-        {activeTab === "album" && <PhotoGalleryTab userId={userId} />}
+        {activeTab === "album" && <AlbumTab userId={userId} />}
         {activeTab === "autobiography" && (
           <div className="text-center py-16">
             <div className="text-6xl mb-4">📖</div>
@@ -190,6 +193,7 @@ function LifeStoryMain({ userId }: { userId: number }) {
             </Link>
           </div>
         )}
+      </div>
     </div>
   );
 }
@@ -200,36 +204,11 @@ function JournalTab({ userId }: { userId: number }) {
   const [imageStyle, setImageStyle] = useState<"watercolor" | "illustration" | "oil_painting">("watercolor");
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<{ diaryText: string; imageUrl?: string; emotionTags: string } | null>(null);
-  const [attachedPhotos, setAttachedPhotos] = useState<Array<{ dataUrl: string; name: string }>>([]);
-  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const { data: journals, refetch } = trpc.lifeStory.getJournals.useQuery({ limit: 20, offset: 0 });
   const generateMutation = trpc.lifeStory.generateJournal.useMutation();
-  const deleteMutation = trpc.lifeStory.deleteJournal.useMutation({
-    onSuccess: () => { refetch(); toast.success("일기를 삭제했습니다."); },
-    onError: () => { toast.error("삭제 중 오류가 발생했습니다."); },
-  });
-
-  const handleDelete = (journalId: number) => {
-    if (!confirm("이 일기를 삭제하시겠습니까? 삭제된 일기는 복구할 수 없습니다.")) return;
-    deleteMutation.mutate({ journalId });
-  };
 
   const today = new Date().toISOString().split("T")[0];
-
-  const handlePhotoAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    files.forEach(file => {
-      if (file.size > 10 * 1024 * 1024) { toast.error(`${file.name}: 10MB 이하만 가능`); return; }
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const dataUrl = ev.target?.result as string;
-        setAttachedPhotos(prev => [...prev, { dataUrl, name: file.name }]);
-      };
-      reader.readAsDataURL(file);
-    });
-    e.target.value = "";
-  };
 
   const handleGenerate = async () => {
     if (!conversation.trim()) {
@@ -242,7 +221,6 @@ function JournalTab({ userId }: { userId: number }) {
         journalDate: today,
         conversationText: conversation,
         imageStyle,
-        photoDataUrls: attachedPhotos.length > 0 ? attachedPhotos.map(p => p.dataUrl) : undefined,
       });
       setResult(res);
       refetch();
@@ -274,45 +252,9 @@ function JournalTab({ userId }: { userId: number }) {
           <Textarea
             value={conversation}
             onChange={(e) => setConversation(e.target.value)}
-            placeholder="오늘 있었던 일을 자유롭게 이야기해주세요. 예: '오늘 아들과 함께 뒷산을 올랐어. 오래만에 둘이서 걸으며 많은 이야기를 나눠는데...'"
+            placeholder="오늘 있었던 일을 자유롭게 이야기해주세요. 예: '오늘 아들과 함께 뒷산을 올랐어. 오랜만에 둘이서 걸으며 많은 이야기를 나눴는데...'"
             className="min-h-[140px] resize-none border-gray-200 focus:border-[#1F3864]"
           />
-
-          {/* 사진 첨부 영역 - 직접 업로드 */}
-          <div>
-            <input
-              ref={photoInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={handlePhotoAdd}
-            />
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">사진 첨부 (선택) — 업로드한 사진은 갤러리에도 저장됩니다</span>
-              <button
-                type="button"
-                onClick={() => photoInputRef.current?.click()}
-                className="text-xs text-[#1F3864] border border-[#1F3864]/30 rounded-lg px-3 py-1.5 hover:bg-[#1F3864]/5 flex items-center gap-1.5"
-              >
-                <Camera className="w-3.5 h-3.5" />
-                사진 업로드
-              </button>
-            </div>
-            {attachedPhotos.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {attachedPhotos.map((p, idx) => (
-                  <div key={idx} className="relative">
-                    <img src={p.dataUrl} alt={p.name} className="w-16 h-16 rounded-lg object-cover border border-gray-200" />
-                    <button
-                      onClick={() => setAttachedPhotos(prev => prev.filter((_, i) => i !== idx))}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center"
-                    >×</button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
 
           <div className="flex items-center gap-4">
             <Label className="text-sm text-gray-600 whitespace-nowrap">그림 스타일</Label>
@@ -414,18 +356,8 @@ function JournalTab({ userId }: { userId: number }) {
                         <ImageIcon className="w-6 h-6 text-gray-300" />
                       </div>
                     )}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-xs text-gray-400">{j.journalDate}</p>
-                        <button
-                          onClick={() => handleDelete(j.id)}
-                          disabled={deleteMutation.isPending}
-                          className="p-1 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-                          title="일기 삭제"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                    <div className="min-w-0">
+                      <p className="text-xs text-gray-400 mb-1">{j.journalDate}</p>
                       <p className="text-sm text-gray-700 line-clamp-3">{j.diaryText}</p>
                       {j.emotionTags && (
                         <div className="flex flex-wrap gap-1 mt-2">
@@ -642,148 +574,7 @@ function LettersTab({ userId }: { userId: number }) {
   );
 }
 
-// ─── 나의 사진 갤러리 탭 ─────────────────────────────────────────
-function PhotoGalleryTab({ userId }: { userId: number }) {
-  const [uploading, setUploading] = useState(false);
-  const [lightbox, setLightbox] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const { data: photos, refetch } = trpc.lifeStory.getPhotos.useQuery();
-  const uploadMutation = trpc.lifeStory.uploadPhoto.useMutation();
-  const deleteMutation = trpc.lifeStory.deletePhoto.useMutation();
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    if (!files.length) return;
-    setUploading(true);
-    let successCount = 0;
-    for (const file of files) {
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error(`${file.name}: 10MB 이하 파일만 업로드 가능합니다.`);
-        continue;
-      }
-      try {
-        const base64 = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve((reader.result as string).split(",")[1]);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-        await uploadMutation.mutateAsync({
-          fileName: file.name,
-          fileType: file.type,
-          fileSize: file.size,
-          fileBase64: base64,
-        });
-        successCount++;
-      } catch (err: any) {
-        toast.error(`${file.name}: 업로드 실패 - ${err.message ?? "오류"}`);
-      }
-    }
-    if (successCount > 0) {
-      toast.success(`${successCount}장의 사진이 업로드됩니다.`);
-      refetch();
-    }
-    setUploading(false);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  const handleDelete = async (photoId: number) => {
-    if (!confirm("이 사진을 삭제하시겠습니까?")) return;
-    await deleteMutation.mutateAsync({ photoId });
-    refetch();
-    toast.success("사진이 삭제됩니다.");
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* 라이트박스 */}
-      {lightbox && (
-        <div
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
-          onClick={() => setLightbox(null)}
-        >
-          <img src={lightbox} alt="" className="max-w-full max-h-full rounded-xl object-contain" />
-          <button className="absolute top-4 right-4 text-white/80 hover:text-white text-3xl" onClick={() => setLightbox(null)}>×</button>
-        </div>
-      )}
-
-      <div className="flex justify-between items-center">
-        <div>
-          <h3 className="text-[#1F3864] font-semibold">나의 사진 갤러리</h3>
-          <p className="text-gray-500 text-sm mt-1">AI 일기, 편지, 자서전에서 사진을 선택해 함께 사용할 수 있습니다.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={handleFileChange}
-          />
-          <Button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="bg-[#1F3864] hover:bg-[#1a3057] text-white"
-          >
-            {uploading ? (
-              <><Sparkles className="w-4 h-4 mr-2 animate-spin" />업로드 중...</>
-            ) : (
-              <><Plus className="w-4 h-4 mr-2" />사진 업로드</>
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {photos && photos.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {photos.map((photo) => (
-            <div key={photo.id} className="relative group rounded-xl overflow-hidden aspect-square bg-gray-100">
-              <img
-                src={photo.fileUrl}
-                alt={photo.fileName ?? ""}
-                className="w-full h-full object-cover cursor-pointer transition-transform group-hover:scale-105"
-                onClick={() => setLightbox(photo.fileUrl)}
-              />
-              {/* 삭제 버튼 */}
-              <button
-                onClick={() => handleDelete(photo.id)}
-                className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
-              >
-                <Trash2 className="w-3 h-3" />
-              </button>
-              {/* 사진 이름 */}
-              {photo.fileName && (
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <p className="text-white text-xs truncate">{photo.fileName}</p>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div
-          className="border-2 border-dashed border-gray-200 rounded-2xl py-20 text-center cursor-pointer hover:border-[#1F3864]/30 transition-colors"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <Camera className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-          <p className="text-gray-500 font-medium">사진을 업로드하세요</p>
-          <p className="text-gray-400 text-sm mt-1">여러 장 동시 선택 가능 · JPG, PNG, HEIC · 장당 10MB 이하</p>
-        </div>
-      )}
-
-      <p className="text-xs text-gray-400 text-center">업로드된 사진은 AI 일기 그림, 편지, 자서전 작성 시 선택해서 사용할 수 있습니다.</p>
-
-      {/* 더미 영역 - 이전 인물 앨범 유지 */}
-      <div className="pt-4 border-t border-gray-100">
-        <p className="text-xs text-gray-400 font-medium mb-2">ℹ️ 인물에게 사진을 연결하려면 사진 업로드 후 AI 일기 작성 시 선택하세요.</p>
-      </div>
-    </div>
-  );
-}
-
-// ─── 인물 앨범 탭 (레거시 유지) ──────────────────────────
+// ─── 인물 앨범 탭 ─────────────────────────────────────────────
 function AlbumTab({ userId }: { userId: number }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -804,7 +595,7 @@ function AlbumTab({ userId }: { userId: number }) {
       setOpen(false);
       setName(""); setRelationship("self"); setPhotoUrl("");
       refetch();
-      toast.success("인물이 등록됩니다.");
+      toast.success("인물이 등록됐습니다. AI 일기 그림 생성 시 이 인물이 반영됩니다.");
     } catch (e: any) {
       toast.error(e.message ?? "오류가 발생했습니다.");
     }
@@ -819,8 +610,8 @@ function AlbumTab({ userId }: { userId: number }) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-[#1F3864] font-semibold">인물 앨범 (얼굴 분석용)</h3>
-          <p className="text-gray-500 text-sm mt-1">AI 일기 그림에 실제 얼굴을 반영하려면 등록하세요.</p>
+          <h3 className="text-[#1F3864] font-semibold">인물 앨범</h3>
+          <p className="text-gray-500 text-sm mt-1">사진을 등록하면 AI 일기 그림에 실제 얼굴이 반영됩니다.</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -885,7 +676,7 @@ function AlbumTab({ userId }: { userId: number }) {
                   onClick={async () => {
                     await deleteMutation.mutateAsync({ profileId: p.id });
                     refetch();
-                    toast.success("인물이 삭제됩니다.");
+                    toast.success("인물이 삭제됐습니다.");
                   }}
                   className="mt-2 text-gray-300 hover:text-red-400 transition-colors"
                 >
@@ -926,10 +717,8 @@ export default function LifeStoryPage() {
   }
 
   return (
-    <SaramDashboardLayout>
-      <GradeGate requiredGrade="platinum" featureName="AI 일기 / Life Story" description="AI 일기, 소중한 편지, 나의 자서전은 ₩168,000 전자유언인증 올인원 회원 전용입니다. ₩79,000 베이직 플랜에서는 이용할 수 없습니다." mode="block">
-        <LifeStoryMain userId={user.id} />
-      </GradeGate>
-    </SaramDashboardLayout>
+    <GradeGate requiredGrade="gold" featureName="AI 일기 / Life Story" description="AI 일기 쓰기와 편지 서비스는 골드 이상 회원만 이용할 수 있습니다." mode="block">
+      <LifeStoryMain userId={user.id} />
+    </GradeGate>
   );
 }

@@ -153,7 +153,8 @@ export function registerStripeRoutes(app: Express) {
                 items: session.metadata?.items || null,
                 customerEmail: session.customer_email,
                 paidAt: new Date(),
-              }).onDuplicateKeyUpdate({
+              }).onConflictDoUpdate({
+                target: payments.stripeSessionId,
                 set: { status: "completed", paidAt: new Date() },
               });
 

@@ -501,20 +501,20 @@ export const chatRouter = router({
         } else {
           // 세션 없으면 새로 생성
           sessionKey = uuidv4();
-          const inserted = await db.insert(chatSessions).values({
+          const [inserted] = await db.insert(chatSessions).values({
             userId,
             sessionKey,
-          });
-          sessionId = (inserted as any).insertId;
+          }).returning({ id: chatSessions.id });
+          sessionId = inserted.id;
         }
       } else {
         // 새 세션 생성
         sessionKey = uuidv4();
-        const inserted = await db.insert(chatSessions).values({
+        const [inserted] = await db.insert(chatSessions).values({
           userId,
           sessionKey,
-        });
-        sessionId = (inserted as any).insertId;
+        }).returning({ id: chatSessions.id });
+        sessionId = inserted.id;
       }
 
       // 최근 20개 히스토리 조회
