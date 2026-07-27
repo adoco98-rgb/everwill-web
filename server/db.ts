@@ -4,20 +4,62 @@ import postgres from "postgres";
 import { authSessions, InsertUser, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
-let _db: ReturnType<typeof drizzle> | null = null;
+type DbClient = ReturnType<typeof postgres>;
+type Db = ReturnType<typeof drizzle>;
+
+let _client: DbClient | null = null;
+let _db: Db | null = null;
+let _dbCheck: Promise<Db | null> | null = null;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
-export async function getDb() {
-  if (!_db && ENV.databaseUrl) {
+async function pingDb(client: DbClient) {
+  let timer: NodeJS.Timeout | undefined;
+  try {
+    await Promise.race([
+      client`select 1`,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error("Database health check timed out")), 3_000);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+async function ensureDb(): Promise<Db | null> {
+  if (!ENV.databaseUrl) return null;
+
+  for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const client = postgres(ENV.databaseUrl, { ssl: "require", prepare: false, max: 1 });
-      _db = drizzle({ client });
+      if (!_client || !_db) {
+        _client = postgres(ENV.databaseUrl, {
+          ssl: "require",
+          prepare: false,
+          max: 1,
+          connect_timeout: 5,
+        });
+        _db = drizzle({ client: _client });
+      }
+
+      await pingDb(_client);
+      return _db;
     } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
+      console.warn("[Database] Recreating stale connection:", error instanceof Error ? error.message : String(error));
+      const client = _client;
+      _client = null;
       _db = null;
+      await client?.end({ timeout: 1 }).catch(() => {});
     }
   }
-  return _db;
+
+  return null;
+}
+
+export function getDb() {
+  _dbCheck ??= ensureDb().finally(() => {
+    _dbCheck = null;
+  });
+  return _dbCheck;
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {
