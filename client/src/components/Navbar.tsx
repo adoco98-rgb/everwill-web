@@ -201,7 +201,8 @@ export default function Navbar() {
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
-  const displayName = user?.role === "admin"
+  const ADMIN_EMAIL = "wadokdo@hanmail.net";
+  const displayName = user?.email === ADMIN_EMAIL || user?.role === "admin"
     ? t.nav.manager
     : user?.name?.split(" ")[0] || t.nav.myPage;
 

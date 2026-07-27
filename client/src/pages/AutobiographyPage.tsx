@@ -468,6 +468,10 @@ export default function AutobiographyPage() {
         <div className="px-4 py-3 border-t border-gray-200 bg-white">
           <PhotoArtUploader
             onArtGenerated={handleArtGenerated}
+            onOriginalUsed={(dataUrl) => {
+              setArtworks(prev => [...prev, { originalUrl: dataUrl, artworkUrl: dataUrl, style: "watercolor" }]);
+              setShowPhotoUploader(false);
+            }}
             contextHint={chapter.title}
             style="watercolor"
           />

@@ -218,7 +218,7 @@ function UpgradeBanner({
         style={{ background: `linear-gradient(135deg, var(--tw-gradient-stops))` }}
       >
         <Sparkles className="w-4 h-4 mr-1.5" />
-        {compact ? "업그레이드" : `${reqBadge} ${reqLabel}으로 업그레이드`}
+        {compact ? "업그레이드" : `₩168,000 전자유언인증 올인원 시작하기`}
       </Button>
     </div>
   );

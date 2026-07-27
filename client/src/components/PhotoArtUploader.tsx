@@ -14,6 +14,8 @@ export type ArtStyle = "watercolor" | "illustration" | "oil_painting" | "sketch"
 interface PhotoArtUploaderProps {
   /** 그림 변환 완료 콜백 (원본 URL, 변환된 그림 URL) */
   onArtGenerated: (originalUrl: string, artworkUrl: string, style: ArtStyle) => void;
+  /** 원본 사진 그대로 사용 콜백 */
+  onOriginalUsed?: (dataUrl: string) => void;
   /** 그림 스타일 */
   style?: ArtStyle;
   /** 추가 프롬프트 힌트 (예: "어린 시절 추억") */
@@ -40,6 +42,7 @@ const STYLE_EMOJIS: Record<ArtStyle, string> = {
 
 export function PhotoArtUploader({
   onArtGenerated,
+  onOriginalUsed,
   style = "watercolor",
   contextHint = "",
   disabled = false,
@@ -219,32 +222,47 @@ export function PhotoArtUploader({
             </div>
           </div>
 
-          {/* 변환 버튼 */}
+          {/* 버튼 영역 */}
           {!artworkUrl && (
-            <button
-              type="button"
-              onClick={handleGenerateArt}
-              disabled={isGenerating || disabled}
-              className="
-                w-full py-4 bg-amber-600 hover:bg-amber-700
-                text-white font-bold text-lg rounded-2xl
-                flex items-center justify-center gap-2
-                transition-all active:scale-95 shadow-md
-                disabled:opacity-50 disabled:cursor-not-allowed
-              "
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 size={20} className="animate-spin" />
-                  그림 그리는 중...
-                </>
-              ) : (
-                <>
-                  <Sparkles size={20} />
-                  {STYLE_LABELS[selectedStyle]}로 변환하기
-                </>
+            <div className="flex flex-col gap-2">
+              {/* 원본 그대로 사용 버튼 */}
+              {onOriginalUsed && previewUrl && (
+                <button
+                  type="button"
+                  onClick={() => { onOriginalUsed(previewUrl); toast.success("원본 사진을 추가했습니다."); }}
+                  disabled={isGenerating || disabled}
+                  className="w-full py-3 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-50 transition-all disabled:opacity-50"
+                >
+                  <Camera size={18} />
+                  원본 사진 그대로 사용
+                </button>
               )}
-            </button>
+              {/* AI 변환 버튼 */}
+              <button
+                type="button"
+                onClick={handleGenerateArt}
+                disabled={isGenerating || disabled}
+                className="
+                  w-full py-4 bg-amber-600 hover:bg-amber-700
+                  text-white font-bold text-lg rounded-2xl
+                  flex items-center justify-center gap-2
+                  transition-all active:scale-95 shadow-md
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                "
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 size={20} className="animate-spin" />
+                    그림 그리는 중...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={20} />
+                    {STYLE_LABELS[selectedStyle]}로 변환하기
+                  </>
+                )}
+              </button>
+            </div>
           )}
 
           {/* 다른 사진 올리기 */}

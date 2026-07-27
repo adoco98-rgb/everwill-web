@@ -56,7 +56,7 @@ function writeToLogFile(source: LogSource, entries: unknown[]) {
   const logPath = path.join(LOG_DIR, `${source}.log`);
 
   // Format entries with timestamps
-  const lines = entries.map(entry => {
+  const lines = entries.map((entry) => {
     const ts = new Date().toISOString();
     return `[${ts}] ${JSON.stringify(entry)}`;
   });
@@ -132,7 +132,7 @@ function vitePluginManusDebugCollector(): Plugin {
         }
 
         let body = "";
-        req.on("data", chunk => {
+        req.on("data", (chunk) => {
           body += chunk.toString();
         });
 
@@ -150,13 +150,7 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
-const plugins = [
-  react(),
-  tailwindcss(),
-  jsxLocPlugin(),
-  vitePluginManusRuntime(),
-  vitePluginManusDebugCollector(),
-];
+const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
 
 export default defineConfig({
   plugins,
@@ -171,10 +165,7 @@ export default defineConfig({
   root: path.resolve(import.meta.dirname, "client"),
   publicDir: path.resolve(import.meta.dirname, "client", "public"),
   build: {
-    outDir: path.resolve(
-      import.meta.dirname,
-      process.env.VERCEL ? "public" : "dist/public"
-    ),
+    outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
     // 크로스브라우저 대응: Safari 14+, 삼성 인터넷 14+, Chrome 90+ (TC-B01~B07)
     target: ["es2020", "safari14", "chrome90", "firefox90"],

@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { eq, and, desc } from "drizzle-orm";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
-import { users, payments, personProfiles, lifeJournals, legacyLetters } from "../../drizzle/schema";
+import { users, payments, personProfiles, lifeJournals, legacyLetters, lifePhotos } from "../../drizzle/schema";
 import { invokeLLM } from "../_core/llm";
 import { generateImage } from "../_core/imageGeneration";
 import { storagePut } from "../storage";
@@ -14,8 +14,11 @@ import { storagePut } from "../storage";
  * ₩79,000 이상 구매자 전용 (Badge Gold 이상)
  */
 
-/** ₩79,000 이상 구매 여부 확인 헬퍼 */
-async function checkLifeStoryAccess(userId: number): Promise<boolean> {
+/** ₩168,000 인증 회원 여부 확인 헬퍼 (admin은 항상 true) */
+async function checkLifeStoryAccess(userId: number, role?: string): Promise<boolean> {
+  // 관리자는 모든 기능 무조건 허용
+  if (role === "admin") return true;
+
   const db = await getDb();
   if (!db) return false;
 
@@ -26,13 +29,13 @@ async function checkLifeStoryAccess(userId: number): Promise<boolean> {
 
   for (const p of paymentRows) {
     const items = p.items ?? "";
-    // Badge Gold (₩79,000) 이상: Gold, Necklace, Premium, Custom
+    // ₩168,000 이상 인증 회원: certification, badge_necklace, badge_premium, badge_custom
     if (
-      items.includes("badge_gold") ||
+      items.includes("certification") ||
       items.includes("badge_necklace") ||
       items.includes("badge_premium") ||
       items.includes("badge_custom") ||
-      (p.amountTotal && p.amountTotal >= 79000)
+      (p.amountTotal && p.amountTotal >= 168000)
     ) {
       return true;
     }
@@ -58,7 +61,7 @@ export const lifeStoryRouter = router({
     if (!userRows.length) throw new TRPCError({ code: "NOT_FOUND" });
     const userId = userRows[0].id;
 
-    const hasAccess = await checkLifeStoryAccess(userId);
+    const hasAccess = await checkLifeStoryAccess(userId, ctx.user.role);
     return { hasAccess, userId };
   }),
 
@@ -75,8 +78,8 @@ export const lifeStoryRouter = router({
     if (!userRows.length) throw new TRPCError({ code: "NOT_FOUND" });
     const userId = userRows[0].id;
 
-    if (!(await checkLifeStoryAccess(userId))) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Badge Necklace (₩168,000) 이상 구매 시 이용 가능합니다." });
+    if (!(await checkLifeStoryAccess(userId, ctx.user.role))) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "EverWill 인증 회원(₩168,000) 전용 기능입니다. 유언장 전자 인증 후 이용해주세요." });
     }
 
     return db.select().from(personProfiles).where(and(eq(personProfiles.userId, userId), eq(personProfiles.isActive, 1))).orderBy(desc(personProfiles.createdAt));
@@ -98,8 +101,8 @@ export const lifeStoryRouter = router({
       if (!userRows.length) throw new TRPCError({ code: "NOT_FOUND" });
       const userId = userRows[0].id;
 
-      if (!(await checkLifeStoryAccess(userId))) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Badge Necklace (₩168,000) 이상 구매 시 이용 가능합니다." });
+      if (!(await checkLifeStoryAccess(userId, ctx.user.role))) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "EverWill 인증 회원(₩168,000) 전용 기능입니다. 유언장 전자 인증 후 이용해주세요." });
       }
 
       // GPT-4 Vision으로 얼굴 특징 프롬프트 생성 (사진이 있을 경우)
@@ -166,8 +169,8 @@ export const lifeStoryRouter = router({
       if (!userRows.length) throw new TRPCError({ code: "NOT_FOUND" });
       const userId = userRows[0].id;
 
-      if (!(await checkLifeStoryAccess(userId))) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Badge Necklace (₩168,000) 이상 구매 시 이용 가능합니다." });
+      if (!(await checkLifeStoryAccess(userId, ctx.user.role))) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "EverWill 인증 회원(₩168,000) 전용 기능입니다. 유언장 전자 인증 후 이용해주세요." });
       }
 
       return db.select().from(lifeJournals).where(eq(lifeJournals.userId, userId)).orderBy(desc(lifeJournals.journalDate)).limit(input.limit).offset(input.offset);
@@ -180,6 +183,7 @@ export const lifeStoryRouter = router({
       conversationText: z.string().min(10).max(5000),
       imageStyle: z.enum(["watercolor", "illustration", "oil_painting"]).default("watercolor"),
       personProfileIds: z.array(z.number()).optional(), // 등장 인물 ID 목록
+      photoDataUrls: z.array(z.string()).optional(), // base64 data URL 사진들
     }))
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
@@ -189,8 +193,8 @@ export const lifeStoryRouter = router({
       if (!userRows.length) throw new TRPCError({ code: "NOT_FOUND" });
       const userId = userRows[0].id;
 
-      if (!(await checkLifeStoryAccess(userId))) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Badge Necklace (₩168,000) 이상 구매 시 이용 가능합니다." });
+      if (!(await checkLifeStoryAccess(userId, ctx.user.role))) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "EverWill 인증 회원(₩168,000) 전용 기능입니다. 유언장 전자 인증 후 이용해주세요." });
       }
 
       // 1. 등장 인물 얼굴 프롬프트 수집
@@ -203,16 +207,51 @@ export const lifeStoryRouter = router({
         personPrompts = matched.map(p => `${p.name}(${p.relationship}): ${p.facePrompt ?? "person"}`).join("; ");
       }
 
-      // 2. LLM으로 일기 텍스트 생성
+      // 2. 업로드된 사진을 S3에 저장하고 갤러리에도 등록
+      const uploadedPhotoUrls: string[] = [];
+      if (input.photoDataUrls?.length) {
+        for (let i = 0; i < input.photoDataUrls.length; i++) {
+          try {
+            const dataUrl = input.photoDataUrls[i];
+            const matches = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+            if (!matches) continue;
+            const mimeType = matches[1];
+            const base64Data = matches[2];
+            const buffer = Buffer.from(base64Data, "base64");
+            const ext = mimeType.split("/")[1] ?? "jpg";
+            const key = `life-story/photos/${userId}/${Date.now()}_${i}.${ext}`;
+            const saved = await storagePut(key, buffer, mimeType);
+            uploadedPhotoUrls.push(saved.url);
+            // 갤러리에도 저장
+            const { lifePhotos } = await import("../../drizzle/schema.js");
+            await db.insert(lifePhotos).values({
+              userId,
+              fileKey: saved.key,
+              fileUrl: saved.url,
+              fileSize: buffer.length,
+              fileName: `photo_${Date.now()}_${i}.${ext}`,
+            });
+          } catch { /* 사진 저장 실패 시 무시 */ }
+        }
+      }
+
+      // 3. LLM으로 일기 텍스트 생성 (사진 포함 시 비전 모델 사용)
+      const userMessageContent: any[] = [
+        { type: "text", text: `오늘(${input.journalDate}) 있었던 일:\n\n${input.conversationText}` },
+        ...uploadedPhotoUrls.map(url => ({ type: "image_url", image_url: { url, detail: "low" } })),
+      ];
+
       const diaryRes = await invokeLLM({
         messages: [
           {
             role: "system",
-            content: "당신은 따뜻하고 감성적인 일기 작가입니다. 사용자의 대화 내용을 바탕으로 아름다운 한국어 일기를 3-5문단으로 작성해주세요. 1인칭 시점으로 작성하며, 감정과 세부 묘사를 풍부하게 담아주세요.",
+            content: uploadedPhotoUrls.length > 0
+              ? "당신은 따뜻하고 감성적인 일기 작가입니다. 사용자의 대화 내용과 첨부된 사진을 함께 보고, 사진 속 장면과 분위기를 일기에 자연스럽게 녹여서 아름다운 한국어 일기를 3-5문단으로 작성해주세요. 1인칭 시점으로 작성하며, 사진에서 느껴지는 감정과 세부 묘사를 풍부하게 담아주세요."
+              : "당신은 따뜻하고 감성적인 일기 작가입니다. 사용자의 대화 내용을 바탕으로 아름다운 한국어 일기를 3-5문단으로 작성해주세요. 1인칭 시점으로 작성하며, 감정과 세부 묘사를 풍부하게 담아주세요.",
           },
           {
             role: "user",
-            content: `오늘(${input.journalDate}) 있었던 일:\n\n${input.conversationText}`,
+            content: uploadedPhotoUrls.length > 0 ? userMessageContent : `오늘(${input.journalDate}) 있었던 일:\n\n${input.conversationText}`,
           },
         ],
       });
@@ -287,8 +326,8 @@ export const lifeStoryRouter = router({
     if (!userRows.length) throw new TRPCError({ code: "NOT_FOUND" });
     const userId = userRows[0].id;
 
-    if (!(await checkLifeStoryAccess(userId))) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Badge Necklace (₩168,000) 이상 구매 시 이용 가능합니다." });
+    if (!(await checkLifeStoryAccess(userId, ctx.user.role))) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "EverWill 인증 회원(₩168,000) 전용 기능입니다. 유언장 전자 인증 후 이용해주세요." });
     }
 
     return db.select().from(legacyLetters).where(eq(legacyLetters.userId, userId)).orderBy(desc(legacyLetters.createdAt));
@@ -315,8 +354,8 @@ export const lifeStoryRouter = router({
       if (!userRows.length) throw new TRPCError({ code: "NOT_FOUND" });
       const userId = userRows[0].id;
 
-      if (!(await checkLifeStoryAccess(userId))) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Badge Necklace (₩168,000) 이상 구매 시 이용 가능합니다." });
+      if (!(await checkLifeStoryAccess(userId, ctx.user.role))) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "EverWill 인증 회원(₩168,000) 전용 기능입니다. 유언장 전자 인증 후 이용해주세요." });
       }
 
       await db.insert(legacyLetters).values({
@@ -348,6 +387,105 @@ export const lifeStoryRouter = router({
       const userId = userRows[0].id;
 
       await db.delete(legacyLetters).where(and(eq(legacyLetters.id, input.letterId), eq(legacyLetters.userId, userId)));
+      return { success: true };
+    }),
+
+  /** AI 일기 삭제 */
+  deleteJournal: protectedProcedure
+    .input(z.object({ journalId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const userRows = await db.select({ id: users.id }).from(users).where(eq(users.openId, ctx.user.openId)).limit(1);
+      if (!userRows.length) throw new TRPCError({ code: "NOT_FOUND" });
+      const userId = userRows[0].id;
+
+      // 본인 일기만 삭제 가능
+      await db.delete(lifeJournals).where(and(eq(lifeJournals.id, input.journalId), eq(lifeJournals.userId, userId)));
+      return { success: true };
+    }),
+
+  // ─────────────────────────────────────────
+  // 나의 사진 갤러리
+  // ─────────────────────────────────────────
+
+  /** 사진 업로드 (base64 → S3) */
+  uploadPhoto: protectedProcedure
+    .input(z.object({
+      fileName: z.string().min(1).max(255),
+      fileType: z.string().min(1).max(100),
+      fileSize: z.number().int().positive(),
+      fileBase64: z.string(),
+      caption: z.string().max(255).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const userRows = await db.select({ id: users.id }).from(users).where(eq(users.openId, ctx.user.openId)).limit(1);
+      if (!userRows.length) throw new TRPCError({ code: "NOT_FOUND" });
+      const userId = userRows[0].id;
+
+      if (!(await checkLifeStoryAccess(userId, ctx.user.role))) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "EverWill 인증 회원(₩168,000) 전용 기능입니다. 유언장 전자 인증 후 이용해주세요." });
+      }
+
+      // 파일 크기 제한 10MB
+      if (input.fileSize > 10 * 1024 * 1024) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "파일 크기는 10MB 이하여야 합니다." });
+      }
+
+      const fileBuffer = Buffer.from(input.fileBase64, "base64");
+      const now = Date.now();
+      const safeFileName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const fileKey = `life-story/photos/${userId}/${now}-${safeFileName}`;
+      const { key, url } = await storagePut(fileKey, fileBuffer, input.fileType);
+
+      await db.insert(lifePhotos).values({
+        userId,
+        fileKey: key,
+        fileUrl: url,
+        fileName: input.fileName,
+        caption: input.caption,
+        fileSize: input.fileSize,
+        isActive: 1,
+      });
+
+      return { success: true, url, key };
+    }),
+
+  /** 사진 갤러리 목록 조회 */
+  getPhotos: protectedProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+    const userRows = await db.select({ id: users.id }).from(users).where(eq(users.openId, ctx.user.openId)).limit(1);
+    if (!userRows.length) throw new TRPCError({ code: "NOT_FOUND" });
+    const userId = userRows[0].id;
+
+    if (!(await checkLifeStoryAccess(userId, ctx.user.role))) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "EverWill 인증 회원(₩168,000) 전용 기능입니다. 유언장 전자 인증 후 이용해주세요." });
+    }
+
+    return db.select().from(lifePhotos)
+      .where(and(eq(lifePhotos.userId, userId), eq(lifePhotos.isActive, 1)))
+      .orderBy(desc(lifePhotos.createdAt));
+  }),
+
+  /** 사진 삭제 */
+  deletePhoto: protectedProcedure
+    .input(z.object({ photoId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const userRows = await db.select({ id: users.id }).from(users).where(eq(users.openId, ctx.user.openId)).limit(1);
+      if (!userRows.length) throw new TRPCError({ code: "NOT_FOUND" });
+      const userId = userRows[0].id;
+
+      await db.update(lifePhotos).set({ isActive: 0 })
+        .where(and(eq(lifePhotos.id, input.photoId), eq(lifePhotos.userId, userId)));
       return { success: true };
     }),
 });

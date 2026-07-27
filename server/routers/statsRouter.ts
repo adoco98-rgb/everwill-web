@@ -192,7 +192,7 @@ export const statsRouter = router({
             value: entry.manualCount,
             label: `${countryInfo?.name ?? entry.code} 임의 가입자 수`,
           })
-          .onConflictDoUpdate({ target: siteStats.key, set: { value: entry.manualCount } });
+          .onDuplicateKeyUpdate({ set: { value: entry.manualCount } });
 
         // 표시 여부 저장
         await db
@@ -202,7 +202,7 @@ export const statsRouter = router({
             value: entry.displayEnabled ? 1 : 0,
             label: `${countryInfo?.name ?? entry.code} Hero 표시 여부`,
           })
-          .onConflictDoUpdate({ target: siteStats.key, set: { value: entry.displayEnabled ? 1 : 0 } });
+          .onDuplicateKeyUpdate({ set: { value: entry.displayEnabled ? 1 : 0 } });
       }
 
       return { success: true, updated: input.entries.length };
@@ -217,7 +217,7 @@ export const statsRouter = router({
       await db
         .insert(siteStats)
         .values({ key: CERTIFIED_KEY, value: input.count, label: "인증 완료 회원 수" })
-        .onConflictDoUpdate({ target: siteStats.key, set: { value: input.count } });
+        .onDuplicateKeyUpdate({ set: { value: input.count } });
       return { success: true, count: input.count };
     }),
 
@@ -253,7 +253,7 @@ export const statsRouter = router({
           value: input.visible ? 1 : 0,
           label: "Hero 가입자 수 배지 노출 여부",
         })
-        .onConflictDoUpdate({ target: siteStats.key, set: { value: input.visible ? 1 : 0 } });
+        .onDuplicateKeyUpdate({ set: { value: input.visible ? 1 : 0 } });
       return { success: true, visible: input.visible };
     }),
 
@@ -274,7 +274,7 @@ export const statsRouter = router({
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       await db.insert(siteStats)
         .values({ key: SHOW_REAL_COUNT_KEY, value: input.visible ? 1 : 0, label: "실제 가입자 수 표시 여부" })
-        .onConflictDoUpdate({ target: siteStats.key, set: { value: input.visible ? 1 : 0 } });
+        .onDuplicateKeyUpdate({ set: { value: input.visible ? 1 : 0 } });
       return { success: true, visible: input.visible };
     }),
 
@@ -295,7 +295,7 @@ export const statsRouter = router({
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       await db.insert(siteStats)
         .values({ key: SHOW_MANUAL_COUNT_KEY, value: input.visible ? 1 : 0, label: "임의 가입자 수 표시 여부" })
-        .onConflictDoUpdate({ target: siteStats.key, set: { value: input.visible ? 1 : 0 } });
+        .onDuplicateKeyUpdate({ set: { value: input.visible ? 1 : 0 } });
       return { success: true, visible: input.visible };
     }),
 
@@ -317,7 +317,7 @@ export const statsRouter = router({
       await db
         .insert(siteStats)
         .values({ key: CERTIFIED_KEY, value: next, label: "인증 완료 회원 수" })
-        .onConflictDoUpdate({ target: siteStats.key, set: { value: next } });
+        .onDuplicateKeyUpdate({ set: { value: next } });
 
       return { success: true, count: next };
     }),

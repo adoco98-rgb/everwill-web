@@ -1,7 +1,8 @@
 export const ENV = {
-  appId: process.env.APP_ID ?? process.env.VITE_APP_ID ?? "",
+  appId: process.env.VITE_APP_ID ?? "",
   cookieSecret: process.env.JWT_SECRET ?? "",
-  databaseUrl: process.env.SUPABASE_DB_URL ?? "",
+  databaseUrl: process.env.DATABASE_URL ?? "",
+  oAuthServerUrl: process.env.OAUTH_SERVER_URL ?? "",
   ownerOpenId: process.env.OWNER_OPEN_ID ?? "",
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
@@ -28,12 +29,3 @@ export const ENV = {
   // OpenAI GPT-4o
   openaiApiKey: process.env.OPENAI_API_KEY ?? "",
 };
-
-export function assertAuthEnv() {
-  if (!ENV.appId) {
-    throw new Error("APP_ID is required");
-  }
-  if (ENV.cookieSecret.length < 32) {
-    throw new Error("JWT_SECRET must be at least 32 characters");
-  }
-}

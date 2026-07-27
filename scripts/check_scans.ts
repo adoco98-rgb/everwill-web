@@ -1,11 +1,12 @@
-import "dotenv/config";
-import assert from "node:assert/strict";
+import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
 import { willAssetScans } from "../drizzle/schema";
-import { getDb } from "../server/db";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 async function main() {
-  const db = await getDb();
-  assert(db, "SUPABASE_DB_URL connection failed");
+  const conn = await mysql.createConnection(process.env.DATABASE_URL!);
+  const db = drizzle(conn);
   const rows = await db.select({
     id: willAssetScans.id,
     docType: willAssetScans.docType,
@@ -16,7 +17,7 @@ async function main() {
     userId: willAssetScans.userId,
   }).from(willAssetScans);
   console.log(JSON.stringify(rows, null, 2));
-  await db.$client.end();
+  await conn.end();
 }
 
 main().catch(console.error);

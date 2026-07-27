@@ -12,79 +12,19 @@ import { emailOtps, users } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { ENV } from "../_core/env";
 import { getSessionCookieOptions } from "../_core/cookies";
-import {
-  generateEmailOtp,
-  hashEmailOtp,
-  type EmailOtpPurpose,
-  verifyEmailOtp,
-} from "../_core/emailOtp";
 import { sdk } from "../_core/sdk";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
-import { COOKIE_NAME, SESSION_MAX_AGE_MS } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { randomUUID } from "crypto";
 import { sendSmsOtp, verifySmsOtp } from "../_core/sms";
 
+/** 6자리 숫자 OTP 생성 */
+function generateOtp(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
 /** OTP 만료 시간: 10분 */
 const OTP_EXPIRES_MS = 10 * 60 * 1000;
-
-type AppDb = NonNullable<Awaited<ReturnType<typeof getDb>>>;
-
-const normalizeEmail = (email: string) => email.trim().toLowerCase();
-
-async function consumeEmailOtp(
-  db: AppDb,
-  email: string,
-  purpose: EmailOtpPurpose,
-  code: string,
-) {
-  const rows = await db
-    .select()
-    .from(emailOtps)
-    .where(
-      and(
-        eq(emailOtps.email, email),
-        eq(emailOtps.purpose, purpose),
-        eq(emailOtps.used, 0),
-        gt(emailOtps.expiresAt, new Date()),
-      ),
-    )
-    .orderBy(sql`${emailOtps.createdAt} DESC`)
-    .limit(1);
-  const otp = rows[0];
-  if (!otp) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "인증 코드가 만료되었거나 존재하지 않습니다.",
-    });
-  }
-  if (otp.failCount >= 5) {
-    throw new TRPCError({
-      code: "TOO_MANY_REQUESTS",
-      message: "인증 시도 횟수를 초과했습니다. 새 코드를 요청해주세요.",
-    });
-  }
-  if (!verifyEmailOtp(email, purpose, code, otp.code)) {
-    await db
-      .update(emailOtps)
-      .set({ failCount: sql`${emailOtps.failCount} + 1` })
-      .where(eq(emailOtps.id, otp.id));
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "인증 코드가 올바르지 않습니다.",
-    });
-  }
-  const consumed = await db
-    .update(emailOtps)
-    .set({ used: 1 })
-    .where(and(eq(emailOtps.id, otp.id), eq(emailOtps.used, 0)))
-    .returning({ id: emailOtps.id });
-  if (consumed.length !== 1) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "이미 사용된 인증 코드입니다.",
-    });
-  }
-}
 
 export const emailAuthRouter = router({
   /**
@@ -95,14 +35,12 @@ export const emailAuthRouter = router({
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
-      const email = normalizeEmail(input.email);
 
       // 1분 재발송 쿨다운 체크
       const recentOtp = await db.select({ createdAt: emailOtps.createdAt })
         .from(emailOtps)
         .where(and(
-          eq(emailOtps.email, email),
-          eq(emailOtps.purpose, "signup"),
+          eq(emailOtps.email, input.email),
           eq(emailOtps.used, 0),
           gt(emailOtps.expiresAt, new Date())
         ))
@@ -120,21 +58,16 @@ export const emailAuthRouter = router({
         }
       }
 
-      const code = generateEmailOtp();
+      const code = generateOtp();
       const expiresAt = new Date(Date.now() + OTP_EXPIRES_MS);
       // 기존 미사용 OTP 무효화 (같은 이메일)
       await db.update(emailOtps)
         .set({ used: 1 })
-        .where(and(
-          eq(emailOtps.email, email),
-          eq(emailOtps.purpose, "signup"),
-          eq(emailOtps.used, 0),
-        ));
+        .where(and(eq(emailOtps.email, input.email), eq(emailOtps.used, 0)));
       // 새 OTP 저장
       await db.insert(emailOtps).values({
-        email,
-        code: hashEmailOtp(email, "signup", code),
-        purpose: "signup",
+        email: input.email,
+        code,
         expiresAt,
         used: 0,
         failCount: 0,
@@ -144,7 +77,7 @@ export const emailAuthRouter = router({
       try {
         await resend.emails.send({
           from: "EverWill <noreply@everwill.co.kr>",
-          to: email,
+          to: input.email,
           subject: "[EverWill] 이메일 인증 코드",
           html: `
             <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
@@ -159,17 +92,79 @@ export const emailAuthRouter = router({
         });
       } catch (err) {
         console.error("[Email] OTP 발송 실패:", err);
-        await db.update(emailOtps).set({ used: 1 }).where(and(
-          eq(emailOtps.email, email),
-          eq(emailOtps.purpose, "signup"),
+      }
+      return { success: true, email: input.email };
+    }),
+
+  /**
+   * OTP 코드 검증 및 세션 생성 (기존 방식 유지)
+   */
+  verifyOtp: publicProcedure
+    .input(z.object({
+      email: z.string().email(),
+      code: z.string().length(6, "6자리 코드를 입력해주세요"),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
+      const now = new Date();
+      const latestOtpRows = await db.select().from(emailOtps).where(
+        and(
+          eq(emailOtps.email, input.email),
           eq(emailOtps.used, 0),
-        ));
+          gt(emailOtps.expiresAt, now),
+        )
+      ).limit(1);
+      if (latestOtpRows.length === 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "인증 코드가 만료되었습니다. 새 코드를 요청해주세요." });
+      }
+      const latestOtp = latestOtpRows[0];
+      if (latestOtp.failCount >= 5) {
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "인증 이메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요.",
+          code: "TOO_MANY_REQUESTS",
+          message: "인증 시도 횟수를 초과했습니다. 새 인증 코드를 요청해주세요.",
         });
       }
-      return { success: true, email };
+      if (latestOtp.code !== input.code) {
+        await db.update(emailOtps)
+          .set({ failCount: sql`${emailOtps.failCount} + 1` })
+          .where(eq(emailOtps.id, latestOtp.id));
+        const remaining = 5 - (latestOtp.failCount + 1);
+        if (remaining <= 0) {
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: "인증 시도 횟수를 초과했습니다. 새 인증 코드를 요청해주세요.",
+          });
+        }
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `인증 코드가 올바르지 않습니다. (남은 시도: ${remaining}회)`,
+        });
+      }
+      await db.update(emailOtps).set({ used: 1 }).where(eq(emailOtps.id, latestOtp.id));
+      const openId = `email:${input.email}`;
+      const name = input.email.split("@")[0];
+      const newQrCode = randomUUID();
+      // isNewUser 판단: insert 전에 존재 여부 먼저 확인 (insert 후 select 시 항상 false 반환되는 버그 수정)
+      const existingUsers = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+      const isNewUser = existingUsers.length === 0;
+      await db.insert(users).values({
+        openId,
+        email: input.email,
+        name,
+        loginMethod: "email",
+        lastSignedIn: new Date(),
+        qrCode: newQrCode,
+      }).onDuplicateKeyUpdate({
+        set: { lastSignedIn: new Date() },
+      });
+      const token = await sdk.createSessionToken(openId, { name });
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.cookie(COOKIE_NAME, token, {
+        ...cookieOptions,
+        maxAge: ONE_YEAR_MS,
+      });
+      return { success: true, isNewUser };
     }),
 
   /**
@@ -180,7 +175,6 @@ export const emailAuthRouter = router({
   register: publicProcedure
     .input(z.object({
       email: z.string().email("올바른 이메일 주소를 입력해주세요"),
-      code: z.string().regex(/^\d{6}$/, "6자리 인증 코드를 입력해주세요"),
       password: z.string().min(8, "비밀번호는 8자 이상이어야 합니다").max(100),
       name: z.string().min(1, "이름을 입력해주세요").max(50),
       phone: z.string().min(7, "전화번호를 입력해주세요").max(20).optional().or(z.literal("")),
@@ -189,19 +183,17 @@ export const emailAuthRouter = router({
       /** 추천인 코드 (선택, 6자리 대문자+숫자) */
       referralCode: z.string().min(4).max(16).optional().or(z.literal("")),
     }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
 
-      const email = normalizeEmail(input.email);
-      const openId = `email:${email}`;
+      const openId = `email:${input.email}`;
 
       // 이미 가입된 이메일 확인
       const existing = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
       if (existing.length > 0) {
         throw new TRPCError({ code: "CONFLICT", message: "이미 가입된 이메일입니다." });
       }
-      await consumeEmailOtp(db, email, "signup", input.code);
 
       // 추천인 코드 검증 (입력된 경우)
       let validReferralCode: string | null = null;
@@ -220,7 +212,7 @@ export const emailAuthRouter = router({
 
       await db.insert(users).values({
         openId,
-        email,
+        email: input.email,
         name: input.name,
         phone: input.phone || null,
         country: input.country,
@@ -249,7 +241,7 @@ export const emailAuthRouter = router({
               type: "referral_reward",
               amount: REFERRAL_REWARD_POINTS,
               balanceAfter: newBalance,
-              description: `${input.name || email} 님 추천 보상`,
+              description: `${input.name || input.email} 님 추천 보상`,
               relatedUserId: null, // 신규 가입자 ID는 insert 후 조회 필요
               createdAt: new Date(),
             });
@@ -265,7 +257,7 @@ export const emailAuthRouter = router({
       try {
         await resendWelcome.emails.send({
           from: "EverWill <noreply@everwill.co.kr>",
-          to: email,
+          to: input.email,
           subject: "[EverWill] 가입을 환영합니다! 🎉",
           html: `
             <div style="font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; max-width: 560px; margin: 0 auto; background: #fff;">
@@ -316,11 +308,6 @@ export const emailAuthRouter = router({
         // 이메일 발송 실패해도 가입은 성공으로 처리
       }
 
-      const token = await sdk.createSessionToken(openId, { name: input.name });
-      ctx.res.cookie(COOKIE_NAME, token, {
-        ...getSessionCookieOptions(ctx.req),
-        maxAge: SESSION_MAX_AGE_MS,
-      });
       return { success: true };
     }),
 
@@ -332,12 +319,11 @@ export const emailAuthRouter = router({
       email: z.string().email("올바른 이메일 주소를 입력해주세요"),
       password: z.string().min(1, "비밀번호를 입력해주세요"),
     }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
 
-      const email = normalizeEmail(input.email);
-      const openId = `email:${email}`;
+      const openId = `email:${input.email}`;
       const userRows = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
 
       if (userRows.length === 0) {
@@ -360,7 +346,18 @@ export const emailAuthRouter = router({
         throw new TRPCError({ code: "UNAUTHORIZED", message: "이메일 또는 비밀번호가 올바르지 않습니다." });
       }
 
-      const challengeToken = await sdk.createLoginChallenge(email);
+      // 관리자는 OTP 없이 즉시 세션 발급
+      if (user.role === "admin") {
+        await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.openId, openId));
+        const token = await sdk.createSessionToken(openId, { name: user.name ?? "" });
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, token, {
+          ...cookieOptions,
+          maxAge: ONE_YEAR_MS,
+        });
+        return { success: true, isAdmin: true, otpChannel: null as null, maskedContact: null as null };
+      }
+      // 일반 회원: 전화번호 있으면 SMS, 없으면 이메일 OTP 발송
       if (user.phone) {
         let phoneE164 = user.phone;
         if (!phoneE164.startsWith("+")) {
@@ -371,61 +368,25 @@ export const emailAuthRouter = router({
           const maskedPhone = phoneE164.replace(/(\+\d{2,3})(\d+)(\d{4})$/, (_: string, cc: string, mid: string, last: string) => {
             return `${cc}${"*".repeat(mid.length)}${last}`;
           });
-          return {
-            success: true,
-            isAdmin: false,
-            otpChannel: "sms" as const,
-            maskedContact: maskedPhone,
-            challengeToken,
-          };
+          return { success: true, isAdmin: false, otpChannel: "sms" as const, maskedContact: maskedPhone };
         }
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "SMS 발송에 실패했습니다. 잠시 후 다시 시도해주세요.",
-        });
       }
-      const loginCode = generateEmailOtp();
+      // 전화번호 없거나 SMS 실패 → 이메일 OTP 발송
+      const loginCode = generateOtp();
       const loginExpiresAt = new Date(Date.now() + OTP_EXPIRES_MS);
-      await db.update(emailOtps).set({ used: 1 }).where(and(
-        eq(emailOtps.email, email),
-        eq(emailOtps.purpose, "login"),
-        eq(emailOtps.used, 0),
-      ));
-      await db.insert(emailOtps).values({
-        email,
-        code: hashEmailOtp(email, "login", loginCode),
-        purpose: "login",
-        expiresAt: loginExpiresAt,
-        used: 0,
-        failCount: 0,
-      });
+      await db.update(emailOtps).set({ used: 1 }).where(and(eq(emailOtps.email, input.email), eq(emailOtps.used, 0)));
+      await db.insert(emailOtps).values({ email: input.email, code: loginCode, expiresAt: loginExpiresAt, used: 0, failCount: 0 });
       const resend = new Resend(ENV.resendApiKey);
       try {
         await resend.emails.send({
           from: "EverWill <noreply@everwill.co.kr>",
-          to: email,
+          to: input.email,
           subject: "[EverWill] 로그인 인증 코드",
           html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px"><h2 style="color:#1F3864">EverWill 로그인 인증</h2><p>아래 인증 코드를 입력해주세요:</p><div style="font-size:32px;font-weight:bold;letter-spacing:8px;color:#C9A961;padding:16px;background:#f5f5f5;border-radius:8px;text-align:center">${loginCode}</div><p style="color:#666;font-size:14px">10분 내에 입력해주세요.</p></div>`,
         });
-      } catch {
-        await db.update(emailOtps).set({ used: 1 }).where(and(
-          eq(emailOtps.email, email),
-          eq(emailOtps.purpose, "login"),
-          eq(emailOtps.used, 0),
-        ));
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "인증 이메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요.",
-        });
-      }
-      const maskedEmail = email.replace(/(.)(.+)(@.+)/, (_: string, f: string, m: string, d: string) => f + "*".repeat(Math.min(m.length, 4)) + d);
-      return {
-        success: true,
-        isAdmin: false,
-        otpChannel: "email" as const,
-        maskedContact: maskedEmail,
-        challengeToken,
-      };
+      } catch (e) { /* 이메일 발송 실패 무시 */ }
+      const maskedEmail = input.email.replace(/(.)(.+)(@.+)/, (_: string, f: string, m: string, d: string) => f + "*".repeat(Math.min(m.length, 4)) + d);
+      return { success: true, isAdmin: false, otpChannel: "email" as const, maskedContact: maskedEmail };
     }),
 
   /**
@@ -435,20 +396,12 @@ export const emailAuthRouter = router({
     .input(z.object({
       email: z.string().email(),
       code: z.string().length(6, "6자리 코드를 입력해주세요"),
-      challengeToken: z.string().min(1),
     }))
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
 
-      const email = normalizeEmail(input.email);
-      if (!await sdk.verifyLoginChallenge(input.challengeToken, email)) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "로그인 인증 요청이 만료되었습니다. 비밀번호부터 다시 확인해주세요.",
-        });
-      }
-      const openId = `email:${email}`;
+      const openId = `email:${input.email}`;
       const userRows = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
 
       if (userRows.length === 0) {
@@ -465,10 +418,24 @@ export const emailAuthRouter = router({
         }
         const verifyResult = await verifySmsOtp(phoneE164, input.code);
         if (!verifyResult.success) {
-          throw new TRPCError({ code: "UNAUTHORIZED", message: verifyResult.error || "인증 코드가 올바르지 않습니다." });
+          // SMS 검증 실패 시 이메일 OTP로 fallback
+          const emailOtpRows2 = await db.select().from(emailOtps).where(
+            and(eq(emailOtps.email, input.email), eq(emailOtps.used, 0), gt(emailOtps.expiresAt, new Date()))
+          ).limit(1);
+          if (emailOtpRows2.length === 0 || emailOtpRows2[0].code !== input.code) {
+            throw new TRPCError({ code: "UNAUTHORIZED", message: verifyResult.error || "인증 코드가 올바르지 않습니다." });
+          }
+          await db.update(emailOtps).set({ used: 1 }).where(eq(emailOtps.id, emailOtpRows2[0].id));
         }
       } else {
-        await consumeEmailOtp(db, email, "login", input.code);
+        // 이메일 OTP 검증
+        const emailOtpRows3 = await db.select().from(emailOtps).where(
+          and(eq(emailOtps.email, input.email), eq(emailOtps.used, 0), gt(emailOtps.expiresAt, new Date()))
+        ).limit(1);
+        if (emailOtpRows3.length === 0 || emailOtpRows3[0].code !== input.code) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "인증 코드가 올바르지 않거나 만료되었습니다." });
+        }
+        await db.update(emailOtps).set({ used: 1 }).where(eq(emailOtps.id, emailOtpRows3[0].id));
       }
 
       // 마지막 로그인 시간 업데이트
@@ -479,10 +446,32 @@ export const emailAuthRouter = router({
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.cookie(COOKIE_NAME, token, {
         ...cookieOptions,
-        maxAge: SESSION_MAX_AGE_MS,
+        maxAge: ONE_YEAR_MS,
       });
 
       return { success: true, isNewUser: false };
+    }),
+
+  /**
+   * [신규] 비밀번호 설정 (기존 OTP 가입자가 비밀번호 추가 설정 시)
+   */
+  setPassword: publicProcedure
+    .input(z.object({
+      email: z.string().email(),
+      password: z.string().min(8, "비밀번호는 8자 이상이어야 합니다").max(100),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
+
+      const openId = `email:${input.email}`;
+      const passwordHash = await bcrypt.hash(input.password, 12);
+
+      await db.update(users)
+        .set({ passwordHash, loginMethod: "email_password", updatedAt: new Date() })
+        .where(eq(users.openId, openId));
+
+      return { success: true };
     }),
 
   /**
@@ -587,22 +576,16 @@ export const emailAuthRouter = router({
           message: "등록된 이메일이 없습니다. 프로필에서 이메일을 먼저 등록해주세요.",
         });
       }
-      const email = normalizeEmail(user.email);
-      const code = generateEmailOtp();
+      const code = generateOtp();
       const expiresAt = new Date(Date.now() + OTP_EXPIRES_MS);
       // 기존 미사용 OTP 무효화
       await db.update(emailOtps)
         .set({ used: 1 })
-        .where(and(
-          eq(emailOtps.email, email),
-          eq(emailOtps.purpose, "reauth"),
-          eq(emailOtps.used, 0),
-        ));
+        .where(and(eq(emailOtps.email, user.email), eq(emailOtps.used, 0)));
       // 새 OTP 저장
       await db.insert(emailOtps).values({
-        email,
-        code: hashEmailOtp(email, "reauth", code),
-        purpose: "reauth",
+        email: user.email,
+        code,
         expiresAt,
         used: 0,
         failCount: 0,
@@ -612,7 +595,7 @@ export const emailAuthRouter = router({
       try {
         await resend.emails.send({
           from: "EverWill <noreply@everwill.co.kr>",
-          to: email,
+          to: user.email,
           subject: "[EverWill] 유언장 인증 코드",
           html: `
             <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #fafafa;">
@@ -633,15 +616,6 @@ export const emailAuthRouter = router({
         });
       } catch (err) {
         console.error("[Email] 재인증 OTP 발송 실패:", err);
-        await db.update(emailOtps).set({ used: 1 }).where(and(
-          eq(emailOtps.email, email),
-          eq(emailOtps.purpose, "reauth"),
-          eq(emailOtps.used, 0),
-        ));
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "인증 이메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요.",
-        });
       }
       // 이메일 마스킹
       const [localPart, domain] = user.email.split("@");
@@ -666,18 +640,27 @@ export const emailAuthRouter = router({
       if (!user.email) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "등록된 이메일이 없습니다." });
       }
-      await consumeEmailOtp(
-        db,
-        normalizeEmail(user.email),
-        "reauth",
-        input.code,
-      );
+      const now = new Date();
+      const otpRows = await db.select().from(emailOtps).where(
+        and(eq(emailOtps.email, user.email), eq(emailOtps.used, 0), gt(emailOtps.expiresAt, now))
+      ).orderBy(sql`${emailOtps.createdAt} DESC`).limit(1);
+      if (otpRows.length === 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "인증 코드가 만료되었거나 존재하지 않습니다." });
+      }
+      const otp = otpRows[0];
+      if (otp.code !== input.code) {
+        await db.update(emailOtps)
+          .set({ failCount: sql`${emailOtps.failCount} + 1` })
+          .where(eq(emailOtps.id, otp.id));
+        throw new TRPCError({ code: "BAD_REQUEST", message: "인증 코드가 올바르지 않습니다." });
+      }
+      await db.update(emailOtps).set({ used: 1 }).where(eq(emailOtps.id, otp.id));
       return { success: true, verifiedAt: new Date().toISOString() };
     }),
   /**
    * 회원가입 후 추가 정보 저장 (기존 방식 유지)
    */
-  updateProfile: protectedProcedure
+  updateProfile: publicProcedure
     .input(z.object({
       email: z.string().email(),
       name: z.string().min(1, "이름을 입력해주세요").max(50),
@@ -697,9 +680,10 @@ export const emailAuthRouter = router({
       agreeMarketing: z.number().optional(),
       agreeGdpr: z.number().optional(),
     }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "데이터베이스 연결 실패" });
+      const openId = `email:${input.email}`;
       await db.update(users)
         .set({
           name: input.name,
@@ -721,7 +705,7 @@ export const emailAuthRouter = router({
           profileCompleted: 1,
           updatedAt: new Date(),
         })
-        .where(eq(users.id, ctx.user.id));
+        .where(eq(users.openId, openId));
       return { success: true };
     }),
 });

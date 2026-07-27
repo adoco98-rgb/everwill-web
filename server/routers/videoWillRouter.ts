@@ -7,6 +7,7 @@ import { z } from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
 import { storagePut } from "../storage";
 import { getDb } from "../db";
+import { drizzle } from "drizzle-orm/mysql2";
 import { videoWills } from "../../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 import crypto from "crypto";

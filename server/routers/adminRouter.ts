@@ -9,7 +9,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { adminProcedure, router } from "../_core/trpc";
-import { getDb, revokeUserSessions } from "../db";
+import { getDb } from "../db";
 import { users, payments, wills, inquiries, assetVerifications, legacyLetters, lifeJournals, autobiographies } from "../../drizzle/schema";
 import type { Will } from "../../drizzle/schema";
 import { desc, eq, like, or, sql, and, gte } from "drizzle-orm";
@@ -31,10 +31,10 @@ export const adminRouter = router({
       .leftJoin(users, eq(wills.userId, users.id)).where(countryFilter);
     const paymentsBase = countryFilter
       ? db.select({ total: sql<number>`COALESCE(SUM(${payments.amountTotal}), 0)` }).from(payments).leftJoin(users, eq(payments.userId, users.id)).where(and(eq(payments.status, "completed"), countryFilter))
-      : db.select({ total: sql<number>`COALESCE(SUM(${payments.amountTotal}), 0)` }).from(payments).where(eq(payments.status, "completed"));
+      : db.select({ total: sql<number>`COALESCE(SUM(amountTotal), 0)` }).from(payments).where(eq(payments.status, "completed"));
     const monthPaymentsBase = countryFilter
       ? db.select({ total: sql<number>`COALESCE(SUM(${payments.amountTotal}), 0)` }).from(payments).leftJoin(users, eq(payments.userId, users.id)).where(and(eq(payments.status, "completed"), gte(payments.paidAt, monthStart), countryFilter))
-      : db.select({ total: sql<number>`COALESCE(SUM(${payments.amountTotal}), 0)` }).from(payments).where(and(eq(payments.status, "completed"), gte(payments.paidAt, monthStart)));
+      : db.select({ total: sql<number>`COALESCE(SUM(amountTotal), 0)` }).from(payments).where(and(eq(payments.status, "completed"), gte(payments.paidAt, monthStart)));
     const inquiriesBase = countryFilter
       ? db.select({ count: sql<number>`COUNT(*)` }).from(inquiries).leftJoin(users, eq(inquiries.userId, users.id)).where(and(eq(inquiries.status, "pending"), countryFilter))
       : db.select({ count: sql<number>`COUNT(*)` }).from(inquiries).where(eq(inquiries.status, "pending"));
@@ -118,7 +118,6 @@ export const adminRouter = router({
       await db.update(users)
         .set({ passwordHash: hash })
         .where(eq(users.id, input.userId));
-      await revokeUserSessions(input.userId);
       return { success: true };
     }),
 
@@ -759,19 +758,19 @@ export const adminCountryRouter = router({
       // 최근 12개월 월별 매출
       const rows = await db.execute(sql`
         SELECT
-          TO_CHAR(p."paidAt", 'YYYY-MM') AS month,
+          DATE_FORMAT(p.paidAt, '%Y-%m') as month,
           COALESCE(p.country, u.country, 'KR') as country,
-          COUNT(*)::integer as cnt,
-          COALESCE(SUM(p."amountTotal"), 0)::double precision as revenue
+          COUNT(*) as cnt,
+          COALESCE(SUM(p.amountTotal), 0) as revenue
         FROM payments p
-        LEFT JOIN users u ON p."userId" = u.id
+        LEFT JOIN users u ON p.userId = u.id
         WHERE p.status = 'completed'
-          AND p."paidAt" >= NOW() - INTERVAL '12 months'
+          AND p.paidAt >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
           ${input.country ? sql`AND COALESCE(p.country, u.country, 'KR') = ${input.country}` : sql``}
         GROUP BY month, COALESCE(p.country, u.country, 'KR')
         ORDER BY month ASC
       `);
-      const data = rows as unknown as Array<{ month: string; country: string; cnt: number; revenue: number }>;
+      const data = (rows as any)[0] as Array<{ month: string; country: string; cnt: number; revenue: number }>;
       return { data: data ?? [] };
     }),
 
@@ -819,12 +818,12 @@ export const adminCountryRouter = router({
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB 연결 실패" });
       const result = await db.execute(sql`
-        UPDATE payments AS p
-        SET country = COALESCE(u.country, 'KR')
-        FROM users AS u
-        WHERE p."userId" = u.id AND p.country IS NULL
+        UPDATE payments p
+        LEFT JOIN users u ON p.userId = u.id
+        SET p.country = COALESCE(u.country, 'KR')
+        WHERE p.country IS NULL
       `);
-      return { updated: (result as unknown as { count?: number }).count ?? 0 };
+      return { updated: (result as any)[0]?.affectedRows ?? 0 };
     }),
 
   /** 전체 국가별 매출 요약 (차트용) */
@@ -834,15 +833,15 @@ export const adminCountryRouter = router({
     const rows = await db.execute(sql`
       SELECT
         COALESCE(p.country, u.country, 'KR') as country,
-        COUNT(*)::integer as cnt,
-        COALESCE(SUM(p."amountTotal"), 0)::double precision as revenue,
-        COALESCE(SUM(CASE WHEN p."paidAt" >= NOW() - INTERVAL '30 days' THEN p."amountTotal" ELSE 0 END), 0)::double precision as "monthRevenue"
+        COUNT(*) as cnt,
+        COALESCE(SUM(p.amountTotal), 0) as revenue,
+        COALESCE(SUM(CASE WHEN p.paidAt >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN p.amountTotal ELSE 0 END), 0) as monthRevenue
       FROM payments p
-      LEFT JOIN users u ON p."userId" = u.id
+      LEFT JOIN users u ON p.userId = u.id
       WHERE p.status = 'completed'
       GROUP BY COALESCE(p.country, u.country, 'KR')
       ORDER BY revenue DESC
     `);
-    return { data: rows as unknown as Array<{ country: string; cnt: number; revenue: number; monthRevenue: number }> };
+    return { data: (rows as any)[0] as Array<{ country: string; cnt: number; revenue: number; monthRevenue: number }> };
   }),
 });

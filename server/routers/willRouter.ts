@@ -357,14 +357,14 @@ ${input.currentData ? JSON.stringify(input.currentData, null, 2) : "없음"}
 
         return { success: true, willId: input.willId, isNew: false };
       } else {
-        const [result] = await db.insert(wills).values({
+        const result = await db.insert(wills).values({
           userId,
           title,
           data: input.data,
           mode: input.mode,
           status: input.status,
-        }).returning({ id: wills.id });
-        const willId = result.id;
+        });
+        const willId = (result as any)[0]?.insertId ?? (result as any).insertId;
         return { success: true, willId, isNew: true };
       }
     }),

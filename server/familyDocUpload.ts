@@ -194,7 +194,7 @@ router.post("/api/family-doc/upload", upload.single("file"), async (req, res) =>
             sourceFileKey: savedKey,
             rawData: JSON.stringify(member),
           })
-          .returning({ id: familyMembers.id });
+          .$returningId();
         saved.push({ id: inserted.id, ...member });
       }
     }

@@ -165,7 +165,7 @@ export const familyMembersRouter = router({
               sourceFileKey: savedKey,
               rawData: JSON.stringify(member),
             })
-            .returning({ id: familyMembers.id });
+            .$returningId();
           saved.push({ id: inserted.id, ...member });
         }
       }
@@ -202,7 +202,7 @@ export const familyMembersRouter = router({
           address: input.address,
           source: "manual",
         })
-        .returning({ id: familyMembers.id });
+        .$returningId();
       return { id: inserted.id };
     }),
 

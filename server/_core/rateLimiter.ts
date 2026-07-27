@@ -4,18 +4,6 @@
  */
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 
-function findIdentifier(value: unknown): string {
-  if (!value || typeof value !== "object") return "";
-  const record = value as Record<string, unknown>;
-  const identifier = record.email ?? record.phone;
-  if (typeof identifier === "string") return identifier.trim().toLowerCase();
-  for (const nested of Object.values(record)) {
-    const found = findIdentifier(nested);
-    if (found) return found;
-  }
-  return "";
-}
-
 /**
  * OTP 발송 제한: 동일 IP에서 15분에 최대 5회
  * 이메일/휴대폰 OTP 발송 남용 방지
@@ -30,7 +18,8 @@ export const otpSendLimiter = rateLimit({
   },
   keyGenerator: (req) => {
     // IPv6 안전 IP 추출 + 이메일/전화번호 조합으로 키 생성 (더 정밀한 제한)
-    const identifier = findIdentifier(req.body);
+    const body = req.body as Record<string, unknown>;
+    const identifier = (body?.email as string) || (body?.phone as string) || "";
     const ip = ipKeyGenerator(req.ip ?? "");
     return `${ip}:${identifier}`;
   },
@@ -38,32 +27,6 @@ export const otpSendLimiter = rateLimit({
     // 개발 환경에서는 제한 비활성화
     return process.env.NODE_ENV === "development";
   },
-});
-
-export const loginAttemptLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    error: "로그인 시도가 너무 많습니다. 15분 후 다시 시도해주세요.",
-  },
-  keyGenerator: (req) =>
-    `${ipKeyGenerator(req.ip ?? "")}:${findIdentifier(req.body)}`,
-  skip: (req) => process.env.NODE_ENV === "development",
-});
-
-export const registrationLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    error: "회원가입 요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
-  },
-  keyGenerator: (req) =>
-    `${ipKeyGenerator(req.ip ?? "")}:${findIdentifier(req.body)}`,
-  skip: (req) => process.env.NODE_ENV === "development",
 });
 
 /**

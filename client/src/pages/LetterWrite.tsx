@@ -105,7 +105,7 @@ export default function LetterWrite() {
   const [, navigate] = useLocation();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
 
-  // 현재 단계 (1~5 + 6=수신자 + 7=첨부 + 8=결제)
+  // 현재 단계 (1~5 + 6=수신자 + 7=첨부 + 8=완료)
   const [step, setStep] = useState(1);
   const [title, setTitle] = useState("");
 
@@ -138,8 +138,6 @@ export default function LetterWrite() {
   const createMutation = trpc.farewell.create.useMutation();
   const updateMutation = trpc.farewell.update.useMutation();
   const addRecipientMutation = trpc.farewell.addRecipient.useMutation();
-  const paymentMutation = trpc.farewell.createPaymentSession.useMutation();
-
   const totalSteps = 8;
 
   // 로그인 체크
@@ -198,8 +196,8 @@ export default function LetterWrite() {
     }
   };
 
-  // 저장 후 결제
-  const handleSaveAndPay = async () => {
+  // 편지 저장 (결제 없이 바로 저장)
+  const handleSaveLetter = async () => {
     setSaving(true);
     try {
       let letterId = savedId;
@@ -240,12 +238,8 @@ export default function LetterWrite() {
         });
       }
 
-      // 결제 세션 생성
-      const { url } = await paymentMutation.mutateAsync({
-        letterId,
-        origin: window.location.origin,
-      });
-      if (url) window.open(url, "_blank");
+      toast.success("편지가 안전하게 보관되었습니다.");
+      navigate("/life-story");
     } catch (err: any) {
       toast.error("오류 발생: " + err.message);
     } finally {
@@ -447,6 +441,13 @@ export default function LetterWrite() {
                         }));
                         setShowPhotoUploader(prev => ({ ...prev, [step]: false }));
                       }}
+                      onOriginalUsed={(dataUrl) => {
+                        setStepArtworks(prev => ({
+                          ...prev,
+                          [step]: [...(prev[step] ?? []), { originalUrl: dataUrl, artworkUrl: dataUrl }],
+                        }));
+                        setShowPhotoUploader(prev => ({ ...prev, [step]: false }));
+                      }}
                       contextHint={s.title}
                       style="watercolor"
                     />
@@ -644,41 +645,21 @@ export default function LetterWrite() {
               </div>
             </div>
 
-            {/* 가격 안내 */}
-            <div className="bg-[#C9A961]/10 border border-[#C9A961]/30 rounded-xl p-4 space-y-3">
-              <h3 className="text-[#C9A961] font-bold text-sm">결제 안내</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-white/70">편지 작성 및 보관</span>
-                  <span className="text-white font-bold">₩9,900</span>
-                </div>
-                <div className="flex justify-between text-white/40 text-xs">
-                  <span>사망 후 자동 알림 (문자·이메일)</span>
-                  <span className="text-emerald-400">무료</span>
-                </div>
-                <div className="flex justify-between text-white/40 text-xs">
-                  <span>수신자 열람·프린트</span>
-                  <span>₩6,900 (수신자 결제)</span>
-                </div>
-                <div className="flex justify-between text-white/40 text-xs">
-                  <span>우편 발송</span>
-                  <span>₩19,900 (수신자 결제)</span>
-                </div>
-                <div className="border-t border-white/10 pt-2 flex justify-between text-white/40 text-xs">
-                  <span>수정 시</span>
-                  <span>₩4,900/회</span>
-                </div>
-              </div>
+            {/* 저장 안내 */}
+            <div className="bg-emerald-900/20 border border-emerald-500/30 rounded-xl p-4">
+              <p className="text-emerald-400 text-sm text-center">
+                ✅ EverWill 인증 회원 혜택으로 편지 보관이 포함되어 있습니다.
+              </p>
             </div>
 
-            {/* 결제 버튼 */}
-            <Button onClick={handleSaveAndPay} disabled={saving}
+            {/* 저장 버튼 */}
+            <Button onClick={handleSaveLetter} disabled={saving}
               className="w-full bg-[#C9A961] hover:bg-[#b8944d] text-[#1F3864] font-bold py-4 text-base">
               {saving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-              ₩9,900 결제하고 편지 보관하기
+              편지 안전하게 보관하기
             </Button>
             <p className="text-center text-xs text-white/30">
-              결제 후 편지는 암호화되어 안전하게 보관됩니다
+              편지는 암호화되어 안전하게 보관됩니다
             </p>
           </div>
         )}

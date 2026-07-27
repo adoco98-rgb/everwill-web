@@ -64,7 +64,7 @@ export async function buildPersonalContext(userId: number): Promise<string> {
   // 사용 횟수 업데이트
   await db
     .update(aiMemories)
-    .set({ lastUsedAt: new Date(), usageCount: sql`${aiMemories.usageCount} + 1` })
+    .set({ lastUsedAt: new Date(), usageCount: sql`usageCount + 1` })
     .where(eq(aiMemories.userId, userId));
 
   return lines.join("\n");
@@ -218,9 +218,9 @@ export const aiMemoryRouter = router({
         content: input.content,
         importance: input.importance,
         source: "manual",
-      }).returning({ id: aiMemories.id });
+      });
 
-      return { success: true, id: result.id };
+      return { success: true, id: result.insertId };
     }),
 
   // 메모리 삭제 (본인 것만)
@@ -341,8 +341,8 @@ ${personalContext ? `\n${personalContext}` : ""}
           purpose: input.purpose,
           title: input.message.slice(0, 50),
           messages: JSON.stringify([newMessage, newResponse]),
-        }).returning({ id: aiConversations.id });
-        conversationId = result.id;
+        });
+        conversationId = result.insertId;
       }
 
       // 7. 대화에서 메모리 자동 추출 (백그라운드)

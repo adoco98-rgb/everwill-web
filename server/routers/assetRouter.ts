@@ -56,8 +56,8 @@ export const assetRouter = router({
         currency: input.currency,
         country: input.country,
         details: input.details,
-      }).returning({ id: assets.id });
-      return { id: result.id, success: true };
+      });
+      return { id: (result as any).insertId, success: true };
     }),
 
   // ── 재산 수정 ──
@@ -122,8 +122,8 @@ export const assetRouter = router({
       const [result] = await db.insert(heirs).values({
         userId: ctx.user.id,
         ...input,
-      }).returning({ id: heirs.id });
-      return { id: result.id, success: true };
+      });
+      return { id: (result as any).insertId, success: true };
     }),
 
   // ── 상속자 수정 ──

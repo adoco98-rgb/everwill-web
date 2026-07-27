@@ -223,6 +223,9 @@ export default function MembershipPage() {
               </div>
               <div className="text-white min-w-0">
                 <p className="text-2xl font-bold tracking-wider truncate">{userName}</p>
+                {userNameEn && (
+                  <p className="text-white/80 text-sm font-medium tracking-widest uppercase mt-0.5">{userNameEn}</p>
+                )}
                 <p className="text-white/70 text-xs mt-0.5">유언자 본인</p>
               </div>
             </div>
